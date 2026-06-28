@@ -6,21 +6,63 @@
       "use": "@vercel/node"
     }
   ],
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/(.*)",
-      "dest": "/api/index.js"
+      "source": "/api/(.*)",
+      "destination": "/api/index.js"
     },
     {
-      "src": "/uploads/(.*)",
-      "dest": "/api/index.js"
+      "source": "/(pages/.*)",
+      "destination": "/frontend/$1"
     },
     {
-      "handle": "filesystem"
+      "source": "/(css/.*)",
+      "destination": "/frontend/$1"
     },
     {
-      "src": "/(.*)",
-      "dest": "/frontend/$1"
+      "source": "/(js/.*)",
+      "destination": "/frontend/$1"
+    },
+    {
+      "source": "/(icons/.*)",
+      "destination": "/frontend/$1"
+    },
+    {
+      "source": "/(live/.*)",
+      "destination": "/frontend/$1"
+    },
+    {
+      "source": "/manifest.webmanifest",
+      "destination": "/frontend/manifest.webmanifest"
+    },
+    {
+      "source": "/service-worker.js",
+      "destination": "/frontend/service-worker.js"
+    },
+    {
+      "source": "/offline.html",
+      "destination": "/frontend/offline.html"
+    },
+    {
+      "source": "/",
+      "destination": "/frontend/index.html"
+    },
+    {
+      "source": "/index.html",
+      "destination": "/frontend/index.html"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/frontend/$1"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options", "value": "nosniff" },
+        { "key": "X-Frame-Options", "value": "DENY" }
+      ]
     }
   ]
 }

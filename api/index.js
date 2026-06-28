@@ -3,30 +3,44 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const compression = require('compression');
-const path = require('path');
 
 const { connectDB } = require('../backend/config/db');
 const { logger, requestLogger } = require('../backend/config/logger');
-const User = require('../backend/models/User');
 const { generalLimiter } = require('../backend/middleware/rateLimiter');
 const errorHandler = require('../backend/middleware/errorMiddleware');
 const correlationId = require('../backend/middleware/correlationId');
 const sanitize = require('../backend/middleware/sanitize');
 
 let isConnected = false;
+let connectionError = null;
 
 async function ensureConnection() {
   if (isConnected) return;
-  await connectDB();
-  isConnected = true;
+  if (connectionError) throw connectionError;
 
-  const email = process.env.SUPER_ADMIN_EMAIL;
-  const password = process.env.SUPER_ADMIN_PASSWORD;
-  if (email && password) {
-    const existing = await User.findOne({ email });
-    if (!existing) {
-      await User.create({ name: 'Super Admin', email, password, role: 'superadmin', isActive: true });
+  if (!process.env.MONGO_URI) {
+    const err = new Error('MONGO_URI environment variable is not set. Please configure it in Vercel project settings.');
+    err.status = 503;
+    connectionError = err;
+    throw err;
+  }
+
+  try {
+    await connectDB();
+    isConnected = true;
+
+    const email = process.env.SUPER_ADMIN_EMAIL;
+    const password = process.env.SUPER_ADMIN_PASSWORD;
+    if (email && password) {
+      const User = require('../backend/models/User');
+      const existing = await User.findOne({ email });
+      if (!existing) {
+        await User.create({ name: 'Super Admin', email, password, role: 'superadmin', isActive: true });
+      }
     }
+  } catch (error) {
+    connectionError = error;
+    throw error;
   }
 }
 
@@ -43,22 +57,38 @@ app.use(sanitize);
 app.use(requestLogger);
 app.use(generalLimiter);
 
+// Health check (no DB required)
+app.get('/api/health', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Vishva ERP API is running',
+    env: {
+      MONGO_URI: process.env.MONGO_URI ? 'configured' : 'MISSING',
+      JWT_SECRET: process.env.JWT_SECRET ? 'configured' : 'MISSING',
+    },
+  });
+});
+
+// Ensure DB connection before handling API requests
+app.use('/api', async (req, res, next) => {
+  if (req.path === '/health') return next();
+  try {
+    await ensureConnection();
+    next();
+  } catch (error) {
+    const status = error.status || 500;
+    res.status(status).json({
+      success: false,
+      message: error.message || 'Service unavailable',
+    });
+  }
+});
+
 // Deprecation header for legacy /api/ routes
 app.use('/api', (req, res, next) => {
   res.setHeader('X-API-Deprecated', 'true');
   res.setHeader('X-API-Deprecation-Info', 'Use /api/v1/ instead');
   next();
-});
-
-// Ensure DB connection before handling requests
-app.use(async (req, res, next) => {
-  try {
-    await ensureConnection();
-    next();
-  } catch (error) {
-    logger.error('DB connection failed', { error: error.message });
-    res.status(500).json({ success: false, message: 'Database connection failed' });
-  }
 });
 
 // ── API v1 (preferred)
@@ -80,7 +110,6 @@ app.use('/api/notices', require('../backend/modules/noticesRoutes'));
 app.use('/api/communications', require('../backend/modules/communicationsRoutes'));
 app.use('/api/notifications', require('../backend/routes/notifications'));
 app.use('/api/config', require('../backend/routes/config'));
-app.use('/api/health', require('../backend/routes/health'));
 app.use('/api/upload', require('../backend/routes/upload'));
 app.use('/api/reports', require('../backend/routes/reports'));
 
