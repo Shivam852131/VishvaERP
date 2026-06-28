@@ -4,65 +4,68 @@
     {
       "src": "api/index.js",
       "use": "@vercel/node"
+    },
+    {
+      "src": "frontend/**",
+      "use": "@vercel/static"
     }
   ],
-  "rewrites": [
+  "routes": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api/index.js"
+      "src": "/api/(.*)",
+      "dest": "/api/index.js"
     },
     {
-      "source": "/(pages/.*)",
-      "destination": "/frontend/$1"
+      "src": "/uploads/(.*)",
+      "dest": "/api/index.js"
     },
     {
-      "source": "/(css/.*)",
-      "destination": "/frontend/$1"
+      "src": "/",
+      "dest": "/frontend/index.html"
     },
     {
-      "source": "/(js/.*)",
-      "destination": "/frontend/$1"
+      "src": "/index.html",
+      "dest": "/frontend/index.html"
     },
     {
-      "source": "/(icons/.*)",
-      "destination": "/frontend/$1"
+      "src": "/manifest\\.webmanifest",
+      "dest": "/frontend/manifest.webmanifest"
     },
     {
-      "source": "/(live/.*)",
-      "destination": "/frontend/$1"
+      "src": "/service-worker\\.js",
+      "dest": "/frontend/service-worker.js"
     },
     {
-      "source": "/manifest.webmanifest",
-      "destination": "/frontend/manifest.webmanifest"
+      "src": "/offline\\.html",
+      "dest": "/frontend/offline.html"
     },
     {
-      "source": "/service-worker.js",
-      "destination": "/frontend/service-worker.js"
+      "src": "/css/(.*)",
+      "dest": "/frontend/css/$1"
     },
     {
-      "source": "/offline.html",
-      "destination": "/frontend/offline.html"
+      "src": "/js/(.*)",
+      "dest": "/frontend/js/$1"
     },
     {
-      "source": "/",
-      "destination": "/frontend/index.html"
+      "src": "/icons/(.*)",
+      "dest": "/frontend/icons/$1"
     },
     {
-      "source": "/index.html",
-      "destination": "/frontend/index.html"
+      "src": "/live/(.*)",
+      "dest": "/frontend/live/$1"
     },
     {
-      "source": "/(.*)",
-      "destination": "/frontend/$1"
-    }
-  ],
-  "headers": [
+      "src": "/pages/(.*)",
+      "dest": "/frontend/pages/$1"
+    },
     {
-      "source": "/(.*)",
-      "headers": [
-        { "key": "X-Content-Type-Options", "value": "nosniff" },
-        { "key": "X-Frame-Options", "value": "DENY" }
-      ]
+      "src": "/docs/(.*)",
+      "dest": "/frontend/docs/$1"
+    },
+    {
+      "src": "/(.*\\.html)",
+      "dest": "/frontend/$1"
     }
   ]
 }
