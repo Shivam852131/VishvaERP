@@ -1,8 +1,11 @@
 const fs = require('fs');
 const path = require('path');
-const sharp = require('sharp');
 
-const UPLOAD_DIR = path.resolve(__dirname, '..', 'uploads');
+let sharp;
+try { sharp = require('sharp'); } catch (e) { sharp = null; }
+
+const isVercel = !!process.env.VERCEL;
+const UPLOAD_DIR = isVercel ? '/tmp/uploads' : path.resolve(__dirname, '..', 'uploads');
 const MAX_IMAGE_DIMENSION = 2048;
 const AVATAR_SIZE = 400;
 const JPEG_QUALITY = 85;
@@ -16,17 +19,21 @@ const dirs = {
   temp: path.join(UPLOAD_DIR, 'temp'),
 };
 
+let directoriesEnsured = false;
 function ensureDirectories() {
+  if (directoriesEnsured || isVercel) return;
   Object.values(dirs).forEach((dir) => {
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
   });
+  directoriesEnsured = true;
 }
 
 ensureDirectories();
 
 async function processImage(inputBuffer, options = {}) {
+  if (!sharp) return inputBuffer;
   const {
     maxWidth = MAX_IMAGE_DIMENSION,
     maxHeight = MAX_IMAGE_DIMENSION,
@@ -42,6 +49,7 @@ async function processImage(inputBuffer, options = {}) {
 }
 
 async function createAvatar(inputBuffer) {
+  if (!sharp) return inputBuffer;
   return sharp(inputBuffer)
     .resize(AVATAR_SIZE, AVATAR_SIZE, { fit: 'cover', position: 'centre' })
     .toFormat('jpeg', { quality: JPEG_QUALITY })
