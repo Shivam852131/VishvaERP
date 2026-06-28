@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Attendance — Student | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="../../css/custom.css">
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-student" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)" id="sidebar-avatar">S</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Student</div><div class="sidebar-user-role">B.Tech CS • Sem 4</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <div class="nav-section-label">Academics</div>
+      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-reader"></i> My Courses</a>
+      <a href="attendance.html" class="nav-link active"><i class="nav-link-icon fas fa-calendar-alt"></i> Attendance</a>
+      <a href="results.html" class="nav-link"><i class="nav-link-icon fas fa-poll"></i> Results</a>
+      <a href="assignments.html" class="nav-link"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
+      <a href="timetable.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-week"></i> Timetable</a>
+      <div class="nav-section-label">Finance</div>
+      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-receipt"></i> Fees</a>
+      <div class="nav-section-label">Facilities</div>
+      <a href="library.html" class="nav-link"><i class="nav-link-icon fas fa-book"></i> Library</a>
+      <div class="nav-section-label">Tools</div>
+      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-brain"></i> AI Services</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">Student / <span>Attendance</span></div>
+      </div>
+      <div class="topbar-right"><div class="topbar-avatar" id="topbar-avatar">S</div></div>
+    </header>
+
+    <div class="erp-content">
+      <div class="page-header">
+        <h1 class="page-title">My Attendance</h1>
+        <p class="page-subtitle">Track subject risk, daily status, smart attendance source, and exam eligibility.</p>
+      </div>
+
+      <!-- Overall -->
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
+        <div class="stat-card"><div class="stat-icon" style="background:#D1FAE5;color:#065F46"><i class="fas fa-percentage"></i></div><div class="stat-label">Overall</div><div class="stat-value" style="color:#059669"><span data-counter="85" data-suffix="%">85%</span></div><div class="stat-change up"><i class="fas fa-check-circle"></i> Above 75%</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#DBEAFE;color:#1E40AF"><i class="fas fa-calendar-check"></i></div><div class="stat-label">Classes Present</div><div class="stat-value" data-counter="102">102</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#FEE2E2;color:#991B1B"><i class="fas fa-calendar-times"></i></div><div class="stat-label">Classes Absent</div><div class="stat-value" data-counter="18">18</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#FEF3C7;color:#92400E"><i class="fas fa-exclamation-triangle"></i></div><div class="stat-label">Shortage Risk</div><div class="stat-value">2 Subjects</div><div class="stat-change down"><i class="fas fa-exclamation-circle"></i> Below 75%</div></div>
+      </div>
+
+      <div class="attendance-intelligence-grid mb-6">
+        <div class="attendance-insight-card">
+          <div class="insight-kicker">Today status</div>
+          <div id="studentTodayAttendance" class="attendance-insight-body">Loading today's attendance...</div>
+        </div>
+        <div class="attendance-insight-card">
+          <div class="insight-kicker">Eligibility forecast</div>
+          <div id="studentEligibilityPlan" class="attendance-insight-body">Loading eligibility forecast...</div>
+        </div>
+        <div class="attendance-insight-card">
+          <div class="insight-kicker">Source mix</div>
+          <div id="studentAttendanceSourceMix" class="attendance-insight-body">Loading source mix...</div>
+        </div>
+      </div>
+
+      <div class="smart-attendance-panel mb-6">
+        <div class="smart-attendance-hero">
+          <div>
+            <div class="smart-kicker">Privacy-first smart attendance</div>
+            <h2>Live Classroom Check-in</h2>
+            <p>Enable consent to let VishvaERP use your device location only during scheduled class periods for automatic attendance.</p>
+          </div>
+          <div class="smart-actions">
+            <button class="btn btn-secondary" id="locationConsentBtn" onclick="toggleLocationConsent()"><i class="fas fa-user-shield"></i> Loading Consent</button>
+            <button class="btn btn-success" id="studentLocationBtn" onclick="startStudentSmartAttendance()"><i class="fas fa-location-arrow"></i> Start Live Check-in</button>
+          </div>
+        </div>
+        <div class="smart-privacy-note" id="studentSmartStatus"><i class="fas fa-shield-halved"></i> Location sharing is off until you grant consent and start live check-in.</div>
+        <div class="smart-presence-stats">
+          <div><span>Consent</span><strong id="studentConsentState">--</strong></div>
+          <div><span>Active Class</span><strong id="studentSmartClass">--</strong></div>
+          <div><span>Live Status</span><strong id="studentSmartPresence">--</strong></div>
+          <div><span>Auto Attendance</span><strong id="studentSmartAttendance">--</strong></div>
+        </div>
+      </div>
+
+      <div class="grid col-2 mb-6">
+        <div class="card">
+          <div class="card-header"><div class="card-title"><i class="fas fa-chart-bar" style="color:#0284C7;margin-right:8px"></i>Subject-wise Attendance</div></div>
+          <div class="card-body"><div class="chart-container" style="height:240px"><canvas id="subjectAttChart"></canvas></div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title"><i class="fas fa-chart-line" style="color:#059669;margin-right:8px"></i>Monthly Trend</div></div>
+          <div class="card-body"><div class="chart-container" style="height:240px"><canvas id="monthlyAttChart"></canvas></div></div>
+        </div>
+      </div>
+
+      <!-- Subject-wise breakdown -->
+      <div class="card">
+        <div class="card-header"><div class="card-title">Subject-wise Breakdown</div></div>
+        <div class="table-wrap">
+          <table class="erp-table">
+            <thead><tr><th>Subject</th><th>Code</th><th>Total Classes</th><th>Present</th><th>Absent</th><th>Attendance %</th><th>Status</th></tr></thead>
+            <tbody id="attBreakdownBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card mt-6">
+        <div class="card-header"><div class="card-title"><i class="fas fa-list-check" style="color:#4F46E5;margin-right:8px"></i>Recent Attendance Ledger</div><span class="badge badge-gray">Latest 8</span></div>
+        <div class="table-wrap">
+          <table class="erp-table">
+            <thead><tr><th>Date</th><th>Subject</th><th>Status</th><th>Source</th><th>Remarks</th></tr></thead>
+            <tbody id="recentAttendanceBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script src="../../live/live-pages.js"></script>
+</body>
+</html>

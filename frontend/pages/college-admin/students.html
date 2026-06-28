@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Students — College Admin | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../css/custom.css">
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-college" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" id="sidebar-avatar">A</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Admin</div><div class="sidebar-user-role">College Administrator</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <div class="nav-section-label">Academics</div>
+      <a href="students.html" class="nav-link active"><i class="nav-link-icon fas fa-user-graduate"></i> Students</a>
+      <a href="faculty.html" class="nav-link"><i class="nav-link-icon fas fa-chalkboard-teacher"></i> Faculty</a>
+      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-open"></i> Courses & Exams</a>
+      <a href="notices.html" class="nav-link"><i class="nav-link-icon fas fa-bullhorn"></i> Notice Board</a>
+      <div class="nav-section-label">Finance & HR</div>
+      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-file-invoice-dollar"></i> Fee Management</a>
+      <a href="hr.html" class="nav-link"><i class="nav-link-icon fas fa-user-md"></i> HR & Leave</a>
+      <div class="nav-section-label">Facilities</div>
+      <a href="logistics.html" class="nav-link"><i class="nav-link-icon fas fa-bus"></i> Logistics & Hostel</a>
+      <div class="nav-section-label">Tools</div>
+      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Hub</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">College Admin / <span>Students</span></div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-primary" onclick="openModal('addStudentModal')"><i class="fas fa-user-plus"></i> Add Student</button>
+        <div class="topbar-avatar" id="topbar-avatar">A</div>
+      </div>
+    </header>
+
+    <div class="erp-content">
+      <div class="page-header">
+        <h1 class="page-title">🎓 Student Management</h1>
+        <p class="page-subtitle">Manage all students enrolled in your institution.</p>
+      </div>
+
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
+        <div class="stat-card"><div class="stat-icon" style="background:#EDE9FE;color:#5B21B6"><i class="fas fa-user-graduate"></i></div><div class="stat-label">Total Students</div><div class="stat-value" data-counter="450">450</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#D1FAE5;color:#065F46"><i class="fas fa-check-circle"></i></div><div class="stat-label">Active</div><div class="stat-value" data-counter="432">432</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#FEF3C7;color:#92400E"><i class="fas fa-exclamation-triangle"></i></div><div class="stat-label">Fee Pending</div><div class="stat-value" data-counter="32">32</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#DBEAFE;color:#1E40AF"><i class="fas fa-home"></i></div><div class="stat-label">Hostel Residents</div><div class="stat-value" data-counter="180">180</div></div>
+      </div>
+
+      <!-- Filter bar -->
+      <div class="card mb-4">
+        <div class="card-body" style="padding:12px 20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+          <div class="search-bar" style="flex:1;min-width:200px"><i class="fas fa-search"></i><input type="text" placeholder="Search by name, roll no, email..." id="studentSearch"></div>
+          <select class="form-control" style="width:160px" id="branchFilter"><option value="">All Branches</option><option>B.Tech CS</option><option>B.Tech EC</option><option>B.Tech ME</option><option>MBA</option><option>MCA</option></select>
+          <select class="form-control" style="width:140px" id="semFilter"><option value="">All Sems</option><option>Sem 1</option><option>Sem 2</option><option>Sem 3</option><option>Sem 4</option><option>Sem 5</option><option>Sem 6</option></select>
+          <select class="form-control" style="width:140px" id="feeFilter"><option value="">Fee Status</option><option value="paid">Paid</option><option value="pending">Pending</option><option value="overdue">Overdue</option></select>
+          <button class="btn btn-secondary btn-sm"><i class="fas fa-times"></i> Clear</button>
+          <button class="btn btn-secondary btn-sm" id="exportBtn"><i class="fas fa-download"></i> Export</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="table-wrap">
+          <table class="erp-table">
+            <thead>
+              <tr><th>#</th><th>Student</th><th>Roll No</th><th>Branch / Sem</th><th>Phone</th><th>Fee Status</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="studentsBody"></tbody>
+          </table>
+        </div>
+        <div class="card-footer" style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:13px;color:#64748B">Total: <strong id="countDisplay">0</strong> students</span>
+          <div style="display:flex;gap:6px" id="pagination"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD STUDENT MODAL -->
+<div class="modal-backdrop" id="addStudentModal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <div class="modal-title"><i class="fas fa-user-plus" style="color:#4F46E5;margin-right:8px"></i>Enroll New Student</div>
+      <button class="modal-close" onclick="closeModal('addStudentModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <form id="addStudentForm">
+        <div class="form-grid-2">
+          <div class="form-group"><label class="form-label">Full Name *</label><input class="form-control" id="sName" required placeholder="Student's full name"></div>
+          <div class="form-group"><label class="form-label">Roll Number *</label><input class="form-control" id="sRoll" required placeholder="e.g. 2021CS001"></div>
+        </div>
+        <div class="form-grid-2">
+          <div class="form-group"><label class="form-label">Email *</label><input class="form-control" type="email" id="sEmail" required placeholder="student@college.com"></div>
+          <div class="form-group"><label class="form-label">Phone</label><input class="form-control" id="sPhone" placeholder="+91 ..."></div>
+        </div>
+        <div class="form-grid-3">
+          <div class="form-group"><label class="form-label">Branch *</label>
+            <select class="form-control" id="sBranch" required>
+              <option value="">Select Branch</option>
+              <option>B.Tech CS</option><option>B.Tech EC</option><option>B.Tech ME</option><option>MBA</option><option>MCA</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">Semester *</label>
+            <select class="form-control" id="sSem" required>
+              <option value="">Select Semester</option>
+              <option>Sem 1</option><option>Sem 2</option><option>Sem 3</option><option>Sem 4</option><option>Sem 5</option><option>Sem 6</option>
+            </select>
+          </div>
+          <div class="form-group"><label class="form-label">Password *</label><input class="form-control" type="password" id="sPass" required placeholder="Min. 8 chars"></div>
+        </div>
+        <div class="form-grid-3">
+          <div class="form-group"><label class="form-label">Enrollment No.</label><input class="form-control" id="sEnrollment" placeholder="University enrollment ID"></div>
+          <div class="form-group"><label class="form-label">Section</label><input class="form-control" id="sSection" placeholder="e.g. A"></div>
+          <div class="form-group"><label class="form-label">Admission Date</label><input class="form-control" type="date" id="sAdmissionDate"></div>
+        </div>
+        <div class="form-grid-3">
+          <div class="form-group"><label class="form-label">Date of Birth</label><input class="form-control" type="date" id="sDob"></div>
+          <div class="form-group"><label class="form-label">Gender</label><select class="form-control" id="sGender"><option value="">Select Gender</option><option value="male">Male</option><option value="female">Female</option><option value="other">Other</option></select></div>
+          <div class="form-group"><label class="form-label">Blood Group</label><input class="form-control" id="sBloodGroup" placeholder="e.g. O+"></div>
+        </div>
+        <div class="form-grid-2">
+          <div class="form-group"><label class="form-label">Parent/Guardian Name</label><input class="form-control" id="sParent" placeholder="Parent full name"></div>
+          <div class="form-group"><label class="form-label">Parent Email</label><input class="form-control" type="email" id="sParentEmail" placeholder="parent@gmail.com"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Address</label><textarea class="form-control" id="sAddress" placeholder="Home address" rows="2"></textarea></div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('addStudentModal')">Cancel</button>
+      <button class="btn btn-primary" id="addStudentBtn" onclick="submitStudent()"><i class="fas fa-check"></i> Enroll Student</button>
+    </div>
+  </div>
+</div>
+
+<!-- VIEW STUDENT MODAL -->
+<div class="modal-backdrop" id="viewStudentModal">
+  <div class="modal modal-lg">
+    <div class="modal-header"><div class="modal-title" id="viewStudentTitle">Student Profile</div><button class="modal-close" onclick="closeModal('viewStudentModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body" id="viewStudentBody"></div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script src="../../live/live-admin-pages.js"></script>
+</body>
+</html>

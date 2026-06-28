@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Dashboard | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="../../css/custom.css">
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-student" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)" id="sidebar-avatar">S</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Student</div><div class="sidebar-user-role" id="sidebar-user-role">B.Tech CS • Sem 4</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link active"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <div class="nav-section-label">Academics</div>
+      <a href="live-class.html" class="nav-link"><i class="nav-link-icon fas fa-video"></i> Live Classes</a>
+      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-reader"></i> My Courses</a>
+      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Attendance</a>
+      <a href="results.html" class="nav-link"><i class="nav-link-icon fas fa-poll"></i> Results</a>
+      <a href="assignments.html" class="nav-link"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
+      <a href="timetable.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-week"></i> Timetable</a>
+      <div class="nav-section-label">Finance</div>
+      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-receipt"></i> Fees</a>
+      <div class="nav-section-label">Facilities</div>
+      <a href="library.html" class="nav-link"><i class="nav-link-icon fas fa-book"></i> Library</a>
+      <div class="nav-section-label">Tools</div>
+      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-brain"></i> AI Services</a>
+      <a href="../messages.html" class="nav-link"><i class="nav-link-icon fas fa-comment-dots"></i> Chat</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">Student / <span>Dashboard</span></div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-search" onclick="openCommandPalette()" style="cursor:pointer; margin-right: 10px;">
+          <i class="fas fa-search"></i>
+          <span style="font-size:13px;color:var(--text-muted)">Search...</span>
+        </div>
+        <div style="position:relative">
+          <button class="topbar-btn" id="notif-btn"><i class="fas fa-bell"></i><span class="topbar-badge">2</span></button>
+          <div class="notif-panel" id="notif-panel">
+            <div style="padding:14px 16px;border-bottom:1px solid #F1F5F9;font-weight:700;font-size:14px">Notifications</div>
+            <div class="notif-item unread"><div class="notif-dot"></div><div><div style="font-size:13px;font-weight:600">Fee Deadline Alert</div><div style="font-size:12px;color:#64748B">Last date to pay is April 15</div></div></div>
+            <div class="notif-item unread"><div class="notif-dot"></div><div><div style="font-size:13px;font-weight:600">Assignment Due</div><div style="font-size:12px;color:#64748B">DSA Assignment 3 due tomorrow</div></div></div>
+          </div>
+        </div>
+        <div class="topbar-avatar" id="topbar-avatar">S</div>
+      </div>
+    </header>
+
+    <div class="erp-content page-enter">
+      <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+        <div>
+          <h1 class="page-title" id="welcomeMsg">What's up, Student!</h1>
+          <p class="page-subtitle">Here's your academic overview for the current term.</p>
+        </div>
+        <a href="../ai-tools.html" class="btn btn-primary"><i class="fas fa-brain"></i> Ask AI Tutor</a>
+      </div>
+
+      <!-- STATS -->
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
+        <div class="stat-card"><div class="stat-card-accent" style="background:#0EA5E9"></div><div class="stat-icon" style="background:#E0F2FE;color:#0369A1"><i class="fas fa-percentage"></i></div><div class="stat-label">Attendance</div><div class="stat-value" style="color:#0284C7"><span data-counter="85" data-suffix="%">85%</span></div><div class="stat-change up"><i class="fas fa-arrow-up"></i> 2% this week</div></div>
+        <div class="stat-card"><div class="stat-card-accent" style="background:#8B5CF6"></div><div class="stat-icon" style="background:#EDE9FE;color:#5B21B6"><i class="fas fa-star"></i></div><div class="stat-label">CGPA</div><div class="stat-value" style="color:#5B21B6">8.4</div><div class="stat-change up"><i class="fas fa-arrow-up"></i> Sem 3 result</div></div>
+        <div class="stat-card"><div class="stat-card-accent" style="background:#F59E0B"></div><div class="stat-icon" style="background:#FEF3C7;color:#92400E"><i class="fas fa-tasks"></i></div><div class="stat-label">Assignments</div><div class="stat-value" style="color:#D97706"><span data-counter="2">2</span> Pending</div><div class="stat-change down"><i class="fas fa-clock"></i> 1 due tomorrow</div></div>
+        <div class="stat-card" style="background:linear-gradient(135deg,#EDE9FE,#DBEAFE);border-color:#C4B5FD;cursor:pointer" onclick="window.location.href='../ai-tools.html'"><div class="stat-icon" style="background:rgba(255,255,255,0.6);color:#5B21B6"><i class="fas fa-brain"></i></div><div class="stat-label">AI Mock Interview</div><div style="margin-top:8px"><button class="btn btn-primary btn-sm" onclick="window.location.href='../ai-tools.html'">Practice Now</button></div></div>
+      </div>
+
+      <div class="grid col-2 mb-6">
+        <!-- PERFORMANCE CHART -->
+        <div class="card">
+          <div class="card-header"><div class="card-title"><i class="fas fa-chart-line" style="color:#0284C7;margin-right:8px"></i>Academic Performance (SGPA)</div></div>
+          <div class="card-body"><div class="chart-container" style="height:220px"><canvas id="sgpaChart"></canvas></div></div>
+        </div>
+
+        <!-- NOTICE BOARD -->
+        <div class="card">
+          <div class="card-header"><div class="card-title"><i class="fas fa-bullhorn" style="color:#EF4444;margin-right:8px"></i>Notices</div><span class="badge badge-danger">2 New</span></div>
+          <div class="card-body" style="padding:12px;display:flex;flex-direction:column;gap:10px" id="noticesBody">
+            <div style="border-left:3px solid #EF4444;padding:10px 12px;background:#EF444408;border-radius:0 8px 8px 0"><div style="font-weight:700;font-size:13px;margin-bottom:2px">Fee Submission Deadline</div><div style="font-size:12px;color:#64748B">Last date is April 15. Avoid late fine.</div></div>
+            <div style="border-left:3px solid #4F46E5;padding:10px 12px;background:#4F46E508;border-radius:0 8px 8px 0"><div style="font-weight:700;font-size:13px;margin-bottom:2px">Mid-Semester Exam Schedule</div><div style="font-size:12px;color:#64748B">Exams begin April 18. Check timetable.</div></div>
+            <div style="border-left:3px solid #10B981;padding:10px 12px;background:#10B98108;border-radius:0 8px 8px 0"><div style="font-weight:700;font-size:13px;margin-bottom:2px">Tech Fest 2026</div><div style="font-size:12px;color:#64748B">Register for coding events by April 20.</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FACILITIES + TODAY'S CLASSES -->
+      <div class="grid col-3 mb-6">
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div class="card" style="padding:18px">
+            <div style="display:flex;align-items:center;gap:12px">
+              <div class="stat-icon" style="background:#CCFBF1;color:#0F766E"><i class="fas fa-building"></i></div>
+              <div><div style="font-size:12px;color:#64748B">Hostel</div><div style="font-weight:700;font-size:14px">Ganga Block • Room 204</div><div style="font-size:11px;color:#94A3B8">Warden: Dr. R.K. Singh</div></div>
+            </div>
+          </div>
+          <div class="card" style="padding:18px">
+            <div style="display:flex;align-items:center;gap:12px">
+              <div class="stat-icon" style="background:#FEF3C7;color:#92400E"><i class="fas fa-bus"></i></div>
+              <div><div style="font-size:12px;color:#64748B">Transport</div><div style="font-weight:700;font-size:14px">Route 7 • City Center</div><div style="font-size:12px;color:#059669;font-weight:600"><i class="fas fa-circle" style="font-size:7px"></i> Bus is 2 mins away</div></div>
+            </div>
+          </div>
+          <div class="card" style="padding:18px">
+            <div style="display:flex;align-items:center;gap:12px">
+              <div class="stat-icon" style="background:#EDE9FE;color:#5B21B6"><i class="fas fa-money-bill-wave"></i></div>
+              <div><div style="font-size:12px;color:#64748B">Fee Status</div><div style="font-weight:700;font-size:14px">₹55,000 Due</div><div style="font-size:11px;color:#EF4444">Deadline: Apr 15</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="grid-column:span 2">
+          <div class="card-header"><div class="card-title"><i class="fas fa-calendar-day" style="color:#0284C7;margin-right:8px"></i>Today's Classes</div><a href="timetable.html" class="btn btn-sm btn-secondary">Full Schedule</a></div>
+          <div class="card-body" style="padding:12px;display:flex;flex-direction:column;gap:8px">
+            <div style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;border:1px solid #BAE6FD;background:#F0F9FF">
+              <div style="min-width:60px;text-align:center"><div style="font-weight:700;font-size:13px;color:#0284C7">09:00 AM</div></div>
+              <div style="flex:1"><div style="font-weight:700;font-size:13px">Data Structures</div><div style="font-size:11px;color:#64748B">Dr. Rajesh Kumar • Room 302</div></div>
+              <span class="badge badge-info">Now</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;border:1px solid #E2E8F0;background:white">
+              <div style="min-width:60px;text-align:center"><div style="font-weight:700;font-size:13px;color:#64748B">11:30 AM</div></div>
+              <div style="flex:1"><div style="font-weight:700;font-size:13px">DBMS Lab</div><div style="font-size:11px;color:#64748B">Prof. Anjali Sharma • Lab 1</div></div>
+              <span class="badge badge-gray">Upcoming</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;border:1px solid #E2E8F0;background:white">
+              <div style="min-width:60px;text-align:center"><div style="font-weight:700;font-size:13px;color:#64748B">02:00 PM</div></div>
+              <div style="flex:1"><div style="font-weight:700;font-size:13px">Operating Systems</div><div style="font-size:11px;color:#64748B">Dr. Rajesh Kumar • Room 204</div></div>
+              <span class="badge badge-gray">Upcoming</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script src="../../live/live-pages.js"></script>
+</body>
+</html>

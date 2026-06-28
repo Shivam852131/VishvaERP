@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Vishva ERP | AI-Powered Campus ERP for Colleges and Universities</title>
+  <meta name="description" content="Vishva ERP is an AI-powered campus ERP for colleges and universities covering admissions, timetable, smart attendance, exams, finance, HR, logistics, portals, and analytics.">
+  <meta name="theme-color" content="#4F46E5">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="VishvaERP">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png">
+  <meta name="application-name" content="Vishva ERP">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="./css/custom.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: '#4F46E5',
+            ink: '#0F172A'
+          }
+        }
+      }
+    };
+  </script>
+</head>
+<body class="landing-page antialiased">
+  <nav class="fixed top-0 z-50 w-full landing-nav" id="mainNav">
+    <div class="scroll-progress" id="scrollProgress"></div>
+    <div class="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+      <a href="#top" class="flex items-center gap-3 text-white" aria-label="Vishva ERP home">
+        <span class="brand-mark">V</span>
+        <span class="leading-tight">
+          <span class="block text-xl font-extrabold tracking-tight">Vishva<span class="font-medium">ERP</span></span>
+          <span class="block text-[10px] font-bold uppercase tracking-[0.24em] text-indigo-100">Campus OS</span>
+        </span>
+      </a>
+
+      <div class="hidden items-center gap-1 lg:flex">
+        <a href="#outcomes" class="landing-nav-link">Outcomes</a>
+        <a href="#platform" class="landing-nav-link">Platform</a>
+        <a href="#modules" class="landing-nav-link">Modules</a>
+        <a href="#security" class="landing-nav-link">Security</a>
+        <a href="#plans" class="landing-nav-link">Plans</a>
+      </div>
+
+      <div class="hidden items-center gap-3 md:flex">
+        <button onclick="openCommandPalette()" class="landing-icon-btn" aria-label="Open search">
+          <i class="fas fa-search"></i>
+        </button>
+        <button id="theme-toggle" class="landing-icon-btn" aria-label="Toggle theme">
+          <i class="fas fa-moon"></i>
+        </button>
+        <button class="landing-install-link" data-install-app><i class="fas fa-download"></i> Install App</button>
+        <a href="./pages/login.html" class="landing-secondary-link">Sign In</a>
+        <a href="./pages/register.html" class="landing-primary-link">Register Institution</a>
+      </div>
+
+      <div class="flex items-center gap-3 lg:hidden">
+        <button onclick="openCommandPalette()" class="landing-icon-btn" aria-label="Open search"><i class="fas fa-search"></i></button>
+        <button id="mobileDrawerBtn" class="landing-icon-btn" aria-label="Open menu"><i class="fas fa-bars"></i></button>
+      </div>
+    </div>
+  </nav>
+
+  <div id="mobileDrawer" class="fixed inset-0 z-[100] invisible">
+    <div class="absolute inset-0 bg-slate-950/60 opacity-0 backdrop-blur-sm transition-opacity duration-300" id="drawerOverlay"></div>
+    <div class="absolute right-0 top-0 flex h-full w-80 translate-x-full flex-col bg-white p-6 shadow-2xl transition-transform duration-300 dark:bg-slate-950" id="drawerContent">
+      <div class="mb-8 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <span class="brand-mark brand-mark-dark">V</span>
+          <span class="font-extrabold text-slate-950 dark:text-white">Vishva<span class="font-medium">ERP</span></span>
+        </div>
+        <button class="landing-drawer-close" id="closeDrawer" aria-label="Close menu"><i class="fas fa-times"></i></button>
+      </div>
+      <div class="flex flex-1 flex-col gap-4">
+        <a href="#outcomes" class="mobile-nav-link">Outcomes</a>
+        <a href="#platform" class="mobile-nav-link">Platform</a>
+        <a href="#modules" class="mobile-nav-link">Modules</a>
+        <a href="#roles" class="mobile-nav-link">Role Portals</a>
+        <a href="#security" class="mobile-nav-link">Security</a>
+        <a href="#plans" class="mobile-nav-link">Plans</a>
+      </div>
+      <div class="grid gap-3 border-t border-slate-200 pt-5 dark:border-slate-800">
+        <button class="landing-mobile-install" data-install-app><i class="fas fa-download"></i> Install App</button>
+        <a href="./pages/login.html" class="landing-mobile-secondary">Sign In</a>
+        <a href="./pages/register.html" class="landing-mobile-primary">Register Institution</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="command-palette-backdrop" id="commandPalette" onclick="if(event.target === this) closeCommandPalette()">
+    <div class="command-palette">
+      <div class="cp-search-wrap">
+        <i class="fas fa-search"></i>
+        <input type="text" class="cp-input" placeholder="Search admissions, fees, attendance, hostel, AI..." id="cpInput">
+      </div>
+      <div class="cp-results" id="cpResults">
+        <div class="px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-slate-400">Explore Vishva ERP</div>
+        <a href="#outcomes" class="cp-item"><i class="fas fa-chart-line w-5"></i> Campus Outcomes</a>
+        <a href="#platform" class="cp-item"><i class="fas fa-gauge-high w-5"></i> Executive Command Center</a>
+        <a href="#modules" class="cp-item"><i class="fas fa-layer-group w-5"></i> Academic ERP Modules</a>
+        <a href="#roles" class="cp-item"><i class="fas fa-users-gear w-5"></i> Student, Faculty, Parent Portals</a>
+        <a href="#security" class="cp-item"><i class="fas fa-shield-halved w-5"></i> Security and Governance</a>
+        <a href="./pages/login.html" class="cp-item"><i class="fas fa-right-to-bracket w-5"></i> Open Demo Login</a>
+      </div>
+    </div>
+  </div>
+
+  <main id="top">
+    <section class="landing-hero">
+      <div class="landing-hero-shade"></div>
+      <div class="landing-hero-inner">
+        <div class="hero-copy text-white">
+          <div class="hero-eyebrow">
+            <span></span>
+            Institution-grade campus operating system
+          </div>
+          <h1>Run the entire college from one intelligent ERP.</h1>
+          <p>
+            Vishva ERP brings admissions, timetable planning, smart attendance, exams, fees, HR, logistics, AI tutoring, role portals, and executive analytics into one connected operating layer for modern colleges and universities.
+          </p>
+          <div class="hero-proof-pills">
+            <span><i class="fas fa-check-circle"></i> Multi-campus ready</span>
+            <span><i class="fas fa-shield-halved"></i> Role-based controls</span>
+            <span><i class="fas fa-bolt"></i> Real-time workflows</span>
+          </div>
+          <div class="mt-8 flex flex-wrap gap-3">
+            <a href="./pages/register.html" class="hero-primary-action">
+              Start Institution Setup <i class="fas fa-arrow-right"></i>
+            </a>
+            <a href="./pages/login.html" class="hero-secondary-action">
+              Explore Live Demo <i class="fas fa-user-shield"></i>
+            </a>
+            <button class="hero-install-action" data-install-app>
+              Install App <i class="fas fa-mobile-screen-button"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="hero-live-console" aria-label="ERP live command cockpit preview">
+          <div class="console-head">
+            <div><strong>Campus Command Cockpit</strong><span>Live operations snapshot</span></div>
+            <em>Online</em>
+          </div>
+          <div class="console-alert">
+            <i class="fas fa-satellite-dish"></i>
+            <div><strong>37 live classes running</strong><span>Smart attendance and faculty signals are syncing.</span></div>
+          </div>
+          <div class="console-kpi-grid">
+            <div><span>Attendance Risk</span><strong>42</strong><em>students need action</em></div>
+            <div><span>Fee Collection</span><strong>91%</strong><em>current cycle</em></div>
+            <div><span>Timetable Health</span><strong>96%</strong><em>slots conflict-free</em></div>
+            <div><span>AI Support</span><strong>1.8k</strong><em>doubts resolved</em></div>
+          </div>
+          <div class="console-split">
+            <div class="console-workflow">
+              <span>Action Queue</span>
+              <div><i class="fas fa-triangle-exclamation"></i> Attendance shortage alerts</div>
+              <div><i class="fas fa-calendar-week"></i> Room clash review</div>
+              <div><i class="fas fa-money-check-dollar"></i> Fee follow-up batch</div>
+            </div>
+            <div class="console-radar">
+              <span>Academic Health</span>
+              <strong>88%</strong>
+              <div class="radar-ring"><i></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="hero-command-strip" aria-label="ERP operating preview">
+        <div class="hero-command-metric">
+          <span>Live Campuses</span>
+          <strong>24</strong>
+          <em>Multi-tenant ready</em>
+        </div>
+        <div class="hero-command-metric">
+          <span>Smart Attendance</span>
+          <strong>Live</strong>
+          <em>Consent-based classroom presence</em>
+        </div>
+        <div class="hero-command-metric">
+          <span>AI Tutor</span>
+          <strong>24/7</strong>
+          <em>Streaming doubt support</em>
+        </div>
+        <div class="hero-command-flow">
+          <div>
+            <span>Today</span>
+            <strong>Admissions -> Timetable -> Smart Attendance -> Exams -> Parent Alerts</strong>
+          </div>
+          <div class="command-flow-bar"><span style="width:78%"></span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="campus-strip" aria-label="Institution types">
+      <div class="mx-auto grid max-w-7xl gap-4 px-4 py-5 sm:grid-cols-2 sm:px-6 lg:grid-cols-5 lg:px-8">
+        <div><i class="fas fa-university"></i> Autonomous Colleges</div>
+        <div><i class="fas fa-building-columns"></i> Universities</div>
+        <div><i class="fas fa-school"></i> School Groups</div>
+        <div><i class="fas fa-laptop-file"></i> Training Centers</div>
+        <div><i class="fas fa-network-wired"></i> Multi-Campus Trusts</div>
+      </div>
+    </section>
+
+    <section class="enterprise-proof-strip" aria-label="ERP credibility metrics">
+      <div class="mx-auto grid max-w-7xl gap-4 px-4 py-8 sm:px-6 lg:grid-cols-4 lg:px-8">
+        <article><span>Operational Scope</span><strong>20+ modules</strong><p>Academics, finance, HR, logistics, portals, communication, and AI workflows.</p></article>
+        <article><span>Role Workspaces</span><strong>5 portals</strong><p>Super Admin, College Admin, Faculty, Student, and Parent experiences.</p></article>
+        <article><span>Automation Layer</span><strong>Real-time</strong><p>Live data changes, smart attendance, message alerts, and action queues.</p></article>
+        <article><span>Deployment Fit</span><strong>Single to network</strong><p>Use for one autonomous college or a multi-campus university group.</p></article>
+      </div>
+    </section>
+
+    <section class="app-install-strip" id="install-section" aria-label="Install Vishva ERP app">
+      <div class="mx-auto flex max-w-7xl flex-col gap-8 px-4 py-12 sm:px-6 lg:px-8">
+        <div class="grid gap-10 lg:grid-cols-2 lg:items-center">
+          <div>
+            <span class="section-kicker !text-indigo-200">Advanced App Experience</span>
+            <h2 class="mt-2 text-3xl font-extrabold text-white sm:text-4xl">Your Campus ERP, everywhere.</h2>
+            <p class="mt-4 text-lg text-indigo-100">
+              Vishva ERP is built with a "mobile-first" heart. Whether you are a student checking attendance, a parent viewing results, or an administrator approving leaves, the experience is fast, native, and always in sync.
+            </p>
+            <div class="mt-8 space-y-4">
+              <div class="flex items-start gap-4">
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/10 text-white">
+                  <i class="fas fa-bolt"></i>
+                </div>
+                <div>
+                  <strong class="block text-white">Instant Updates</strong>
+                  <span class="text-sm text-indigo-100">One codebase means the app and web always have the latest features.</span>
+                </div>
+              </div>
+              <div class="flex items-start gap-4">
+                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/10 text-white">
+                  <i class="fas fa-bell"></i>
+                </div>
+                <div>
+                  <strong class="block text-white">Role-Based Signals</strong>
+                  <span class="text-sm text-indigo-100">Native notifications for fee dues, exam results, and academic notices.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-3xl bg-white/5 p-8 backdrop-blur-md border border-white/10 shadow-2xl">
+            <div id="platform-detector" class="mb-6 flex items-center justify-between border-b border-white/10 pb-6">
+              <div class="flex items-center gap-3">
+                <div class="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-500 text-white shadow-lg shadow-indigo-500/30">
+                  <i id="platform-icon" class="fas fa-mobile-screen"></i>
+                </div>
+                <div>
+                  <span class="text-xs font-bold uppercase tracking-widest text-indigo-300">Detected Platform</span>
+                  <strong id="platform-name" class="block text-xl text-white">Android Device</strong>
+                </div>
+              </div>
+              <span id="platform-badge" class="rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-bold text-emerald-400 border border-emerald-500/30">Optimization Active</span>
+            </div>
+
+            <div class="space-y-6">
+              <div id="install-pwa-card" class="group relative overflow-hidden rounded-2xl bg-white p-6 transition-all hover:shadow-xl">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-4">
+                    <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600">
+                      <i class="fas fa-cloud-arrow-down text-xl"></i>
+                    </div>
+                    <div>
+                      <h4 class="font-bold text-slate-900">Instant Install (PWA)</h4>
+                      <p class="text-xs text-slate-500">Best for browser-based native experience.</p>
+                    </div>
+                  </div>
+                  <button class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-bold text-white transition-colors hover:bg-indigo-700" data-install-app>
+                    Install Now
+                  </button>
+                </div>
+              </div>
+
+              <div id="download-apk-card" class="group relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 p-6 transition-all hover:bg-white/10">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-4">
+                    <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-white/10 text-white">
+                      <i class="fab fa-android text-2xl"></i>
+                    </div>
+                    <div>
+                      <h4 class="font-bold text-white">Android APK (Advanced)</h4>
+                      <p class="text-xs text-indigo-200">Full native shell for power users.</p>
+                    </div>
+                  </div>
+                  <a href="/android/app/build/outputs/apk/debug/app-debug.apk" download class="rounded-lg border border-white/20 bg-white/10 px-4 py-2 text-sm font-bold text-white transition-all hover:bg-white/20">
+                    Download APK
+                  </a>
+                </div>
+              </div>
+
+              <div id="ios-instructions" class="hidden rounded-2xl bg-amber-500/10 border border-amber-500/20 p-4">
+                <div class="flex gap-3">
+                  <i class="fas fa-circle-info text-amber-500 mt-1"></i>
+                  <p class="text-xs text-amber-200 leading-relaxed">
+                    <strong>iOS Installation:</strong> Tap the <i class="fas fa-share-from-square"></i> Share button in Safari, then select <strong>"Add to Home Screen"</strong> to install Vishva ERP.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div class="mt-8 flex items-center justify-center gap-6 border-t border-white/10 pt-6 opacity-60">
+              <i class="fab fa-apple text-2xl text-white" title="iOS Compatible"></i>
+              <i class="fab fa-android text-2xl text-white" title="Android Compatible"></i>
+              <i class="fab fa-chrome text-2xl text-white" title="Web/PWA Ready"></i>
+              <i class="fas fa-shield-halved text-2xl text-white" title="Secure Environment"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <script>
+      // Advanced Platform Detection for Landing Page
+      (function() {
+        const ua = navigator.userAgent || navigator.vendor || window.opera;
+        const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+        const isAndroid = /android/i.test(ua);
+
+        const platformNameEl = document.getElementById('platform-name');
+        const platformIconEl = document.getElementById('platform-icon');
+        const apkCard = document.getElementById('download-apk-card');
+        const iosInfo = document.getElementById('ios-instructions');
+        const pwaCard = document.getElementById('install-pwa-card');
+
+        if (isIOS) {
+          platformNameEl.textContent = 'Apple iOS Device';
+          platformIconEl.className = 'fab fa-apple';
+          apkCard.classList.add('hidden');
+          iosInfo.classList.remove('hidden');
+        } else if (isAndroid) {
+          platformNameEl.textContent = 'Android Device';
+          platformIconEl.className = 'fab fa-android';
+          apkCard.classList.remove('hidden');
+        } else {
+          platformNameEl.textContent = 'Desktop/Web';
+          platformIconEl.className = 'fas fa-laptop';
+          apkCard.classList.add('hidden'); // Usually don't show APK on desktop unless in "Advanced Mode"
+        }
+      })();
+    </script>
+
+    <section class="academic-engine-strip" aria-label="Realtime academic engine">
+      <div class="mx-auto grid max-w-7xl gap-4 px-4 py-8 sm:px-6 lg:grid-cols-3 lg:px-8">
+        <article>
+          <span><i class="fas fa-calendar-week"></i></span>
+          <strong>Dynamic Timetable Engine</strong>
+          <p>Live weekly grids, next-class signals, room movement, faculty workload, and day-wise academic flow.</p>
+        </article>
+        <article>
+          <span><i class="fas fa-location-crosshairs"></i></span>
+          <strong>Consent-Based Smart Attendance</strong>
+          <p>Classroom geofences, teacher presence, live student heartbeat, source badges, and manual override support.</p>
+        </article>
+        <article>
+          <span><i class="fas fa-brain"></i></span>
+          <strong>Real-Time AI Academic Layer</strong>
+          <p>AI Tutor, notes, exam support, risk summaries, and action queues connected to ERP operations.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="landing-section" id="outcomes">
+      <div class="landing-section-head">
+        <span class="section-kicker">Campus outcomes</span>
+        <h2>Built for the daily pressure of running a real institution.</h2>
+        <p>Vishva ERP is designed around operational outcomes: fewer manual registers, faster decisions, better student visibility, and cleaner governance across departments.</p>
+      </div>
+      <div class="outcome-grid">
+        <article class="outcome-card primary">
+          <span>01</span>
+          <h3>Academic delivery without timetable chaos</h3>
+          <p>Plan weekly slots, track faculty load, detect room clashes, connect classes to attendance, and keep students informed through live portals.</p>
+        </article>
+        <article class="outcome-card">
+          <i class="fas fa-user-check"></i>
+          <h3>Attendance that is auditable</h3>
+          <p>Combine manual faculty marking with consent-based smart classroom presence, source badges, and eligibility forecasts.</p>
+        </article>
+        <article class="outcome-card">
+          <i class="fas fa-indian-rupee-sign"></i>
+          <h3>Finance teams see the real collection picture</h3>
+          <p>Track fee heads, dues, partial payments, receipts, pending amounts, and collection risk in one place.</p>
+        </article>
+        <article class="outcome-card">
+          <i class="fas fa-brain"></i>
+          <h3>AI turns ERP data into action</h3>
+          <p>Use AI Tutor, notes, exam generation, insight summaries, and risk queues to reduce academic and admin bottlenecks.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="landing-section" id="platform">
+      <div class="landing-section-head">
+        <span class="section-kicker">Executive operations</span>
+          <h2>One command center for every campus decision.</h2>
+          <p>Replace scattered spreadsheets, WhatsApp approvals, paper attendance, and disconnected portals with a live operating layer for academics, revenue, compliance, facilities, and student success.</p>
+      </div>
+
+      <div class="platform-grid">
+        <div class="platform-copy">
+          <div class="ops-list">
+            <div class="ops-row">
+              <i class="fas fa-route text-sky-600"></i>
+              <div>
+                <strong>Admission-to-alumni lifecycle</strong>
+                <span>Applications, enrollment, sections, certificates, graduation readiness, and alumni records.</span>
+              </div>
+            </div>
+            <div class="ops-row">
+              <i class="fas fa-shield-halved text-emerald-600"></i>
+              <div>
+                <strong>Role and tenant isolation</strong>
+                <span>Separate Super Admin, College Admin, Faculty, Student, and Parent experiences with scoped data.</span>
+              </div>
+            </div>
+            <div class="ops-row">
+              <i class="fas fa-chart-simple text-amber-600"></i>
+              <div>
+                <strong>Predictive action queues</strong>
+                <span>Surface attendance shortages, fee risk, assignment backlog, leave load, and transport exceptions.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="erp-product-preview">
+          <div class="preview-topbar">
+            <div class="preview-dots"><span></span><span></span><span></span></div>
+            <strong>Institution Command Center</strong>
+            <em>Academic Year 2026-27</em>
+          </div>
+          <div class="preview-layout">
+            <div class="preview-side">
+              <span class="active"></span>
+              <span></span>
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+            <div class="preview-main">
+              <div class="preview-kpis">
+                <div><span>Total Learners</span><strong>18,420</strong></div>
+                <div><span>Faculty Load</span><strong>84%</strong></div>
+                <div><span>Collection Rate</span><strong>91%</strong></div>
+              </div>
+              <div class="preview-chart">
+                <span style="height:52%"></span>
+                <span style="height:76%"></span>
+                <span style="height:45%"></span>
+                <span style="height:88%"></span>
+                <span style="height:66%"></span>
+                <span style="height:92%"></span>
+              </div>
+              <div class="preview-table">
+                <div><strong>AI Risk Watch</strong><span>12 urgent</span></div>
+                <div><strong>Live Classes</strong><span>37 running</span></div>
+                <div><strong>Parent Replies</strong><span>142 pending</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="landing-section section-band" id="modules">
+      <div class="landing-section-head">
+        <span class="section-kicker">ERP modules</span>
+        <h2>Everything a real institution runs every day.</h2>
+          <p>Core modules are designed for repeated operational use, not brochure screens. Each area connects to the same student, staff, finance, timetable, attendance, and communication data.</p>
+      </div>
+
+      <div class="module-grid">
+        <article class="module-tile">
+          <i class="fas fa-user-plus text-indigo-600"></i>
+          <h3>Admissions & Enrollment</h3>
+          <p>Lead capture, application review, document checks, seat allocation, student profiles, and parent account creation.</p>
+        </article>
+        <article class="module-tile">
+          <i class="fas fa-calendar-check text-sky-600"></i>
+          <h3>Attendance & Timetable</h3>
+          <p>Batch-wise schedules, daily attendance, shortage alerts, smart location source, faculty workload, make-up classes, and live class links.</p>
+        </article>
+        <article class="module-tile">
+          <i class="fas fa-file-signature text-emerald-600"></i>
+          <h3>Exams & Results</h3>
+          <p>Subject plans, marks entry, grading, CGPA history, bulk uploads, result publishing, and parent/student views.</p>
+        </article>
+        <article class="module-tile">
+          <i class="fas fa-file-invoice-dollar text-amber-600"></i>
+          <h3>Fees & Finance</h3>
+          <p>Fee heads, dues, receipts, partial payments, reminders, exports, collection charts, and outstanding risk lists.</p>
+        </article>
+        <article class="module-tile">
+          <i class="fas fa-people-roof text-rose-600"></i>
+          <h3>HR, Leave & Payroll</h3>
+          <p>Staff profiles, leave approvals, department capacity, HR alerts, substitution planning, and payroll-ready records.</p>
+        </article>
+        <article class="module-tile">
+          <i class="fas fa-bus text-cyan-600"></i>
+          <h3>Hostel & Transport</h3>
+          <p>Hostels, rooms, routes, vehicles, allocations, capacity tracking, wardens, drivers, and transport communication.</p>
+        </article>
+        <article class="module-tile">
+          <i class="fas fa-comments text-violet-600"></i>
+          <h3>Communications</h3>
+          <p>Notices, role-based broadcasts, real-time messages, parent alerts, audit trails, and action confirmations.</p>
+        </article>
+        <article class="module-tile">
+          <i class="fas fa-brain text-fuchsia-600"></i>
+          <h3>AI Tools Hub</h3>
+          <p>Exam generation, notes generation, doubt solving, student support, insight summaries, and admin automation.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="landing-section section-band">
+      <div class="landing-section-head">
+        <span class="section-kicker">Connected operations</span>
+        <h2>Every department works from the same record.</h2>
+        <p>The platform connects the events that usually live in different files: admissions become student records, timetable slots become attendance sessions, results become parent visibility, and fees become finance dashboards.</p>
+      </div>
+      <div class="operations-map">
+        <div class="ops-map-node active"><i class="fas fa-user-plus"></i><strong>Admissions</strong><span>Applications to enrollment</span></div>
+        <div class="ops-map-line"></div>
+        <div class="ops-map-node"><i class="fas fa-calendar-week"></i><strong>Academics</strong><span>Courses, timetable, classes</span></div>
+        <div class="ops-map-line"></div>
+        <div class="ops-map-node"><i class="fas fa-user-check"></i><strong>Attendance</strong><span>Manual and smart signals</span></div>
+        <div class="ops-map-line"></div>
+        <div class="ops-map-node"><i class="fas fa-file-invoice-dollar"></i><strong>Finance</strong><span>Dues, receipts, collections</span></div>
+        <div class="ops-map-line"></div>
+        <div class="ops-map-node"><i class="fas fa-chart-simple"></i><strong>Analytics</strong><span>Risk, readiness, decisions</span></div>
+      </div>
+    </section>
+
+    <section class="landing-section" id="roles">
+      <div class="landing-section-head">
+        <span class="section-kicker">Role portals</span>
+        <h2>Different users, one connected source of truth.</h2>
+        <p>Every stakeholder gets the workspace they need while administrators keep centralized governance and reporting.</p>
+      </div>
+
+      <div class="role-grid-landing">
+        <a href="./pages/super-admin/dashboard.html" class="role-panel role-super">
+          <span><i class="fas fa-satellite-dish"></i></span>
+          <h3>Super Admin</h3>
+          <p>Tenant control, system health, plan management, broadcast tools, database visibility, and audit logs.</p>
+        </a>
+        <a href="./pages/college-admin/dashboard.html" class="role-panel role-college">
+          <span><i class="fas fa-university"></i></span>
+          <h3>College Admin</h3>
+          <p>Run admissions, faculty, students, fees, logistics, notices, courses, HR, and institutional dashboards.</p>
+        </a>
+        <a href="./pages/faculty/dashboard.html" class="role-panel role-faculty">
+          <span><i class="fas fa-chalkboard-teacher"></i></span>
+          <h3>Faculty</h3>
+          <p>Manage attendance, grading, live classes, assignments, leave, timetable, and AI teaching support.</p>
+        </a>
+        <a href="./pages/student/dashboard.html" class="role-panel role-student">
+          <span><i class="fas fa-user-graduate"></i></span>
+          <h3>Student</h3>
+          <p>Access courses, attendance, assignments, fees, live classes, library, timetable, results, and AI tutor.</p>
+        </a>
+        <a href="./pages/parent/dashboard.html" class="role-panel role-parent">
+          <span><i class="fas fa-users"></i></span>
+          <h3>Parent</h3>
+          <p>Monitor ward profile, attendance, results, fee status, notices, live class signals, and mentor messages.</p>
+        </a>
+      </div>
+    </section>
+
+    <section class="landing-section section-band" id="intelligence">
+      <div class="intelligence-layout">
+        <div>
+          <span class="section-kicker">AI and analytics</span>
+          <h2>Turn campus data into early action.</h2>
+          <p>Vishva ERP combines live operational data with AI-assisted workflows so administrators and educators see what needs attention before it becomes a crisis.</p>
+          <div class="insight-list">
+            <div><i class="fas fa-triangle-exclamation"></i><span>Attendance shortage prediction before exam eligibility deadlines.</span></div>
+            <div><i class="fas fa-money-check-dollar"></i><span>Fee collection prioritization by amount, due date, and student risk.</span></div>
+            <div><i class="fas fa-wand-magic-sparkles"></i><span>AI exam papers, notes, summaries, and student doubt support.</span></div>
+            <div><i class="fas fa-chart-line"></i><span>Executive reporting across colleges, departments, roles, plans, and revenue.</span></div>
+          </div>
+        </div>
+        <div class="ai-panel">
+          <div class="ai-panel-header">
+            <i class="fas fa-brain"></i>
+            <div>
+              <strong>AI Action Queue</strong>
+              <span>Generated from live ERP signals</span>
+            </div>
+          </div>
+          <div class="ai-task high"><strong>42 students below 75% attendance</strong><span>Notify mentors and parents today.</span></div>
+          <div class="ai-task medium"><strong>INR 8.2L due in next 7 days</strong><span>Send fee reminders to high-value pending accounts.</span></div>
+          <div class="ai-task low"><strong>3 departments need timetable balancing</strong><span>Faculty workload exceeds target threshold.</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="landing-section">
+      <div class="landing-section-head">
+        <span class="section-kicker">Implementation path</span>
+        <h2>Move from setup to daily operations quickly.</h2>
+        <p>The platform is structured so institutions can start with the core ERP and expand into intelligence, automation, and campus-wide communication.</p>
+      </div>
+      <div class="workflow-rail">
+        <div><span>01</span><strong>Create tenant</strong><em>Institution, admins, plan, departments</em></div>
+        <div><span>02</span><strong>Load master data</strong><em>Students, faculty, courses, batches</em></div>
+        <div><span>03</span><strong>Run operations</strong><em>Attendance, fees, notices, exams</em></div>
+        <div><span>04</span><strong>Connect users</strong><em>Student, faculty, parent portals</em></div>
+        <div><span>05</span><strong>Optimize with AI</strong><em>Insights, reports, recommendations</em></div>
+      </div>
+    </section>
+
+    <section class="landing-section section-band" id="security">
+      <div class="security-layout">
+        <div>
+          <span class="section-kicker">Security and governance</span>
+          <h2>Designed for institutional control, privacy, and auditability.</h2>
+          <p>Vishva ERP keeps sensitive academic, financial, and attendance data inside role-aware workflows. Smart attendance is consent-based and designed around live classroom presence rather than unnecessary movement history.</p>
+          <div class="security-checks">
+            <div><i class="fas fa-user-shield"></i><span>Scoped access for Super Admin, College Admin, Faculty, Student, and Parent users.</span></div>
+            <div><i class="fas fa-clock-rotate-left"></i><span>Operational records for attendance, fees, exams, notices, leaves, and communication actions.</span></div>
+            <div><i class="fas fa-location-crosshairs"></i><span>Privacy-first smart attendance with student consent and classroom geofence signals.</span></div>
+            <div><i class="fas fa-database"></i><span>Tenant-aware data model for institutions, departments, users, and role portals.</span></div>
+          </div>
+        </div>
+        <div class="security-card">
+          <div class="security-score"><span>Governance Readiness</span><strong>Enterprise</strong></div>
+          <div class="security-row"><span>Role-based access</span><strong>Enabled</strong></div>
+          <div class="security-row"><span>Smart attendance consent</span><strong>Required</strong></div>
+          <div class="security-row"><span>Action auditability</span><strong>Live</strong></div>
+          <div class="security-row"><span>Multi-campus separation</span><strong>Ready</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="landing-section section-band" id="plans">
+      <div class="landing-section-head">
+        <span class="section-kicker">Deployment models</span>
+        <h2>Fit for single colleges and university networks.</h2>
+        <p>Use the same platform for a focused campus rollout or a larger multi-institution command layer with centralized oversight.</p>
+      </div>
+      <div class="plan-grid">
+        <article class="plan-card">
+          <h3>College ERP</h3>
+          <p>For single colleges and autonomous institutions modernizing daily administration.</p>
+          <strong>Core campus suite</strong>
+          <a href="./pages/register.html">Start Setup</a>
+        </article>
+        <article class="plan-card plan-featured">
+          <h3>University Network</h3>
+          <p>For multi-campus groups needing central oversight with isolated institutional workspaces.</p>
+          <strong>Advanced analytics and governance</strong>
+          <a href="./pages/register.html">Deploy Network</a>
+        </article>
+        <article class="plan-card">
+          <h3>School & Training Groups</h3>
+          <p>For schools, coaching, vocational academies, and training organizations with role portals.</p>
+          <strong>Flexible academic operations</strong>
+          <a href="./pages/login.html">Explore Demo</a>
+        </article>
+      </div>
+    </section>
+
+    <section class="final-cta">
+      <div class="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
+        <span class="section-kicker">Ready for a real campus ERP?</span>
+        <h2>Bring admissions, academics, attendance, finance, HR, parents, and AI into one intelligent campus ERP.</h2>
+        <div class="mt-8 flex justify-center gap-3">
+          <a href="./pages/register.html" class="hero-primary-action">Register Institution <i class="fas fa-arrow-right"></i></a>
+          <a href="./pages/login.html" class="hero-secondary-action final-secondary">Open Demo <i class="fas fa-right-to-bracket"></i></a>
+          <button class="hero-secondary-action final-secondary" data-install-app>Install App <i class="fas fa-download"></i></button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="landing-footer advanced-footer">
+    <div class="footer-grid mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+      <div>
+        <div class="flex items-center gap-3">
+          <span class="brand-mark brand-mark-dark">V</span>
+          <span class="font-extrabold text-slate-950 dark:text-white">Vishva<span class="font-medium">ERP</span></span>
+        </div>
+        <p>AI-powered campus ERP for colleges, universities, school groups, and training institutions.</p>
+      </div>
+      <div><strong>Platform</strong><a href="#outcomes">Outcomes</a><a href="#platform">Command Center</a><a href="#modules">Modules</a></div>
+      <div><strong>Portals</strong><a href="./pages/college-admin/dashboard.html">College Admin</a><a href="./pages/faculty/dashboard.html">Faculty</a><a href="./pages/student/dashboard.html">Student</a></div>
+      <div><strong>Get Started</strong><a href="./pages/register.html">Register Institution</a><a href="./pages/login.html">Open Demo</a><a href="#security">Security</a></div>
+    </div>
+    <div class="footer-bottom mx-auto max-w-7xl px-4 py-5 text-sm sm:px-6 lg:px-8">
+      <span>Vishva ERP. Enterprise academic management platform.</span>
+      <span>Built for connected campus operations.</span>
+    </div>
+  </footer>
+
+  <script src="./js/shared.js"></script>
+</body>
+</html>

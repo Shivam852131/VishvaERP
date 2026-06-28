@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Virtual Classroom | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../css/custom.css">
+  <script src="https://meet.jit.si/external_api.js"></script>
+  <style>
+    .video-container {
+      width: 100%;
+      height: 65vh;
+      border-radius: 16px;
+      overflow: hidden;
+      background: #0F172A;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+      position: relative;
+      transition: all 0.3s ease;
+    }
+    .video-container.fullscreen {
+      height: 85vh;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      z-index: 9999;
+      border-radius: 0;
+    }
+    .call-controls {
+      display: flex;
+      gap: 16px;
+      padding: 20px;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      margin-top: 24px;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .pulse-blob {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #0EA5E9;
+      box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.7);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.7); }
+      70% { box-shadow: 0 0 0 10px rgba(14, 165, 233, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(14, 165, 233, 0); }
+    }
+  </style>
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-student" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)" id="sidebar-avatar">S</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Student</div><div class="sidebar-user-role" id="sidebar-user-role">B.Tech CS • Sem 4</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <div class="nav-section-label">Academics</div>
+      <a href="live-class.html" class="nav-link active"><i class="nav-link-icon fas fa-video"></i> Live Classes</a>
+      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-reader"></i> My Courses</a>
+      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Attendance</a>
+      <a href="results.html" class="nav-link"><i class="nav-link-icon fas fa-poll"></i> Results</a>
+      <a href="assignments.html" class="nav-link"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
+      <a href="timetable.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-week"></i> Timetable</a>
+      <div class="nav-section-label">Finance</div>
+      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-receipt"></i> Fees</a>
+      <div class="nav-section-label">Facilities</div>
+      <a href="library.html" class="nav-link"><i class="nav-link-icon fas fa-book"></i> Library</a>
+      <div class="nav-section-label">Tools</div>
+      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-brain"></i> AI Services</a>
+      <a href="../messages.html" class="nav-link"><i class="nav-link-icon fas fa-comment-dots"></i> Chat</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">Student / <span>Virtual Classroom</span></div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-avatar" id="topbar-avatar">S</div>
+      </div>
+    </header>
+
+    <div class="erp-content">
+      
+      <!-- List Classes Screen -->
+      <div id="join-screen">
+        <div class="page-header" style="margin-bottom: 30px;">
+          <h1 class="page-title">Virtual Classroom</h1>
+          <p class="page-subtitle">Join active online lectures and interactive sessions.</p>
+        </div>
+
+        <div class="grid col-2">
+          <!-- Active Classes -> Student can join these right now -->
+          <div class="card">
+            <div class="card-header"><div class="card-title"><i class="pulse-blob" style="margin-right:8px"></i> Live Right Now</div></div>
+            <div class="card-body" style="padding:16px;">
+              
+              <div style="display:flex;align-items:center;padding:16px;border:1px solid #BAE6FD;border-radius:12px;background:#F0F9FF;margin-bottom:12px;">
+                <div style="flex:1">
+                  <div style="display:flex;gap:8px;align-items:center;margin-bottom:4px">
+                    <span class="badge badge-info">Active</span>
+                    <span style="font-size:12px;color:#64748B"><i class="fas fa-user-tie"></i> Prof. Rajesh Kumar</span>
+                  </div>
+                  <div style="font-weight:700;font-size:16px;color:#0284C7">Data Structures - Trees Deep Dive</div>
+                  <div style="font-size:12px;color:#64748B;margin-top:4px">Started 10 mins ago</div>
+                </div>
+                <button class="btn btn-primary" onclick="joinCall('VishvaErp-cs-sem4-dsa-today', 'Data Structures - Trees')"><i class="fas fa-sign-in-alt"></i> Join Session</button>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Upcoming Classes -->
+          <div class="card">
+            <div class="card-header"><div class="card-title"><i class="fas fa-clock" style="color:#64748B;margin-right:8px"></i> Upcoming Schedule</div></div>
+            <div class="card-body" style="padding:16px;">
+              <div style="display:flex;align-items:center;gap:12px;padding:12px;border:1px solid #E2E8F0;border-radius:12px;margin-bottom:12px;">
+                <div style="font-weight:700; color:#64748B; min-width: 70px;">11:30 AM</div>
+                <div style="flex:1">
+                  <div style="font-weight:700;font-size:14px">DBMS Review</div>
+                  <div style="font-size:12px;color:#64748B">Prof. Anjali Sharma</div>
+                </div>
+                <button class="btn btn-xs btn-secondary" disabled>Waiting for Host...</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Join by ID card -->
+        <div class="card mt-6" style="max-width: 500px">
+          <div class="card-header"><div class="card-title"><i class="fas fa-link" style="margin-right:8px"></i> Join via ID/Link</div></div>
+          <div style="padding:20px; display:flex; gap:10px;">
+            <input type="text" id="manualRoomId" class="form-input" placeholder="Paste class Room ID here...">
+            <button class="btn btn-secondary" onclick="joinManual()">Join</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active Call Screen (Hidden initially) -->
+      <div id="active-call" style="display: none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+          <div>
+            <h2 style="font-size: 20px; font-weight: 700; display:flex; align-items:center; gap: 10px;">
+              <span class="pulse-blob"></span> <span id="activeTopicDisplay">Live Session</span>
+            </h2>
+            <div style="font-size: 13px; color: #64748B; margin-top: 4px;">Connected as: <span id="studentNameInfo">Student</span></div>
+          </div>
+          <div style="display:flex; gap: 12px;">
+            <button class="btn btn-primary" onclick="toggleFullscreen()"><i class="fas fa-expand"></i> Fullscreen</button>
+          </div>
+        </div>
+
+        <!-- The Video Container -->
+        <div class="video-container" id="meet-container">
+          <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:white; text-align:center;" id="loading-meet">
+            <i class="fas fa-circle-notch fa-spin fa-3x" style="color:#0EA5E9; margin-bottom: 16px;"></i>
+            <h3 style="font-size: 18px; font-weight: 600;">Connecting to Classroom...</h3>
+          </div>
+        </div>
+
+        <div class="call-controls">
+          <div style="display:flex; gap: 10px; align-items:center;">
+             <div style="font-size: 14px; font-weight:600; color: #334155;"><i class="fas fa-info-circle" style="color:#0EA5E9"></i> Connected securely.</div>
+          </div>
+          <div style="display:flex; gap: 10px;">
+            <button class="btn" style="background:#EF4444; color:white; border:none; padding: 10px 24px; font-weight: 600;" onclick="leaveCall()"><i class="fas fa-sign-out-alt"></i> Leave Session</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script>
+  const user = requireAuth(['student']);
+  if(user) {
+    document.getElementById('sidebar-user-name').textContent = user.name || 'Student';
+    document.getElementById('studentNameInfo').textContent = user.name || 'Student';
+  }
+
+  let meetApi = null;
+  const meetContainer = document.getElementById('meet-container');
+
+  // If there's a ?join= roomId in the URL, automatically prompt or join.
+  window.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    const joinId = params.get('join');
+    if(joinId) {
+       joinCall(joinId, 'Invited Class Session');
+    }
+  });
+
+  function joinManual() {
+    const room = document.getElementById('manualRoomId').value.trim();
+    if(!room) return showToast('Please enter a valid room ID', 'error');
+    joinCall(room, 'Joined Class Session');
+  }
+
+  function joinCall(roomName, topic) {
+    // Replace the placeholder token so invite links can always resolve to today's room.
+    const finalRoomName = roomName.replace('today', new Date().toISOString().split('T')[0]);
+
+    document.getElementById('join-screen').style.display = 'none';
+    document.getElementById('active-call').style.display = 'block';
+    
+    document.getElementById('activeTopicDisplay').textContent = topic;
+
+    if(window.showToast) {
+       showToast(`Joining classroom...`, 'success');
+    }
+
+    // Initialize Jitsi
+    setTimeout(() => {
+      document.getElementById('loading-meet').style.display = 'none';
+      const domain = 'meet.jit.si';
+      const options = {
+          roomName: finalRoomName,
+          width: '100%',
+          height: '100%',
+          parentNode: meetContainer,
+          lang: 'en',
+          userInfo: {
+              displayName: user ? user.name : 'Student',
+              role: 'participant'
+          },
+          configOverwrite: {
+            disableDeepLinking: true,
+            prejoinPageEnabled: false, 
+            startWithAudioMuted: true, // students join muted
+            startWithVideoMuted: false
+          },
+          interfaceConfigOverwrite: {
+            TOOLBAR_BUTTONS: [
+                'microphone', 'camera', 'desktop', 'fullscreen',
+                'chat', 'raisehand', 'videoquality', 'tileview', 'videobackgroundblur'
+            ], // Limiting participant tools
+            SHOW_CHROME_EXTENSION_BANNER: false,
+            BRAND_WATERMARK_LINK: '',
+            SHOW_JITSI_WATERMARK: false,
+            DEFAULT_BACKGROUND: '#0F172A',
+            DEFAULT_LOCAL_DISPLAY_NAME: 'Me',
+          }
+      };
+      
+      meetApi = new JitsiMeetExternalAPI(domain, options);
+
+      meetApi.addEventListener('videoConferenceLeft', () => {
+         leaveCall();
+       });
+
+    }, 1000);
+  }
+
+  function leaveCall() {
+    if(meetApi) {
+      meetApi.dispose();
+      meetApi = null;
+    }
+    document.getElementById('active-call').style.display = 'none';
+    document.getElementById('join-screen').style.display = 'block';
+    
+    // Clear URL params if exists
+    const url = new URL(window.location);
+    url.search = '';
+    window.history.replaceState({}, document.title, url);
+
+    if(window.showToast) showToast('Left the session', 'info');
+  }
+
+  function toggleFullscreen() {
+    meetContainer.classList.toggle('fullscreen');
+  }
+</script>
+<script src="../../live/live-admin-pages.js"></script>
+</body>
+</html>

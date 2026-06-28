@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ward Results | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="../../css/custom.css">
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-parent" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" id="sidebar-avatar">P</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Parent</div><div class="sidebar-user-role">Ward: Priya Patel</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Ward Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <a href="child-profile.html" class="nav-link"><i class="nav-link-icon fas fa-id-card"></i> Child Profile</a>
+      <div class="nav-section-label">Academics</div>
+      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-user-check"></i> Attendance</a>
+      <a href="results.html" class="nav-link active"><i class="nav-link-icon fas fa-poll"></i> Exam Results</a>
+      <div class="nav-section-label">Facilities</div>
+      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-rupee-sign"></i> Fee Details</a>
+      <a href="../messages.html" class="nav-link"><i class="nav-link-icon fas fa-envelope"></i> Teacher Messages</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">Parent / <span>Exam Results</span></div>
+      </div>
+      <div class="topbar-right"><button class="btn btn-primary btn-sm"><i class="fas fa-download"></i> Download Report</button><div class="topbar-avatar" id="topbar-avatar">P</div></div>
+    </header>
+
+    <div class="erp-content">
+      <div class="page-header">
+        <h1 class="page-title">📈 Exam Results</h1>
+        <p class="page-subtitle">View your child's academic performance and historic term records.</p>
+      </div>
+
+      <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#FEF3C7;color:#D97706"><i class="fas fa-graduation-cap"></i></div>
+          <div class="stat-label">Cumulative GPA</div>
+          <div class="stat-value">8.42</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#EDE9FE;color:#5B21B6"><i class="fas fa-chart-line"></i></div>
+          <div class="stat-label">Latest Semester (Sem 3)</div>
+          <div class="stat-value">8.60</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#D1FAE5;color:#065F46"><i class="fas fa-medal"></i></div>
+          <div class="stat-label">Class Rank</div>
+          <div class="stat-value">Top 10%</div>
+        </div>
+      </div>
+
+      <div class="card mb-6">
+        <div class="card-header"><div class="card-title">Term Performance Trend</div></div>
+        <div class="card-body"><div class="chart-container" style="height:250px"><canvas id="sgpaChart"></canvas></div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header" style="justify-content:space-between">
+          <div class="card-title">Semester 3 Marksheet</div>
+          <select class="form-control" style="width:150px;padding:6px"><option>Semester 3</option><option>Semester 2</option><option>Semester 1</option></select>
+        </div>
+        <div class="table-wrap">
+          <table class="erp-table text-center">
+            <thead><tr><th style="text-align:left">Subject</th><th>Mid-Term (/30)</th><th>Final (/70)</th><th>Total (/100)</th><th>Grade</th></tr></thead>
+            <tbody>
+              <tr><td style="text-align:left;font-weight:600">Database Management</td><td>25</td><td>62</td><td>87</td><td><span class="badge badge-success">A</span></td></tr>
+              <tr><td style="text-align:left;font-weight:600">Operating Systems</td><td>22</td><td>58</td><td>80</td><td><span class="badge badge-success">A</span></td></tr>
+              <tr><td style="text-align:left;font-weight:600">Computer Networks</td><td>18</td><td>55</td><td>73</td><td><span class="badge badge-info">B+</span></td></tr>
+              <tr><td style="text-align:left;font-weight:600">Algorithms</td><td>28</td><td>65</td><td>93</td><td><span class="badge" style="background:#D97706;color:white">O</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script src="../../live/live-pages.js"></script>
+</body>
+</html>

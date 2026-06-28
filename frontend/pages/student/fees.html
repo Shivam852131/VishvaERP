@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fees — Student | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../css/custom.css">
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-student" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)" id="sidebar-avatar">S</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Student</div><div class="sidebar-user-role">B.Tech CS • Sem 4</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <div class="nav-section-label">Academics</div>
+      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-reader"></i> My Courses</a>
+      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Attendance</a>
+      <a href="results.html" class="nav-link"><i class="nav-link-icon fas fa-poll"></i> Results</a>
+      <a href="assignments.html" class="nav-link"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
+      <a href="timetable.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-week"></i> Timetable</a>
+      <div class="nav-section-label">Finance</div>
+      <a href="fees.html" class="nav-link active"><i class="nav-link-icon fas fa-receipt"></i> Fees</a>
+      <div class="nav-section-label">Facilities</div>
+      <a href="library.html" class="nav-link"><i class="nav-link-icon fas fa-book"></i> Library</a>
+      <div class="nav-section-label">Tools</div>
+      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-brain"></i> AI Services</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">Student / <span>Fees</span></div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-primary" onclick="openModal('payNowModal')"><i class="fas fa-credit-card"></i> Pay Now</button>
+        <div class="topbar-avatar" id="topbar-avatar">S</div>
+      </div>
+    </header>
+
+    <div class="erp-content">
+      <div class="page-header">
+        <h1 class="page-title">💳 Fee Portal</h1>
+        <p class="page-subtitle">View and pay your college fees securely.</p>
+      </div>
+
+      <!-- Outstanding Fee Banner -->
+      <div style="background:linear-gradient(135deg,#EF4444,#DC2626);border-radius:16px;padding:20px 24px;color:white;display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px">
+        <div>
+          <div style="font-size:13px;font-weight:600;color:#FCA5A5;margin-bottom:4px">⚠️ Outstanding Due</div>
+          <div style="font-size:28px;font-weight:900">₹55,000</div>
+          <div style="font-size:13px;color:#FCA5A5">Deadline: April 15, 2026 • Tuition Fee Sem IV</div>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="btn" style="background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.4)" onclick="openModal('payNowModal')"><i class="fas fa-credit-card"></i> Pay Now</button>
+          <button class="btn" style="background:rgba(255,255,255,0.1);color:white;border:1px solid rgba(255,255,255,0.2)" onclick="showToast('Payment reminder sent to parent','info')"><i class="fas fa-paper-plane"></i> Notify Parent</button>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
+        <div class="stat-card"><div class="stat-icon" style="background:#D1FAE5;color:#065F46"><i class="fas fa-check-circle"></i></div><div class="stat-label">Total Paid</div><div class="stat-value">₹1,65,000</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#FEE2E2;color:#991B1B"><i class="fas fa-hourglass-half"></i></div><div class="stat-label">Pending Amount</div><div class="stat-value" style="color:#EF4444">₹55,000</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#DBEAFE;color:#1E40AF"><i class="fas fa-percentage"></i></div><div class="stat-label">Total Fee (Program)</div><div class="stat-value">₹2,40,000</div></div>
+      </div>
+
+      <!-- Fee Records -->
+      <div class="card">
+        <div class="card-header"><div class="card-title">Payment History</div><button class="btn btn-sm btn-secondary" onclick="showToast('Downloading all receipts...','info')"><i class="fas fa-download"></i> Download All</button></div>
+        <div class="table-wrap">
+          <table class="erp-table">
+            <thead><tr><th>#</th><th>Description</th><th>Amount</th><th>Mode</th><th>Date</th><th>Receipt</th><th>Status</th></tr></thead>
+            <tbody id="feeHistory"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- PAY NOW MODAL -->
+<div class="modal-backdrop" id="payNowModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title"><i class="fas fa-lock" style="color:#059669;margin-right:8px"></i>Secure Payment</div><button class="modal-close" onclick="closeModal('payNowModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <div style="background:#F0FDF4;border-radius:12px;padding:16px;margin-bottom:16px;border:1px solid #BBF7D0">
+        <div style="font-size:12px;font-weight:700;color:#065F46;margin-bottom:4px">OUTSTANDING AMOUNT</div>
+        <div style="font-size:24px;font-weight:900;color:#059669">₹55,000</div>
+        <div style="font-size:12px;color:#64748B">Tuition Fee IV — Due by Apr 15, 2026</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Amount to Pay</label>
+        <input class="form-control" type="number" value="55000" id="payAmount">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Payment Method</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          ${['UPI','Net Banking','Debit Card','Credit Card'].map((m,i)=>`
+            <label style="display:flex;align-items:center;gap:8px;padding:10px;border:2px solid ${i===0?'#4F46E5':'#E2E8F0'};border-radius:8px;cursor:pointer;background:${i===0?'#EDE9FE':'white'}">
+              <input type="radio" name="payMode" value="${m}" ${i===0?'checked':''}> <span style="font-size:13px;font-weight:600">${m}</span>
+            </label>`).join('')}
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">UPI ID / Transaction ID</label>
+        <input class="form-control" placeholder="e.g. 9876543210@upi">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('payNowModal')">Cancel</button>
+      <button class="btn btn-success" onclick="processPayment()"><i class="fas fa-lock"></i> Pay ₹55,000 Securely</button>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script src="../../live/live-pages.js"></script>
+</body>
+</html>

@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leave & HR — Faculty | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../css/custom.css">
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-faculty" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon" style="background:linear-gradient(135deg,#059669,#10B981)">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" style="background:linear-gradient(135deg,#059669,#10B981)" id="sidebar-avatar">F</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Professor</div><div class="sidebar-user-role">Faculty Member</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <div class="nav-section-label">Teaching</div>
+      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-check"></i> Attendance</a>
+      <a href="grades.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-list"></i> Grades & Results</a>
+      <a href="assignments.html" class="nav-link"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
+      <a href="timetable.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Timetable</a>
+      <div class="nav-section-label">HR</div>
+      <a href="leave.html" class="nav-link active"><i class="nav-link-icon fas fa-file-signature"></i> Leave & HR</a>
+      <div class="nav-section-label">Tools</div>
+      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Assistant</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">Faculty / <span>Leave & HR</span></div>
+      </div>
+      <div class="topbar-right"><div class="topbar-avatar" id="topbar-avatar">F</div></div>
+    </header>
+
+    <div class="erp-content">
+      <div class="page-header">
+        <h1 class="page-title">📝 Leave & HR</h1>
+        <p class="page-subtitle">Apply for leave and view your HR records.</p>
+      </div>
+
+      <!-- Leave Balance -->
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
+        <div class="stat-card"><div class="stat-icon" style="background:#D1FAE5;color:#065F46"><i class="fas fa-umbrella-beach"></i></div><div class="stat-label">Casual Leave (CL)</div><div class="stat-value" data-counter="8">8</div><div class="stat-change neutral"><i class="fas fa-circle" style="font-size:7px"></i> 4 used</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#FEE2E2;color:#991B1B"><i class="fas fa-heartbeat"></i></div><div class="stat-label">Sick Leave (SL)</div><div class="stat-value" data-counter="12">12</div><div class="stat-change neutral"><i class="fas fa-circle" style="font-size:7px"></i> 2 used</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#DBEAFE;color:#1E40AF"><i class="fas fa-briefcase"></i></div><div class="stat-label">Earned Leave (EL)</div><div class="stat-value" data-counter="15">15</div><div class="stat-change neutral"><i class="fas fa-circle" style="font-size:7px"></i> 0 used</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#FEF3C7;color:#92400E"><i class="fas fa-tasks"></i></div><div class="stat-label">Duty Leave (DL)</div><div class="stat-value" data-counter="5">5</div><div class="stat-change neutral"><i class="fas fa-circle" style="font-size:7px"></i> 1 used</div></div>
+      </div>
+
+      <div class="grid col-2">
+        <!-- APPLY LEAVE -->
+        <div class="card">
+          <div class="card-header"><div class="card-title"><i class="fas fa-paper-plane" style="color:#059669;margin-right:8px"></i>Apply for Leave</div></div>
+          <div class="card-body">
+            <form id="leaveForm">
+              <div class="form-group">
+                <label class="form-label">Leave Type *</label>
+                <select class="form-control" id="leaveType">
+                  <option value="casual">Casual Leave (CL)</option>
+                  <option value="sick">Sick Leave (SL)</option>
+                  <option value="duty">Duty Leave (DL)</option>
+                  <option value="earned">Earned Leave (EL)</option>
+                </select>
+              </div>
+              <div class="form-grid-2">
+                <div class="form-group"><label class="form-label">From Date *</label><input class="form-control" type="date" id="startDate" required></div>
+                <div class="form-group"><label class="form-label">To Date *</label><input class="form-control" type="date" id="endDate" required></div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Reason *</label>
+                <textarea class="form-control" id="leaveReason" rows="3" placeholder="Provide a brief reason for the leave..." required></textarea>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Alternate Faculty (if any)</label>
+                <input class="form-control" id="alternateFaculty" placeholder="Name of covering faculty">
+              </div>
+              <button type="submit" class="btn btn-primary w-full" id="submitLeaveBtn"><i class="fas fa-paper-plane"></i> Submit Leave Request</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- MY LEAVES HISTORY -->
+        <div class="card">
+          <div class="card-header"><div class="card-title"><i class="fas fa-history" style="color:#4F46E5;margin-right:8px"></i>My Leave History</div></div>
+          <div class="table-wrap" style="max-height:420px;overflow-y:auto">
+            <table class="erp-table">
+              <thead><tr><th>Type</th><th>Duration</th><th>Reason</th><th>Status</th></tr></thead>
+              <tbody id="leaveHistoryBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script src="../../live/live-admin-pages.js"></script>
+</body>
+</html>

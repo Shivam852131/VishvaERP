@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Subscription Plans | VishvaERP Super Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../css/custom.css">
+  <style>
+    .plan-card { border-radius: 20px; padding: 24px; position: relative; overflow: hidden; transition: all 0.2s; cursor: pointer; }
+    .plan-card:hover { transform: translateY(-4px); box-shadow: 0 20px 40px rgba(0,0,0,0.12); }
+    .plan-card.popular::before { content: '⭐ Most Popular'; position: absolute; top: 14px; right: 14px; background: #F59E0B; color: white; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
+    .plan-feature { display: flex; align-items: center; gap: 10px; padding: 6px 0; font-size: 13.5px; }
+    .plan-feature i { width: 16px; }
+  </style>
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-superadmin" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" id="sidebar-avatar">S</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Super Admin</div><div class="sidebar-user-role">Platform Administrator</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-tachometer-alt"></i> Dashboard</a>
+      <div class="nav-section-label">Management</div>
+      <a href="colleges.html" class="nav-link"><i class="nav-link-icon fas fa-university"></i> Colleges</a>
+      <a href="users.html" class="nav-link"><i class="nav-link-icon fas fa-users-cog"></i> All Users</a>
+      <a href="plans.html" class="nav-link active"><i class="nav-link-icon fas fa-tags"></i> Subscription Plans</a>
+      <div class="nav-section-label">Database</div>
+      <a href="database.html" class="nav-link"><i class="nav-link-icon fas fa-database"></i> DB Manager</a>
+      <a href="audit-logs.html" class="nav-link"><i class="nav-link-icon fas fa-history"></i> Audit Logs</a>
+      <div class="nav-section-label">Platform</div>
+      <a href="analytics.html" class="nav-link"><i class="nav-link-icon fas fa-chart-line"></i> Analytics</a>
+      <a href="system.html" class="nav-link"><i class="nav-link-icon fas fa-server"></i> System Health</a>
+      <a href="broadcast.html" class="nav-link"><i class="nav-link-icon fas fa-bullhorn"></i> Broadcast</a>
+      <a href="settings.html" class="nav-link"><i class="nav-link-icon fas fa-cog"></i> Settings</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">Super Admin / <span>Subscription Plans</span></div>
+      </div>
+      <div class="topbar-right"><div class="topbar-avatar" id="topbar-avatar">S</div></div>
+    </header>
+
+    <div class="erp-content">
+      <div class="page-header">
+        <h1 class="page-title">💳 Subscription Plans</h1>
+        <p class="page-subtitle">Manage plan assignments, renewals, and pricing for all institutions.</p>
+      </div>
+
+      <!-- Revenue Stats -->
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
+        <div class="stat-card" style="background:linear-gradient(135deg,#D1FAE5,#A7F3D0)"><div class="stat-icon" style="background:rgba(255,255,255,0.5);color:#065F46"><i class="fas fa-rupee-sign"></i></div><div class="stat-label">Monthly Revenue</div><div class="stat-value" style="color:#059669">₹4,80,000</div><div class="stat-change up"><i class="fas fa-arrow-up"></i> 18% this month</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#EDE9FE;color:#5B21B6"><i class="fas fa-crown"></i></div><div class="stat-label">Enterprise Clients</div><div class="stat-value" data-counter="3">3</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#DBEAFE;color:#1E40AF"><i class="fas fa-star"></i></div><div class="stat-label">Pro Clients</div><div class="stat-value" data-counter="7">7</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#FEF3C7;color:#92400E"><i class="fas fa-exclamation-triangle"></i></div><div class="stat-label">Expiring Soon</div><div class="stat-value" data-counter="2" style="color:#D97706">2</div><div class="stat-change down"><i class="fas fa-clock"></i> Within 30 days</div></div>
+      </div>
+
+      <!-- Plan Cards -->
+      <div class="grid col-3 mb-8">
+        <div class="plan-card" style="background:linear-gradient(135deg,#F8FAFC,#E2E8F0);border:2px solid #E2E8F0">
+          <div style="font-size:12px;font-weight:700;color:#64748B;letter-spacing:1px;margin-bottom:8px">BASIC</div>
+          <div style="font-size:32px;font-weight:900;color:#0F172A;margin-bottom:4px">₹5,000<span style="font-size:14px;font-weight:500;color:#64748B">/month</span></div>
+          <div style="font-size:12px;color:#64748B;margin-bottom:16px">Up to 500 students</div>
+          <div style="border-top:1px solid #E2E8F0;padding-top:14px">
+            ${['Student & Faculty portals','Fee management','Attendance tracking','Basic reports','Email support'].map(f=>`<div class="plan-feature"><i class="fas fa-check-circle" style="color:#059669"></i>${f}</div>`).join('')}
+            ${['AI tools','Advanced analytics','Multi-department','Priority support'].map(f=>`<div class="plan-feature"><i class="fas fa-times-circle" style="color:#94A3B8"></i><span style="color:#94A3B8">${f}</span></div>`).join('')}
+          </div>
+        </div>
+
+        <div class="plan-card popular" style="background:linear-gradient(135deg,#312E81,#4F46E5);border:2px solid #4F46E5;color:white">
+          <div style="font-size:12px;font-weight:700;color:#A5B4FC;letter-spacing:1px;margin-bottom:8px">PRO</div>
+          <div style="font-size:32px;font-weight:900;color:white;margin-bottom:4px">₹15,000<span style="font-size:14px;font-weight:500;color:#A5B4FC">/month</span></div>
+          <div style="font-size:12px;color:#A5B4FC;margin-bottom:16px">Up to 2,000 students</div>
+          <div style="border-top:1px solid rgba(255,255,255,0.2);padding-top:14px">
+            ${['Everything in Basic','AI exam generator','Advanced analytics','Multi-department','HR & Leave module','Hostel & Transport','Priority support'].map(f=>`<div class="plan-feature" style="color:#E0E7FF"><i class="fas fa-check-circle" style="color:#34D399"></i>${f}</div>`).join('')}
+            ${['SLA guarantee','Dedicated CSM'].map(f=>`<div class="plan-feature"><i class="fas fa-times-circle" style="color:rgba(255,255,255,0.3)"></i><span style="color:rgba(255,255,255,0.4)">${f}</span></div>`).join('')}
+          </div>
+        </div>
+
+        <div class="plan-card" style="background:linear-gradient(135deg,#0F172A,#1E293B);border:2px solid #334155;color:white">
+          <div style="font-size:12px;font-weight:700;color:#94A3B8;letter-spacing:1px;margin-bottom:8px">ENTERPRISE</div>
+          <div style="font-size:32px;font-weight:900;color:white;margin-bottom:4px">₹40,000<span style="font-size:14px;font-weight:500;color:#94A3B8">/month</span></div>
+          <div style="font-size:12px;color:#94A3B8;margin-bottom:16px">Unlimited students</div>
+          <div style="border-top:1px solid #334155;padding-top:14px">
+            ${['Everything in Pro','Unlimited users','Custom branding','API access','SLA guarantee','Dedicated CSM','On-premise option','Custom modules'].map(f=>`<div class="plan-feature" style="color:#E2E8F0"><i class="fas fa-check-circle" style="color:#F59E0B"></i>${f}</div>`).join('')}
+          </div>
+        </div>
+      </div>
+
+      <!-- College Plan Management Table -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">College Plan Assignments</div>
+          <button class="btn btn-primary btn-sm" onclick="openModal('upgradePlanModal')"><i class="fas fa-edit"></i> Change Plan</button>
+        </div>
+        <div class="table-wrap">
+          <table class="erp-table">
+            <thead><tr><th>College</th><th>Current Plan</th><th>Expiry</th><th>Students</th><th>Monthly Cost</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="planTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CHANGE PLAN MODAL -->
+<div class="modal-backdrop" id="upgradePlanModal">
+  <div class="modal modal-lg">
+    <div class="modal-header"><div class="modal-title"><i class="fas fa-tags" style="color:#4F46E5;margin-right:8px"></i>Update College Plan</div><button class="modal-close" onclick="closeModal('upgradePlanModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Select College *</label>
+        <select class="form-control" id="planCollegeSelect">
+          <option value="">Choose institution...</option>
+        </select>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="form-label">New Plan *</label>
+          <select class="form-control" id="newPlanSelect">
+            <option value="basic">Basic — ₹5,000/month</option>
+            <option value="pro">Pro — ₹15,000/month</option>
+            <option value="enterprise">Enterprise — ₹40,000/month</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Expiry Date *</label>
+          <input class="form-control" type="date" id="planExpiry">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('upgradePlanModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="updatePlan()"><i class="fas fa-save"></i> Update Plan</button>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script src="../../live/live-admin-pages.js"></script>
+</body>
+</html>

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>System Health | VishvaERP Super Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="../../css/custom.css">
+  <style>
+    .health-ring { position: relative; width: 120px; height: 120px; margin: 0 auto; }
+    .health-ring-label { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+    .metric-bar { height: 12px; background: #F1F5F9; border-radius: 999px; overflow: hidden; margin-top: 8px; }
+    .metric-fill { height: 100%; border-radius: 999px; transition: width 1s ease; }
+    .service-card { background: white; border: 1px solid #E2E8F0; border-radius: 14px; padding: 18px; display: flex; align-items: center; gap: 14px; }
+    .service-status { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .status-ok { background: #059669; box-shadow: 0 0 0 3px #D1FAE5; }
+    .status-warn { background: #F59E0B; box-shadow: 0 0 0 3px #FEF3C7; }
+    .status-err { background: #EF4444; box-shadow: 0 0 0 3px #FEE2E2; }
+    .log-line { font-family: 'Monaco','Menlo',monospace; font-size: 11.5px; padding: 5px 8px; border-radius: 4px; }
+    .log-line.info { background: #EDE9FE; color: #5B21B6; }
+    .log-line.warn { background: #FEF3C7; color: #92400E; }
+    .log-line.err { background: #FEE2E2; color: #991B1B; }
+    .log-line.success { background: #D1FAE5; color: #065F46; }
+  </style>
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-superadmin" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" id="sidebar-avatar">S</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Super Admin</div><div class="sidebar-user-role">Platform Administrator</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-tachometer-alt"></i> Dashboard</a>
+      <div class="nav-section-label">Management</div>
+      <a href="colleges.html" class="nav-link"><i class="nav-link-icon fas fa-university"></i> Colleges</a>
+      <a href="users.html" class="nav-link"><i class="nav-link-icon fas fa-users-cog"></i> All Users</a>
+      <a href="plans.html" class="nav-link"><i class="nav-link-icon fas fa-tags"></i> Subscription Plans</a>
+      <div class="nav-section-label">Database</div>
+      <a href="database.html" class="nav-link"><i class="nav-link-icon fas fa-database"></i> DB Manager</a>
+      <a href="audit-logs.html" class="nav-link"><i class="nav-link-icon fas fa-history"></i> Audit Logs</a>
+      <div class="nav-section-label">Platform</div>
+      <a href="analytics.html" class="nav-link"><i class="nav-link-icon fas fa-chart-line"></i> Analytics</a>
+      <a href="system.html" class="nav-link active"><i class="nav-link-icon fas fa-server"></i> System Health</a>
+      <a href="broadcast.html" class="nav-link"><i class="nav-link-icon fas fa-bullhorn"></i> Broadcast</a>
+      <a href="settings.html" class="nav-link"><i class="nav-link-icon fas fa-cog"></i> Settings</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">Super Admin / <span>System Health</span></div>
+      </div>
+      <div class="topbar-right">
+        <div id="lastUpdated" style="font-size:12px;color:#64748B">Auto-refreshing every 10s</div>
+        <div class="topbar-avatar" id="topbar-avatar">S</div>
+      </div>
+    </header>
+
+    <div class="erp-content">
+      <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+        <div>
+          <h1 class="page-title">🖥️ System Health</h1>
+          <p class="page-subtitle">Real-time server and database monitoring.</p>
+        </div>
+        <div id="systemStatus" style="display:flex;align-items:center;gap:8px;background:#D1FAE5;padding:8px 16px;border-radius:12px">
+          <span style="width:10px;height:10px;border-radius:50%;background:#059669;display:inline-block;animation:pulse 2s infinite"></span>
+          <span style="font-weight:700;font-size:14px;color:#065F46">All Systems Operational</span>
+        </div>
+      </div>
+
+      <!-- Health Metrics Grid -->
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#D1FAE5;color:#065F46"><i class="fas fa-server"></i></div>
+          <div class="stat-label">Server Uptime</div>
+          <div class="stat-value" id="serverUptime" style="font-size:18px">—</div>
+          <div class="stat-change up"><i class="fas fa-arrow-up"></i> Node.js <span id="nodeVersion">—</span></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#EDE9FE;color:#5B21B6"><i class="fas fa-memory"></i></div>
+          <div class="stat-label">Memory Usage</div>
+          <div class="stat-value" id="memUsage">—</div>
+          <div style="margin-top:6px"><div class="metric-bar"><div class="metric-fill" id="memBar" style="background:#8B5CF6;width:0%"></div></div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#DBEAFE;color:#1E40AF"><i class="fas fa-database"></i></div>
+          <div class="stat-label">Database</div>
+          <div class="stat-value" id="dbStatusHealth" style="font-size:16px;color:#059669">—</div>
+          <div class="stat-change up" id="dbNameHealth"><i class="fas fa-check-circle"></i> —</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#FEF3C7;color:#92400E"><i class="fas fa-clock"></i></div>
+          <div class="stat-label">Last Checked</div>
+          <div class="stat-value" id="lastChecked" style="font-size:16px">—</div>
+          <div class="stat-change neutral"><i class="fas fa-sync"></i> Auto refresh</div>
+        </div>
+      </div>
+
+      <div class="grid col-2 mb-6">
+        <!-- Memory Chart -->
+        <div class="card">
+          <div class="card-header"><div class="card-title"><i class="fas fa-chart-area" style="color:#8B5CF6;margin-right:8px"></i>Memory Usage (Live)</div></div>
+          <div class="card-body"><div class="chart-container" style="height:220px"><canvas id="memChart"></canvas></div></div>
+        </div>
+        <!-- Services Status -->
+        <div class="card">
+          <div class="card-header"><div class="card-title"><i class="fas fa-heartbeat" style="color:#EF4444;margin-right:8px"></i>Services Status</div></div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:10px" id="servicesGrid">
+            ${[
+              ['Express Server','HTTP/REST API handling','ok'],
+              ['MongoDB','Primary database connection','ok'],
+              ['Socket.io','Real-time event engine','ok'],
+              ['JWT Auth','Token validation service','ok'],
+              ['Rate Limiter','API protection layer','ok'],
+              ['File Server','Static asset serving','ok'],
+            ].map(([name,desc,status]) => `
+            <div class="service-card">
+              <div class="service-status status-${status}"></div>
+              <div style="flex:1"><div style="font-weight:700;font-size:13px">${name}</div><div style="font-size:11px;color:#64748B">${desc}</div></div>
+              <span class="badge ${status==='ok'?'badge-success':'badge-danger'}">${status === 'ok' ? 'Operational' : 'Down'}</span>
+            </div>`).join('')}
+          </div>
+        </div>
+      </div>
+
+      <!-- System Info + Logs -->
+      <div class="grid col-2">
+        <!-- System Info -->
+        <div class="card">
+          <div class="card-header"><div class="card-title"><i class="fas fa-info-circle" style="color:#0284C7;margin-right:8px"></i>System Information</div></div>
+          <div class="card-body">
+            <div id="sysInfoTable">
+              <div class="skeleton skeleton-text" style="height:18px;margin-bottom:12px"></div>
+              <div class="skeleton skeleton-text" style="height:18px;margin-bottom:12px;width:80%"></div>
+              <div class="skeleton skeleton-text" style="height:18px;margin-bottom:12px;width:60%"></div>
+            </div>
+          </div>
+        </div>
+        <!-- Real-time Console -->
+        <div class="card">
+          <div class="card-header"><div class="card-title"><i class="fas fa-terminal" style="color:#0F172A;margin-right:8px"></i>Activity Console</div><button class="btn btn-sm btn-secondary" onclick="clearConsole()"><i class="fas fa-trash"></i> Clear</button></div>
+          <div id="consoleArea" style="padding:12px;background:#0F172A;border-radius:0 0 16px 16px;max-height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:3px"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }</style>
+<script src="../../js/shared.js"></script>
+<script>
+  requireAuth(['superadmin']);
+
+  const memHistory = [];
+  let memChart;
+
+  function initChart() {
+    memChart = new Chart(document.getElementById('memChart'), {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [
+          { label:'Heap Used (MB)', data:[], borderColor:'#8B5CF6', fill:true, backgroundColor:'rgba(139,92,246,0.1)', tension:0.4, borderWidth:2, pointRadius:0 },
+          { label:'RSS (MB)', data:[], borderColor:'#EF4444', fill:false, tension:0.4, borderWidth:1.5, pointRadius:0, borderDash:[4,2] },
+        ]
+      },
+      options: { ...getChartDefaults(), animation:false, scales: { y:{min:0,grid:{color:'#F1F5F9'}}, x:{grid:{display:false}} } }
+    });
+  }
+
+  async function fetchHealth() {
+    try {
+      const data = await api.request('/super-admin/system-health');
+      const h = data.health;
+      const now = new Date().toLocaleTimeString();
+
+      document.getElementById('serverUptime').textContent = h.server.uptimeFormatted;
+      document.getElementById('nodeVersion').textContent = h.server.nodeVersion;
+      document.getElementById('memUsage').textContent = h.memory.heapUsedMB + ' MB';
+      document.getElementById('memBar').style.width = h.memory.usagePercent + '%';
+      document.getElementById('memBar').style.background = h.memory.usagePercent > 80 ? '#EF4444' : '#8B5CF6';
+      document.getElementById('dbStatusHealth').textContent = h.database.status.toUpperCase();
+      document.getElementById('dbStatusHealth').style.color = h.database.status === 'connected' ? '#059669' : '#EF4444';
+      document.getElementById('dbNameHealth').innerHTML = `<i class="fas fa-check-circle"></i> ${h.database.name}`;
+      document.getElementById('lastChecked').textContent = new Date(h.timestamp).toLocaleTimeString();
+
+      // System info table
+      document.getElementById('sysInfoTable').innerHTML = [
+        ['Platform', h.server.platform],
+        ['Node.js Version', h.server.nodeVersion],
+        ['Database', h.database.name],
+        ['Connection', h.database.status],
+        ['Heap Used', h.memory.heapUsedMB + ' MB / ' + h.memory.heapTotalMB + ' MB'],
+        ['RSS Memory', h.memory.rssMB + ' MB'],
+        ['Memory Usage', h.memory.usagePercent + '%'],
+        ['Uptime', h.server.uptimeFormatted],
+      ].map(([k,v]) => `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #F1F5F9"><span style="font-size:13px;color:#64748B">${k}</span><span style="font-size:13px;font-weight:700">${v}</span></div>`).join('');
+
+      // Update chart
+      if (memChart.data.labels.length > 20) {
+        memChart.data.labels.shift();
+        memChart.data.datasets[0].data.shift();
+        memChart.data.datasets[1].data.shift();
+      }
+      memChart.data.labels.push(now);
+      memChart.data.datasets[0].data.push(parseFloat(h.memory.heapUsedMB));
+      memChart.data.datasets[1].data.push(parseFloat(h.memory.rssMB));
+      memChart.update('none');
+
+      addLog(`[${now}] Health check OK — Heap: ${h.memory.heapUsedMB}MB, DB: ${h.database.status}`, 'success');
+    } catch (e) {
+      addLog(`[${new Date().toLocaleTimeString()}] Health check failed — ${e.message || 'backend unavailable'}`, 'err');
+      renderHealthError();
+    }
+  }
+
+  function renderHealthError() {
+    document.getElementById('serverUptime').textContent = 'Unavailable';
+    document.getElementById('nodeVersion').textContent = 'Unavailable';
+    document.getElementById('memUsage').textContent = 'Unavailable';
+    document.getElementById('memBar').style.width = '0%';
+    document.getElementById('memBar').style.background = '#EF4444';
+    document.getElementById('dbStatusHealth').textContent = 'DISCONNECTED';
+    document.getElementById('dbStatusHealth').style.color = '#EF4444';
+    document.getElementById('dbNameHealth').innerHTML = '<i class="fas fa-times-circle"></i> Database unavailable';
+    document.getElementById('lastChecked').textContent = new Date().toLocaleTimeString();
+    document.getElementById('sysInfoTable').innerHTML = [
+      ['Platform', 'Unavailable'], ['Node.js', 'Unavailable'], ['Database', 'Unavailable'],
+      ['Connection', 'disconnected'], ['Heap Used', 'Unavailable'], ['Uptime', 'Unavailable'],
+    ].map(([k,v]) => `<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #F1F5F9"><span style="font-size:13px;color:#64748B">${k}</span><span style="font-size:13px;font-weight:700">${v}</span></div>`).join('');
+  }
+
+  function addLog(msg, type = 'info') {
+    const area = document.getElementById('consoleArea');
+    const el = document.createElement('div');
+    el.style.cssText = `font-family:monospace;font-size:11px;padding:3px 8px;border-radius:3px;color:${type==='success'?'#34D399':type==='warn'?'#FCD34D':type==='err'?'#FCA5A5':'#94A3B8'}`;
+    el.textContent = msg;
+    area.appendChild(el);
+    area.scrollTop = area.scrollHeight;
+  }
+
+  function clearConsole() {
+    document.getElementById('consoleArea').innerHTML = '';
+    addLog(`[${new Date().toLocaleTimeString()}] Console cleared`, 'info');
+  }
+
+  initChart();
+  addLog(`[${new Date().toLocaleTimeString()}] VishvaERP System Monitor started`, 'success');
+  addLog(`[${new Date().toLocaleTimeString()}] Connecting to backend...`, 'info');
+  fetchHealth();
+  setInterval(fetchHealth, 10000);
+</script>
+</body>
+</html>

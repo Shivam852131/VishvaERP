@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Results — Student | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="../../css/custom.css">
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-student" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)" id="sidebar-avatar">S</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Student</div><div class="sidebar-user-role">B.Tech CS • Sem 4</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <div class="nav-section-label">Academics</div>
+      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-reader"></i> My Courses</a>
+      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Attendance</a>
+      <a href="results.html" class="nav-link active"><i class="nav-link-icon fas fa-poll"></i> Results</a>
+      <a href="assignments.html" class="nav-link"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
+      <a href="timetable.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-week"></i> Timetable</a>
+      <div class="nav-section-label">Finance</div>
+      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-receipt"></i> Fees</a>
+      <div class="nav-section-label">Facilities</div>
+      <a href="library.html" class="nav-link"><i class="nav-link-icon fas fa-book"></i> Library</a>
+      <div class="nav-section-label">Tools</div>
+      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-brain"></i> AI Services</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">Student / <span>Results</span></div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-primary" onclick="window.print()"><i class="fas fa-file-pdf"></i> Download Marksheet</button>
+        <div class="topbar-avatar" id="topbar-avatar">S</div>
+      </div>
+    </header>
+
+    <div class="erp-content">
+      <div class="page-header">
+        <h1 class="page-title">🏆 Results & Grades</h1>
+        <p class="page-subtitle">Your academic performance across all semesters.</p>
+      </div>
+
+      <!-- CGPA Summary -->
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
+        <div class="stat-card" style="background:linear-gradient(135deg,#EDE9FE,#DBEAFE)"><div class="stat-icon" style="background:rgba(255,255,255,0.6);color:#5B21B6"><i class="fas fa-star"></i></div><div class="stat-label">CGPA</div><div class="stat-value" style="color:#5B21B6">8.4</div><div class="stat-change up"><i class="fas fa-arrow-up"></i> Top 15% of class</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#D1FAE5;color:#065F46"><i class="fas fa-chart-bar"></i></div><div class="stat-label">Best SGPA</div><div class="stat-value">8.7</div><div style="font-size:12px;color:#64748B">Semester 2</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#DBEAFE;color:#1E40AF"><i class="fas fa-graduation-cap"></i></div><div class="stat-label">Completed Sems</div><div class="stat-value" data-counter="3">3</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#FEF3C7;color:#92400E"><i class="fas fa-trophy"></i></div><div class="stat-label">Credits Earned</div><div class="stat-value" data-counter="68">68</div></div>
+      </div>
+
+      <div class="grid col-2 mb-6">
+        <div class="card">
+          <div class="card-header"><div class="card-title"><i class="fas fa-chart-line" style="color:#0284C7;margin-right:8px"></i>SGPA Trend</div></div>
+          <div class="card-body"><div class="chart-container" style="height:220px"><canvas id="sgpaChart"></canvas></div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title"><i class="fas fa-chart-radar" style="color:#8B5CF6;margin-right:8px"></i>Subject Performance</div></div>
+          <div class="card-body"><div class="chart-container" style="height:220px"><canvas id="radarChart"></canvas></div></div>
+        </div>
+      </div>
+
+      <!-- Semester Tabs -->
+      <div class="tab-bar mb-4" style="max-width:400px">
+        <button class="tab-btn active" onclick="showSem(1,this)">Sem 1</button>
+        <button class="tab-btn" onclick="showSem(2,this)">Sem 2</button>
+        <button class="tab-btn" onclick="showSem(3,this)">Sem 3</button>
+      </div>
+
+      <div class="card" id="resultsCard">
+        <div class="card-header">
+          <div class="card-title" id="semTitle">Semester 1 Result</div>
+          <span class="badge badge-success" id="semSGPA" style="font-size:14px">SGPA: 8.1</span>
+        </div>
+        <div class="table-wrap">
+          <table class="erp-table">
+            <thead><tr><th>Subject Code</th><th>Subject</th><th>Mid 1</th><th>Mid 2</th><th>End Sem</th><th>Total</th><th>Grade</th><th>Credits</th></tr></thead>
+            <tbody id="resultsBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script src="../../live/live-pages.js"></script>
+</body>
+</html>

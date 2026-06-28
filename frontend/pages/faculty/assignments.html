@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assignments — Faculty | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../css/custom.css">
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-faculty" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon" style="background:linear-gradient(135deg,#059669,#10B981)">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" style="background:linear-gradient(135deg,#059669,#10B981)" id="sidebar-avatar">F</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Professor</div><div class="sidebar-user-role">Faculty Member</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <div class="nav-section-label">Teaching</div>
+      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-check"></i> Attendance</a>
+      <a href="grades.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-list"></i> Grades & Results</a>
+      <a href="assignments.html" class="nav-link active"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
+      <a href="timetable.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Timetable</a>
+      <div class="nav-section-label">HR</div>
+      <a href="leave.html" class="nav-link"><i class="nav-link-icon fas fa-file-signature"></i> Leave & HR</a>
+      <div class="nav-section-label">Tools</div>
+      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Assistant</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">Faculty / <span>Assignments</span></div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-primary" onclick="openModal('createAssignmentModal')"><i class="fas fa-plus"></i> Create Assignment</button>
+        <div class="topbar-avatar" id="topbar-avatar">F</div>
+      </div>
+    </header>
+
+    <div class="erp-content">
+      <div class="page-header">
+        <h1 class="page-title">📝 Assignments</h1>
+        <p class="page-subtitle">Create, manage, and grade student assignments.</p>
+      </div>
+
+      <!-- Assignment Cards -->
+      <div id="assignmentGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- CREATE ASSIGNMENT MODAL -->
+<div class="modal-backdrop" id="createAssignmentModal">
+  <div class="modal modal-lg">
+    <div class="modal-header"><div class="modal-title"><i class="fas fa-plus" style="color:#059669;margin-right:8px"></i>Create Assignment</div><button class="modal-close" onclick="closeModal('createAssignmentModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Assignment Title *</label><input class="form-control" id="aTitle" required placeholder="e.g. DSA Assignment 4 — Graph Algorithms"></div>
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Subject *</label>
+          <select class="form-control" id="aSubject"><option>Data Structures</option><option>DBMS</option><option>Operating Systems</option></select>
+        </div>
+        <div class="form-group"><label class="form-label">Max Marks</label><input class="form-control" type="number" id="aMarks" value="20"></div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Due Date *</label><input class="form-control" type="date" id="aDue" required></div>
+        <div class="form-group"><label class="form-label">Batch</label>
+          <select class="form-control" id="aBatch"><option>B.Tech CS Sem 4</option><option>B.Tech CS Sem 6</option></select>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Description / Instructions</label><textarea class="form-control" id="aDesc" rows="4" placeholder="Provide clear instructions for the students..."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('createAssignmentModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="createAssignment()"><i class="fas fa-paper-plane"></i> Publish Assignment</button>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script>
+  requireAuth(['faculty']);
+
+  let assignments = [
+    { _id:'1', title:'DSA Assignment 3 — Trees & Traversals', subject:'Data Structures', batch:'B.Tech CS Sem 4', due:'2024-04-14', maxMarks:20, submitted:42, total:85, description:'Implement BFS, DFS on a given tree. Also implement Inorder, Preorder, Postorder traversal.' },
+    { _id:'2', title:'DBMS ER Diagram Assignment', subject:'DBMS', batch:'B.Tech CS Sem 4', due:'2024-04-16', maxMarks:15, submitted:30, total:85, description:'Design an ER diagram for a library management system with all entities and relationships.' },
+    { _id:'3', title:'OS Process Scheduling Simulation', subject:'Operating Systems', batch:'B.Tech CS Sem 6', due:'2024-04-18', maxMarks:25, submitted:22, total:78, description:'Implement FCFS, SJF, and Round Robin scheduling algorithms in C/Python.' },
+  ];
+
+  function renderAssignments() {
+    document.getElementById('assignmentGrid').innerHTML = assignments.map(a => {
+      const pct = Math.round(a.submitted / a.total * 100);
+      const isPast = new Date(a.due) < new Date();
+      return `
+        <div class="card" style="padding:0;overflow:hidden">
+          <div style="height:5px;background:linear-gradient(90deg,#059669,#10B981)"></div>
+          <div style="padding:18px">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+              <span class="badge badge-gray">${a.subject}</span>
+              <span class="badge ${isPast?'badge-danger':'badge-info'}">${isPast?'Past Due':new Date(a.due).toLocaleDateString()}</span>
+            </div>
+            <div style="font-size:15px;font-weight:700;margin-bottom:6px;line-height:1.4">${a.title}</div>
+            <div style="font-size:12px;color:#64748B;margin-bottom:12px">${a.description.substring(0,80)}...</div>
+            <div style="margin-bottom:12px">
+              <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+                <span style="font-size:12px;color:#64748B">Submissions</span>
+                <span style="font-size:12px;font-weight:700">${a.submitted}/${a.total} (${pct}%)</span>
+              </div>
+              <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:#059669"></div></div>
+            </div>
+            <div style="font-size:12px;color:#64748B;margin-bottom:12px"><i class="fas fa-users" style="margin-right:4px"></i>${a.batch} • Max: ${a.maxMarks} marks</div>
+            <div style="display:flex;gap:8px;border-top:1px solid #F1F5F9;padding-top:12px">
+              <button class="btn btn-success btn-sm" style="flex:1" onclick="viewSubmissions('${a._id}')"><i class="fas fa-eye"></i> View Submissions</button>
+              <button class="btn btn-secondary btn-sm" onclick="showToast('Edit assignment','info')"><i class="fas fa-edit"></i></button>
+              <button class="btn btn-danger btn-sm" onclick="deleteAssignment('${a._id}')"><i class="fas fa-trash"></i></button>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function viewSubmissions(id) {
+    const a = assignments.find(x => x._id === id);
+    showToast(`${a.submitted} submissions received for "${a.title.substring(0,30)}..."`, 'info');
+  }
+
+  function deleteAssignment(id) {
+    if (!confirm('Delete this assignment?')) return;
+    assignments = assignments.filter(a => a._id !== id);
+    renderAssignments();
+    showToast('Assignment deleted', 'warning');
+  }
+
+  function createAssignment() {
+    const title = document.getElementById('aTitle').value.trim();
+    const subject = document.getElementById('aSubject').value;
+    const due = document.getElementById('aDue').value;
+    const batch = document.getElementById('aBatch').value;
+    const desc = document.getElementById('aDesc').value;
+    if (!title || !due) { showToast('Title and due date are required', 'error'); return; }
+    assignments.unshift({ _id: String(Date.now()), title, subject, batch, due, maxMarks: parseInt(document.getElementById('aMarks').value)||20, submitted:0, total:85, description: desc || 'No description' });
+    renderAssignments();
+    showToast('Assignment published!', 'success');
+    closeModal('createAssignmentModal');
+  }
+
+  renderAssignments();
+</script>
+<script src="../../live/live-admin-pages.js"></script>
+</body>
+</html>

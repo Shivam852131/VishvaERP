@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Timetable — Faculty | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../css/custom.css">
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-faculty" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon" style="background:linear-gradient(135deg,#059669,#10B981)">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" style="background:linear-gradient(135deg,#059669,#10B981)" id="sidebar-avatar">F</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Professor</div><div class="sidebar-user-role">Faculty Member</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <div class="nav-section-label">Teaching</div>
+      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-check"></i> Attendance</a>
+      <a href="grades.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-list"></i> Grades & Results</a>
+      <a href="assignments.html" class="nav-link"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
+      <a href="timetable.html" class="nav-link active"><i class="nav-link-icon fas fa-calendar-alt"></i> Timetable</a>
+      <div class="nav-section-label">HR</div>
+      <a href="leave.html" class="nav-link"><i class="nav-link-icon fas fa-file-signature"></i> Leave & HR</a>
+      <div class="nav-section-label">Tools</div>
+      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Assistant</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">Faculty / <span>Timetable</span></div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-secondary" onclick="window.print()"><i class="fas fa-print"></i> Print</button>
+        <div class="topbar-avatar" id="topbar-avatar">F</div>
+      </div>
+    </header>
+
+    <div class="erp-content">
+      <div class="page-header">
+        <h1 class="page-title">Teaching Timetable</h1>
+        <p class="page-subtitle">Live teaching load, room movement, subject coverage, and today's class queue.</p>
+      </div>
+
+      <div class="stats-grid mb-6" style="grid-template-columns:repeat(4,1fr)">
+        <div class="stat-card"><div class="stat-icon" style="background:#D1FAE5;color:#065F46"><i class="fas fa-chalkboard"></i></div><div class="stat-label">Classes This Week</div><div class="stat-value">--</div><div class="stat-change up"><i class="fas fa-calendar-week"></i> Live schedule</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#EDE9FE;color:#5B21B6"><i class="fas fa-clock"></i></div><div class="stat-label">Teaching Hours</div><div class="stat-value">--</div><div class="stat-change"><i class="fas fa-hourglass-half"></i> Contact time</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#DBEAFE;color:#1E40AF"><i class="fas fa-book-open"></i></div><div class="stat-label">Different Subjects</div><div class="stat-value">--</div><div class="stat-change"><i class="fas fa-layer-group"></i> Academic spread</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#FEF3C7;color:#92400E"><i class="fas fa-calendar-day"></i></div><div class="stat-label">Today Classes</div><div class="stat-value">--</div><div class="stat-change"><i class="fas fa-satellite-dish"></i> Smart attendance ready</div></div>
+      </div>
+
+      <div class="timetable-command-grid mb-6 faculty-timetable-command">
+        <div class="timetable-primary-panel faculty-panel">
+          <div class="timetable-panel-kicker">Next teaching movement</div>
+          <div class="timetable-next-title" id="facultyNextClass">Loading schedule</div>
+          <div class="timetable-next-meta" id="facultyNextMeta">Checking active timetable slots...</div>
+          <div class="timetable-metric-grid">
+            <div class="timetable-metric"><span>Unique Batches</span><strong id="facultyUniqueBatches">--</strong></div>
+            <div class="timetable-metric"><span>Rooms Used</span><strong id="facultyRoomPlan">--</strong></div>
+            <div class="timetable-metric"><span>Load Status</span><strong id="facultyLoadStatus">--</strong></div>
+          </div>
+        </div>
+        <div class="timetable-mini-panel">
+          <div class="timetable-panel-kicker">Today's queue</div>
+          <div class="timetable-flow-list" id="facultyTodayQueue">
+            <div class="empty-state"><div class="empty-state-title">Loading today's classes</div></div>
+          </div>
+        </div>
+        <div class="timetable-mini-panel">
+          <div class="timetable-panel-kicker">Workload map</div>
+          <div class="timetable-flow-list" id="facultyWorkloadMap">
+            <div class="empty-state"><div class="empty-state-title">Loading workload map</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Day view tabs -->
+      <div class="tab-bar mb-6" style="max-width:600px" id="dayTabs">
+        <button class="tab-btn active" onclick="showDay('all',this)">Full Week</button>
+        <button class="tab-btn" onclick="showDay('mon',this)">Mon</button>
+        <button class="tab-btn" onclick="showDay('tue',this)">Tue</button>
+        <button class="tab-btn" onclick="showDay('wed',this)">Wed</button>
+        <button class="tab-btn" onclick="showDay('thu',this)">Thu</button>
+        <button class="tab-btn" onclick="showDay('fri',this)">Fri</button>
+        <button class="tab-btn" onclick="showDay('sat',this)">Sat</button>
+      </div>
+
+      <div class="card">
+        <div class="table-wrap">
+          <table class="erp-table" id="ttTable">
+            <thead>
+              <tr>
+                <th style="min-width:80px">Time</th>
+                <th class="day-col day-mon">Monday</th>
+                <th class="day-col day-tue">Tuesday</th>
+                <th class="day-col day-wed">Wednesday</th>
+                <th class="day-col day-thu">Thursday</th>
+                <th class="day-col day-fri">Friday</th>
+                <th class="day-col day-sat">Saturday</th>
+              </tr>
+            </thead>
+            <tbody id="ttBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script>
+  requireAuth(['faculty']);
+</script>
+<script src="../../live/live-admin-pages.js"></script>
+</body>
+</html>

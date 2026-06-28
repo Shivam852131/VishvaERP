@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Parent Dashboard | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="../../css/custom.css">
+  <style>
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.4);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+      border-radius: 16px;
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+    }
+    .pulse-blob {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #EF4444;
+      box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+      70% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+  </style>
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-parent" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon" style="background:linear-gradient(135deg,#D97706,#F59E0B)">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" style="background:linear-gradient(135deg,#D97706,#F59E0B)" id="sidebar-avatar">P</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Parent</div><div class="sidebar-user-role">Parent / Guardian</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link active"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <div class="nav-section-label">Child's Info</div>
+      <a href="child-profile.html" class="nav-link"><i class="nav-link-icon fas fa-user-graduate"></i> Child Profile</a>
+      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-check"></i> Attendance</a>
+      <a href="results.html" class="nav-link"><i class="nav-link-icon fas fa-poll"></i> Results</a>
+      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-rupee-sign"></i> Fee Payments</a>
+      <div class="nav-section-label">Communication</div>
+      <a href="../messages.html" class="nav-link"><i class="nav-link-icon fas fa-envelope"></i> Messages</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">Parent Portal / <span>Dashboard</span></div>
+      </div>
+      <div class="topbar-right">
+        <div style="position:relative">
+          <button class="topbar-btn" id="notif-btn"><i class="fas fa-bell"></i><span class="topbar-badge">0</span></button>
+          <div class="notif-panel" id="notif-panel">
+            <div style="padding:14px 16px;border-bottom:1px solid #F1F5F9;font-weight:700;font-size:14px">Notifications</div>
+            <div id="parentNotifBody" style="padding:14px 16px;color:#64748B;font-size:13px">Loading updates...</div>
+          </div>
+        </div>
+        <div class="topbar-avatar" id="topbar-avatar">P</div>
+      </div>
+    </header>
+
+    <div class="erp-content page-enter">
+      <div class="page-header">
+        <h1 class="page-title">👨‍👩‍👧 Parent Dashboard</h1>
+        <p class="page-subtitle">Monitor your child's academic progress, real-time activities, and live performance insights.</p>
+      </div>
+
+      <!-- Child Profile & Activity Tracking Card (Premium UI) -->
+      <div style="background:linear-gradient(135deg,#FFF7ED,#FEF3C7);border-radius:24px;padding:28px;margin-bottom:28px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;box-shadow:0 10px 25px -5px rgba(217,119,6,0.1);position:relative;overflow:hidden">
+        
+        <!-- Decorative SVG behind -->
+        <div style="position:absolute; right:-20px; bottom:-40px; opacity:0.04; width:300px; height:300px; pointer-events:none;">
+          <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><path fill="#D97706" d="M44.7,-76.4C58.8,-69.2,71.8,-59.1,81.1,-46.3C90.4,-33.5,96,-18.1,96.5,-2.5C97,13.1,92.5,28.8,84.5,43C76.5,57.1,65,69.7,50.7,78.1C36.4,86.5,19.3,90.7,2.8,86.1C-13.7,81.5,-29.7,68.1,-43.5,58.3C-57.3,48.5,-68.9,42.3,-78.3,31.7C-87.7,21.1,-94.9,6.1,-93.8,-8.3C-92.7,-22.7,-83.4,-36.5,-71.4,-47.1C-59.4,-57.7,-44.8,-65.1,-31,-72.1C-17.2,-79.1,-4.2,-85.7,8.8,-86.3C21.8,-86.9,44.5,-81.4,44.7,-76.4Z" transform="translate(100 100)" /></svg>
+        </div>
+
+        <div class="avatar avatar-xl" style="background:linear-gradient(135deg,#D97706,#B45309);width:80px;height:80px;font-size:32px;box-shadow:0 8px 16px rgba(180,83,9,0.2)">P</div>
+        
+        <div style="flex:1">
+          <div style="font-size:24px;font-weight:800;color:#92400E" id="childName">Student</div>
+          <div style="font-size:14px;color:#B45309;font-weight:500;margin-top:2px" id="childMeta">Roll No: — • Course — • Semester —</div>
+          <div style="font-size:13px;color:#D97706;margin-top:6px;display:flex;align-items:center;gap:6px">
+            <i class="fas fa-university"></i> IIT Bombay • <span id="collegeNameDisplay">College Name</span>
+          </div>
+        </div>
+
+        <!-- NEW: Real-Time Tracker -->
+        <div class="glass-panel" style="padding:16px 20px; display:flex; align-items:center; gap:16px; border-radius:18px; position:relative; overflow:hidden;">
+          <div style="position:absolute; left:0; top:0; width:4px; height:100%; background:#10B981;"></div>
+            <div style="display:flex; flex-direction:column; gap:4px">
+              <div style="font-size:11px; font-weight:700; color:#059669; letter-spacing:0.5px; text-transform:uppercase;" id="parentLiveStatusLabel">Real-Time Status</div>
+              <div style="font-size:14px; font-weight:700; color:#064E3B; display:flex; align-items:center; gap:8px;">
+                 <span class="pulse-blob" id="parentLiveStatusDot" style="background:#94A3B8; box-shadow: 0 0 0 0 rgba(148, 163, 184, 0.7)"></span>
+                 <span id="parentLiveStatusText">No active live class</span>
+              </div>
+             <div style="font-size:12px; color:#059669; margin-top:2px" id="parentLiveStatusMeta"><i class="fas fa-clock"></i> Waiting for the next scheduled session</div>
+           </div>
+         </div>
+
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
+        <div class="stat-card"><div class="stat-icon" style="background:#D1FAE5;color:#065F46"><i class="fas fa-chart-line"></i></div><div class="stat-label">CGPA</div><div class="stat-value" style="color:#059669">—</div><div class="stat-change up">Loading...</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#DBEAFE;color:#1E40AF"><i class="fas fa-calendar-check"></i></div><div class="stat-label">Attendance</div><div class="stat-value" style="color:#0284C7">—</div><div class="stat-change up">Loading...</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#FEE2E2;color:#991B1B"><i class="fas fa-rupee-sign"></i></div><div class="stat-label">Fee Pending</div><div class="stat-value" style="color:#EF4444">—</div><div class="stat-change down">Loading...</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#EDE9FE;color:#5B21B6"><i class="fas fa-brain"></i></div><div class="stat-label">Assignment Completion</div><div class="stat-value" style="color:#6D28D9">—</div><div class="stat-change up">Loading...</div></div>
+      </div>
+
+      <!-- MIDDLE ROW: Performance Chart & AI Insights -->
+      <div class="grid col-2 mb-6" style="gap:24px">
+        <!-- PERFORMANCE CHART -->
+        <div class="card" style="box-shadow:0 4px 6px -1px rgba(0,0,0,0.05)">
+          <div class="card-header border-b border-gray-100"><div class="card-title"><i class="fas fa-chart-line" style="color:#D97706;margin-right:8px"></i>Academic Performance</div></div>
+          <div class="card-body bg-gray-50/50"><div class="chart-container" style="height:220px"><canvas id="perfChart"></canvas></div></div>
+        </div>
+
+        <!-- NEW: AI SKILL INSIGHTS -->
+        <div class="card" style="background:linear-gradient(to bottom, #ffffff, #F8FAFC); border:1px solid #E2E8F0;">
+          <div class="card-header border-b border-gray-100"><div class="card-title"><i class="fas fa-robot text-indigo-600 mr-2"></i>Performance Insights</div><span class="badge badge-primary" id="parentInsightBadge">Loading</span></div>
+          <div class="card-body" style="padding:20px;">
+            <p style="font-size:13px; color:#64748B; margin-bottom:16px;" id="parentInsightSummary">Building insights from attendance, results, assignments, and live class records.</p>
+            <div style="display:flex; flex-direction:column; gap:16px;" id="parentInsightMetrics">
+              <div class="empty-state"><div class="empty-state-title">Loading insights...</div></div>
+            </div>
+            <div style="margin-top:20px; padding:12px; background:#EEF2FF; border-left:4px solid #4F46E5; border-radius:4px; font-size:12px; color:#4338CA;" id="parentInsightSuggestion">
+              Waiting for live academic signals.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- BOTTOM ROW: Notices, Attendance, Actions -->
+      <div class="grid col-3 mb-6" style="gap:24px">
+        
+        <!-- NOTICES -->
+        <div class="card border border-gray-100 shadow-sm">
+          <div class="card-header border-b border-gray-50"><div class="card-title"><i class="fas fa-bullhorn" style="color:#EF4444;margin-right:8px"></i>Latest Notices</div></div>
+          <div class="card-body" style="padding:16px;display:flex;flex-direction:column;gap:12px" id="parentLatestNotices">
+            <div class="empty-state"><div class="empty-state-title">Loading notices...</div></div>
+          </div>
+        </div>
+
+        <!-- Attendance -->
+        <div class="card border border-gray-100 shadow-sm">
+          <div class="card-header border-b border-gray-50"><div class="card-title">Subject Attendance</div><a href="attendance.html" class="text-xs font-semibold text-amber-600 hover:text-amber-700">View All</a></div>
+          <div class="card-body" style="padding:16px;display:flex;flex-direction:column;justify-content:center;" id="parentSubjectAttendance">
+            <div class="empty-state"><div class="empty-state-title">Loading attendance...</div></div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card border border-gray-100 shadow-sm bg-gray-50/30">
+          <div class="card-header border-b border-gray-50"><div class="card-title">Quick Actions</div></div>
+          <div class="card-body" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px;">
+            <a href="fees.html" class="btn btn-secondary glass-panel shadow-sm" style="flex-direction:column;gap:8px;padding:20px 10px;height:auto;background:white;border:1px solid #E2E8F0;transition:all 0.2s" onmouseover="this.style.borderColor='#D97706';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='#E2E8F0';this.style.transform='none'">
+              <div style="width:40px;height:40px;background:#FEF3C7;border-radius:10px;display:flex;align-items:center;justify-content:center"><i class="fas fa-credit-card" style="font-size:18px;color:#D97706"></i></div>
+              <span style="font-size:13px;font-weight:600;color:#334155">Pay Fee</span>
+            </a>
+            <a href="attendance.html" class="btn btn-secondary glass-panel shadow-sm" style="flex-direction:column;gap:8px;padding:20px 10px;height:auto;background:white;border:1px solid #E2E8F0;transition:all 0.2s" onmouseover="this.style.borderColor='#0284C7';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='#E2E8F0';this.style.transform='none'">
+              <div style="width:40px;height:40px;background:#E0F2FE;border-radius:10px;display:flex;align-items:center;justify-content:center"><i class="fas fa-calendar-check" style="font-size:18px;color:#0284C7"></i></div>
+              <span style="font-size:13px;font-weight:600;color:#334155">Attendance</span>
+            </a>
+            <a href="results.html" class="btn btn-secondary glass-panel shadow-sm" style="flex-direction:column;gap:8px;padding:20px 10px;height:auto;background:white;border:1px solid #E2E8F0;transition:all 0.2s" onmouseover="this.style.borderColor='#8B5CF6';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='#E2E8F0';this.style.transform='none'">
+              <div style="width:40px;height:40px;background:#EDE9FE;border-radius:10px;display:flex;align-items:center;justify-content:center"><i class="fas fa-trophy" style="font-size:18px;color:#8B5CF6"></i></div>
+              <span style="font-size:13px;font-weight:600;color:#334155">View Results</span>
+            </a>
+            <a href="../messages.html" class="btn btn-secondary glass-panel shadow-sm" style="flex-direction:column;gap:8px;padding:20px 10px;height:auto;background:white;border:1px solid #E2E8F0;transition:all 0.2s" onmouseover="this.style.borderColor='#059669';this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='#E2E8F0';this.style.transform='none'">
+              <div style="width:40px;height:40px;background:#D1FAE5;border-radius:10px;display:flex;align-items:center;justify-content:center"><i class="fas fa-envelope" style="font-size:18px;color:#059669"></i></div>
+              <span style="font-size:13px;font-weight:600;color:#334155">Contact Faculty</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script src="../../live/live-pages.js"></script>
+</body>
+</html>

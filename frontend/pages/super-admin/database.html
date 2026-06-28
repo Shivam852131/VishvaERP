@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Database Manager | VishvaERP Super Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="../../css/custom.css">
+  <style>
+    .collection-card { border: 1.5px solid #E2E8F0; border-radius: 14px; padding: 16px 20px; background: white; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 14px; }
+    .collection-card:hover, .collection-card.active { border-color: #4F46E5; background: #EDE9FE; box-shadow: 0 4px 14px rgba(79,70,229,0.12); }
+    .collection-card.active .col-icon { background: #4F46E5; color: white; }
+    .col-icon { width: 40px; height: 40px; border-radius: 10px; background: #F1F5F9; display: flex; align-items: center; justify-content: center; font-size: 16px; color: #64748B; flex-shrink: 0; transition: all 0.2s; }
+    .doc-row { font-family: 'Monaco', 'Menlo', monospace; font-size: 11px; }
+    .json-key { color: #7C3AED; }
+    .json-str { color: #059669; }
+    .json-num { color: #D97706; }
+    .json-bool { color: #DC2626; }
+    .health-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 6px; }
+    .health-dot.healthy { background: #059669; box-shadow: 0 0 0 3px #D1FAE5; animation: pulse 2s infinite; }
+    .health-dot.degraded { background: #EF4444; box-shadow: 0 0 0 3px #FEE2E2; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+    .db-metric { background: white; border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px 16px; }
+    .badge-collection { display: inline-flex; align-items: center; gap: 4px; background: #F1F5F9; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; color: #475569; }
+  </style>
+</head>
+<body>
+<div class="erp-layout">
+  <!-- SIDEBAR -->
+  <aside class="erp-sidebar theme-superadmin" id="sidebar">
+    <div class="sidebar-header">
+      <a class="sidebar-logo" href="../../index.html">
+        <div class="sidebar-logo-icon">V</div>
+        <div class="sidebar-logo-text">Vishva<span>ERP</span></div>
+      </a>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" id="sidebar-avatar">S</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name" id="sidebar-user-name">Super Admin</div>
+        <div class="sidebar-user-role">Platform Administrator</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-tachometer-alt"></i> Dashboard</a>
+      <div class="nav-section-label">Management</div>
+      <a href="colleges.html" class="nav-link"><i class="nav-link-icon fas fa-university"></i> Colleges</a>
+      <a href="users.html" class="nav-link"><i class="nav-link-icon fas fa-users-cog"></i> All Users</a>
+      <a href="plans.html" class="nav-link"><i class="nav-link-icon fas fa-tags"></i> Subscription Plans</a>
+      <div class="nav-section-label">Database</div>
+      <a href="database.html" class="nav-link active"><i class="nav-link-icon fas fa-database"></i> DB Manager</a>
+      <a href="audit-logs.html" class="nav-link"><i class="nav-link-icon fas fa-history"></i> Audit Logs</a>
+      <div class="nav-section-label">Platform</div>
+      <a href="analytics.html" class="nav-link"><i class="nav-link-icon fas fa-chart-line"></i> Analytics</a>
+      <a href="system.html" class="nav-link"><i class="nav-link-icon fas fa-server"></i> System Health</a>
+      <a href="broadcast.html" class="nav-link"><i class="nav-link-icon fas fa-bullhorn"></i> Broadcast</a>
+      <a href="settings.html" class="nav-link"><i class="nav-link-icon fas fa-cog"></i> Settings</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">Super Admin / <span>Database Manager</span></div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-secondary btn-sm" onclick="refreshAll()"><i class="fas fa-sync-alt"></i> Refresh</button>
+        <div class="topbar-avatar" id="topbar-avatar">S</div>
+      </div>
+    </header>
+
+    <div class="erp-content">
+      <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+        <div>
+          <h1 class="page-title">🗄️ Database Manager</h1>
+          <p class="page-subtitle">Live MongoDB management — browse, inspect, and clean collections.</p>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span id="dbStatus" style="font-size:13px;font-weight:600"><span class="health-dot healthy"></span>Connecting...</span>
+          <button class="btn btn-primary btn-sm" onclick="exportCollection()"><i class="fas fa-download"></i> Export JSON</button>
+        </div>
+      </div>
+
+      <!-- DB Metrics Row -->
+      <div id="dbMetrics" style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:24px">
+        <div class="db-metric"><div style="font-size:11px;color:#64748B;font-weight:700;margin-bottom:4px">DATABASE</div><div style="font-size:14px;font-weight:800" id="dbName">—</div></div>
+        <div class="db-metric"><div style="font-size:11px;color:#64748B;font-weight:700;margin-bottom:4px">COLLECTIONS</div><div style="font-size:18px;font-weight:900" id="dbCollNum">—</div></div>
+        <div class="db-metric"><div style="font-size:11px;color:#64748B;font-weight:700;margin-bottom:4px">TOTAL DOCS</div><div style="font-size:18px;font-weight:900" id="dbDocs">—</div></div>
+        <div class="db-metric"><div style="font-size:11px;color:#64748B;font-weight:700;margin-bottom:4px">DATA SIZE</div><div style="font-size:18px;font-weight:900" id="dbDataSize">—</div></div>
+        <div class="db-metric"><div style="font-size:11px;color:#64748B;font-weight:700;margin-bottom:4px">STORAGE SIZE</div><div style="font-size:18px;font-weight:900" id="dbStorageSize">—</div></div>
+      </div>
+
+      <div class="grid" style="grid-template-columns:300px 1fr;gap:20px;align-items:start">
+        <!-- COLLECTION LIST -->
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:10px">Collections</div>
+          <div id="collectionList" style="display:flex;flex-direction:column;gap:8px">
+            <div class="skeleton skeleton-card" style="height:60px"></div>
+            <div class="skeleton skeleton-card" style="height:60px"></div>
+            <div class="skeleton skeleton-card" style="height:60px"></div>
+          </div>
+        </div>
+
+        <!-- COLLECTION BROWSER -->
+        <div class="card">
+          <div class="card-header" style="flex-wrap:wrap;gap:8px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div class="card-title" id="browserTitle"><i class="fas fa-table" style="color:#4F46E5;margin-right:6px"></i>Select a collection</div>
+              <span class="badge-collection" id="docCount" style="display:none">0 docs</span>
+            </div>
+            <div style="display:flex;gap:8px;align-items:center">
+              <div class="search-bar" style="width:200px"><i class="fas fa-search"></i><input type="text" id="docSearch" placeholder="Search documents..." oninput="searchDocs()"></div>
+              <select class="form-control" style="width:140px;padding:7px 10px;font-size:13px" id="viewMode" onchange="toggleView()">
+                <option value="table">Table View</option>
+                <option value="json">JSON View</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- TABLE VIEW -->
+          <div id="tableView">
+            <div id="tableArea" style="min-height:300px;display:flex;align-items:center;justify-content:center;color:#94A3B8;flex-direction:column;gap:8px">
+              <i class="fas fa-database" style="font-size:40px;opacity:0.3"></i>
+              <span style="font-size:14px">Select a collection to browse documents</span>
+            </div>
+          </div>
+
+          <!-- JSON VIEW (hidden by default) -->
+          <div id="jsonView" style="display:none;padding:16px">
+            <pre id="jsonArea" style="background:#0F172A;color:#E2E8F0;border-radius:10px;padding:16px;font-size:11.5px;overflow:auto;max-height:500px;white-space:pre-wrap"></pre>
+          </div>
+
+          <!-- Pagination -->
+          <div id="paginationArea" style="padding:12px 20px;border-top:1px solid #F1F5F9;display:none;align-items:center;justify-content:space-between">
+            <span style="font-size:12px;color:#64748B" id="pageInfo">Page 1 of 1</span>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-sm btn-secondary" id="prevBtn" onclick="changePage(-1)"><i class="fas fa-chevron-left"></i></button>
+              <button class="btn btn-sm btn-secondary" id="nextBtn" onclick="changePage(1)"><i class="fas fa-chevron-right"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script src="../../live/live-admin-pages.js"></script>
+</body>
+</html>

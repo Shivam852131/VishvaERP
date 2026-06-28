@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Virtual Classroom | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../css/custom.css">
+  <script src="https://meet.jit.si/external_api.js"></script>
+  <style>
+    .video-container {
+      width: 100%;
+      height: 65vh;
+      border-radius: 16px;
+      overflow: hidden;
+      background: #0F172A;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+      position: relative;
+      transition: all 0.3s ease;
+    }
+    .video-container.fullscreen {
+      height: 85vh;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      z-index: 9999;
+      border-radius: 0;
+    }
+    .call-controls {
+      display: flex;
+      gap: 16px;
+      padding: 20px;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      margin-top: 24px;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .join-setup {
+      background: white;
+      border-radius: 16px;
+      padding: 32px;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      max-width: 600px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .pulse-blob {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #EF4444;
+      box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+      70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+  </style>
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-faculty" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon" style="background:linear-gradient(135deg,#059669,#10B981)">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" style="background:linear-gradient(135deg,#059669,#10B981)" id="sidebar-avatar">F</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Professor</div><div class="sidebar-user-role">Faculty Member</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <div class="nav-section-label">Teaching</div>
+      <a href="live-class.html" class="nav-link active"><i class="nav-link-icon fas fa-video"></i> Live Classes</a>
+      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-check"></i> Attendance</a>
+      <a href="grades.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-list"></i> Grades & Results</a>
+      <a href="assignments.html" class="nav-link"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
+      <a href="timetable.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Timetable</a>
+      <div class="nav-section-label">HR</div>
+      <a href="leave.html" class="nav-link"><i class="nav-link-icon fas fa-file-signature"></i> Leave & HR</a>
+      <div class="nav-section-label">Tools</div>
+      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Assistant</a>
+      <a href="../messages.html" class="nav-link"><i class="nav-link-icon fas fa-comments"></i> Messages</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">Faculty / <span>Virtual Classroom</span></div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-avatar" id="topbar-avatar">F</div>
+      </div>
+    </header>
+
+    <div class="erp-content">
+      
+      <!-- Pre-join Screen -->
+      <div id="join-screen">
+        <div class="page-header" style="margin-bottom: 30px;">
+          <h1 class="page-title">Virtual Classroom <span class="badge badge-success">Host Mode</span></h1>
+          <p class="page-subtitle">Start and manage live interactive sessions for your batches.</p>
+        </div>
+
+        <div class="grid col-2">
+          <div class="join-setup" style="margin:0; max-width:100%; text-align:left;">
+            <div style="font-size: 24px; color: #059669; margin-bottom: 16px;"><i class="fas fa-satellite-dish"></i></div>
+            <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 8px;">Start a Live Class</h2>
+            <p style="color: #64748B; margin-bottom: 24px; font-size: 14px;">Initialize a secure, high-definition classroom environment. Students in the selected batch will receive an instant notification.</p>
+            
+            <div class="form-group" style="margin-bottom: 16px;">
+              <label class="form-label">Select Batch</label>
+              <select class="form-input" id="batchSelect">
+                <option value="cs-sem4-dsa">B.Tech CS Sem 4 - Data Structures</option>
+                <option value="cs-sem4-dbms">B.Tech CS Sem 4 - DBMS</option>
+                <option value="cs-sem6-os">B.Tech CS Sem 6 - Operating Systems</option>
+              </select>
+            </div>
+            
+            <div class="form-group" style="margin-bottom: 24px;">
+              <label class="form-label">Class Topic / Meeting Name</label>
+              <input type="text" class="form-input" id="topicInput" placeholder="e.g. Binary Search Trees Deep Dive">
+            </div>
+
+            <button class="btn btn-success" style="width: 100%; justify-content: center; font-size: 16px; padding: 12px;" onclick="startCall()">
+              <i class="fas fa-video"></i> Initiate Live Session
+            </button>
+          </div>
+
+          <!-- Upcoming Schedule -->
+          <div class="card">
+            <div class="card-header"><div class="card-title"><i class="fas fa-calendar-alt" style="color:#059669;margin-right:8px"></i>Scheduled Classes Today</div></div>
+            <div class="card-body" style="padding:16px;">
+              <div style="display:flex;align-items:center;gap:12px;padding:12px;border:1px solid #E2E8F0;border-radius:12px;margin-bottom:12px;">
+                <div style="font-weight:700; color:#059669; min-width: 70px;">09:00 AM</div>
+                <div style="flex:1">
+                  <div style="font-weight:700;font-size:14px">Data Structures</div>
+                  <div style="font-size:12px;color:#64748B">B.Tech CS Sem 4</div>
+                </div>
+                <button class="btn btn-xs btn-primary">Start Now</button>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;padding:12px;border:1px solid #E2E8F0;border-radius:12px;margin-bottom:12px;">
+                <div style="font-weight:700; color:#64748B; min-width: 70px;">11:30 AM</div>
+                <div style="flex:1">
+                  <div style="font-weight:700;font-size:14px">DBMS Discussion</div>
+                  <div style="font-size:12px;color:#64748B">B.Tech CS Sem 4</div>
+                </div>
+                <button class="btn btn-xs btn-secondary" disabled>Waiting...</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active Call Screen (Hidden initially) -->
+      <div id="active-call" style="display: none;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
+          <div>
+            <h2 style="font-size: 20px; font-weight: 700; display:flex; align-items:center; gap: 10px;">
+              <span class="pulse-blob"></span> <span id="activeTopicDisplay">Live Data Structures</span>
+            </h2>
+            <div style="font-size: 13px; color: #64748B; margin-top: 4px;">Host: <span id="hostNameInfo">Professor</span> • Room ID: <span id="roomIdDisplay" style="font-family: monospace; font-weight: 600;"></span></div>
+          </div>
+          <div style="display:flex; gap: 12px;">
+            <button class="btn btn-secondary" onclick="copyInviteLink()"><i class="fas fa-copy"></i> Copy Invite Link</button>
+            <button class="btn btn-primary" onclick="toggleFullscreen()"><i class="fas fa-expand"></i> Fullscreen</button>
+          </div>
+        </div>
+
+        <!-- The Video Container -->
+        <div class="video-container" id="meet-container">
+          <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:white; text-align:center;" id="loading-meet">
+            <i class="fas fa-circle-notch fa-spin fa-3x" style="color:#10B981; margin-bottom: 16px;"></i>
+            <h3 style="font-size: 18px; font-weight: 600;">Initializing Encryption & Video...</h3>
+          </div>
+        </div>
+
+        <div class="call-controls">
+          <div style="display:flex; gap: 10px; align-items:center;">
+             <div style="font-size: 14px; font-weight:600; color: #334155;"><i class="fas fa-shield-alt" style="color:#10B981"></i> End-to-End Encrypted Session</div>
+          </div>
+          <div style="display:flex; gap: 10px;">
+            <button class="btn" style="background:#EF4444; color:white; border:none; padding: 10px 24px; font-weight: 600;" onclick="endCall()"><i class="fas fa-phone-slash"></i> End Session for All</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script>
+  const user = requireAuth(['faculty']);
+  if(user) {
+    document.getElementById('sidebar-user-name').textContent = user.name || 'Professor';
+    document.getElementById('hostNameInfo').textContent = user.name || 'Professor';
+  }
+
+  let meetApi = null;
+  const meetContainer = document.getElementById('meet-container');
+
+  function startCall() {
+    const topic = document.getElementById('topicInput').value || 'Live Classroom session';
+    const batch = document.getElementById('batchSelect').value;
+    
+    // Create a deterministic room name that the student can easily join
+    // In a real DB, you'd save this to `meetings` table.
+    const roomName = `VishvaErp-${batch}-${new Date().toISOString().split('T')[0]}`;
+    
+    document.getElementById('join-screen').style.display = 'none';
+    document.getElementById('active-call').style.display = 'block';
+    
+    document.getElementById('activeTopicDisplay').textContent = topic;
+    document.getElementById('roomIdDisplay').textContent = roomName;
+
+    // Simulate socket event being emitted here in production
+    if(window.showToast) {
+       showToast(`Class started. Students in ${batch} notified!`, 'success');
+    }
+
+    // Initialize Jitsi
+    setTimeout(() => {
+      document.getElementById('loading-meet').style.display = 'none';
+      const domain = 'meet.jit.si';
+      const options = {
+          roomName: roomName,
+          width: '100%',
+          height: '100%',
+          parentNode: meetContainer,
+          lang: 'en',
+          userInfo: {
+              displayName: user ? user.name : 'Professor',
+              role: 'moderator'
+          },
+          configOverwrite: {
+            disableDeepLinking: true,
+            prejoinPageEnabled: false, // Jump straight in
+            startWithAudioMuted: false,
+            startWithVideoMuted: false
+          },
+          interfaceConfigOverwrite: {
+            TOOLBAR_BUTTONS: [
+                'microphone', 'camera', 'closedcaptions', 'desktop', 'fullscreen',
+                'fodeviceselection', 'hangup', 'profile', 'info', 'chat', 'recording',
+                'livestreaming', 'etherpad', 'sharedvideo', 'settings', 'raisehand',
+                'videoquality', 'filmstrip', 'invite', 'feedback', 'stats', 'shortcuts',
+                'tileview', 'videobackgroundblur', 'download', 'help', 'mute-everyone', 'security'
+            ],
+            SHOW_CHROME_EXTENSION_BANNER: false,
+            BRAND_WATERMARK_LINK: '',
+            SHOW_JITSI_WATERMARK: false,
+            SHOW_WATERMARK_FOR_GUESTS: false,
+            SHOW_PROMOTIONAL_CLOSE_PAGE: false,
+            DEFAULT_BACKGROUND: '#0F172A',
+            DEFAULT_LOCAL_DISPLAY_NAME: 'Me',
+          }
+      };
+      
+      meetApi = new JitsiMeetExternalAPI(domain, options);
+
+      // Listeners
+      meetApi.addEventListener('videoConferenceLeft', () => {
+         endCall();
+       });
+
+    }, 1000);
+  }
+
+  function endCall() {
+    if(meetApi) {
+      meetApi.dispose();
+      meetApi = null;
+    }
+    document.getElementById('active-call').style.display = 'none';
+    document.getElementById('join-screen').style.display = 'block';
+    if(window.showToast) showToast('Session ended successfully', 'info');
+  }
+
+  function toggleFullscreen() {
+    meetContainer.classList.toggle('fullscreen');
+  }
+
+  function copyInviteLink() {
+    const room = document.getElementById('roomIdDisplay').textContent;
+    const batch = document.getElementById('batchSelect').value;
+    const link = `${window.location.origin}/frontend/pages/student/live-class.html?join=${room}&batch=${batch}`;
+    navigator.clipboard.writeText(link);
+    if(window.showToast) showToast('Invite link copied to clipboard!', 'success');
+  }
+</script>
+<script src="../../live/live-admin-pages.js"></script>
+</body>
+</html>

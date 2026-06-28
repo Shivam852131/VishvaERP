@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Logistics & Hostel — College Admin | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../css/custom.css">
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-college" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" id="sidebar-avatar">A</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Admin</div><div class="sidebar-user-role">College Administrator</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <div class="nav-section-label">Academics</div>
+      <a href="students.html" class="nav-link"><i class="nav-link-icon fas fa-user-graduate"></i> Students</a>
+      <a href="faculty.html" class="nav-link"><i class="nav-link-icon fas fa-chalkboard-teacher"></i> Faculty</a>
+      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-open"></i> Courses & Exams</a>
+      <a href="notices.html" class="nav-link"><i class="nav-link-icon fas fa-bullhorn"></i> Notice Board</a>
+      <div class="nav-section-label">Finance & HR</div>
+      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-file-invoice-dollar"></i> Fee Management</a>
+      <a href="hr.html" class="nav-link"><i class="nav-link-icon fas fa-user-md"></i> HR & Leave</a>
+      <div class="nav-section-label">Facilities</div>
+      <a href="logistics.html" class="nav-link active"><i class="nav-link-icon fas fa-bus"></i> Logistics & Hostel</a>
+      <div class="nav-section-label">Tools</div>
+      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Hub</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">College Admin / <span>Logistics & Hostel</span></div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-avatar" id="topbar-avatar">A</div>
+      </div>
+    </header>
+
+    <div class="erp-content">
+      <div class="page-header">
+        <h1 class="page-title">🚌 Logistics & Hostel</h1>
+        <p class="page-subtitle">Manage transport routes, hostels, and room allocations.</p>
+      </div>
+
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
+        <div class="stat-card"><div class="stat-icon" style="background:#DBEAFE;color:#1E40AF"><i class="fas fa-bus"></i></div><div class="stat-label">Transport Routes</div><div class="stat-value">—</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#D1FAE5;color:#065F46"><i class="fas fa-users"></i></div><div class="stat-label">Bus Commuters</div><div class="stat-value">—</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#EDE9FE;color:#5B21B6"><i class="fas fa-building"></i></div><div class="stat-label">Hostel Blocks</div><div class="stat-value">—</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#FEF3C7;color:#92400E"><i class="fas fa-bed"></i></div><div class="stat-label">Occupied Rooms</div><div class="stat-value">—</div></div>
+      </div>
+
+      <!-- TRANSPORT -->
+      <div class="card mb-6">
+        <div class="card-header">
+          <div class="card-title"><i class="fas fa-bus" style="color:#3B82F6;margin-right:8px"></i>Transport Routes</div>
+          <button class="btn btn-primary btn-sm" onclick="openModal('addRouteModal')"><i class="fas fa-plus"></i> Add Route</button>
+        </div>
+        <div class="table-wrap">
+          <table class="erp-table">
+            <thead><tr><th>Route No.</th><th>Via Points</th><th>Bus No.</th><th>Driver</th><th>Timing (AM)</th><th>Students</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="routesBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- HOSTEL -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><i class="fas fa-building" style="color:#8B5CF6;margin-right:8px"></i>Hostel Management</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-secondary btn-sm" onclick="openModal('addHostelModal')"><i class="fas fa-building"></i> Add Hostel</button>
+            <button class="btn btn-secondary btn-sm" onclick="openModal('addRoomModal')"><i class="fas fa-door-open"></i> Add Room</button>
+            <button class="btn btn-primary btn-sm" onclick="openModal('allocateRoomModal')"><i class="fas fa-plus"></i> Allocate Room</button>
+          </div>
+        </div>
+        <div id="hostelsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;padding:20px">
+          <div class="empty-state" style="grid-column:1/-1"><div class="empty-state-title">Loading hostels...</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD ROUTE MODAL -->
+<div class="modal-backdrop" id="addRouteModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Add Transport Route</div><button class="modal-close" onclick="closeModal('addRouteModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Route No.</label><input class="form-control" id="routeNoInput" placeholder="e.g. Route 9"></div>
+        <div class="form-group"><label class="form-label">Bus No.</label><input class="form-control" id="routeBusInput" placeholder="e.g. KA-01-AB-1234"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Via Points (comma separated)</label><input class="form-control" id="routeStopsInput" placeholder="e.g. City Center, Railway Station, Market"></div>
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Driver Name</label><input class="form-control" id="routeDriverInput" placeholder="Driver full name"></div>
+        <div class="form-group"><label class="form-label">Driver Phone</label><input class="form-control" id="routeDriverPhoneInput" placeholder="+91 ..."></div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Timing (Morning)</label><input class="form-control" type="time" id="routeMorningInput"></div>
+        <div class="form-group"><label class="form-label">Timing (Evening)</label><input class="form-control" type="time" id="routeEveningInput"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('addRouteModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="createRouteLive()"><i class="fas fa-check"></i> Add Route</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="addHostelModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Add Hostel Block</div><button class="modal-close" onclick="closeModal('addHostelModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Hostel Name</label><input class="form-control" id="hostelNameInput" placeholder="e.g. Ganga Block"></div>
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Hostel Type</label><select class="form-control" id="hostelTypeInput"><option value="boys">Boys</option><option value="girls">Girls</option><option value="coed">Co-ed</option></select></div>
+        <div class="form-group"><label class="form-label">Total Rooms</label><input class="form-control" type="number" id="hostelRoomsInput" min="1" placeholder="e.g. 80"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Facilities</label><input class="form-control" id="hostelFacilitiesInput" placeholder="e.g. WiFi, Laundry, Mess"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('addHostelModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="createHostelLive()"><i class="fas fa-check"></i> Add Hostel</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="addRoomModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Add Hostel Room</div><button class="modal-close" onclick="closeModal('addRoomModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Hostel Block</label><select class="form-control" id="roomHostelSelect"><option value="">Select hostel</option></select></div>
+        <div class="form-group"><label class="form-label">Room Number</label><input class="form-control" id="roomNumberInput" placeholder="e.g. 204"></div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Capacity</label><input class="form-control" type="number" id="roomCapacityInput" min="1" placeholder="e.g. 3"></div>
+        <div class="form-group"><label class="form-label">Fee Per Term (INR)</label><input class="form-control" type="number" id="roomFeeInput" min="0" placeholder="e.g. 25000"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('addRoomModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="createRoomLive()"><i class="fas fa-check"></i> Add Room</button>
+    </div>
+  </div>
+</div>
+
+<!-- ALLOCATE ROOM MODAL -->
+<div class="modal-backdrop" id="allocateRoomModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Allocate Hostel Room</div><button class="modal-close" onclick="closeModal('allocateRoomModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Student Roll No.</label><input class="form-control" id="allocateRollInput" placeholder="e.g. 2021CS001"></div>
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Hostel Block</label>
+          <select class="form-control" id="hostelSelectAllocate"><option value="">Select hostel</option></select>
+        </div>
+        <div class="form-group"><label class="form-label">Room Number</label><input class="form-control" id="allocateRoomNumberInput" placeholder="e.g. 204"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('allocateRoomModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="allocateRoomLive()"><i class="fas fa-check"></i> Allocate</button>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script src="../../live/live-admin-pages.js"></script>
+</body>
+</html>

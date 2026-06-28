@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Grades & Results — Faculty | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../css/custom.css">
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-faculty" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon" style="background:linear-gradient(135deg,#059669,#10B981)">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" style="background:linear-gradient(135deg,#059669,#10B981)" id="sidebar-avatar">F</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Professor</div><div class="sidebar-user-role">Faculty Member</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <div class="nav-section-label">Teaching</div>
+      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-check"></i> Attendance</a>
+      <a href="grades.html" class="nav-link active"><i class="nav-link-icon fas fa-clipboard-list"></i> Grades & Results</a>
+      <a href="assignments.html" class="nav-link"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
+      <a href="timetable.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Timetable</a>
+      <div class="nav-section-label">HR</div>
+      <a href="leave.html" class="nav-link"><i class="nav-link-icon fas fa-file-signature"></i> Leave & HR</a>
+      <div class="nav-section-label">Tools</div>
+      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Assistant</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">Faculty / <span>Grades & Results</span></div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-primary" onclick="openModal('bulkUploadModal')"><i class="fas fa-upload"></i> Bulk Upload</button>
+        <div class="topbar-avatar" id="topbar-avatar">F</div>
+      </div>
+    </header>
+
+    <div class="erp-content">
+      <div class="page-header">
+        <h1 class="page-title">📊 Grades & Results</h1>
+        <p class="page-subtitle">Enter marks and manage student results for your courses.</p>
+      </div>
+
+      <!-- Select course -->
+      <div class="card mb-4">
+        <div class="card-body" style="padding:14px 20px;display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap">
+          <div class="form-group" style="flex:1;min-width:180px;margin:0">
+            <label class="form-label">Subject</label>
+            <select class="form-control" id="gradeSubject" onchange="loadMarks()">
+              <option value="dsa">Data Structures (CS401)</option>
+              <option value="dbms">DBMS (CS402)</option>
+              <option value="os">Operating Systems (CS403)</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex:1;min-width:180px;margin:0">
+            <label class="form-label">Exam Type</label>
+            <select class="form-control" id="examType" onchange="loadMarks()">
+              <option value="mid1">Mid-Semester 1</option>
+              <option value="mid2">Mid-Semester 2</option>
+              <option value="internal">Internal Assessment</option>
+              <option value="end">End-Semester</option>
+            </select>
+          </div>
+          <div class="form-group" style="min-width:120px;margin:0">
+            <label class="form-label">Max Marks</label>
+            <input class="form-control" type="number" id="maxMarks" value="50">
+          </div>
+          <button class="btn btn-primary" onclick="loadMarks()"><i class="fas fa-refresh"></i> Load</button>
+        </div>
+      </div>
+
+      <!-- Class Stats -->
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)" id="classStats">
+        <div class="stat-card"><div class="stat-label">Class Average</div><div class="stat-value" id="classAvg">—</div></div>
+        <div class="stat-card"><div class="stat-label">Highest Score</div><div class="stat-value" id="classMax">—</div></div>
+        <div class="stat-card"><div class="stat-label">Pass Rate</div><div class="stat-value" id="classPass">—</div></div>
+        <div class="stat-card"><div class="stat-label">Graded</div><div class="stat-value" id="classGraded">—</div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Enter Marks</div>
+          <div style="display:flex;gap:8px">
+            <div class="search-bar" style="width:200px"><i class="fas fa-search"></i><input type="text" placeholder="Search student..." id="gradeSearch" oninput="filterGrades()"></div>
+            <button class="btn btn-success btn-sm" id="saveAllBtn" onclick="saveAllGrades()"><i class="fas fa-save"></i> Save All</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="erp-table">
+            <thead><tr><th>#</th><th>Student</th><th>Roll No.</th><th>Marks / 50</th><th>Grade</th><th>Remarks</th></tr></thead>
+            <tbody id="gradesBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- BULK UPLOAD MODAL -->
+<div class="modal-backdrop" id="bulkUploadModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Bulk Upload Marks</div><button class="modal-close" onclick="closeModal('bulkUploadModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <div id="bulkMarksDropzone" style="border:2px dashed #E2E8F0;border-radius:12px;padding:32px;text-align:center;margin-bottom:16px;cursor:pointer" onclick="document.getElementById('bulkMarksFile').click()">
+        <input type="file" id="bulkMarksFile" accept=".csv,text/csv" style="display:none">
+        <i class="fas fa-cloud-upload-alt" style="font-size:36px;color:#94A3B8;margin-bottom:8px"></i>
+        <div style="font-weight:600;color:#64748B" id="bulkMarksFileName">Drop CSV file here or click to upload</div>
+        <div style="font-size:12px;color:#94A3B8;margin-top:4px">Format: roll_no, marks (one per row)</div>
+      </div>
+      <a href="#" style="font-size:13px;color:#4F46E5" onclick="downloadGradeTemplate();return false"><i class="fas fa-download" style="margin-right:4px"></i>Download CSV Template</a>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('bulkUploadModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="uploadBulkMarks()"><i class="fas fa-check"></i> Upload</button>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script src="../../live/live-admin-pages.js"></script>
+</body>
+</html>

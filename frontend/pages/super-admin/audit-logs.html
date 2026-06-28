@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Audit Logs | VishvaERP Super Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../css/custom.css">
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-superadmin" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" id="sidebar-avatar">S</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Super Admin</div><div class="sidebar-user-role">Platform Administrator</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-tachometer-alt"></i> Dashboard</a>
+      <div class="nav-section-label">Management</div>
+      <a href="colleges.html" class="nav-link"><i class="nav-link-icon fas fa-university"></i> Colleges</a>
+      <a href="users.html" class="nav-link"><i class="nav-link-icon fas fa-users-cog"></i> All Users</a>
+      <a href="plans.html" class="nav-link"><i class="nav-link-icon fas fa-tags"></i> Subscription Plans</a>
+      <div class="nav-section-label">Database</div>
+      <a href="database.html" class="nav-link"><i class="nav-link-icon fas fa-database"></i> DB Manager</a>
+      <a href="audit-logs.html" class="nav-link active"><i class="nav-link-icon fas fa-history"></i> Audit Logs</a>
+      <div class="nav-section-label">Platform</div>
+      <a href="analytics.html" class="nav-link"><i class="nav-link-icon fas fa-chart-line"></i> Analytics</a>
+      <a href="system.html" class="nav-link"><i class="nav-link-icon fas fa-server"></i> System Health</a>
+      <a href="broadcast.html" class="nav-link"><i class="nav-link-icon fas fa-bullhorn"></i> Broadcast</a>
+      <a href="settings.html" class="nav-link"><i class="nav-link-icon fas fa-cog"></i> Settings</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">Super Admin / <span>Audit Logs</span></div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-secondary btn-sm" onclick="exportLogs()"><i class="fas fa-download"></i> Export CSV</button>
+        <div class="topbar-avatar" id="topbar-avatar">S</div>
+      </div>
+    </header>
+
+    <div class="erp-content">
+      <div class="page-header">
+        <h1 class="page-title">🔍 Audit Logs</h1>
+        <p class="page-subtitle">Platform-wide activity tracking — who did what and when.</p>
+      </div>
+
+      <!-- Filters -->
+      <div class="card mb-4">
+        <div class="card-body" style="padding:14px 20px;display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end">
+          <div class="search-bar" style="width:260px"><i class="fas fa-search"></i><input type="text" id="logSearch" placeholder="Search by user or email..." oninput="filterLogs()"></div>
+          <div class="form-group" style="margin:0;min-width:140px">
+            <label class="form-label" style="font-size:11px">Role</label>
+            <select class="form-control" style="padding:7px 10px;font-size:13px" id="roleFilter" onchange="filterLogs()">
+              <option value="">All Roles</option>
+              <option value="superadmin">Super Admin</option>
+              <option value="collegeAdmin">College Admin</option>
+              <option value="faculty">Faculty</option>
+              <option value="student">Student</option>
+              <option value="parent">Parent</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0;min-width:140px">
+            <label class="form-label" style="font-size:11px">Action</label>
+            <select class="form-control" style="padding:7px 10px;font-size:13px" id="actionFilter" onchange="filterLogs()">
+              <option value="">All Actions</option>
+              <option value="Login">Login</option>
+              <option value="Create">Create</option>
+              <option value="Update">Update</option>
+              <option value="Delete">Delete</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0;min-width:140px">
+            <label class="form-label" style="font-size:11px">Status</label>
+            <select class="form-control" style="padding:7px 10px;font-size:13px" id="statusFilter" onchange="filterLogs()">
+              <option value="">All</option>
+              <option value="success">Success</option>
+              <option value="blocked">Blocked</option>
+            </select>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="resetFilters()"><i class="fas fa-times"></i> Clear</button>
+        </div>
+      </div>
+
+      <!-- Stats Row -->
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)" id="logStats">
+        <div class="stat-card"><div class="stat-icon" style="background:#D1FAE5;color:#065F46"><i class="fas fa-check-circle"></i></div><div class="stat-label">Successful Logins</div><div class="stat-value" id="successCount">—</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#FEE2E2;color:#991B1B"><i class="fas fa-ban"></i></div><div class="stat-label">Blocked Access</div><div class="stat-value" id="blockedCount">—</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#EDE9FE;color:#5B21B6"><i class="fas fa-user-clock"></i></div><div class="stat-label">Total Events</div><div class="stat-value" id="totalCount">—</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#DBEAFE;color:#1E40AF"><i class="fas fa-university"></i></div><div class="stat-label">Colleges Active</div><div class="stat-value" id="collegeCount">—</div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Activity Timeline</div>
+          <span class="badge badge-info" id="showingCount">Loading...</span>
+        </div>
+        <div class="table-wrap">
+          <table class="erp-table">
+            <thead>
+              <tr><th>#</th><th>User</th><th>Email</th><th>Role</th><th>College</th><th>Action</th><th>Status</th><th>Timestamp</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="auditBody"></tbody>
+          </table>
+        </div>
+        <div style="padding:12px 20px;border-top:1px solid #F1F5F9;display:flex;align-items:center;justify-content:space-between">
+          <span style="font-size:12px;color:#64748B" id="auditPageInfo">Page 1 of 1</span>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-sm btn-secondary" id="logPrevBtn" onclick="changePage(-1)"><i class="fas fa-chevron-left"></i></button>
+            <button class="btn btn-sm btn-secondary" id="logNextBtn" onclick="changePage(1)"><i class="fas fa-chevron-right"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script src="../../live/live-admin-pages.js"></script>
+</body>
+</html>

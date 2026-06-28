@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login | VishvaERP — Enterprise Academic Platform</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0F172A;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    /* Animated background */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background: radial-gradient(ellipse at 20% 50%, rgba(79,70,229,0.15) 0%, transparent 60%),
+                  radial-gradient(ellipse at 80% 20%, rgba(16,185,129,0.1) 0%, transparent 50%),
+                  radial-gradient(ellipse at 60% 80%, rgba(245,158,11,0.08) 0%, transparent 50%);
+      pointer-events: none;
+    }
+    .login-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      width: 100%;
+      max-width: 980px;
+      min-height: 580px;
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 40px 80px rgba(0,0,0,0.4);
+      position: relative;
+      z-index: 1;
+    }
+    /* LEFT PANEL */
+    .login-left {
+      background: linear-gradient(135deg, #1E1B4B 0%, #312E81 50%, #1E1B4B 100%);
+      padding: 48px 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+    .login-left::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='20'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    }
+    .brand { display: flex; align-items: center; gap: 12px; position: relative; }
+    .brand-icon {
+      width: 48px; height: 48px; border-radius: 14px;
+      background: linear-gradient(135deg, #4F46E5, #7C3AED);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px; font-weight: 900; color: white;
+    }
+    .brand-name { font-size: 24px; font-weight: 900; color: white; }
+    .brand-name span { color: #A5B4FC; }
+    .left-hero { position: relative; }
+    .left-hero h1 { font-size: 32px; font-weight: 900; color: white; line-height: 1.2; margin-bottom: 16px; }
+    .left-hero p { font-size: 15px; color: #A5B4FC; line-height: 1.6; }
+    .feature-list { display: flex; flex-direction: column; gap: 12px; position: relative; }
+    .feature-item { display: flex; align-items: center; gap: 12px; color: #C4B5FD; font-size: 13px; font-weight: 600; }
+    .feature-item i { color: #10B981; font-size: 14px; }
+
+    /* RIGHT PANEL */
+    .login-right { background: white; padding: 48px 40px; display: flex; flex-direction: column; justify-content: center; animation: fadeInUp 0.5s ease; }
+    .login-right h2 { font-size: 26px; font-weight: 800; color: #0F172A; margin-bottom: 6px; }
+    .login-right p { font-size: 14px; color: #64748B; margin-bottom: 28px; }
+
+    /* Role selector */
+    .role-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 24px; }
+    .role-btn {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 6px; padding: 12px 8px; border-radius: 12px;
+      border: 2px solid #E2E8F0; cursor: pointer;
+      font-size: 12px; font-weight: 700; color: #64748B;
+      background: white; transition: all 0.2s;
+    }
+    .role-btn i { font-size: 18px; }
+    .role-btn.active { border-color: var(--role-color, #4F46E5); background: var(--role-bg, #EDE9FE); color: var(--role-color, #4F46E5); }
+    .role-btn:hover { border-color: var(--role-color, #4F46E5); transform: translateY(-1px); }
+
+    /* Form */
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 13px; font-weight: 700; color: #374151; margin-bottom: 6px; }
+    .form-control {
+      width: 100%; padding: 11px 14px;
+      border: 1.5px solid #E2E8F0; border-radius: 10px;
+      font-size: 14px; font-family: inherit; color: #0F172A;
+      background: white; outline: none; transition: all 0.15s;
+    }
+    .form-control:focus { border-color: #4F46E5; box-shadow: 0 0 0 3px rgba(79,70,229,0.1); }
+    .input-wrap { position: relative; }
+    .input-wrap input { padding-right: 40px; }
+    .input-wrap .toggle-pass {
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      cursor: pointer; color: #94A3B8; border: none; background: none; font-size: 14px;
+    }
+    .forgot { text-align: right; margin-top: -12px; margin-bottom: 16px; }
+    .forgot a { font-size: 12px; color: #4F46E5; text-decoration: none; font-weight: 600; }
+    .btn-login {
+      width: 100%; padding: 13px 20px;
+      background: linear-gradient(135deg, #4F46E5, #7C3AED);
+      color: white; border: none; border-radius: 12px;
+      font-size: 15px; font-weight: 700; cursor: pointer;
+      font-family: inherit; transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-login:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(79,70,229,0.35); }
+    .btn-login:active { transform: translateY(0); }
+    .btn-login:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+
+    .divider { text-align: center; color: #94A3B8; font-size: 12px; font-weight: 600; position: relative; margin: 18px 0; }
+    .divider::before, .divider::after { content: ''; position: absolute; top: 50%; width: 42%; height: 1px; background: #E2E8F0; }
+    .divider::before { left: 0; }
+    .divider::after { right: 0; }
+
+    .back-home { text-align: center; margin-top: 14px; }
+    .back-home a { font-size: 13px; color: #94A3B8; text-decoration: none; }
+    .back-home a:hover { color: #4F46E5; }
+
+    .error-msg { background: #FEE2E2; color: #991B1B; font-size: 13px; padding: 10px 14px; border-radius: 10px; margin-bottom: 14px; display: none; }
+    .error-msg.show { display: flex; align-items: center; gap: 8px; }
+
+    @media(max-width:768px) {
+      .login-grid { grid-template-columns: 1fr; min-height: auto; }
+      .login-left { display: none; }
+      .login-right { padding: 32px 24px; min-height: 100vh; justify-content: flex-start; padding-top: 60px; }
+      .role-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+  </style>
+</head>
+<body>
+<div class="login-grid">
+  <!-- LEFT PANEL -->
+  <div class="login-left">
+    <div class="brand">
+      <div class="brand-icon">V</div>
+      <div class="brand-name">Vishva<span>ERP</span></div>
+    </div>
+    <div class="left-hero">
+      <h1>Enterprise Academic Platform</h1>
+      <p>The complete ERP built for educational institutions — managing thousands of students, faculty, and operations in one place.</p>
+    </div>
+    <div class="feature-list">
+      <div class="feature-item"><i class="fas fa-check-circle"></i> Role-based access for 5 user types</div>
+      <div class="feature-item"><i class="fas fa-check-circle"></i> Real-time attendance & fee management</div>
+      <div class="feature-item"><i class="fas fa-check-circle"></i> AI-powered exam & content generation</div>
+      <div class="feature-item"><i class="fas fa-check-circle"></i> Multi-college support with full isolation</div>
+      <div class="feature-item"><i class="fas fa-check-circle"></i> Live messaging & notification system</div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="login-right">
+    <h2>Welcome back 👋</h2>
+    <p>Sign in to your account</p>
+
+    <!-- Role Selector -->
+    <div class="role-grid" id="roleGrid">
+      <button class="role-btn active" onclick="selectRole(this,'superadmin','#5B21B6','#EDE9FE')" data-role="superadmin" style="--role-color:#5B21B6;--role-bg:#EDE9FE">
+        <i class="fas fa-satellite-dish"></i>Super Admin
+      </button>
+      <button class="role-btn" onclick="selectRole(this,'collegeAdmin','#1E40AF','#DBEAFE')" data-role="collegeAdmin" style="--role-color:#1E40AF;--role-bg:#DBEAFE">
+        <i class="fas fa-university"></i>College Admin
+      </button>
+      <button class="role-btn" onclick="selectRole(this,'faculty','#065F46','#D1FAE5')" data-role="faculty" style="--role-color:#065F46;--role-bg:#D1FAE5">
+        <i class="fas fa-chalkboard-teacher"></i>Faculty
+      </button>
+      <button class="role-btn" onclick="selectRole(this,'student','#0369A1','#E0F2FE')" data-role="student" style="--role-color:#0369A1;--role-bg:#E0F2FE">
+        <i class="fas fa-user-graduate"></i>Student
+      </button>
+      <button class="role-btn" onclick="selectRole(this,'parent','#92400E','#FEF3C7')" data-role="parent" style="--role-color:#92400E;--role-bg:#FEF3C7">
+        <i class="fas fa-users"></i>Parent
+      </button>
+      <a href="../index.html" class="role-btn" style="text-decoration:none">
+        <i class="fas fa-home"></i>Home
+      </a>
+    </div>
+
+    <!-- Error -->
+    <div class="error-msg" id="errorMsg"><i class="fas fa-exclamation-circle"></i><span id="errorText">Invalid credentials.</span></div>
+
+    <!-- Form -->
+    <form id="loginForm">
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        <input class="form-control" type="email" id="email" placeholder="Enter your email" required autocomplete="email">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Password</label>
+        <div class="input-wrap">
+          <input class="form-control" type="password" id="password" placeholder="Enter your password" required autocomplete="current-password">
+          <button type="button" class="toggle-pass" onclick="this.previousElementSibling.type=this.previousElementSibling.type==='password'?'text':'password';this.className='toggle-pass fas '+(this.previousElementSibling.type==='password'?'fa-eye':'fa-eye-slash')">
+            <i class="fas fa-eye"></i>
+          </button>
+        </div>
+      </div>
+      <div class="forgot"><a href="#" onclick="showForgotToast();return false">Forgot password?</a></div>
+      <button type="submit" class="btn-login" id="loginBtn"><i class="fas fa-lock"></i> Sign In Securely</button>
+    </form>
+
+    <div class="back-home"><a href="../index.html"><i class="fas fa-arrow-left" style="margin-right:4px"></i>Back to Homepage</a></div>
+  </div>
+</div>
+
+<script>
+  const API_URL = '/api';
+  let selectedRole = 'superadmin';
+
+  const roleRedirects = {
+    superadmin: '/pages/super-admin/dashboard.html',
+    collegeAdmin: '/pages/college-admin/dashboard.html',
+    faculty: '/pages/faculty/dashboard.html',
+    student: '/pages/student/dashboard.html',
+    parent: '/pages/parent/dashboard.html',
+  };
+
+  function selectRole(btn, role, color, bg) {
+    document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedRole = role;
+    // Update form button color
+    document.getElementById('loginBtn').style.background = `linear-gradient(135deg, ${color}, ${color}CC)`;
+  }
+
+  function showError(msg) {
+    document.getElementById('errorText').textContent = msg;
+    document.getElementById('errorMsg').classList.add('show');
+    setTimeout(() => document.getElementById('errorMsg').classList.remove('show'), 5000);
+  }
+
+  function showForgotToast() {
+    const toast = document.createElement('div');
+    toast.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;background:white;border-radius:12px;padding:12px 18px;box-shadow:0 10px 30px rgba(0,0,0,0.15);border-left:4px solid #4F46E5;font-size:13px;font-weight:600;min-width:260px;animation:fadeIn 0.3s ease';
+    toast.textContent = '📧 Password reset link sent to your email!';
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3500);
+  }
+
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('loginBtn');
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    if (!email || !password) { showError('Please enter email and password.'); return; }
+    try {
+      btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing in...';
+      const res = await fetch(`${API_URL}/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || data.errors?.[0]?.msg || 'Login failed');
+      localStorage.setItem('erp_token', data.token);
+      localStorage.setItem('erp_user', JSON.stringify(data.user));
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      const role = data.user.role;
+      window.location.href = roleRedirects[role] || roleRedirects['student'];
+    } catch (err) {
+      showError(err.message);
+    } finally {
+      btn.disabled = false; btn.innerHTML = '<i class="fas fa-lock"></i> Sign In Securely';
+    }
+  });
+
+  // Pre-fill with selected role redirect hint
+  document.querySelectorAll('.role-btn[data-role]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.getElementById('email').placeholder = `${btn.querySelector('i').nextSibling?.textContent?.trim() || 'User'} email...`;
+    });
+  });
+
+</script>
+</body>
+</html>

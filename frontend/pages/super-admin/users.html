@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Users — Super Admin | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../css/custom.css">
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-superadmin" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar">S</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Super Admin</div><div class="sidebar-user-role">System Owner</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-satellite-dish"></i> System Overview</a>
+      <a href="analytics.html" class="nav-link"><i class="nav-link-icon fas fa-chart-line"></i> Analytics</a>
+      <div class="nav-section-label">Management</div>
+      <a href="colleges.html" class="nav-link"><i class="nav-link-icon fas fa-university"></i> Colleges</a>
+      <a href="users.html" class="nav-link active"><i class="nav-link-icon fas fa-users"></i> Platform Users</a>
+      <div class="nav-section-label">Tools</div>
+      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Hub</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">Super Admin / <span>Platform Users</span></div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-avatar" id="topbar-avatar">S</div>
+      </div>
+    </header>
+
+    <div class="erp-content">
+      <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+        <div>
+          <h1 class="page-title">👥 Platform Users</h1>
+          <p class="page-subtitle">Manage all users across every institution.</p>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('addUserModal')"><i class="fas fa-user-plus"></i> Add User</button>
+      </div>
+
+      <!-- Role Tabs -->
+      <div class="tab-bar mb-6" style="max-width:600px">
+        <button class="tab-btn active" data-role="all" onclick="filterByRole('all',this)">All Users</button>
+        <button class="tab-btn" data-role="collegeAdmin" onclick="filterByRole('collegeAdmin',this)">College Admins</button>
+        <button class="tab-btn" data-role="faculty" onclick="filterByRole('faculty',this)">Faculty</button>
+        <button class="tab-btn" data-role="student" onclick="filterByRole('student',this)">Students</button>
+        <button class="tab-btn" data-role="parent" onclick="filterByRole('parent',this)">Parents</button>
+      </div>
+
+      <!-- Filter Bar -->
+      <div class="card mb-4">
+        <div class="card-body" style="padding:12px 20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+          <div class="search-bar" style="flex:1;min-width:200px"><i class="fas fa-search"></i><input type="text" placeholder="Search by name or email..." id="userSearch"></div>
+          <select class="form-control" style="width:180px" id="collegeFilter"><option value="">All Colleges</option><option>IIT Bombay</option><option>BITS Pilani</option><option>NIT Trichy</option></select>
+          <button class="btn btn-secondary btn-sm" onclick="loadUsers()"><i class="fas fa-refresh"></i> Refresh</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="table-wrap">
+          <table class="erp-table">
+            <thead>
+              <tr><th>#</th><th>User</th><th>Role</th><th>College</th><th>Last Login</th><th>Status</th><th>Actions</th></tr>
+            </thead>
+            <tbody id="usersBody">
+              <tr><td colspan="7" style="text-align:center;padding:40px"><i class="fas fa-spinner fa-spin" style="font-size:28px;color:#4F46E5"></i></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card-footer" style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:13px;color:#64748B">Showing <strong id="showingCount">0</strong> users</span>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-secondary btn-sm"><i class="fas fa-chevron-left"></i></button>
+            <button class="btn btn-primary btn-sm">1</button>
+            <button class="btn btn-secondary btn-sm">2</button>
+            <button class="btn btn-secondary btn-sm"><i class="fas fa-chevron-right"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD USER MODAL -->
+<div class="modal-backdrop" id="addUserModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Add Platform User</div>
+      <button class="modal-close" onclick="closeModal('addUserModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Full Name *</label><input class="form-control" id="uName" placeholder="Full name"></div>
+      <div class="form-group"><label class="form-label">Email *</label><input class="form-control" type="email" id="uEmail" placeholder="user@example.com"></div>
+      <div class="form-group"><label class="form-label">Role *</label>
+        <select class="form-control" id="uRole">
+          <option value="collegeAdmin">College Admin</option>
+          <option value="faculty">Faculty</option>
+          <option value="student">Student</option>
+          <option value="parent">Parent</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Password *</label><input class="form-control" type="password" id="uPass" placeholder="Min. 8 characters"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('addUserModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="addUser()"><i class="fas fa-check"></i> Create User</button>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script src="../../live/live-admin-pages.js"></script>
+</body>
+</html>

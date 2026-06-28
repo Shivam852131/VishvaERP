@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Attendance — Faculty | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../css/custom.css">
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-faculty" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon" style="background:linear-gradient(135deg,#059669,#10B981)">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" style="background:linear-gradient(135deg,#059669,#10B981)" id="sidebar-avatar">F</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Professor</div><div class="sidebar-user-role">Faculty Member</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <div class="nav-section-label">Teaching</div>
+      <a href="attendance.html" class="nav-link active"><i class="nav-link-icon fas fa-calendar-check"></i> Attendance</a>
+      <a href="grades.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-list"></i> Grades & Results</a>
+      <a href="assignments.html" class="nav-link"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
+      <a href="timetable.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Timetable</a>
+      <div class="nav-section-label">HR</div>
+      <a href="leave.html" class="nav-link"><i class="nav-link-icon fas fa-file-signature"></i> Leave & HR</a>
+      <div class="nav-section-label">Tools</div>
+      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Assistant</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">Faculty / <span>Attendance</span></div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-avatar" id="topbar-avatar">F</div>
+      </div>
+    </header>
+
+    <div class="erp-content">
+      <div class="page-header">
+        <h1 class="page-title">Attendance Command Center</h1>
+        <p class="page-subtitle">Run manual roll call, smart classroom presence, and live attendance verification from one screen.</p>
+      </div>
+
+      <div class="stats-grid mb-6" style="grid-template-columns:repeat(4,1fr)">
+        <div class="stat-card"><div class="stat-icon" style="background:#D1FAE5;color:#065F46"><i class="fas fa-user-check"></i></div><div class="stat-label">Manual Present</div><div class="stat-value" id="manualPresentCount">0</div><div class="stat-change up"><i class="fas fa-check-circle"></i> Ready to submit</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#FEE2E2;color:#991B1B"><i class="fas fa-user-xmark"></i></div><div class="stat-label">Manual Absent</div><div class="stat-value" id="manualAbsentCount">0</div><div class="stat-change down"><i class="fas fa-triangle-exclamation"></i> Review before save</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#FEF3C7;color:#92400E"><i class="fas fa-clock"></i></div><div class="stat-label">Late Marks</div><div class="stat-value" id="manualLateCount">0</div><div class="stat-change"><i class="fas fa-stopwatch"></i> Grace policy</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#DBEAFE;color:#1E40AF"><i class="fas fa-clipboard-check"></i></div><div class="stat-label">Roll Call Coverage</div><div class="stat-value" id="attendanceCompletionPct">0%</div><div class="stat-change"><i class="fas fa-users"></i> Selected roster</div></div>
+      </div>
+
+      <div class="attendance-command-grid mb-6">
+        <div class="attendance-insight-card"><div class="insight-kicker">Roll call insight</div><div id="facultyRollCallInsight" class="attendance-insight-body">Load a subject to view roster health.</div></div>
+        <div class="attendance-insight-card"><div class="insight-kicker">Smart coverage</div><div id="facultySmartInsight" class="attendance-insight-body">Start teacher presence or refresh the live dashboard.</div></div>
+        <div class="attendance-insight-card"><div class="insight-kicker">Action queue</div><div id="facultyAttendanceActionQueue" class="attendance-insight-body">No attendance action selected yet.</div></div>
+      </div>
+
+      <!-- Select Class -->
+      <div class="card mb-6">
+        <div class="card-body" style="display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap">
+          <div class="form-group" style="flex:1;min-width:160px;margin-bottom:0">
+            <label class="form-label">Select Subject</label>
+            <select class="form-control" id="subjectSelect" onchange="loadStudents()">
+              <option value="dsa">Data Structures (CS401)</option>
+              <option value="dbms">DBMS (CS402)</option>
+              <option value="os">Operating Systems (CS403)</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex:1;min-width:160px;margin-bottom:0">
+            <label class="form-label">Select Batch</label>
+            <select class="form-control" id="batchSelect">
+              <option>B.Tech CS Sem 4</option>
+              <option>B.Tech CS Sem 6</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex:1;min-width:160px;margin-bottom:0">
+            <label class="form-label">Date</label>
+            <input type="date" class="form-control" id="attDate" value="">
+          </div>
+          <button class="btn btn-primary" onclick="loadStudents()"><i class="fas fa-users"></i> Load Students</button>
+        </div>
+      </div>
+
+      <!-- Smart Attendance -->
+      <div class="smart-attendance-panel mb-6">
+        <div class="smart-attendance-hero">
+          <div>
+            <div class="smart-kicker">Consent-based live location</div>
+            <h2>Smart Classroom Presence</h2>
+            <p>Use a saved classroom geofence and scheduled timetable slot to auto-mark attendance when the teacher and consenting students are present.</p>
+          </div>
+          <div class="smart-actions">
+            <button class="btn btn-secondary" onclick="setClassroomFromHere()"><i class="fas fa-location-crosshairs"></i> Set Room Geofence</button>
+            <button class="btn btn-success" onclick="publishTeacherPresence()"><i class="fas fa-satellite-dish"></i> Start Teacher Presence</button>
+            <button class="btn btn-primary" onclick="loadSmartPresence()"><i class="fas fa-rotate"></i> Refresh Live Dashboard</button>
+          </div>
+        </div>
+
+        <div class="smart-presence-stats">
+          <div><span>Students In Class</span><strong id="smartPresentCount">--</strong></div>
+          <div><span>Total Roster</span><strong id="smartTotalCount">--</strong></div>
+          <div><span>Classroom</span><strong id="smartRoomName">--</strong></div>
+          <div><span>Teacher Signal</span><strong id="smartTeacherStatus">--</strong></div>
+          <div><span>Coverage</span><strong id="smartCoverageRate">--</strong></div>
+          <div><span>Auto Marked</span><strong id="smartAutoMarkedCount">--</strong></div>
+          <div><span>Waiting</span><strong id="smartWaitingCount">--</strong></div>
+          <div><span>Session Health</span><strong id="smartSessionHealth">--</strong></div>
+        </div>
+
+        <div class="smart-privacy-note"><i class="fas fa-shield-halved"></i> Only students who explicitly enable location consent are tracked. The ERP stores live presence snapshots, not full movement history.</div>
+
+        <div class="table-wrap smart-table-wrap">
+          <table class="erp-table">
+            <thead><tr><th>#</th><th>Student</th><th>Roll No.</th><th>Live Status</th><th>Distance</th><th>Last Seen</th><th>Attendance</th></tr></thead>
+            <tbody id="smartPresenceBody"><tr><td colspan="7"><div class="empty-state"><div class="empty-state-title">Start teacher presence or refresh to load live class dashboard</div></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
+        <button class="btn btn-success btn-sm" onclick="markAll('present')"><i class="fas fa-check-double"></i> Mark All Present</button>
+        <button class="btn btn-secondary btn-sm" onclick="markAll('absent')"><i class="fas fa-times"></i> Mark All Absent</button>
+        <div class="search-bar" style="width:220px"><i class="fas fa-search"></i><input type="text" id="studentSearch" placeholder="Search student..." oninput="filterStudents()"></div>
+        <span style="margin-left:auto;font-size:13px;color:#64748B">Present: <strong id="presentCount">0</strong> / <strong id="totalCount">0</strong></span>
+        <button class="btn btn-primary" onclick="submitAttendance()"><i class="fas fa-save"></i> Submit Attendance</button>
+      </div>
+
+      <!-- Student List -->
+      <div class="card">
+        <div class="table-wrap">
+          <table class="erp-table">
+            <thead>
+              <tr>
+                <th>#</th><th>Roll No.</th><th>Student Name</th><th>Present</th><th>Absent</th><th>Late</th><th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="attBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script src="../../live/live-admin-pages.js"></script>
+</body>
+</html>

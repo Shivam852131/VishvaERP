@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>College Admin Dashboard | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="../../css/custom.css">
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-college" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" id="sidebar-avatar">A</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Admin</div><div class="sidebar-user-role">College Administrator</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link active"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <div class="nav-section-label">Academics</div>
+      <a href="students.html" class="nav-link"><i class="nav-link-icon fas fa-user-graduate"></i> Students</a>
+      <a href="faculty.html" class="nav-link"><i class="nav-link-icon fas fa-chalkboard-teacher"></i> Faculty</a>
+      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-open"></i> Courses & Exams</a>
+      <a href="notices.html" class="nav-link"><i class="nav-link-icon fas fa-bullhorn"></i> Notice Board</a>
+      <div class="nav-section-label">Finance & HR</div>
+      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-file-invoice-dollar"></i> Fee Management</a>
+      <a href="hr.html" class="nav-link"><i class="nav-link-icon fas fa-user-md"></i> HR & Leave</a>
+      <div class="nav-section-label">Facilities</div>
+      <a href="logistics.html" class="nav-link"><i class="nav-link-icon fas fa-bus"></i> Logistics & Hostel</a>
+      <div class="nav-section-label">Tools</div>
+      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Hub</a>
+      <a href="../messages.html" class="nav-link"><i class="nav-link-icon fas fa-comments"></i> Messages</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">College Admin / <span>Dashboard</span></div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-search"><i class="fas fa-search"></i><input type="text" placeholder="Search students, faculty..."></div>
+        <div style="position:relative">
+          <button class="topbar-btn" id="notif-btn"><i class="fas fa-bell"></i><span class="topbar-badge">2</span></button>
+          <div class="notif-panel" id="notif-panel">
+            <div style="padding:14px 16px;border-bottom:1px solid #F1F5F9;font-weight:700;font-size:14px">Notifications</div>
+            <div class="notif-item unread"><div class="notif-dot"></div><div><div style="font-size:13px;font-weight:600">Fee Deadline Alert</div><div style="font-size:12px;color:#64748B">32 students have pending fees</div></div></div>
+            <div class="notif-item unread"><div class="notif-dot"></div><div><div style="font-size:13px;font-weight:600">Leave Request</div><div style="font-size:12px;color:#64748B">Prof. Sharma applied for 3-day leave</div></div></div>
+          </div>
+        </div>
+        <div class="topbar-avatar" id="topbar-avatar">A</div>
+      </div>
+    </header>
+
+    <div class="erp-content page-enter">
+      <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+        <div>
+          <div class="breadcrumb"><span id="collegeBreadcrumb">My College</span></div>
+          <h1 class="page-title" id="welcomeMsg">College Dashboard</h1>
+          <p class="page-subtitle">Welcome back! Here's today's overview.</p>
+        </div>
+        <button class="btn btn-primary" id="downloadBtn"><i class="fas fa-download"></i> Download Report</button>
+      </div>
+
+      <!-- STATS -->
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card"><div class="stat-card-accent" style="background:#4F46E5"></div><div class="stat-icon" style="background:#EDE9FE;color:#5B21B6"><i class="fas fa-user-graduate"></i></div><div class="stat-label">Total Students</div><div class="stat-value" data-counter="0" id="statStudents">—</div><div class="stat-change up"><i class="fas fa-arrow-up"></i> <span id="statStudentsChange">—</span></div></div>
+        <div class="stat-card"><div class="stat-card-accent" style="background:#10B981"></div><div class="stat-icon" style="background:#D1FAE5;color:#065F46"><i class="fas fa-chalkboard-teacher"></i></div><div class="stat-label">Faculty Members</div><div class="stat-value" data-counter="0" id="statFaculty">—</div><div class="stat-change neutral"><i class="fas fa-circle" style="font-size:7px"></i> <span id="statFacultyChange">—</span></div></div>
+        <div class="stat-card"><div class="stat-card-accent" style="background:#EF4444"></div><div class="stat-icon" style="background:#FEE2E2;color:#991B1B"><i class="fas fa-exclamation-circle"></i></div><div class="stat-label">Pending Fees</div><div class="stat-value" id="statFees">—</div><div class="stat-change down"><i class="fas fa-arrow-down"></i> Needs attention</div></div>
+        <div class="stat-card"><div class="stat-card-accent" style="background:#F59E0B"></div><div class="stat-icon" style="background:#FEF3C7;color:#92400E"><i class="fas fa-users"></i></div><div class="stat-label">Parents Linked</div><div class="stat-value" data-counter="0" id="statParents">—</div><div class="stat-change up"><i class="fas fa-arrow-up"></i> <span id="statParentsChange">—</span></div></div>
+      </div>
+
+      <!-- ADVANCED OPERATIONS COMMAND CENTER -->
+      <div class="command-section-label">Academic Year 2026-27 / Institution Command Center</div>
+      <div class="admin-command-grid mb-6">
+        <div class="admin-health-panel">
+          <div class="admin-panel-kicker">Institution Health</div>
+          <div class="admin-health-score" id="commandHealthScore">--<span>/100</span></div>
+          <div class="admin-health-bars">
+            <div><span>Academic delivery</span><strong id="academicDeliveryValue">--</strong><em id="academicDeliveryBar" style="width:0"></em></div>
+            <div><span>Fee collection</span><strong id="feeCollectionValue">--</strong><em id="feeCollectionBar" style="width:0;background:#F59E0B"></em></div>
+            <div><span>Parent engagement</span><strong id="parentEngagementValue">--</strong><em id="parentEngagementBar" style="width:0;background:#0EA5E9"></em></div>
+          </div>
+        </div>
+
+        <div class="admin-action-panel">
+          <div class="admin-panel-head">
+            <div><div class="admin-panel-kicker">AI Priority Queue</div><strong>Actions for this week</strong></div>
+            <span class="badge badge-danger" id="criticalRiskBadge">--</span>
+          </div>
+          <div id="commandPriorityQueue">
+            <div class="admin-action-item medium"><i class="fas fa-spinner fa-spin"></i><span>Loading live campus risks...</span></div>
+          </div>
+        </div>
+
+        <div class="admin-mini-panel">
+          <i class="fas fa-user-plus" style="color:#4F46E5"></i>
+          <span>Admissions Pipeline</span>
+          <strong id="admissionsPipelineValue">--</strong>
+          <em id="admissionsPipelineText">Loading enrollment velocity...</em>
+        </div>
+        <div class="admin-mini-panel">
+          <i class="fas fa-building-shield" style="color:#059669"></i>
+          <span>Campus Services</span>
+          <strong id="campusServicesValue">--</strong>
+          <em id="campusServicesText">Loading facility utilization...</em>
+        </div>
+      </div>
+
+      <div class="advanced-ops-grid mb-6">
+        <div class="advanced-ops-card wide">
+          <div class="advanced-ops-head">
+            <div>
+              <span>Accreditation Readiness</span>
+              <strong>Academic compliance coverage</strong>
+            </div>
+            <i class="fas fa-award"></i>
+          </div>
+          <div class="readiness-grid" id="complianceReadinessGrid">
+            <div class="readiness-item"><span>Loading readiness checks...</span><strong>--</strong><div class="progress-bar"><div class="progress-fill" style="width:0"></div></div></div>
+          </div>
+        </div>
+        <div class="advanced-ops-card">
+          <div class="advanced-ops-head">
+            <div>
+              <span>Finance Risk Console</span>
+              <strong>Collection and overdue exposure</strong>
+            </div>
+            <i class="fas fa-indian-rupee-sign"></i>
+          </div>
+          <div class="signal-list" id="financeRiskBody">
+            <div class="command-signal"><span>Loading finance ledger...</span><strong>--</strong></div>
+          </div>
+        </div>
+        <div class="advanced-ops-card">
+          <div class="advanced-ops-head">
+            <div>
+              <span>Student Success Cockpit</span>
+              <strong>Attendance, results, and workload</strong>
+            </div>
+            <i class="fas fa-user-graduate"></i>
+          </div>
+          <div class="signal-list" id="studentSuccessBody">
+            <div class="command-signal"><span>Loading success signals...</span><strong>--</strong></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CHARTS -->
+      <div class="grid col-2 mb-6">
+        <div class="card">
+          <div class="card-header"><div class="card-title"><i class="fas fa-chart-line" style="color:#4F46E5;margin-right:8px"></i>Student Registrations</div></div>
+          <div class="card-body"><div class="chart-container" style="height:220px"><canvas id="growthChart"></canvas></div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title"><i class="fas fa-chart-pie" style="color:#10B981;margin-right:8px"></i>Fee Collection Status</div></div>
+          <div class="card-body"><div class="chart-container" style="height:220px"><canvas id="feeChart"></canvas></div></div>
+        </div>
+      </div>
+
+      <div class="grid col-2 mb-6">
+        <div class="card">
+          <div class="card-header"><div class="card-title"><i class="fas fa-calendar-days" style="color:#0EA5E9;margin-right:8px"></i>Upcoming Academic Milestones</div><a href="courses.html" class="btn btn-sm btn-secondary">Plan Exams</a></div>
+          <div class="card-body"><div class="ops-timeline-mini" id="upcomingExamBody"><div class="empty-state"><div class="empty-state-title">Loading upcoming exams...</div></div></div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title"><i class="fas fa-layer-group" style="color:#8B5CF6;margin-right:8px"></i>Department Capacity Mix</div><a href="students.html" class="btn btn-sm btn-secondary">Manage Students</a></div>
+          <div class="card-body"><div class="department-mix-list" id="departmentMixBody"><div class="empty-state"><div class="empty-state-title">Loading department mix...</div></div></div></div>
+        </div>
+      </div>
+
+      <!-- QUICK LINKS + RECENT STUDENTS + NOTICES -->
+      <div class="grid col-3 mb-6">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Quick Actions</div></div>
+          <div class="card-body" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <a href="students.html" class="btn btn-secondary" style="flex-direction:column;gap:6px;padding:14px;height:auto;text-align:center"><i class="fas fa-user-plus" style="font-size:20px;color:#4F46E5"></i><span>Add Student</span></a>
+            <a href="faculty.html" class="btn btn-secondary" style="flex-direction:column;gap:6px;padding:14px;height:auto;text-align:center"><i class="fas fa-user-tie" style="font-size:20px;color:#10B981"></i><span>Add Faculty</span></a>
+            <a href="fees.html" class="btn btn-secondary" style="flex-direction:column;gap:6px;padding:14px;height:auto;text-align:center"><i class="fas fa-money-bill-wave" style="font-size:20px;color:#F59E0B"></i><span>Fee Records</span></a>
+            <a href="notices.html" class="btn btn-secondary" style="flex-direction:column;gap:6px;padding:14px;height:auto;text-align:center"><i class="fas fa-bullhorn" style="font-size:20px;color:#EF4444"></i><span>Post Notice</span></a>
+          </div>
+        </div>
+        <div class="card" style="grid-column:span 2">
+          <div class="card-header"><div class="card-title">Recent Students</div><a href="students.html" class="btn btn-sm btn-secondary">View All</a></div>
+          <div class="table-wrap">
+            <table class="erp-table">
+              <thead><tr><th>Student</th><th>Branch</th><th>Semester</th><th>Fee</th></tr></thead>
+              <tbody id="recentStudentsBody">
+                <tr><td colspan="4" style="text-align:center;padding:20px"><i class="fas fa-spinner fa-spin" style="color:#4F46E5"></i></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- LEAVE REQUESTS -->
+      <div class="card">
+        <div class="card-header"><div class="card-title"><i class="fas fa-calendar-check" style="color:#F59E0B;margin-right:8px"></i>Pending Leave Requests</div><a href="hr.html" class="btn btn-sm btn-secondary">Manage All</a></div>
+        <div class="table-wrap">
+          <table class="erp-table">
+            <thead><tr><th>Faculty</th><th>Leave Type</th><th>Duration</th><th>Reason</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="leavesBody">
+              <tr><td colspan="6" style="text-align:center;padding:20px"><i class="fas fa-spinner fa-spin" style="color:#4F46E5"></i></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script src="../../live/live-admin-pages.js"></script>
+</body>
+</html>

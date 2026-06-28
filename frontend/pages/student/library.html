@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Library | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../css/custom.css">
+  <style>
+    .book-card { display: flex; gap: 16px; padding: 16px; border: 1px solid #E2E8F0; border-radius: 12px; transition: all 0.2s; background: white; }
+    .book-card:hover { border-color: #0284C7; box-shadow: 0 4px 12px rgba(2,132,199,0.1); }
+    .book-cover { width: 80px; height: 110px; background: #F1F5F9; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #94A3B8; flex-shrink: 0; box-shadow: inset 0 0 10px rgba(0,0,0,0.05); }
+    .book-title { font-weight: 800; font-size: 15px; color: #0F172A; margin-bottom: 4px; line-height: 1.2; }
+    .book-author { font-size: 12px; color: #64748B; margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-student" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" id="sidebar-avatar">S</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Student</div><div class="sidebar-user-role">B.Tech | Sem 4</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Academics</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book"></i> My Courses</a>
+      <a href="timetable.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Timetable</a>
+      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-user-check"></i> Attendance</a>
+      <a href="assignments.html" class="nav-link"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
+      <a href="results.html" class="nav-link"><i class="nav-link-icon fas fa-poll"></i> Results</a>
+      <div class="nav-section-label">Facilities</div>
+      <a href="library.html" class="nav-link active"><i class="nav-link-icon fas fa-book-reader"></i> Library</a>
+      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-rupee-sign"></i> Fee Details</a>
+      <a href="../messages.html" class="nav-link"><i class="nav-link-icon fas fa-envelope"></i> Messages</a>
+      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Tutor</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">Student / <span>Library</span></div>
+      </div>
+      <div class="topbar-right"><div class="topbar-avatar" id="topbar-avatar">S</div></div>
+    </header>
+
+    <div class="erp-content">
+      <div class="page-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px">
+        <div>
+          <h1 class="page-title">📖 Digital Library</h1>
+          <p class="page-subtitle">Search course books, check issued items, and reserve new ones.</p>
+        </div>
+        <div class="search-bar" style="width:300px"><i class="fas fa-search"></i><input type="text" placeholder="Search by title, author, ISBN..."></div>
+      </div>
+
+      <div class="grid" style="grid-template-columns:1fr 340px;gap:24px;align-items:start">
+        
+        <!-- Book Catalog -->
+        <div>
+          <div style="display:flex;gap:10px;margin-bottom:16px">
+            <button class="btn btn-sm btn-primary">All Books</button>
+            <button class="btn btn-sm btn-secondary" style="background:white">Computer Science</button>
+            <button class="btn btn-sm btn-secondary" style="background:white">Mathematics</button>
+            <button class="btn btn-sm btn-secondary" style="background:white">E-Books</button>
+          </div>
+          <div class="grid col-2" id="catalogGrid">
+            ${[
+              ['Database System Concepts', 'Silberschatz, Korth', 'Available', '#10B981'],
+              ['Operating System Concepts', 'Silberschatz, Galvin', '3 Copies Left', '#D97706'],
+              ['Introduction to Algorithms', 'Cormen, Leiserson', 'Reserved', '#EF4444'],
+              ['Computer Networking', 'Kurose, Ross', 'Available', '#10B981'],
+              ['Software Engineering', 'Ian Sommerville', 'Available', '#10B981'],
+              ['Discrete Mathematics', 'Kenneth H. Rosen', '1 Copy Left', '#D97706'],
+            ].map(([title, author, status, color]) => `
+              <div class="book-card">
+                <div class="book-cover"><i class="fas fa-book-open"></i></div>
+                <div style="flex:1">
+                  <div class="book-title">${title}</div>
+                  <div class="book-author">${author}</div>
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
+                    <span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;background:${color}22;color:${color}">${status}</span>
+                    <button class="btn btn-xs ${status==='Reserved'?'btn-secondary':'btn-primary'}" ${status==='Reserved'?'disabled':''}>
+                      ${status==='Reserved'?'Unavailable':'Reserve'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- Issued Books Panel -->
+        <div class="card">
+          <div class="card-header"><div class="card-title"><i class="fas fa-bookmark text-primary" style="margin-right:8px"></i>My Issued Books</div><span class="badge badge-info">2 Items</span></div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:12px">
+            <div style="border:1px solid #E2E8F0;border-radius:10px;padding:12px">
+              <div style="font-weight:700;font-size:13px;margin-bottom:2px">Fundamentals of Database Systems</div>
+              <div style="font-size:11px;color:#64748B;margin-bottom:8px">Elmasri, Navathe • Acc. No: L-4819</div>
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="font-size:11px;font-weight:600;color:#059669"><i class="fas fa-clock"></i> Due: Apr 25</span>
+                <button class="btn btn-xs btn-secondary">Renew</button>
+              </div>
+            </div>
+            
+            <div style="border:1px solid #FEE2E2;border-radius:10px;padding:12px;background:#FEF2F2">
+              <div style="font-weight:700;font-size:13px;margin-bottom:2px;color:#991B1B">Modern Operating Systems</div>
+              <div style="font-size:11px;color:#991B1B;margin-bottom:8px;opacity:0.8">Andrew S. Tanenbaum • Acc. No: L-3912</div>
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span class="badge badge-danger" style="font-size:10px"><i class="fas fa-exclamation-circle"></i> Overdue (Fine: ₹10)</span>
+              </div>
+            </div>
+          </div>
+          <div class="card-footer" style="text-align:center"><a href="#" style="font-size:12px;color:#0284C7;font-weight:600;text-decoration:none">View History</a></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script src="../../live/live-pages.js"></script>
+</body>
+</html>

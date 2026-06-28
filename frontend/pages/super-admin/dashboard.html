@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Super Admin — VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="../../css/custom.css">
+</head>
+<body>
+<div class="erp-layout">
+
+  <!-- SIDEBAR -->
+  <aside class="erp-sidebar theme-superadmin" id="sidebar">
+    <div class="sidebar-header">
+      <a class="sidebar-logo" href="../../index.html">
+        <div class="sidebar-logo-icon">V</div>
+        <div class="sidebar-logo-text">Vishva<span>ERP</span></div>
+      </a>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" id="sidebar-avatar">S</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name" id="sidebar-user-name">Super Admin</div>
+        <div class="sidebar-user-role" id="sidebar-user-role">System Owner</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link active"><i class="nav-link-icon fas fa-satellite-dish"></i> System Overview</a>
+      <a href="analytics.html" class="nav-link"><i class="nav-link-icon fas fa-chart-line"></i> Analytics</a>
+
+      <div class="nav-section-label">Management</div>
+      <a href="colleges.html" class="nav-link"><i class="nav-link-icon fas fa-university"></i> Colleges</a>
+      <a href="users.html" class="nav-link"><i class="nav-link-icon fas fa-users"></i> Platform Users</a>
+
+      <div class="nav-section-label">Tools</div>
+      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Hub</a>
+      <a href="../messages.html" class="nav-link"><i class="nav-link-icon fas fa-comments"></i> Messages</a>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- MAIN -->
+  <div class="erp-main">
+    <!-- TOPBAR -->
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">Dashboard / <span>System Overview</span></div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-search" onclick="openCommandPalette()" style="cursor:pointer">
+          <i class="fas fa-search"></i>
+          <span style="font-size:13px;color:var(--text-muted)">Search (Ctrl+K)</span>
+        </div>
+        <div style="position:relative">
+          <button class="topbar-btn" id="notif-btn"><i class="fas fa-bell"></i><span class="topbar-badge">0</span></button>
+          <div class="notif-panel" id="notif-panel">
+            <div style="padding:14px 16px;border-bottom:1px solid #F1F5F9;font-weight:700;font-size:14px">Notifications</div>
+            <div id="superAdminNotifBody" style="padding:14px 16px;color:#64748B;font-size:13px">Loading live platform activity...</div>
+          </div>
+        </div>
+        <div class="topbar-avatar" id="topbar-avatar">S</div>
+      </div>
+    </header>
+
+    <!-- CONTENT -->
+    <div class="erp-content page-enter">
+      <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+        <div>
+          <div class="breadcrumb"><a href="../../index.html">Home</a><i class="fas fa-chevron-right" style="font-size:9px"></i><span>Super Admin</span></div>
+          <h1 class="page-title">🛰 Platform Overview</h1>
+          <p class="page-subtitle">Real-time system health across all connected institutions.</p>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-secondary" onclick="openModal('addCollegeModal')"><i class="fas fa-plus"></i> Add College</button>
+          <button class="btn btn-primary" id="exportBtn"><i class="fas fa-download"></i> Export Report</button>
+        </div>
+      </div>
+
+      <!-- STAT CARDS -->
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card">
+          <div class="stat-card-accent" style="background:#4F46E5"></div>
+          <div class="stat-icon" style="background:#EDE9FE;color:#5B21B6"><i class="fas fa-university"></i></div>
+          <div class="stat-label">Total Colleges</div>
+          <div class="stat-value" data-counter="0">—</div>
+          <div class="stat-change neutral"><i class="fas fa-circle" style="font-size:6px"></i> Loading...</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-accent" style="background:#10B981"></div>
+          <div class="stat-icon" style="background:#D1FAE5;color:#065F46"><i class="fas fa-users"></i></div>
+          <div class="stat-label">Total Users</div>
+          <div class="stat-value" data-counter="0">—</div>
+          <div class="stat-change up"><i class="fas fa-arrow-up"></i> Loading...</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-accent" style="background:#0EA5E9"></div>
+          <div class="stat-icon" style="background:#E0F2FE;color:#0369A1"><i class="fas fa-user-graduate"></i></div>
+          <div class="stat-label">Total Students</div>
+          <div class="stat-value" data-counter="0">—</div>
+          <div class="stat-change up"><i class="fas fa-arrow-up"></i> Loading...</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-accent" style="background:#F59E0B"></div>
+          <div class="stat-icon" style="background:#FEF3C7;color:#92400E"><i class="fas fa-chalkboard-teacher"></i></div>
+          <div class="stat-label">Total Faculty</div>
+          <div class="stat-value" data-counter="0">—</div>
+          <div class="stat-change neutral"><i class="fas fa-circle" style="font-size:6px"></i> Loading...</div>
+        </div>
+      </div>
+
+      <!-- CHARTS ROW -->
+      <div class="grid col-2 mb-6">
+        <div class="card">
+          <div class="card-header"><div class="card-title"><i class="fas fa-chart-bar" style="color:#4F46E5;margin-right:8px"></i>Monthly Registrations</div></div>
+          <div class="card-body"><div class="chart-container" style="height:220px"><canvas id="regChart"></canvas></div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title"><i class="fas fa-chart-pie" style="color:#10B981;margin-right:8px"></i>User Role Distribution</div></div>
+          <div class="card-body"><div class="chart-container" style="height:220px"><canvas id="roleChart"></canvas></div></div>
+        </div>
+      </div>
+
+      <!-- COLLEGES TABLE -->
+      <div class="card mb-6">
+        <div class="card-header">
+          <div class="card-title"><i class="fas fa-university" style="color:#4F46E5;margin-right:8px"></i>Registered Colleges</div>
+          <div style="display:flex;gap:10px;align-items:center">
+            <div class="search-bar" style="width:220px">
+              <i class="fas fa-search"></i>
+              <input type="text" placeholder="Search colleges..." id="collegeSearch">
+            </div>
+            <a href="colleges.html" class="btn btn-outline btn-sm">View All</a>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="erp-table">
+            <thead>
+              <tr>
+                <th>#</th><th>College Name</th><th>Admin Email</th><th>Students</th><th>Status</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="collegesTableBody">
+              <tr><td colspan="6" style="text-align:center;padding:32px"><i class="fas fa-spinner fa-spin" style="font-size:24px;color:#4F46E5"></i></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- QUICK ACTIONS + RECENT ACTIVITY -->
+      <div class="grid col-2">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Quick Actions</div></div>
+          <div class="card-body" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <button class="btn btn-secondary" style="flex-direction:column;gap:6px;padding:16px;height:auto" onclick="openModal('addCollegeModal')"><i class="fas fa-plus-circle" style="font-size:20px;color:#4F46E5"></i><span>Add College</span></button>
+            <a href="users.html" class="btn btn-secondary" style="flex-direction:column;gap:6px;padding:16px;height:auto"><i class="fas fa-user-plus" style="font-size:20px;color:#10B981"></i><span>Manage Users</span></a>
+            <button class="btn btn-secondary" style="flex-direction:column;gap:6px;padding:16px;height:auto" id="exportBtn2"><i class="fas fa-file-csv" style="font-size:20px;color:#F59E0B"></i><span>Export CSV</span></button>
+            <a href="analytics.html" class="btn btn-secondary" style="flex-direction:column;gap:6px;padding:16px;height:auto"><i class="fas fa-chart-line" style="font-size:20px;color:#8B5CF6"></i><span>Analytics</span></a>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">System Activity</div></div>
+          <div class="card-body">
+            <div class="timeline" id="superAdminActivityTimeline">
+              <div class="empty-state"><div class="empty-state-title">Loading recent activity...</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD COLLEGE MODAL -->
+<div class="modal-backdrop" id="addCollegeModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Add New College</div>
+      <button class="modal-close" onclick="closeModal('addCollegeModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <form id="addCollegeForm">
+        <div class="form-group"><label class="form-label">College Name <span style="color:red">*</span></label><input class="form-control" type="text" id="collegeName" placeholder="E.g. IIT Bombay" required></div>
+        <div class="form-group"><label class="form-label">College Code</label><input class="form-control" type="text" id="collegeCode" placeholder="E.g. IITB"></div>
+        <div class="form-group"><label class="form-label">Admin Full Name <span style="color:red">*</span></label><input class="form-control" type="text" id="adminName" placeholder="Admin's name" required></div>
+        <div class="form-grid-2">
+          <div class="form-group"><label class="form-label">Admin Email <span style="color:red">*</span></label><input class="form-control" type="email" id="adminEmail" required placeholder="admin@college.com"></div>
+          <div class="form-group"><label class="form-label">Admin Password <span style="color:red">*</span></label><input class="form-control" type="password" id="adminPass" required placeholder="Secure password"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Contact Phone</label><input class="form-control" type="tel" id="adminPhone" placeholder="+91 98765 43210"></div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('addCollegeModal')">Cancel</button>
+      <button class="btn btn-primary" id="addCollegeBtn" onclick="submitAddCollege()"><i class="fas fa-plus"></i> Create College</button>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script src="../../live/live-admin-pages.js"></script>
+</body>
+</html>

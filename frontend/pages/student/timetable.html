@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Timetable | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../css/custom.css">
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-student" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" id="sidebar-avatar">S</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Student</div><div class="sidebar-user-role">B.Tech | Sem 4</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Academics</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book"></i> My Courses</a>
+      <a href="timetable.html" class="nav-link active"><i class="nav-link-icon fas fa-calendar-alt"></i> Timetable</a>
+      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-user-check"></i> Attendance</a>
+      <a href="assignments.html" class="nav-link"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
+      <a href="results.html" class="nav-link"><i class="nav-link-icon fas fa-poll"></i> Results</a>
+      <div class="nav-section-label">Facilities</div>
+      <a href="library.html" class="nav-link"><i class="nav-link-icon fas fa-book-reader"></i> Library</a>
+      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-rupee-sign"></i> Fee Details</a>
+      <a href="../messages.html" class="nav-link"><i class="nav-link-icon fas fa-envelope"></i> Messages</a>
+      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Tutor</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">Student / <span>Timetable</span></div>
+      </div>
+      <div class="topbar-right"><div class="topbar-avatar" id="topbar-avatar">S</div></div>
+    </header>
+
+    <div class="erp-content">
+      <div class="page-header" style="display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap">
+        <div>
+          <h1 class="page-title">Academic Timetable</h1>
+          <p class="page-subtitle">Live weekly schedule, next class, rooms, faculty, and workload signals.</p>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <a class="btn btn-secondary" href="../ai-tools.html"><i class="fas fa-robot"></i> Ask AI Tutor</a>
+          <button class="btn btn-outline" onclick="window.print()"><i class="fas fa-print"></i> Print</button>
+        </div>
+      </div>
+
+      <div class="timetable-command-grid mb-6">
+        <div class="timetable-primary-panel">
+          <div class="timetable-panel-kicker">Next academic movement</div>
+          <div class="timetable-next-title" id="studentNextClass">Loading schedule</div>
+          <div class="timetable-next-meta" id="studentNextMeta">Checking your active timetable...</div>
+          <div class="timetable-metric-grid">
+            <div class="timetable-metric"><span>Weekly Load</span><strong id="studentWeeklyLoad">--</strong></div>
+            <div class="timetable-metric"><span>Today</span><strong id="studentTodayLoad">--</strong></div>
+            <div class="timetable-metric"><span>Rooms</span><strong id="studentRoomCount">--</strong></div>
+          </div>
+        </div>
+        <div class="timetable-mini-panel">
+          <div class="timetable-panel-kicker">Today flow</div>
+          <div class="timetable-flow-list" id="studentTodayTimeline">
+            <div class="empty-state"><div class="empty-state-title">Loading today's classes</div></div>
+          </div>
+        </div>
+        <div class="timetable-mini-panel">
+          <div class="timetable-panel-kicker">Study planning signals</div>
+          <div class="timetable-flow-list" id="studentTimetableInsights">
+            <div class="empty-state"><div class="empty-state-title">Loading timetable insights</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><i class="fas fa-calendar-week" style="color:#0284C7;margin-right:8px"></i>Weekly Grid</div>
+          <span class="badge badge-info">Live from ERP</span>
+        </div>
+        <div class="table-wrap">
+          <table class="erp-table table-bordered text-center" style="min-width:1000px">
+            <thead>
+              <tr>
+                <th style="width:110px;background:#FAFAFA">Time</th>
+                <th>Monday</th>
+                <th>Tuesday</th>
+                <th>Wednesday</th>
+                <th>Thursday</th>
+                <th>Friday</th>
+                <th>Saturday</th>
+              </tr>
+            </thead>
+            <tbody id="timetableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script src="../../live/live-pages.js"></script>
+</body>
+</html>

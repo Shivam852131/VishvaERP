@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Courses & Exams — College Admin | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../css/custom.css">
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-college" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" id="sidebar-avatar">A</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Admin</div><div class="sidebar-user-role">College Administrator</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <div class="nav-section-label">Academics</div>
+      <a href="students.html" class="nav-link"><i class="nav-link-icon fas fa-user-graduate"></i> Students</a>
+      <a href="faculty.html" class="nav-link"><i class="nav-link-icon fas fa-chalkboard-teacher"></i> Faculty</a>
+      <a href="courses.html" class="nav-link active"><i class="nav-link-icon fas fa-book-open"></i> Courses & Exams</a>
+      <a href="notices.html" class="nav-link"><i class="nav-link-icon fas fa-bullhorn"></i> Notice Board</a>
+      <div class="nav-section-label">Finance & HR</div>
+      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-file-invoice-dollar"></i> Fee Management</a>
+      <a href="hr.html" class="nav-link"><i class="nav-link-icon fas fa-user-md"></i> HR & Leave</a>
+      <div class="nav-section-label">Facilities</div>
+      <a href="logistics.html" class="nav-link"><i class="nav-link-icon fas fa-bus"></i> Logistics & Hostel</a>
+      <div class="nav-section-label">Tools</div>
+      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Hub</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">College Admin / <span>Courses & Exams</span></div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-primary" onclick="openModal('addCourseModal')"><i class="fas fa-plus"></i> Add Course</button>
+        <div class="topbar-avatar" id="topbar-avatar">A</div>
+      </div>
+    </header>
+
+    <div class="erp-content">
+      <div class="page-header">
+        <h1 class="page-title">Academic Planning</h1>
+        <p class="page-subtitle">Manage course catalog, exam schedules, faculty load, classroom usage, and live weekly timetables.</p>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tab-bar mb-6" style="max-width:400px">
+        <button class="tab-btn active" onclick="showTab('courses',this)">Courses</button>
+        <button class="tab-btn" onclick="showTab('exams',this)">Exam Schedule</button>
+        <button class="tab-btn" onclick="showTab('timetable',this)">Timetable</button>
+      </div>
+
+      <!-- COURSES TAB -->
+      <div id="tab-courses">
+        <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px" id="coursesGrid"></div>
+      </div>
+
+      <!-- EXAMS TAB -->
+      <div id="tab-exams" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <div class="tab-bar" style="max-width:350px">
+            <button class="tab-btn active" onclick="filterExams('all',this)">All</button>
+            <button class="tab-btn" onclick="filterExams('upcoming',this)">Upcoming</button>
+            <button class="tab-btn" onclick="filterExams('ongoing',this)">Ongoing</button>
+            <button class="tab-btn" onclick="filterExams('completed',this)">Completed</button>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="openModal('addExamModal')"><i class="fas fa-plus"></i> Schedule Exam</button>
+        </div>
+        <div class="card">
+          <div class="table-wrap">
+            <table class="erp-table">
+              <thead><tr><th>#</th><th>Exam Name</th><th>Subject</th><th>Branch / Sem</th><th>Date & Time</th><th>Room</th><th>Status</th><th>Actions</th></tr></thead>
+              <tbody id="examsBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TIMETABLE TAB -->
+      <div id="tab-timetable" style="display:none">
+        <div class="admin-timetable-command mb-6">
+          <div class="admin-tt-hero">
+            <div class="admin-panel-kicker">Timetable operations</div>
+            <div class="admin-tt-title" id="adminTimetableTitle">Loading academic timetable</div>
+            <div class="admin-tt-subtitle" id="adminTimetableSubtitle">Checking departments, semesters, room movement, and faculty load.</div>
+            <div class="admin-tt-actions">
+              <button class="btn btn-primary" onclick="openTimetableSlotModal()"><i class="fas fa-plus"></i> Add Slot</button>
+              <button class="btn btn-secondary" onclick="exportTimetableLive()"><i class="fas fa-file-csv"></i> Export CSV</button>
+              <button class="btn btn-outline" onclick="window.print()"><i class="fas fa-print"></i> Print</button>
+            </div>
+          </div>
+          <div class="admin-tt-kpis">
+            <div><span>Weekly Slots</span><strong id="adminTtTotalSlots">--</strong></div>
+            <div><span>Batch Coverage</span><strong id="adminTtBatchCoverage">--</strong></div>
+            <div><span>Faculty Load</span><strong id="adminTtFacultyLoad">--</strong></div>
+            <div><span>Conflicts</span><strong id="adminTtConflictCount">--</strong></div>
+          </div>
+        </div>
+
+        <div class="admin-timetable-grid mb-6">
+          <div class="admin-tt-panel">
+            <div class="admin-panel-head"><div><span>Conflict detection</span><strong>Room and faculty clashes</strong></div><i class="fas fa-triangle-exclamation"></i></div>
+            <div class="admin-tt-list" id="adminTimetableConflicts"><div class="empty-state"><div class="empty-state-title">Loading conflict analysis</div></div></div>
+          </div>
+          <div class="admin-tt-panel">
+            <div class="admin-panel-head"><div><span>Faculty utilization</span><strong>Weekly teaching load</strong></div><i class="fas fa-chalkboard-user"></i></div>
+            <div class="admin-tt-list" id="adminFacultyLoadList"><div class="empty-state"><div class="empty-state-title">Loading faculty load</div></div></div>
+          </div>
+          <div class="admin-tt-panel">
+            <div class="admin-panel-head"><div><span>Room utilization</span><strong>Classroom movement</strong></div><i class="fas fa-door-open"></i></div>
+            <div class="admin-tt-list" id="adminRoomLoadList"><div class="empty-state"><div class="empty-state-title">Loading room usage</div></div></div>
+          </div>
+        </div>
+
+        <div class="card mb-6">
+          <div class="card-body admin-tt-filters">
+            <div class="form-group">
+              <label class="form-label">Batch</label>
+              <select class="form-control" id="timetableBatchSelect"></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Day</label>
+              <select class="form-control" id="timetableDayFilter">
+                <option value="all">All Days</option>
+                <option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Thursday</option><option>Friday</option><option>Saturday</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Faculty</label>
+              <select class="form-control" id="timetableFacultyFilter"><option value="all">All Faculty</option></select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Search</label>
+              <input class="form-control" id="timetableSearch" placeholder="Subject, code, room, faculty...">
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title" id="adminTimetableGridTitle"><i class="fas fa-calendar-week" style="color:#4F46E5;margin-right:8px"></i>Weekly Timetable</div>
+            <span class="badge badge-info" id="adminTimetableGridBadge">Live ERP</span>
+          </div>
+          <div class="table-wrap">
+            <table class="erp-table" id="timetableTable">
+              <thead>
+                <tr>
+                  <th style="width:80px">Time</th>
+                  <th>Monday</th><th>Tuesday</th><th>Wednesday</th><th>Thursday</th><th>Friday</th><th>Saturday</th>
+                </tr>
+              </thead>
+              <tbody id="timetableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card mt-6">
+          <div class="card-header"><div class="card-title"><i class="fas fa-list" style="color:#059669;margin-right:8px"></i>Slot Ledger</div><span class="badge badge-gray" id="adminTimetableLedgerCount">0 Slots</span></div>
+          <div class="table-wrap">
+            <table class="erp-table">
+              <thead><tr><th>#</th><th>Day</th><th>Time</th><th>Subject</th><th>Batch</th><th>Faculty</th><th>Room</th><th>Type</th><th>Status</th></tr></thead>
+              <tbody id="adminTimetableLedgerBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD COURSE MODAL -->
+<div class="modal-backdrop" id="addCourseModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Add New Course</div><button class="modal-close" onclick="closeModal('addCourseModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Course Name *</label><input class="form-control" id="cName" placeholder="e.g. Data Structures & Algorithms"></div>
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Course Code *</label><input class="form-control" id="cCode" placeholder="e.g. CS401"></div>
+        <div class="form-group"><label class="form-label">Credits</label><input class="form-control" type="number" id="cCredits" placeholder="e.g. 4"></div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Branch *</label>
+          <select class="form-control" id="cBranch"><option>B.Tech CS</option><option>B.Tech EC</option><option>B.Tech ME</option><option>MBA</option></select>
+        </div>
+        <div class="form-group"><label class="form-label">Semester *</label>
+          <select class="form-control" id="cSem"><option>Sem 1</option><option>Sem 2</option><option>Sem 3</option><option>Sem 4</option><option>Sem 5</option><option>Sem 6</option></select>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Assigned Faculty</label>
+        <select class="form-control" id="cFaculty"><option>Dr. Rajesh Kumar</option><option>Prof. Anjali Sharma</option><option>Dr. Suresh Nair</option></select>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('addCourseModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="createCourseLive()"><i class="fas fa-check"></i> Add Course</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD EXAM MODAL -->
+<div class="modal-backdrop" id="addExamModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Schedule Exam</div><button class="modal-close" onclick="closeModal('addExamModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Exam Name *</label><input class="form-control" id="eName" placeholder="e.g. Mid-Semester Exam 1"></div>
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Subject *</label><input class="form-control" id="eSubject" placeholder="e.g. Data Structures"></div>
+        <div class="form-group"><label class="form-label">Room</label><input class="form-control" id="eRoom" placeholder="e.g. Hall A, 302"></div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Date *</label><input class="form-control" type="date" id="eDate"></div>
+        <div class="form-group"><label class="form-label">Time</label><input class="form-control" type="time" id="eTime"></div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Branch</label><select class="form-control" id="eBranch"><option>B.Tech CS</option><option>B.Tech EC</option><option>MBA</option></select></div>
+        <div class="form-group"><label class="form-label">Max Marks</label><input class="form-control" type="number" id="eMarks" placeholder="e.g. 100"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('addExamModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="scheduleExamLive()"><i class="fas fa-check"></i> Schedule</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD TIMETABLE SLOT MODAL -->
+<div class="modal-backdrop" id="addTimetableModal">
+  <div class="modal" style="max-width:720px">
+    <div class="modal-header"><div class="modal-title">Add Timetable Slot</div><button class="modal-close" onclick="closeModal('addTimetableModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Subject *</label><select class="form-control" id="ttSubject"><option value="">Select Subject</option></select></div>
+        <div class="form-group"><label class="form-label">Faculty *</label><select class="form-control" id="ttFaculty"><option value="">Select Faculty</option></select></div>
+      </div>
+      <div class="form-grid-3">
+        <div class="form-group"><label class="form-label">Day *</label><select class="form-control" id="ttDay"><option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Thursday</option><option>Friday</option><option>Saturday</option></select></div>
+        <div class="form-group"><label class="form-label">Start Time *</label><input class="form-control" type="time" id="ttStart"></div>
+        <div class="form-group"><label class="form-label">End Time *</label><input class="form-control" type="time" id="ttEnd"></div>
+      </div>
+      <div class="form-grid-3">
+        <div class="form-group"><label class="form-label">Room *</label><input class="form-control" id="ttRoom" placeholder="e.g. Room 302"></div>
+        <div class="form-group"><label class="form-label">Type</label><select class="form-control" id="ttType"><option value="lecture">Lecture</option><option value="lab">Lab</option><option value="tutorial">Tutorial</option></select></div>
+        <div class="form-group"><label class="form-label">Academic Year</label><input class="form-control" id="ttAcademicYear" placeholder="2026-27"></div>
+      </div>
+      <div class="smart-privacy-note" style="border-radius:12px"><i class="fas fa-shield-halved"></i> Slot creation checks visible room and faculty clashes before saving. Manual edit/delete is not enabled because the backend currently exposes create-only timetable APIs.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('addTimetableModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="createTimetableSlotLive()"><i class="fas fa-check"></i> Save Slot</button>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script src="../../live/live-admin-pages.js"></script>
+</body>
+</html>

@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fee Management — College Admin | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="../../css/custom.css">
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-college" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" id="sidebar-avatar">A</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Admin</div><div class="sidebar-user-role">College Administrator</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <div class="nav-section-label">Academics</div>
+      <a href="students.html" class="nav-link"><i class="nav-link-icon fas fa-user-graduate"></i> Students</a>
+      <a href="faculty.html" class="nav-link"><i class="nav-link-icon fas fa-chalkboard-teacher"></i> Faculty</a>
+      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-open"></i> Courses & Exams</a>
+      <a href="notices.html" class="nav-link"><i class="nav-link-icon fas fa-bullhorn"></i> Notice Board</a>
+      <div class="nav-section-label">Finance & HR</div>
+      <a href="fees.html" class="nav-link active"><i class="nav-link-icon fas fa-file-invoice-dollar"></i> Fee Management</a>
+      <a href="hr.html" class="nav-link"><i class="nav-link-icon fas fa-user-md"></i> HR & Leave</a>
+      <div class="nav-section-label">Facilities</div>
+      <a href="logistics.html" class="nav-link"><i class="nav-link-icon fas fa-bus"></i> Logistics & Hostel</a>
+      <div class="nav-section-label">Tools</div>
+      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Hub</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">College Admin / <span>Fee Management</span></div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-secondary" id="sendReminderBtn"><i class="fas fa-bell"></i> Send Reminders</button>
+        <button class="btn btn-primary" onclick="openModal('recordFeeModal')"><i class="fas fa-plus"></i> Record Payment</button>
+        <div class="topbar-avatar" id="topbar-avatar">A</div>
+      </div>
+    </header>
+
+    <div class="erp-content">
+      <div class="page-header">
+        <h1 class="page-title">💰 Fee Management</h1>
+        <p class="page-subtitle">Track fee collection, payments, and outstanding dues.</p>
+      </div>
+
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
+        <div class="stat-card"><div class="stat-icon" style="background:#D1FAE5;color:#065F46"><i class="fas fa-check-circle"></i></div><div class="stat-label">Total Collected</div><div class="stat-value">₹<span data-counter="4250000">42.5L</span></div><div class="stat-change up"><i class="fas fa-arrow-up"></i> +12% this month</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#FEF3C7;color:#92400E"><i class="fas fa-hourglass-half"></i></div><div class="stat-label">Pending</div><div class="stat-value">₹<span data-counter="850000">8.5L</span></div><div class="stat-change down"><i class="fas fa-exclamation-circle"></i> 32 students</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#FEE2E2;color:#991B1B"><i class="fas fa-exclamation-triangle"></i></div><div class="stat-label">Overdue</div><div class="stat-value">₹<span data-counter="320000">3.2L</span></div><div class="stat-change down"><i class="fas fa-arrow-down"></i> 8 students</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#DBEAFE;color:#1E40AF"><i class="fas fa-percentage"></i></div><div class="stat-label">Collection Rate</div><div class="stat-value"><span data-counter="83" data-suffix="%">83%</span></div><div class="stat-change up"><i class="fas fa-arrow-up"></i> Good progress</div></div>
+      </div>
+
+      <!-- Chart + Summary -->
+      <div class="grid col-2 mb-6">
+        <div class="card">
+          <div class="card-header"><div class="card-title"><i class="fas fa-chart-bar" style="color:#4F46E5;margin-right:8px"></i>Monthly Collection</div></div>
+          <div class="card-body"><div class="chart-container" style="height:220px"><canvas id="feeCollectionChart"></canvas></div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title"><i class="fas fa-chart-pie" style="color:#10B981;margin-right:8px"></i>Status Distribution</div></div>
+          <div class="card-body"><div class="chart-container" style="height:220px"><canvas id="feeStatusChart"></canvas></div></div>
+        </div>
+      </div>
+
+      <!-- Fee Records Table -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Fee Records</div>
+          <div style="display:flex;gap:10px;align-items:center">
+            <div class="search-bar" style="width:220px"><i class="fas fa-search"></i><input type="text" placeholder="Search student..." id="feeSearch"></div>
+            <select class="form-control" style="width:140px" id="feeStatusFilter"><option value="">All Status</option><option value="paid">Paid</option><option value="pending">Pending</option><option value="overdue">Overdue</option></select>
+            <button class="btn btn-secondary btn-sm" id="exportFeesBtn"><i class="fas fa-download"></i> CSV</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="erp-table">
+            <thead><tr><th>#</th><th>Student</th><th>Amount</th><th>Type</th><th>Due Date</th><th>Paid On</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="feeBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RECORD FEE MODAL -->
+<div class="modal-backdrop" id="recordFeeModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Record Fee Payment</div><button class="modal-close" onclick="closeModal('recordFeeModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Student Roll No.</label><input class="form-control" id="fRoll" placeholder="e.g. 2021CS001"></div>
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Amount (₹)</label><input class="form-control" type="number" id="fAmount" placeholder="e.g. 50000"></div>
+        <div class="form-group"><label class="form-label">Payment Mode</label>
+          <select class="form-control" id="fMode"><option>Online</option><option>Cash</option><option>Cheque</option><option>DD</option></select>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Fee Type</label>
+        <select class="form-control" id="fType"><option>Tuition Fee</option><option>Hostel Fee</option><option>Exam Fee</option><option>Library Fee</option><option>Transport Fee</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Transaction ID / Receipt No.</label><input class="form-control" id="fTxn" placeholder="e.g. TXN123456"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('recordFeeModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="recordFee()"><i class="fas fa-check"></i> Record Payment</button>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script src="../../live/live-admin-pages.js"></script>
+</body>
+</html>

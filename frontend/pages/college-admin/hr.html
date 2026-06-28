@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HR & Leave — College Admin | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../css/custom.css">
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-college" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" id="sidebar-avatar">A</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Admin</div><div class="sidebar-user-role">College Administrator</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <div class="nav-section-label">Academics</div>
+      <a href="students.html" class="nav-link"><i class="nav-link-icon fas fa-user-graduate"></i> Students</a>
+      <a href="faculty.html" class="nav-link"><i class="nav-link-icon fas fa-chalkboard-teacher"></i> Faculty</a>
+      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-open"></i> Courses & Exams</a>
+      <a href="notices.html" class="nav-link"><i class="nav-link-icon fas fa-bullhorn"></i> Notice Board</a>
+      <div class="nav-section-label">Finance & HR</div>
+      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-file-invoice-dollar"></i> Fee Management</a>
+      <a href="hr.html" class="nav-link active"><i class="nav-link-icon fas fa-user-md"></i> HR & Leave</a>
+      <div class="nav-section-label">Facilities</div>
+      <a href="logistics.html" class="nav-link"><i class="nav-link-icon fas fa-bus"></i> Logistics & Hostel</a>
+      <div class="nav-section-label">Tools</div>
+      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Hub</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">College Admin / <span>HR & Leave</span></div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-avatar" id="topbar-avatar">A</div>
+      </div>
+    </header>
+
+    <div class="erp-content">
+      <div class="page-header">
+        <h1 class="page-title">🏥 HR & Leave Management</h1>
+        <p class="page-subtitle">Approve/reject leave requests and monitor faculty HR records.</p>
+      </div>
+
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
+        <div class="stat-card"><div class="stat-icon" style="background:#FEF3C7;color:#92400E"><i class="fas fa-clock"></i></div><div class="stat-label">Pending Requests</div><div class="stat-value" data-counter="4">4</div><div class="stat-change down"><i class="fas fa-exclamation-circle"></i> Needs review</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#D1FAE5;color:#065F46"><i class="fas fa-check-circle"></i></div><div class="stat-label">Approved (Month)</div><div class="stat-value" data-counter="12">12</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#FEE2E2;color:#991B1B"><i class="fas fa-times-circle"></i></div><div class="stat-label">Rejected (Month)</div><div class="stat-value" data-counter="3">3</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#DBEAFE;color:#1E40AF"><i class="fas fa-user-slash"></i></div><div class="stat-label">Currently Absent</div><div class="stat-value" data-counter="5">5</div></div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tab-bar mb-6" style="max-width:400px">
+        <button class="tab-btn active" onclick="filterLeaves('pending',this)">Pending</button>
+        <button class="tab-btn" onclick="filterLeaves('approved',this)">Approved</button>
+        <button class="tab-btn" onclick="filterLeaves('rejected',this)">Rejected</button>
+        <button class="tab-btn" onclick="filterLeaves('all',this)">All</button>
+      </div>
+
+      <!-- Leave Requests -->
+      <div class="card mb-6">
+        <div class="card-header"><div class="card-title"><i class="fas fa-clipboard-list" style="color:#F59E0B;margin-right:8px"></i>Leave Requests</div></div>
+        <div class="table-wrap">
+          <table class="erp-table">
+            <thead><tr><th>#</th><th>Faculty</th><th>Type</th><th>Duration</th><th>Days</th><th>Reason</th><th>Applied On</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="leavesBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Attendance Summary -->
+      <div class="card">
+        <div class="card-header"><div class="card-title"><i class="fas fa-calendar-check" style="color:#10B981;margin-right:8px"></i>Today's Attendance Summary</div><span style="font-size:13px;color:#64748B">Live daily view</span></div>
+        <div class="card-body">
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px">
+            ${[
+              ['Present','48','text-success','bg-success/10'],
+              ['Absent','4','text-danger','bg-danger/10'],
+              ['On Leave','3','text-warning','bg-warning/10'],
+              ['Late Arrival','2','text-info','bg-info/10'],
+            ].map(([l,v,tc,bg])=>`
+              <div style="background:${bg.replace('text-','').replace('bg-','').replace('/10','22')};padding:16px;border-radius:12px;border:1px solid ${bg.replace('text-','').replace('bg-','').replace('/10','33')}">
+                <div style="font-size:13px;font-weight:600;color:#64748B">${l}</div>
+                <div style="font-size:28px;font-weight:800;margin-top:4px">${v}</div>
+              </div>`).join('')}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script src="../../live/live-admin-pages.js"></script>
+</body>
+</html>

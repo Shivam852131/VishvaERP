@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notice Board — College Admin | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../css/custom.css">
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-college" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" id="sidebar-avatar">A</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Admin</div><div class="sidebar-user-role">College Administrator</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <div class="nav-section-label">Academics</div>
+      <a href="students.html" class="nav-link"><i class="nav-link-icon fas fa-user-graduate"></i> Students</a>
+      <a href="faculty.html" class="nav-link"><i class="nav-link-icon fas fa-chalkboard-teacher"></i> Faculty</a>
+      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-open"></i> Courses & Exams</a>
+      <a href="notices.html" class="nav-link active"><i class="nav-link-icon fas fa-bullhorn"></i> Notice Board</a>
+      <div class="nav-section-label">Finance & HR</div>
+      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-file-invoice-dollar"></i> Fee Management</a>
+      <a href="hr.html" class="nav-link"><i class="nav-link-icon fas fa-user-md"></i> HR & Leave</a>
+      <div class="nav-section-label">Facilities</div>
+      <a href="logistics.html" class="nav-link"><i class="nav-link-icon fas fa-bus"></i> Logistics & Hostel</a>
+      <div class="nav-section-label">Tools</div>
+      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Hub</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">College Admin / <span>Notice Board</span></div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-primary" onclick="openModal('postNoticeModal')"><i class="fas fa-plus"></i> Post Notice</button>
+        <div class="topbar-avatar" id="topbar-avatar">A</div>
+      </div>
+    </header>
+
+    <div class="erp-content">
+      <div class="page-header">
+        <h1 class="page-title">📢 Notice Board</h1>
+        <p class="page-subtitle">Post and manage announcements for students & faculty.</p>
+      </div>
+
+      <!-- Filter -->
+      <div style="display:flex;gap:12px;align-items:center;margin-bottom:20px;flex-wrap:wrap">
+        <div class="tab-bar">
+          <button class="tab-btn active" onclick="filterNotices('all',this)">All</button>
+          <button class="tab-btn" onclick="filterNotices('urgent',this)">Urgent</button>
+          <button class="tab-btn" onclick="filterNotices('academic',this)">Academic</button>
+          <button class="tab-btn" onclick="filterNotices('event',this)">Events</button>
+          <button class="tab-btn" onclick="filterNotices('general',this)">General</button>
+        </div>
+        <div class="search-bar" style="flex:1;min-width:200px"><i class="fas fa-search"></i><input type="text" placeholder="Search notices..." id="noticeSearch"></div>
+      </div>
+
+      <!-- Notices Grid -->
+      <div id="noticesGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- POST NOTICE MODAL -->
+<div class="modal-backdrop" id="postNoticeModal">
+  <div class="modal modal-lg">
+    <div class="modal-header"><div class="modal-title"><i class="fas fa-bullhorn" style="color:#4F46E5;margin-right:8px"></i>Post New Notice</div><button class="modal-close" onclick="closeModal('postNoticeModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Title *</label><input class="form-control" id="nTitle" required placeholder="Notice title"></div>
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Category</label>
+          <select class="form-control" id="nCategory"><option value="general">General</option><option value="academic">Academic</option><option value="urgent">Urgent</option><option value="event">Event</option></select>
+        </div>
+        <div class="form-group"><label class="form-label">Target Audience</label>
+          <select class="form-control" id="nTarget"><option>All</option><option>Students Only</option><option>Faculty Only</option><option>B.Tech CS</option><option>B.Tech EC</option></select>
+        </div>
+      </div>
+      <div class="form-group"><label class="form-label">Message *</label><textarea class="form-control" id="nBody" rows="4" placeholder="Enter notice content..." required></textarea></div>
+      <div class="form-group"><label class="form-label">Expiry Date</label><input class="form-control" type="date" id="nExpiry"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('postNoticeModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="postNotice()"><i class="fas fa-paper-plane"></i> Post Notice</button>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script>
+  requireAuth(['collegeAdmin']);
+  let currentFilter = 'all';
+  let currentSearch = '';
+
+  let notices = [
+    { _id:'1', title:'Fee Submission Deadline', category:'urgent', target:'Students Only', body:'Last date for semester fee submission is April 15, 2026. Late fine of ₹100/day will be applied after the deadline.', date:'2024-04-08', expiry:'2024-04-15', author:'College Admin' },
+    { _id:'2', title:'Mid-Semester Exam Schedule Released', category:'academic', target:'All', body:'The Mid-Semester examination timetable has been released. Students can download it from the notices section. Exams begin from April 18.', date:'2024-04-10', expiry:'2024-04-18', author:'Examination Cell' },
+    { _id:'3', title:'Tech Fest 2026 Registrations', category:'event', target:'All', body:'Annual Tech Fest "TechVortex 2026" registrations are now open. Register for coding, robotics, and design events by April 20.', date:'2024-04-09', expiry:'2024-04-20', author:'Students Committee' },
+    { _id:'4', title:'Library Timing Change', category:'general', target:'All', body:'Library timings have been changed to 8 AM – 9 PM effective from April 12. Saturday timings remain 10 AM – 5 PM.', date:'2024-04-07', expiry:'2024-05-01', author:'Library Office' },
+    { _id:'5', title:'Sports Meet Volunteers Required', category:'event', target:'Students Only', body:'Volunteers needed for the inter-college sports meet on April 22. Interested students contact the Sports Officer by April 14.', date:'2024-04-06', expiry:'2024-04-14', author:'Sports Officer' },
+  ];
+
+  const catColors = { urgent:'#EF4444', academic:'#4F46E5', event:'#10B981', general:'#64748B' };
+  const catLight  = { urgent:'#FEE2E2', academic:'#EDE9FE', event:'#D1FAE5', general:'#F1F5F9' };
+
+  function filterNotices(cat, btn) {
+    currentFilter = cat;
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderNotices();
+  }
+
+  function renderNotices() {
+    const q = currentSearch.toLowerCase();
+    const filtered = notices.filter(n =>
+      (currentFilter === 'all' || n.category === currentFilter) &&
+      (!q || n.title.toLowerCase().includes(q) || n.body.toLowerCase().includes(q))
+    );
+    document.getElementById('noticesGrid').innerHTML = filtered.map(n => `
+      <div class="card" style="padding:0;overflow:hidden;border-left:4px solid ${catColors[n.category]};transition:all 0.2s" onmouseenter="this.style.transform='translateY(-2px)';this.style.boxShadow='0 10px 25px rgba(0,0,0,0.1)'" onmouseleave="this.style.transform='';this.style.boxShadow=''">
+        <div style="padding:18px">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+            <span class="badge" style="background:${catLight[n.category]};color:${catColors[n.category]}">${n.category.charAt(0).toUpperCase()+n.category.slice(1)}</span>
+            <span style="font-size:11px;color:#94A3B8">${new Date(n.date).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}</span>
+          </div>
+          <div style="font-size:15px;font-weight:700;margin-bottom:8px;line-height:1.4">${n.title}</div>
+          <div style="font-size:13px;color:#64748B;line-height:1.6;margin-bottom:12px">${n.body}</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;border-top:1px solid #F1F5F9;padding-top:12px">
+            <div style="font-size:11px;color:#94A3B8"><i class="fas fa-users" style="margin-right:4px"></i>${n.target} • <i class="fas fa-user" style="margin-right:4px;margin-left:4px"></i>${n.author}</div>
+            <div style="display:flex;gap:6px">
+              <button class="btn btn-xs btn-secondary" onclick="editNotice('${n._id}')"><i class="fas fa-edit"></i></button>
+              <button class="btn btn-xs btn-danger" onclick="deleteNotice('${n._id}')"><i class="fas fa-trash"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>`).join('') || '<div class="empty-state" style="grid-column:1/-1"><div class="empty-state-icon"><i class="fas fa-bullhorn"></i></div><div class="empty-state-title">No notices found</div><div class="empty-state-desc">Post your first notice using the button above.</div></div>';
+  }
+
+  function deleteNotice(id) {
+    if (!confirm('Delete this notice?')) return;
+    notices = notices.filter(n => n._id !== id);
+    renderNotices();
+    showToast('Notice deleted','warning');
+  }
+
+  function editNotice(id) { showToast('Opening notice editor','info'); }
+
+  function postNotice() {
+    const title = document.getElementById('nTitle').value.trim();
+    const body = document.getElementById('nBody').value.trim();
+    const category = document.getElementById('nCategory').value;
+    const target = document.getElementById('nTarget').value;
+    if (!title || !body) { showToast('Title and message are required','error'); return; }
+    const newNotice = { _id: String(Date.now()), title, body, category, target, date: new Date().toISOString(), expiry: document.getElementById('nExpiry').value, author: 'College Admin' };
+    notices.unshift(newNotice);
+    renderNotices();
+    showToast('Notice posted successfully!', 'success');
+    closeModal('postNoticeModal');
+    document.getElementById('nTitle').value = '';
+    document.getElementById('nBody').value = '';
+  }
+
+  document.getElementById('noticeSearch').oninput = function() { currentSearch = this.value; renderNotices(); };
+  renderNotices();
+</script>
+<script src="../../live/live-admin-pages.js"></script>
+</body>
+</html>
