@@ -17,8 +17,7 @@ const ALLOWED_ALL = [...ALLOWED_IMAGES, ...ALLOWED_DOCUMENTS];
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
-const isVercel = !!process.env.VERCEL;
-const storage = isVercel ? multer.memoryStorage() : multer.diskStorage({
+const storage = multer.diskStorage({
   destination(req, file, cb) {
     const subdir = req.query.subdir || req.body.subdir || 'temp';
     const target = dirs[subdir] || dirs.temp;

@@ -68,11 +68,38 @@ npm run test:e2e:headed
 ```
 
 Optional environment variables:
-- `E2E_BASE_URL` defaults to `http://localhost:3000`
+- `E2E_BASE_URL` defaults to `http://localhost:5000`
 - `E2E_SUPERADMIN_EMAIL` defaults to `superadmin@vishvaerp.com`
 - `E2E_SUPERADMIN_PASSWORD` defaults to `SuperAdmin@123`
 
 The suite creates `QA*` tenant data during execution and removes it afterward.
+
+## 🚀 Production Deployment
+
+### Option A: Docker (Recommended)
+```bash
+docker compose up -d --build
+```
+This starts MongoDB, the Node backend (cluster mode), and an nginx reverse proxy with SSL, gzip, immutable caching, and WebSocket support.
+
+### Option B: PM2 Cluster
+```bash
+npm run setup        # install deps + build
+npm run pm2:start    # start cluster (max CPUs)
+npm run pm2:monit    # monitor processes
+```
+
+### Option C: Apache (cPanel/Shared Hosting)
+Upload the `frontend/` directory to your document root and copy the `.htaccess` file. The Apache config handles HTTPS redirect, SPA fallback, caching, and security headers.
+
+## Environment Variables
+Copy `.env.production.example` to `.env` and fill in your production values (MongoDB URI, JWT secret, OpenAI key, etc.).
+
+## 🚢 Deployment URLs
+- **Landing:** https://vishvaerp.com/
+- **Login:** https://vishvaerp.com/pages/login.html
+- **API Health:** https://vishvaerp.com/api/health
+- **Health (DB):** https://vishvaerp.com/api/health/db
 
 ## 🔐 Default Test Credentials
 

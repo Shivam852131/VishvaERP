@@ -10,10 +10,13 @@ const APP_SHELL = [
   '/pages/register.html',
   '/pages/messages.html',
   '/pages/ai-tools.html',
+  '/pages/legal/privacy.html',
   '/css/custom.css',
   '/js/shared.js',
+  '/js/api.js',
 
   '/manifest.webmanifest',
+  '/robots.txt',
   '/icons/icon.svg',
   '/icons/icon-maskable.svg',
   '/icons/icon-192.png',

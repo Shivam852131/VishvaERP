@@ -5,11 +5,12 @@ module.exports = {
     instances: 'max',
     exec_mode: 'cluster',
     watch: false,
-    max_memory_restart: '512M',
+    max_memory_restart: '768M',
     env: {
       NODE_ENV: 'production',
       PORT: 5000,
     },
+    env_file: '.env',
     error_file: './logs/err.log',
     out_file: './logs/out.log',
     log_date_format: 'YYYY-MM-DD HH:mm:ss Z',
@@ -18,5 +19,8 @@ module.exports = {
     restart_delay: 5000,
     kill_timeout: 10000,
     listen_timeout: 10000,
+    shutdown_with_message: true,
+    instance_var: 'PM2_INSTANCE_ID',
+    node_args: '--max-old-space-size=512',
   }],
 };

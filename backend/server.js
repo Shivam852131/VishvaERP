@@ -7,6 +7,7 @@ const compression = require('compression');
 const fs = require('fs');
 const path = require('path');
 const { Server } = require('socket.io');
+const cluster = require('cluster');
 
 const { connectDB, disconnectDB } = require('./config/db');
 const { logger, requestLogger } = require('./config/logger');
@@ -82,19 +83,19 @@ app.use((req, res, next) => {
 
 // Middleware
 app.disable('x-powered-by');
-app.set('trust proxy', 1);
-app.use(compression());
+app.set('trust proxy', isProduction ? 2 : 1);
+app.use(compression({ level: 6, threshold: 1024 }));
 app.use(correlationId);
 app.use(cors(corsOptions));
-app.use(helmet({ crossOriginEmbedderPolicy: false, contentSecurityPolicy: false }));
+app.use(helmet({
+  crossOriginEmbedderPolicy: false,
+  contentSecurityPolicy: false,
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+}));
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 app.use(sanitize);
-if (isProduction) {
-  app.use(requestLogger);
-} else {
-  app.use(requestLogger);
-}
+app.use(requestLogger);
 app.use(generalLimiter);
 
 // Deprecation header for legacy /api/ routes
@@ -111,13 +112,36 @@ if (!fs.existsSync(uploadsDir)) {
 }
 app.use('/uploads', express.static(uploadsDir, {
   maxAge: isProduction ? '7d' : 0,
+  etag: true,
+  lastModified: true,
 }));
 
-// Serve the React build
+// Serve the React build with aggressive caching for static assets
+const STATIC_MAX_AGE = isProduction ? '30d' : 0;
 app.use(express.static(frontendDir, {
   maxAge: isProduction ? '1d' : 0,
   index: false,
+  setHeaders(res, filePath) {
+    if (filePath.endsWith('.css')) {
+      res.setHeader('Cache-Control', `public, max-age=${isProduction ? 31536000 : 0}, immutable`);
+    } else if (filePath.match(/\.(js|mjs)$/)) {
+      res.setHeader('Cache-Control', `public, max-age=${isProduction ? 31536000 : 0}, immutable`);
+    } else if (filePath.match(/\.(png|jpg|jpeg|gif|webp|svg|ico)$/)) {
+      res.setHeader('Cache-Control', `public, max-age=${isProduction ? 604800 : 0}`);
+    } else if (filePath.match(/\.(woff2?|ttf|eot)$/)) {
+      res.setHeader('Cache-Control', `public, max-age=${isProduction ? 31536000 : 0}, immutable`);
+    }
+  },
 }));
+
+// Serve robots.txt and sitemap.xml from root
+const rootPublic = path.resolve(__dirname, '..');
+app.get('/robots.txt', (req, res) => {
+  res.sendFile(path.join(rootPublic, 'robots.txt'));
+});
+app.get('/sitemap.xml', (req, res) => {
+  res.sendFile(path.join(rootPublic, 'sitemap.xml'));
+});
 
 // ── API v1 (preferred) ───────────────────────────────
 app.use('/api/v1', require('./routes/v1'));
@@ -142,16 +166,18 @@ app.use('/api/health', require('./routes/health'));
 app.use('/api/upload', require('./routes/upload'));
 app.use('/api/reports', require('./routes/reports'));
 
-// Fallback for frontend routing
+// Fallback for frontend routing (SPA support)
 app.get('*', (req, res) => {
   if (req.path.startsWith('/api')) {
-    res.status(404).json({ success: false, message: 'API route not found' });
-    return;
+    return res.status(404).json({ success: false, message: 'API route not found' });
+  }
+
+  if (req.path.startsWith('/uploads')) {
+    return res.status(404).send('File not found');
   }
 
   if (!fs.existsSync(frontendIndex)) {
-    res.status(404).send('Frontend build not found. Run npm run frontend:build first.');
-    return;
+    return res.status(404).send('Frontend build not found. Run npm run frontend:build first.');
   }
 
   res.sendFile(frontendIndex);
@@ -188,9 +214,11 @@ async function startServer() {
   try {
     await connectDB();
     await ensureSuperAdmin();
-    startAllJobs();
+    if (!cluster.isWorker) {
+      startAllJobs();
+    }
     server.listen(PORT, () => {
-      logger.info(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
+      logger.info(`Worker ${cluster.isWorker ? cluster.worker.id : 'master'} running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
     });
   } catch (error) {
     logger.error('Server startup failed', { error: error.message });
@@ -198,20 +226,20 @@ async function startServer() {
   }
 }
 
-startServer();
-
+// Graceful Shutdown
 async function shutdown(signal) {
   logger.info(`${signal} received. Closing Vishva ERP API...`);
   stopAllJobs();
   server.close(async () => {
     await disconnectDB();
+    logger.info('Server closed gracefully');
     process.exit(0);
   });
 
   setTimeout(() => {
     logger.error('Forced shutdown after timeout');
     process.exit(1);
-  }, 10000).unref();
+  }, 15000).unref();
 }
 
 process.on('SIGINT', () => shutdown('SIGINT'));
@@ -220,3 +248,10 @@ process.on('SIGTERM', () => shutdown('SIGTERM'));
 process.on('unhandledRejection', (error) => {
   logger.error('Unhandled promise rejection', { error: error.message, stack: error.stack });
 });
+
+process.on('uncaughtException', (error) => {
+  logger.error('Uncaught exception', { error: error.message, stack: error.stack });
+  process.exit(1);
+});
+
+startServer();

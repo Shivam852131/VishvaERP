@@ -4,21 +4,62 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Vishva ERP | AI-Powered Campus ERP for Colleges and Universities</title>
-  <meta name="description" content="Vishva ERP is an AI-powered campus ERP for colleges and universities covering admissions, timetable, smart attendance, exams, finance, HR, logistics, portals, and analytics.">
+  <meta name="description" content="Vishva ERP is an AI-powered campus ERP for colleges and universities covering admissions, timetable, smart attendance, exams, fees, HR, logistics, portals, and analytics.">
+  <meta name="keywords" content="ERP, college ERP, university ERP, campus management, smart attendance, timetable, AI education, student portal, faculty portal, Vishva ERP">
+  <meta name="robots" content="index, follow">
   <meta name="theme-color" content="#4F46E5">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="VishvaERP">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <!-- Open Graph / Social -->
+  <meta property="og:title" content="Vishva ERP - AI-Powered Campus ERP for Colleges and Universities">
+  <meta property="og:description" content="Run admissions, timetable, attendance, exams, fees, HR, AI tutoring, and analytics from one intelligent platform.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://vishvaerp.com">
+  <meta property="og:image" content="https://vishvaerp.com/icons/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:locale" content="en_IN">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Vishva ERP - AI-Powered Campus ERP">
+  <meta name="twitter:description" content="Run admissions, timetable, attendance, exams, fees, HR, AI tutoring, and analytics from one intelligent platform.">
+  <meta name="twitter:image" content="https://vishvaerp.com/icons/og-image.png">
+
+  <link rel="canonical" href="https://vishvaerp.com">
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="icon" href="./icons/icon.svg" type="image/svg+xml">
+  <link rel="icon" href="./icons/favicon.ico" sizes="any">
   <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
   <link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png">
   <meta name="application-name" content="Vishva ERP">
+
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Vishva ERP",
+    "applicationCategory": "Education",
+    "operatingSystem": "Web, Android, iOS",
+    "description": "AI-powered campus ERP for colleges and universities covering admissions, timetable, smart attendance, exams, fees, HR, logistics, portals, and analytics.",
+    "url": "https://vishvaerp.com",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "INR"
+    },
+    "author": {
+      "@type": "Organization",
+      "name": "Vishva ERP"
+    }
+  }
+  </script>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="./css/custom.css">
-  <script>
+    <script>
     tailwind.config = {
       darkMode: 'class',
       theme: {
@@ -31,6 +72,9 @@
       }
     };
   </script>
+  <style>
+    .landing-hero { background-image: url('https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=1800&q=85'); }
+  </style>
 </head>
 <body class="landing-page antialiased">
   <nav class="fixed top-0 z-50 w-full landing-nav" id="mainNav">
@@ -117,9 +161,10 @@
 
   <main id="top">
     <section class="landing-hero">
+      <canvas id="heroCanvas"></canvas>
       <div class="landing-hero-shade"></div>
       <div class="landing-hero-inner">
-        <div class="hero-copy text-white">
+        <div class="hero-copy text-white" data-reveal>
           <div class="hero-eyebrow">
             <span></span>
             Institution-grade campus operating system
@@ -146,20 +191,20 @@
           </div>
         </div>
 
-        <div class="hero-live-console" aria-label="ERP live command cockpit preview">
+        <div class="hero-live-console" data-reveal="right" aria-label="ERP live command cockpit preview">
           <div class="console-head">
             <div><strong>Campus Command Cockpit</strong><span>Live operations snapshot</span></div>
             <em>Online</em>
           </div>
           <div class="console-alert">
             <i class="fas fa-satellite-dish"></i>
-            <div><strong>37 live classes running</strong><span>Smart attendance and faculty signals are syncing.</span></div>
+            <div><strong><span data-count="37">0</span> live classes running</strong><span>Smart attendance and faculty signals are syncing.</span></div>
           </div>
           <div class="console-kpi-grid">
-            <div><span>Attendance Risk</span><strong>42</strong><em>students need action</em></div>
-            <div><span>Fee Collection</span><strong>91%</strong><em>current cycle</em></div>
-            <div><span>Timetable Health</span><strong>96%</strong><em>slots conflict-free</em></div>
-            <div><span>AI Support</span><strong>1.8k</strong><em>doubts resolved</em></div>
+            <div><span>Attendance Risk</span><strong><span data-count="42">0</span></strong><em>students need action</em></div>
+            <div><span>Fee Collection</span><strong><span data-count="91">0</span>%</strong><em>current cycle</em></div>
+            <div><span>Timetable Health</span><strong><span data-count="96">0</span>%</strong><em>slots conflict-free</em></div>
+            <div><span>AI Support</span><strong><span data-count="1800">0</span></strong><em>doubts resolved</em></div>
           </div>
           <div class="console-split">
             <div class="console-workflow">
@@ -170,16 +215,16 @@
             </div>
             <div class="console-radar">
               <span>Academic Health</span>
-              <strong>88%</strong>
+              <strong><span data-count="88">0</span>%</strong>
               <div class="radar-ring"><i></i></div>
             </div>
           </div>
         </div>
       </div>
-      <div class="hero-command-strip" aria-label="ERP operating preview">
+      <div class="hero-command-strip" data-reveal aria-label="ERP operating preview">
         <div class="hero-command-metric">
           <span>Live Campuses</span>
-          <strong>24</strong>
+          <strong><span data-count="24">0</span></strong>
           <em>Multi-tenant ready</em>
         </div>
         <div class="hero-command-metric">
@@ -195,33 +240,83 @@
         <div class="hero-command-flow">
           <div>
             <span>Today</span>
-            <strong>Admissions -> Timetable -> Smart Attendance -> Exams -> Parent Alerts</strong>
+            <strong>Admissions → Timetable → Smart Attendance → Exams → Parent Alerts</strong>
           </div>
           <div class="command-flow-bar"><span style="width:78%"></span></div>
         </div>
       </div>
     </section>
 
-    <section class="campus-strip" aria-label="Institution types">
+    <section class="campus-strip" data-reveal aria-label="Institution types">
       <div class="mx-auto grid max-w-7xl gap-4 px-4 py-5 sm:grid-cols-2 sm:px-6 lg:grid-cols-5 lg:px-8">
-        <div><i class="fas fa-university"></i> Autonomous Colleges</div>
-        <div><i class="fas fa-building-columns"></i> Universities</div>
-        <div><i class="fas fa-school"></i> School Groups</div>
-        <div><i class="fas fa-laptop-file"></i> Training Centers</div>
-        <div><i class="fas fa-network-wired"></i> Multi-Campus Trusts</div>
+        <div data-tilt><i class="fas fa-university"></i> Autonomous Colleges</div>
+        <div data-tilt><i class="fas fa-building-columns"></i> Universities</div>
+        <div data-tilt><i class="fas fa-school"></i> School Groups</div>
+        <div data-tilt><i class="fas fa-laptop-file"></i> Training Centers</div>
+        <div data-tilt><i class="fas fa-network-wired"></i> Multi-Campus Trusts</div>
       </div>
     </section>
 
-    <section class="enterprise-proof-strip" aria-label="ERP credibility metrics">
+    <section class="enterprise-proof-strip" data-reveal aria-label="ERP credibility metrics">
       <div class="mx-auto grid max-w-7xl gap-4 px-4 py-8 sm:px-6 lg:grid-cols-4 lg:px-8">
-        <article><span>Operational Scope</span><strong>20+ modules</strong><p>Academics, finance, HR, logistics, portals, communication, and AI workflows.</p></article>
-        <article><span>Role Workspaces</span><strong>5 portals</strong><p>Super Admin, College Admin, Faculty, Student, and Parent experiences.</p></article>
-        <article><span>Automation Layer</span><strong>Real-time</strong><p>Live data changes, smart attendance, message alerts, and action queues.</p></article>
-        <article><span>Deployment Fit</span><strong>Single to network</strong><p>Use for one autonomous college or a multi-campus university group.</p></article>
+        <article data-tilt><span>Operational Scope</span><strong><span data-count="20">0</span>+ modules</strong><p>Academics, finance, HR, logistics, portals, communication, and AI workflows.</p></article>
+        <article data-tilt><span>Role Workspaces</span><strong><span data-count="5">0</span> portals</strong><p>Super Admin, College Admin, Faculty, Student, and Parent experiences.</p></article>
+        <article data-tilt><span>Automation Layer</span><strong>Real-time</strong><p>Live data changes, smart attendance, message alerts, and action queues.</p></article>
+        <article data-tilt><span>Deployment Fit</span><strong>Single to network</strong><p>Use for one autonomous college or a multi-campus university group.</p></article>
       </div>
     </section>
 
-    <section class="app-install-strip" id="install-section" aria-label="Install Vishva ERP app">
+    <script>
+      // Advanced Platform Detection for Landing Page
+      (function() {
+        const ua = navigator.userAgent || navigator.vendor || window.opera;
+        const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+        const isAndroid = /android/i.test(ua);
+
+        const platformNameEl = document.getElementById('platform-name');
+        const platformIconEl = document.getElementById('platform-icon');
+        const apkCard = document.getElementById('download-apk-card');
+        const iosInfo = document.getElementById('ios-instructions');
+        const pwaCard = document.getElementById('install-pwa-card');
+
+        if (isIOS) {
+          platformNameEl.textContent = 'Apple iOS Device';
+          platformIconEl.className = 'fab fa-apple';
+          apkCard.classList.add('hidden');
+          iosInfo.classList.remove('hidden');
+        } else if (isAndroid) {
+          platformNameEl.textContent = 'Android Device';
+          platformIconEl.className = 'fab fa-android';
+          apkCard.classList.remove('hidden');
+        } else {
+          platformNameEl.textContent = 'Desktop/Web';
+          platformIconEl.className = 'fas fa-laptop';
+          apkCard.classList.add('hidden'); // Usually don't show APK on desktop unless in "Advanced Mode"
+        }
+      })();
+    </script>
+
+    <section class="academic-engine-strip" data-reveal aria-label="Realtime academic engine">
+      <div class="mx-auto grid max-w-7xl gap-4 px-4 py-8 sm:px-6 lg:grid-cols-3 lg:px-8">
+        <article data-tilt>
+          <span><i class="fas fa-calendar-week"></i></span>
+          <strong>Dynamic Timetable Engine</strong>
+          <p>Live weekly grids, next-class signals, room movement, faculty workload, and day-wise academic flow.</p>
+        </article>
+        <article data-tilt>
+          <span><i class="fas fa-location-crosshairs"></i></span>
+          <strong>Consent-Based Smart Attendance</strong>
+          <p>Classroom geofences, teacher presence, live student heartbeat, source badges, and manual override support.</p>
+        </article>
+        <article data-tilt>
+          <span><i class="fas fa-brain"></i></span>
+          <strong>Real-Time AI Academic Layer</strong>
+          <p>AI Tutor, notes, exam support, risk summaries, and action queues connected to ERP operations.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="app-install-strip" id="install-section" data-reveal aria-label="Install Vishva ERP app">
       <div class="mx-auto flex max-w-7xl flex-col gap-8 px-4 py-12 sm:px-6 lg:px-8">
         <div class="grid gap-10 lg:grid-cols-2 lg:items-center">
           <div>
@@ -252,7 +347,7 @@
             </div>
           </div>
 
-          <div class="rounded-3xl bg-white/5 p-8 backdrop-blur-md border border-white/10 shadow-2xl">
+          <div class="rounded-3xl bg-white/5 p-8 backdrop-blur-md border border-white/10 shadow-2xl" data-tilt>
             <div id="platform-detector" class="mb-6 flex items-center justify-between border-b border-white/10 pb-6">
               <div class="flex items-center gap-3">
                 <div class="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-500 text-white shadow-lg shadow-indigo-500/30">
@@ -322,79 +417,29 @@
       </div>
     </section>
 
-    <script>
-      // Advanced Platform Detection for Landing Page
-      (function() {
-        const ua = navigator.userAgent || navigator.vendor || window.opera;
-        const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
-        const isAndroid = /android/i.test(ua);
-
-        const platformNameEl = document.getElementById('platform-name');
-        const platformIconEl = document.getElementById('platform-icon');
-        const apkCard = document.getElementById('download-apk-card');
-        const iosInfo = document.getElementById('ios-instructions');
-        const pwaCard = document.getElementById('install-pwa-card');
-
-        if (isIOS) {
-          platformNameEl.textContent = 'Apple iOS Device';
-          platformIconEl.className = 'fab fa-apple';
-          apkCard.classList.add('hidden');
-          iosInfo.classList.remove('hidden');
-        } else if (isAndroid) {
-          platformNameEl.textContent = 'Android Device';
-          platformIconEl.className = 'fab fa-android';
-          apkCard.classList.remove('hidden');
-        } else {
-          platformNameEl.textContent = 'Desktop/Web';
-          platformIconEl.className = 'fas fa-laptop';
-          apkCard.classList.add('hidden'); // Usually don't show APK on desktop unless in "Advanced Mode"
-        }
-      })();
-    </script>
-
-    <section class="academic-engine-strip" aria-label="Realtime academic engine">
-      <div class="mx-auto grid max-w-7xl gap-4 px-4 py-8 sm:px-6 lg:grid-cols-3 lg:px-8">
-        <article>
-          <span><i class="fas fa-calendar-week"></i></span>
-          <strong>Dynamic Timetable Engine</strong>
-          <p>Live weekly grids, next-class signals, room movement, faculty workload, and day-wise academic flow.</p>
-        </article>
-        <article>
-          <span><i class="fas fa-location-crosshairs"></i></span>
-          <strong>Consent-Based Smart Attendance</strong>
-          <p>Classroom geofences, teacher presence, live student heartbeat, source badges, and manual override support.</p>
-        </article>
-        <article>
-          <span><i class="fas fa-brain"></i></span>
-          <strong>Real-Time AI Academic Layer</strong>
-          <p>AI Tutor, notes, exam support, risk summaries, and action queues connected to ERP operations.</p>
-        </article>
-      </div>
-    </section>
-
-    <section class="landing-section" id="outcomes">
+    <section class="landing-section" id="outcomes" data-reveal>
       <div class="landing-section-head">
         <span class="section-kicker">Campus outcomes</span>
         <h2>Built for the daily pressure of running a real institution.</h2>
         <p>Vishva ERP is designed around operational outcomes: fewer manual registers, faster decisions, better student visibility, and cleaner governance across departments.</p>
       </div>
       <div class="outcome-grid">
-        <article class="outcome-card primary">
+        <article class="outcome-card primary" data-tilt>
           <span>01</span>
           <h3>Academic delivery without timetable chaos</h3>
           <p>Plan weekly slots, track faculty load, detect room clashes, connect classes to attendance, and keep students informed through live portals.</p>
         </article>
-        <article class="outcome-card">
+        <article class="outcome-card" data-tilt>
           <i class="fas fa-user-check"></i>
           <h3>Attendance that is auditable</h3>
           <p>Combine manual faculty marking with consent-based smart classroom presence, source badges, and eligibility forecasts.</p>
         </article>
-        <article class="outcome-card">
+        <article class="outcome-card" data-tilt>
           <i class="fas fa-indian-rupee-sign"></i>
           <h3>Finance teams see the real collection picture</h3>
           <p>Track fee heads, dues, partial payments, receipts, pending amounts, and collection risk in one place.</p>
         </article>
-        <article class="outcome-card">
+        <article class="outcome-card" data-tilt>
           <i class="fas fa-brain"></i>
           <h3>AI turns ERP data into action</h3>
           <p>Use AI Tutor, notes, exam generation, insight summaries, and risk queues to reduce academic and admin bottlenecks.</p>
@@ -402,7 +447,7 @@
       </div>
     </section>
 
-    <section class="landing-section" id="platform">
+    <section class="landing-section" id="platform" data-reveal>
       <div class="landing-section-head">
         <span class="section-kicker">Executive operations</span>
           <h2>One command center for every campus decision.</h2>
@@ -412,21 +457,21 @@
       <div class="platform-grid">
         <div class="platform-copy">
           <div class="ops-list">
-            <div class="ops-row">
+            <div class="ops-row" data-tilt>
               <i class="fas fa-route text-sky-600"></i>
               <div>
                 <strong>Admission-to-alumni lifecycle</strong>
                 <span>Applications, enrollment, sections, certificates, graduation readiness, and alumni records.</span>
               </div>
             </div>
-            <div class="ops-row">
+            <div class="ops-row" data-tilt>
               <i class="fas fa-shield-halved text-emerald-600"></i>
               <div>
                 <strong>Role and tenant isolation</strong>
                 <span>Separate Super Admin, College Admin, Faculty, Student, and Parent experiences with scoped data.</span>
               </div>
             </div>
-            <div class="ops-row">
+            <div class="ops-row" data-tilt>
               <i class="fas fa-chart-simple text-amber-600"></i>
               <div>
                 <strong>Predictive action queues</strong>
@@ -436,7 +481,7 @@
           </div>
         </div>
 
-        <div class="erp-product-preview">
+        <div class="erp-product-preview" data-tilt>
           <div class="preview-topbar">
             <div class="preview-dots"><span></span><span></span><span></span></div>
             <strong>Institution Command Center</strong>
@@ -452,9 +497,9 @@
             </div>
             <div class="preview-main">
               <div class="preview-kpis">
-                <div><span>Total Learners</span><strong>18,420</strong></div>
-                <div><span>Faculty Load</span><strong>84%</strong></div>
-                <div><span>Collection Rate</span><strong>91%</strong></div>
+                <div><span>Total Learners</span><strong><span data-count="18420">0</span></strong></div>
+                <div><span>Faculty Load</span><strong><span data-count="84">0</span>%</strong></div>
+                <div><span>Collection Rate</span><strong><span data-count="91">0</span>%</strong></div>
               </div>
               <div class="preview-chart">
                 <span style="height:52%"></span>
@@ -465,9 +510,9 @@
                 <span style="height:92%"></span>
               </div>
               <div class="preview-table">
-                <div><strong>AI Risk Watch</strong><span>12 urgent</span></div>
-                <div><strong>Live Classes</strong><span>37 running</span></div>
-                <div><strong>Parent Replies</strong><span>142 pending</span></div>
+                <div><strong>AI Risk Watch</strong><span><span data-count="12">0</span> urgent</span></div>
+                <div><strong>Live Classes</strong><span><span data-count="37">0</span> running</span></div>
+                <div><strong>Parent Replies</strong><span><span data-count="142">0</span> pending</span></div>
               </div>
             </div>
           </div>
@@ -475,7 +520,7 @@
       </div>
     </section>
 
-    <section class="landing-section section-band" id="modules">
+    <section class="landing-section section-band" id="modules" data-reveal>
       <div class="landing-section-head">
         <span class="section-kicker">ERP modules</span>
         <h2>Everything a real institution runs every day.</h2>
@@ -483,42 +528,42 @@
       </div>
 
       <div class="module-grid">
-        <article class="module-tile">
+        <article class="module-tile" data-tilt>
           <i class="fas fa-user-plus text-indigo-600"></i>
           <h3>Admissions & Enrollment</h3>
           <p>Lead capture, application review, document checks, seat allocation, student profiles, and parent account creation.</p>
         </article>
-        <article class="module-tile">
+        <article class="module-tile" data-tilt>
           <i class="fas fa-calendar-check text-sky-600"></i>
           <h3>Attendance & Timetable</h3>
           <p>Batch-wise schedules, daily attendance, shortage alerts, smart location source, faculty workload, make-up classes, and live class links.</p>
         </article>
-        <article class="module-tile">
+        <article class="module-tile" data-tilt>
           <i class="fas fa-file-signature text-emerald-600"></i>
           <h3>Exams & Results</h3>
           <p>Subject plans, marks entry, grading, CGPA history, bulk uploads, result publishing, and parent/student views.</p>
         </article>
-        <article class="module-tile">
+        <article class="module-tile" data-tilt>
           <i class="fas fa-file-invoice-dollar text-amber-600"></i>
           <h3>Fees & Finance</h3>
           <p>Fee heads, dues, receipts, partial payments, reminders, exports, collection charts, and outstanding risk lists.</p>
         </article>
-        <article class="module-tile">
+        <article class="module-tile" data-tilt>
           <i class="fas fa-people-roof text-rose-600"></i>
           <h3>HR, Leave & Payroll</h3>
           <p>Staff profiles, leave approvals, department capacity, HR alerts, substitution planning, and payroll-ready records.</p>
         </article>
-        <article class="module-tile">
+        <article class="module-tile" data-tilt>
           <i class="fas fa-bus text-cyan-600"></i>
           <h3>Hostel & Transport</h3>
           <p>Hostels, rooms, routes, vehicles, allocations, capacity tracking, wardens, drivers, and transport communication.</p>
         </article>
-        <article class="module-tile">
+        <article class="module-tile" data-tilt>
           <i class="fas fa-comments text-violet-600"></i>
           <h3>Communications</h3>
           <p>Notices, role-based broadcasts, real-time messages, parent alerts, audit trails, and action confirmations.</p>
         </article>
-        <article class="module-tile">
+        <article class="module-tile" data-tilt>
           <i class="fas fa-brain text-fuchsia-600"></i>
           <h3>AI Tools Hub</h3>
           <p>Exam generation, notes generation, doubt solving, student support, insight summaries, and admin automation.</p>
@@ -526,26 +571,26 @@
       </div>
     </section>
 
-    <section class="landing-section section-band">
+    <section class="landing-section section-band" data-reveal>
       <div class="landing-section-head">
         <span class="section-kicker">Connected operations</span>
         <h2>Every department works from the same record.</h2>
         <p>The platform connects the events that usually live in different files: admissions become student records, timetable slots become attendance sessions, results become parent visibility, and fees become finance dashboards.</p>
       </div>
       <div class="operations-map">
-        <div class="ops-map-node active"><i class="fas fa-user-plus"></i><strong>Admissions</strong><span>Applications to enrollment</span></div>
+        <div class="ops-map-node active" data-tilt><i class="fas fa-user-plus"></i><strong>Admissions</strong><span>Applications to enrollment</span></div>
         <div class="ops-map-line"></div>
-        <div class="ops-map-node"><i class="fas fa-calendar-week"></i><strong>Academics</strong><span>Courses, timetable, classes</span></div>
+        <div class="ops-map-node" data-tilt><i class="fas fa-calendar-week"></i><strong>Academics</strong><span>Courses, timetable, classes</span></div>
         <div class="ops-map-line"></div>
-        <div class="ops-map-node"><i class="fas fa-user-check"></i><strong>Attendance</strong><span>Manual and smart signals</span></div>
+        <div class="ops-map-node" data-tilt><i class="fas fa-user-check"></i><strong>Attendance</strong><span>Manual and smart signals</span></div>
         <div class="ops-map-line"></div>
-        <div class="ops-map-node"><i class="fas fa-file-invoice-dollar"></i><strong>Finance</strong><span>Dues, receipts, collections</span></div>
+        <div class="ops-map-node" data-tilt><i class="fas fa-file-invoice-dollar"></i><strong>Finance</strong><span>Dues, receipts, collections</span></div>
         <div class="ops-map-line"></div>
-        <div class="ops-map-node"><i class="fas fa-chart-simple"></i><strong>Analytics</strong><span>Risk, readiness, decisions</span></div>
+        <div class="ops-map-node" data-tilt><i class="fas fa-chart-simple"></i><strong>Analytics</strong><span>Risk, readiness, decisions</span></div>
       </div>
     </section>
 
-    <section class="landing-section" id="roles">
+    <section class="landing-section" id="roles" data-reveal>
       <div class="landing-section-head">
         <span class="section-kicker">Role portals</span>
         <h2>Different users, one connected source of truth.</h2>
@@ -553,27 +598,27 @@
       </div>
 
       <div class="role-grid-landing">
-        <a href="./pages/super-admin/dashboard.html" class="role-panel role-super">
+        <a href="./pages/super-admin/dashboard.html" class="role-panel role-super" data-tilt>
           <span><i class="fas fa-satellite-dish"></i></span>
           <h3>Super Admin</h3>
           <p>Tenant control, system health, plan management, broadcast tools, database visibility, and audit logs.</p>
         </a>
-        <a href="./pages/college-admin/dashboard.html" class="role-panel role-college">
+        <a href="./pages/college-admin/dashboard.html" class="role-panel role-college" data-tilt>
           <span><i class="fas fa-university"></i></span>
           <h3>College Admin</h3>
           <p>Run admissions, faculty, students, fees, logistics, notices, courses, HR, and institutional dashboards.</p>
         </a>
-        <a href="./pages/faculty/dashboard.html" class="role-panel role-faculty">
+        <a href="./pages/faculty/dashboard.html" class="role-panel role-faculty" data-tilt>
           <span><i class="fas fa-chalkboard-teacher"></i></span>
           <h3>Faculty</h3>
           <p>Manage attendance, grading, live classes, assignments, leave, timetable, and AI teaching support.</p>
         </a>
-        <a href="./pages/student/dashboard.html" class="role-panel role-student">
+        <a href="./pages/student/dashboard.html" class="role-panel role-student" data-tilt>
           <span><i class="fas fa-user-graduate"></i></span>
           <h3>Student</h3>
           <p>Access courses, attendance, assignments, fees, live classes, library, timetable, results, and AI tutor.</p>
         </a>
-        <a href="./pages/parent/dashboard.html" class="role-panel role-parent">
+        <a href="./pages/parent/dashboard.html" class="role-panel role-parent" data-tilt>
           <span><i class="fas fa-users"></i></span>
           <h3>Parent</h3>
           <p>Monitor ward profile, attendance, results, fee status, notices, live class signals, and mentor messages.</p>
@@ -581,7 +626,7 @@
       </div>
     </section>
 
-    <section class="landing-section section-band" id="intelligence">
+    <section class="landing-section section-band" id="intelligence" data-reveal>
       <div class="intelligence-layout">
         <div>
           <span class="section-kicker">AI and analytics</span>
@@ -594,7 +639,7 @@
             <div><i class="fas fa-chart-line"></i><span>Executive reporting across colleges, departments, roles, plans, and revenue.</span></div>
           </div>
         </div>
-        <div class="ai-panel">
+        <div class="ai-panel" data-tilt>
           <div class="ai-panel-header">
             <i class="fas fa-brain"></i>
             <div>
@@ -602,29 +647,29 @@
               <span>Generated from live ERP signals</span>
             </div>
           </div>
-          <div class="ai-task high"><strong>42 students below 75% attendance</strong><span>Notify mentors and parents today.</span></div>
+          <div class="ai-task high"><strong><span data-count="42">0</span> students below 75% attendance</strong><span>Notify mentors and parents today.</span></div>
           <div class="ai-task medium"><strong>INR 8.2L due in next 7 days</strong><span>Send fee reminders to high-value pending accounts.</span></div>
-          <div class="ai-task low"><strong>3 departments need timetable balancing</strong><span>Faculty workload exceeds target threshold.</span></div>
+          <div class="ai-task low"><strong><span data-count="3">0</span> departments need timetable balancing</strong><span>Faculty workload exceeds target threshold.</span></div>
         </div>
       </div>
     </section>
 
-    <section class="landing-section">
+    <section class="landing-section" data-reveal>
       <div class="landing-section-head">
         <span class="section-kicker">Implementation path</span>
         <h2>Move from setup to daily operations quickly.</h2>
         <p>The platform is structured so institutions can start with the core ERP and expand into intelligence, automation, and campus-wide communication.</p>
       </div>
       <div class="workflow-rail">
-        <div><span>01</span><strong>Create tenant</strong><em>Institution, admins, plan, departments</em></div>
-        <div><span>02</span><strong>Load master data</strong><em>Students, faculty, courses, batches</em></div>
-        <div><span>03</span><strong>Run operations</strong><em>Attendance, fees, notices, exams</em></div>
-        <div><span>04</span><strong>Connect users</strong><em>Student, faculty, parent portals</em></div>
-        <div><span>05</span><strong>Optimize with AI</strong><em>Insights, reports, recommendations</em></div>
+        <div data-tilt><span>01</span><strong>Create tenant</strong><em>Institution, admins, plan, departments</em></div>
+        <div data-tilt><span>02</span><strong>Load master data</strong><em>Students, faculty, courses, batches</em></div>
+        <div data-tilt><span>03</span><strong>Run operations</strong><em>Attendance, fees, notices, exams</em></div>
+        <div data-tilt><span>04</span><strong>Connect users</strong><em>Student, faculty, parent portals</em></div>
+        <div data-tilt><span>05</span><strong>Optimize with AI</strong><em>Insights, reports, recommendations</em></div>
       </div>
     </section>
 
-    <section class="landing-section section-band" id="security">
+    <section class="landing-section section-band" id="security" data-reveal>
       <div class="security-layout">
         <div>
           <span class="section-kicker">Security and governance</span>
@@ -637,7 +682,7 @@
             <div><i class="fas fa-database"></i><span>Tenant-aware data model for institutions, departments, users, and role portals.</span></div>
           </div>
         </div>
-        <div class="security-card">
+        <div class="security-card" data-tilt>
           <div class="security-score"><span>Governance Readiness</span><strong>Enterprise</strong></div>
           <div class="security-row"><span>Role-based access</span><strong>Enabled</strong></div>
           <div class="security-row"><span>Smart attendance consent</span><strong>Required</strong></div>
@@ -647,26 +692,26 @@
       </div>
     </section>
 
-    <section class="landing-section section-band" id="plans">
+    <section class="landing-section section-band" id="plans" data-reveal>
       <div class="landing-section-head">
         <span class="section-kicker">Deployment models</span>
         <h2>Fit for single colleges and university networks.</h2>
         <p>Use the same platform for a focused campus rollout or a larger multi-institution command layer with centralized oversight.</p>
       </div>
       <div class="plan-grid">
-        <article class="plan-card">
+        <article class="plan-card" data-tilt>
           <h3>College ERP</h3>
           <p>For single colleges and autonomous institutions modernizing daily administration.</p>
           <strong>Core campus suite</strong>
           <a href="./pages/register.html">Start Setup</a>
         </article>
-        <article class="plan-card plan-featured">
+        <article class="plan-card plan-featured" data-tilt>
           <h3>University Network</h3>
           <p>For multi-campus groups needing central oversight with isolated institutional workspaces.</p>
           <strong>Advanced analytics and governance</strong>
           <a href="./pages/register.html">Deploy Network</a>
         </article>
-        <article class="plan-card">
+        <article class="plan-card" data-tilt>
           <h3>School & Training Groups</h3>
           <p>For schools, coaching, vocational academies, and training organizations with role portals.</p>
           <strong>Flexible academic operations</strong>
@@ -675,7 +720,7 @@
       </div>
     </section>
 
-    <section class="final-cta">
+    <section class="final-cta" data-reveal>
       <div class="mx-auto max-w-4xl px-4 text-center sm:px-6 lg:px-8">
         <span class="section-kicker">Ready for a real campus ERP?</span>
         <h2>Bring admissions, academics, attendance, finance, HR, parents, and AI into one intelligent campus ERP.</h2>

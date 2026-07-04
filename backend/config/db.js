@@ -1,4 +1,9 @@
+const dns = require('dns');
 const mongoose = require('mongoose');
+
+if (process.env.MONGO_URI && process.env.MONGO_URI.includes('+srv')) {
+  dns.setServers(['8.8.8.8', '8.8.4.4']);
+}
 
 const stateNames = {
   0: 'disconnected',
