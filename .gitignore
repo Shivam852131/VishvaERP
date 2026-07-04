@@ -5,3 +5,10 @@ server_out.log
 test-results/
 .idea/
 *.log
+.vercel/
+.render/
+.parcel-cache/
+dist/
+build/
+.cache/
+Users/

@@ -28,7 +28,13 @@
     "pm2:save": "pm2 save",
     "pm2:startup": "pm2 startup",
 
-    "setup": "npm install && npm run pm2:start && npm run pm2:save"
+    "setup": "npm install && npm run pm2:start && npm run pm2:save",
+
+    "vercel:build": "echo 'Vercel build step'",
+    "vercel:start": "node backend/server.js",
+
+    "render:build": "npm install",
+    "render:start": "node backend/server.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -47,6 +53,7 @@
     "nodemailer": "^6.9.13",
     "openai": "^4.47.1",
     "pdfkit": "^0.15.0",
+    "serverless-http": "^3.2.0",
     "socket.io": "^4.8.1",
     "uuid": "^9.0.1"
   },

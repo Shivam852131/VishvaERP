@@ -242,16 +242,23 @@ async function shutdown(signal) {
   }, 15000).unref();
 }
 
-process.on('SIGINT', () => shutdown('SIGINT'));
-process.on('SIGTERM', () => shutdown('SIGTERM'));
+// Start server only when running directly (not as Vercel serverless)
+const isVercel = process.env.VERCEL || process.env.AWS_LAMBDA_FUNCTION_NAME;
+if (!isVercel) {
+  process.on('SIGINT', () => shutdown('SIGINT'));
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
 
-process.on('unhandledRejection', (error) => {
-  logger.error('Unhandled promise rejection', { error: error.message, stack: error.stack });
-});
+  process.on('unhandledRejection', (error) => {
+    logger.error('Unhandled promise rejection', { error: error.message, stack: error.stack });
+  });
 
-process.on('uncaughtException', (error) => {
-  logger.error('Uncaught exception', { error: error.message, stack: error.stack });
-  process.exit(1);
-});
+  process.on('uncaughtException', (error) => {
+    logger.error('Uncaught exception', { error: error.message, stack: error.stack });
+    process.exit(1);
+  });
 
-startServer();
+  startServer();
+}
+
+// Export for Vercel serverless
+module.exports = app;
