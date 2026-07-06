@@ -1,8 +1,8 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Login | VishvaERP — Enterprise Academic Platform</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
@@ -12,6 +12,7 @@
       font-family: 'Inter', sans-serif;
       background: #0F172A;
       min-height: 100vh;
+      min-height: 100dvh;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -133,10 +134,18 @@
     .error-msg.show { display: flex; align-items: center; gap: 8px; }
 
     @media(max-width:768px) {
-      .login-grid { grid-template-columns: 1fr; min-height: auto; }
+      body { align-items: flex-start; overflow-y: auto; padding: max(14px, env(safe-area-inset-top)) 14px max(14px, env(safe-area-inset-bottom)); }
+      .login-grid { grid-template-columns: 1fr; min-height: auto; max-width: 520px; border-radius: 22px; }
       .login-left { display: none; }
-      .login-right { padding: 32px 24px; min-height: 100vh; justify-content: flex-start; padding-top: 60px; }
+      .login-right { padding: 32px 24px; min-height: auto; justify-content: flex-start; }
       .role-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    @media(max-width:420px) {
+      .login-grid { border-radius: 18px; }
+      .login-right { padding: 26px 18px; }
+      .role-grid { grid-template-columns: repeat(2, 1fr); }
+      .role-btn { min-height: 62px; padding: 10px 6px; }
     }
 
     @keyframes fadeInUp {

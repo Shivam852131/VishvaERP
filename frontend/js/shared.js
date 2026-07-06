@@ -592,6 +592,40 @@ function throttle(fn, limit = 300) {
   };
 }
 
+function syncResponsiveViewportState() {
+  document.body.classList.toggle('viewport-mobile', isMobileViewport());
+  document.body.classList.toggle('viewport-desktop', !isMobileViewport());
+}
+
+function applyResponsiveTableLabels(table) {
+  if (!table) return;
+
+  table.dataset.enhanced = 'true';
+  table.closest('.table-wrap')?.classList.add('mobile-card-table');
+
+  const headers = Array.from(table.querySelectorAll('thead th')).map((th) => th.textContent.trim());
+  table.querySelectorAll('tbody tr').forEach((row) => {
+    Array.from(row.children).forEach((cell, index) => {
+      if (headers[index]) cell.setAttribute('data-label', headers[index]);
+    });
+  });
+}
+
+function initResponsiveTables() {
+  document.querySelectorAll('.erp-table').forEach((table) => {
+    applyResponsiveTableLabels(table);
+
+    if (table.dataset.responsiveObserverBound === 'true') return;
+    table.dataset.responsiveObserverBound = 'true';
+
+    const tbody = table.tBodies?.[0];
+    if (!tbody) return;
+
+    const observer = new MutationObserver(() => applyResponsiveTableLabels(table));
+    observer.observe(tbody, { childList: true, subtree: true });
+  });
+}
+
 /* ─── FORM VALIDATION ─── */
 const validators = {
   email: (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
@@ -1047,17 +1081,7 @@ function initGlobalExperience(user) {
 
   updateInstallButtons();
 
-  document.querySelectorAll('.erp-table').forEach((table) => {
-    if (table.dataset.enhanced === 'true') return;
-    table.dataset.enhanced = 'true';
-    table.closest('.table-wrap')?.classList.add('mobile-card-table');
-    const headers = Array.from(table.querySelectorAll('thead th')).map((th) => th.textContent.trim());
-    table.querySelectorAll('tbody tr').forEach((row) => {
-      Array.from(row.children).forEach((cell, index) => {
-        if (headers[index]) cell.setAttribute('data-label', headers[index]);
-      });
-    });
-  });
+  initResponsiveTables();
 
   document.addEventListener('keydown', (event) => {
     if (event.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) {
@@ -1378,6 +1402,15 @@ function initLandingCommandPalette() {
 
 /* ─── LANDING PAGE INIT ─── */
 document.addEventListener('DOMContentLoaded', () => {
+  syncResponsiveViewportState();
+  if (!window.__vishvaResponsiveResizeBound) {
+    window.__vishvaResponsiveResizeBound = true;
+    window.addEventListener('resize', debounce(() => {
+      syncResponsiveViewportState();
+      initResponsiveTables();
+    }, 120));
+  }
+
   const isLanding = document.querySelector('.landing-page');
   if (isLanding) {
     setTimeout(initLandingCanvas, 100);
@@ -1409,6 +1442,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initPwaInstall();
   initServiceWorker();
   initGlobalExperience(user);
+  initResponsiveTables();
 
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => { 
