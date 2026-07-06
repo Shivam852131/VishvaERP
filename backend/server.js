@@ -48,6 +48,11 @@ const allowedOrigins = (process.env.FRONTEND_URL || '')
   .split(',')
   .map((origin) => origin.trim())
   .filter(Boolean);
+const renderExternalUrl = (process.env.RENDER_EXTERNAL_URL || '').trim();
+const configuredOrigins = Array.from(new Set([
+  ...allowedOrigins,
+  ...(renderExternalUrl ? [renderExternalUrl] : []),
+]));
 const isProduction = process.env.NODE_ENV === 'production';
 const reactBuildDir = path.resolve(__dirname, '../frontend-react/dist');
 const legacyFrontendDir = path.resolve(__dirname, '../frontend');
@@ -63,11 +68,11 @@ const localAllowedOrigins = [
   `http://127.0.0.1:${process.env.PORT || 5000}`,
   `https://127.0.0.1:${process.env.PORT || 5000}`,
 ];
-const effectiveAllowedOrigins = Array.from(new Set([...allowedOrigins, ...localAllowedOrigins]));
+const effectiveAllowedOrigins = Array.from(new Set([...configuredOrigins, ...localAllowedOrigins]));
 
 const corsOptions = {
   origin(origin, callback) {
-    if (!origin || !isProduction || effectiveAllowedOrigins.length === 0 || effectiveAllowedOrigins.includes(origin)) {
+    if (!origin || !isProduction || configuredOrigins.length === 0 || effectiveAllowedOrigins.includes(origin)) {
       callback(null, true);
       return;
     }
@@ -80,7 +85,7 @@ const corsOptions = {
 // Socket.io Setup
 const io = new Server(server, {
   cors: {
-    origin: isProduction && allowedOrigins.length > 0 ? allowedOrigins : '*',
+    origin: isProduction && configuredOrigins.length > 0 ? configuredOrigins : '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
   },
