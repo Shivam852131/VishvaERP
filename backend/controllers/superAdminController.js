@@ -6,9 +6,47 @@ const Attendance = require('../models/Attendance');
 const Leave = require('../models/Leave');
 const Broadcast = require('../models/Broadcast');
 const PlatformSetting = require('../models/PlatformSetting');
+const Subscription = require('../models/Subscription');
 const mongoose = require('mongoose');
 const { emitDataChange } = require('../utils/realtime');
 const { logAudit } = require('../services/auditService');
+
+const DEFAULT_TRIAL_DAYS = 30;
+
+const buildTrialWindow = (days = DEFAULT_TRIAL_DAYS) => {
+  const startDate = new Date();
+  const endDate = new Date(startDate);
+  endDate.setDate(endDate.getDate() + days);
+  return { startDate, endDate };
+};
+
+const ensureCollegeTrialSubscription = async (collegeId, plan = 'basic') => {
+  if (!collegeId) return null;
+
+  const activeSubscription = await Subscription.findOne({
+    collegeId,
+    status: 'active',
+    endDate: { $gt: new Date() },
+  });
+  if (activeSubscription) {
+    return activeSubscription;
+  }
+
+  const { startDate, endDate } = buildTrialWindow();
+  const subscription = await Subscription.create({
+    collegeId,
+    plan,
+    amount: 0,
+    currency: 'INR',
+    status: 'active',
+    startDate,
+    endDate,
+    billingCycle: 'monthly',
+  });
+
+  await College.findByIdAndUpdate(collegeId, { plan, planExpiry: endDate }, { runValidators: false });
+  return subscription;
+};
 
 const buildCollegeCode = (name = '') => {
   const base = String(name).toUpperCase().replace(/[^A-Z0-9]+/g, '').slice(0, 8);
@@ -107,6 +145,8 @@ const createCollege = asyncHandler(async (req, res) => {
       college.adminId = admin._id;
       await college.save();
     }
+
+    await ensureCollegeTrialSubscription(college._id, college.plan || 'basic');
 
     logAudit(req, 'create', 'college', { resourceId: college._id, description: `Created college: ${name}`, metadata: { code: normalizedCode } });
 

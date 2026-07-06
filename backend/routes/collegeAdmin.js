@@ -1,6 +1,7 @@
 const express = require('express');
 const { protect } = require('../middleware/auth');
 const { authorize } = require('../middleware/rbac');
+const { requireSubscription } = require('../middleware/subscription');
 const {
   getCollegeDashboard,
   getStudents,
@@ -16,7 +17,11 @@ const router = express.Router();
 router.use(protect);
 router.use(authorize('collegeAdmin'));
 
+// Dashboard is always accessible (shows subscription status)
 router.get('/dashboard', getCollegeDashboard);
+
+// Apply subscription gate to all other college-admin routes
+router.use(requireSubscription);
 
 router.route('/students')
   .get(getStudents)

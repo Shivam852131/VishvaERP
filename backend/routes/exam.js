@@ -1,12 +1,14 @@
 const express = require('express');
 const { protect } = require('../middleware/auth');
 const { authorize, sameCollege } = require('../middleware/rbac');
+const { requireSubscription } = require('../middleware/subscription');
 const { createExam, getExams, addResults, getStudentResults, getResultSheet } = require('../controllers/examController');
 
 const router = express.Router();
 
 router.use(protect);
 router.use(sameCollege);
+router.use(requireSubscription);
 
 // Manage exams and results
 router.route('/')

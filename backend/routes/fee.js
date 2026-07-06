@@ -1,12 +1,14 @@
 const express = require('express');
 const { protect } = require('../middleware/auth');
 const { authorize, sameCollege } = require('../middleware/rbac');
+const { requireSubscription } = require('../middleware/subscription');
 const { createFee, getFees, payFee, createBulkFees } = require('../controllers/feeController');
 
 const router = express.Router();
 
 router.use(protect);
 router.use(sameCollege);
+router.use(requireSubscription);
 
 router.route('/')
   .post(authorize('collegeAdmin'), createFee)

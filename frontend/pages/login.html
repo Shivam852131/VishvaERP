@@ -249,12 +249,33 @@
     setTimeout(() => document.getElementById('errorMsg').classList.remove('show'), 5000);
   }
 
-  function showForgotToast() {
+  async function showForgotToast() {
+    const email = document.getElementById('email').value.trim() || window.prompt('Enter your account email for password reset:');
+    if (!email) {
+      showError('Please enter your email address first.');
+      return;
+    }
+
     const toast = document.createElement('div');
     toast.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;background:white;border-radius:12px;padding:12px 18px;box-shadow:0 10px 30px rgba(0,0,0,0.15);border-left:4px solid #4F46E5;font-size:13px;font-weight:600;min-width:260px;animation:fadeIn 0.3s ease';
-    toast.textContent = '📧 Password reset link sent to your email!';
+    toast.textContent = 'Sending password reset link...';
     document.body.appendChild(toast);
-    setTimeout(() => toast.remove(), 3500);
+
+    try {
+      const res = await fetch(`${API_URL}/auth/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Could not send reset link');
+      toast.textContent = data.message || 'Password reset link sent to your email.';
+    } catch (error) {
+      toast.style.borderLeftColor = '#DC2626';
+      toast.textContent = error.message;
+    } finally {
+      setTimeout(() => toast.remove(), 4500);
+    }
   }
 
   document.getElementById('loginForm').addEventListener('submit', async (e) => {
@@ -276,8 +297,16 @@
       localStorage.setItem('erp_user', JSON.stringify(data.user));
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
+      if (data.refreshToken) {
+        localStorage.setItem('erp_refresh_token', data.refreshToken);
+        localStorage.setItem('refreshToken', data.refreshToken);
+      }
       const role = data.user.role;
-      window.location.href = roleRedirects[role] || roleRedirects['student'];
+      if (role === 'collegeAdmin' && data.subscriptionActive === false) {
+        window.location.href = '/pages/college-admin/subscription.html';
+      } else {
+        window.location.href = roleRedirects[role] || roleRedirects['student'];
+      }
     } catch (err) {
       showError(err.message);
     } finally {

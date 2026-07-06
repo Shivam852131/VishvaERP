@@ -36,8 +36,17 @@ async function sendMail({ to, subject, html, text }) {
 
   const from = process.env.EMAIL_FROM || `"VishvaERP" <${process.env.EMAIL_USER}>`;
 
-  await transport.sendMail({ from, to, subject, html, text });
-  return { success: true, messageId: null };
+  try {
+    await transport.sendMail({ from, to, subject, html, text });
+    return { success: true, messageId: null };
+  } catch (error) {
+    return {
+      success: false,
+      skipped: true,
+      message: 'Email delivery is unavailable. Check SMTP configuration.',
+      error: error.message,
+    };
+  }
 }
 
 async function sendPasswordResetEmail(email, resetUrl, name) {
@@ -95,27 +104,36 @@ async function sendFeeReceiptEmail(email, name, feeDetails, pdfBuffer) {
 
   const from = process.env.EMAIL_FROM || `"VishvaERP" <${process.env.EMAIL_USER}>`;
 
-  await transport.sendMail({
-    from,
-    to: email,
-    subject: `Fee Receipt - ${feeDetails.receiptNo || 'Payment'}`,
-    html: `
-      <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto;">
-        <h2 style="color: #1e293b;">Payment Receipt</h2>
-        <p>Hi ${name},</p>
-        <p>Your payment of <strong>₹${feeDetails.amount}</strong> has been received.</p>
-        <p><strong>Receipt No:</strong> ${feeDetails.receiptNo || 'N/A'}</p>
-        <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
-        <p>Please find the receipt attached.</p>
-      </div>
-    `,
-    text: `Payment Receipt\n\nHi ${name},\n\nYour payment of ₹${feeDetails.amount} has been received.\nReceipt: ${feeDetails.receiptNo || 'N/A'}`,
-    attachments: pdfBuffer
-      ? [{ filename: `receipt-${feeDetails.receiptNo || 'payment'}.pdf`, content: pdfBuffer, contentType: 'application/pdf' }]
-      : [],
-  });
+  try {
+    await transport.sendMail({
+      from,
+      to: email,
+      subject: `Fee Receipt - ${feeDetails.receiptNo || 'Payment'}`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto;">
+          <h2 style="color: #1e293b;">Payment Receipt</h2>
+          <p>Hi ${name},</p>
+          <p>Your payment of <strong>₹${feeDetails.amount}</strong> has been received.</p>
+          <p><strong>Receipt No:</strong> ${feeDetails.receiptNo || 'N/A'}</p>
+          <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+          <p>Please find the receipt attached.</p>
+        </div>
+      `,
+      text: `Payment Receipt\n\nHi ${name},\n\nYour payment of ₹${feeDetails.amount} has been received.\nReceipt: ${feeDetails.receiptNo || 'N/A'}`,
+      attachments: pdfBuffer
+        ? [{ filename: `receipt-${feeDetails.receiptNo || 'payment'}.pdf`, content: pdfBuffer, contentType: 'application/pdf' }]
+        : [],
+    });
 
-  return { success: true, messageId: null };
+    return { success: true, messageId: null };
+  } catch (error) {
+    return {
+      success: false,
+      skipped: true,
+      message: 'Email delivery is unavailable. Check SMTP configuration.',
+      error: error.message,
+    };
+  }
 }
 
 module.exports = {

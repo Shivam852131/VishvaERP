@@ -20,5 +20,7 @@ router.use('/config', require('./config'));
 router.use('/health', require('./health'));
 router.use('/upload', require('./upload'));
 router.use('/reports', require('./reports'));
+router.use('/exam-generator', require('./examGenerator'));
+router.use('/subscriptions', require('./subscription'));
 
 module.exports = router;

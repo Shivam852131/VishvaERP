@@ -40,6 +40,12 @@ const api = {
           window.location.href = '/pages/login.html';
           return;
         }
+        if (res.status === 403 && data.code === 'SUBSCRIPTION_REQUIRED') {
+          if (window.location.pathname !== '/pages/college-admin/subscription.html') {
+            window.location.href = '/pages/college-admin/subscription.html';
+          }
+          throw new Error(data.message);
+        }
         const errorMsg = data.message || data.errors?.[0]?.msg || `HTTP Error ${res.status}`;
         if (!options.silent) showToast(errorMsg, 'error');
         throw new Error(errorMsg);
@@ -1195,7 +1201,7 @@ function initTiltCards() {
 
 /* ─── SHIMMER EFFECT FOR MODULE TILES ─── */
 function initModuleShimmer() {
-  document.querySelectorAll('.module-tile, .role-panel, .plan-card, .outcome-card').forEach(el => {
+  document.querySelectorAll('.lp-module, .lp-role, .lp-plan, .lp-feature-card').forEach(el => {
     el.classList.add('hover-shimmer');
   });
 }
@@ -1237,7 +1243,7 @@ function initLandingThemeToggle() {
 
 /* ─── LANDING SCROLL SPY ─── */
 function initScrollSpy() {
-  const navLinks = document.querySelectorAll('.landing-nav-link');
+  const navLinks = document.querySelectorAll('.lp-nav-link');
   if (!navLinks.length) return;
   const sections = [];
   navLinks.forEach(link => {
@@ -1253,7 +1259,7 @@ function initScrollSpy() {
       if (entry.isIntersecting) {
         const id = '#' + entry.target.id;
         navLinks.forEach(l => l.classList.remove('active'));
-        const active = document.querySelector(`.landing-nav-link[href="${id}"]`);
+        const active = document.querySelector(`.lp-nav-link[href="${id}"]`);
         if (active) active.classList.add('active');
       }
     });
@@ -1297,8 +1303,7 @@ function initBackToTop() {
 
 /* ─── LANDING PARALLAX HERO ─── */
 function initHeroParallax() {
-  const hero = document.querySelector('.landing-hero');
-  const shade = document.querySelector('.landing-hero-shade');
+  const hero = document.querySelector('.lp-hero');
   if (!hero) return;
   let ticking = false;
   window.addEventListener('scroll', () => {
@@ -1307,8 +1312,10 @@ function initHeroParallax() {
         const st = window.scrollY;
         const max = window.innerHeight;
         if (st < max) {
-          hero.style.backgroundPositionY = `${st * 0.15}px`;
-          if (shade) shade.style.opacity = 1 - Math.min(st / (max * 0.6), 0.4);
+          const orbs = hero.querySelectorAll('.lp-orb');
+          orbs.forEach((orb, i) => {
+            orb.style.transform = `translateY(${st * (0.05 + i * 0.03)}px)`;
+          });
         }
         ticking = false;
       });

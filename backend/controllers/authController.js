@@ -1,6 +1,7 @@
 const asyncHandler = require('../middleware/asyncHandler');
 const User = require('../models/User');
 const College = require('../models/College');
+const Subscription = require('../models/Subscription');
 const { generateToken, generateRefreshToken, verifyRefreshToken, generateResetToken } = require('../config/jwt');
 const { validationResult } = require('express-validator');
 const { sendPasswordResetEmail, sendWelcomeEmail } = require('../services/emailService');
@@ -9,6 +10,58 @@ const { logAudit } = require('../services/auditService');
 const failedLoginAttempts = new Map();
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCK_TIME = 15 * 60 * 1000; // 15 minutes
+const DEFAULT_TRIAL_DAYS = 30;
+
+function buildTrialWindow(days = DEFAULT_TRIAL_DAYS) {
+  const startDate = new Date();
+  const endDate = new Date(startDate);
+  endDate.setDate(endDate.getDate() + days);
+  return { startDate, endDate };
+}
+
+async function ensureCollegeTrialSubscription(collegeId, plan = 'basic') {
+  if (!collegeId) return null;
+
+  const activeSubscription = await Subscription.findOne({
+    collegeId,
+    status: 'active',
+    endDate: { $gt: new Date() },
+  });
+  if (activeSubscription) {
+    return activeSubscription;
+  }
+
+  const { startDate, endDate } = buildTrialWindow();
+  const subscription = await Subscription.create({
+    collegeId,
+    plan,
+    amount: 0,
+    currency: 'INR',
+    status: 'active',
+    startDate,
+    endDate,
+    billingCycle: 'monthly',
+  });
+
+  await College.findByIdAndUpdate(collegeId, { plan, planExpiry: endDate }, { runValidators: false });
+  return subscription;
+}
+
+async function hasActiveCollegeAccess(collegeId) {
+  if (!collegeId) return false;
+
+  const activeSubscription = await Subscription.findOne({
+    collegeId,
+    status: 'active',
+    endDate: { $gt: new Date() },
+  }).select('_id');
+  if (activeSubscription) {
+    return true;
+  }
+
+  const college = await College.findById(collegeId).select('planExpiry');
+  return Boolean(college?.planExpiry && college.planExpiry > new Date());
+}
 
 // @desc    Register user
 // @route   POST /api/auth/register
@@ -19,7 +72,7 @@ const register = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, errors: errors.array() });
   }
 
-  const { name, email, password, role, collegeId, phone } = req.body;
+  const { name, email, password, role, collegeId, phone, collegeName } = req.body;
 
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
   if (!passwordRegex.test(password)) {
@@ -44,10 +97,15 @@ const register = asyncHandler(async (req, res) => {
 
   // Auto-create a college if a collegeAdmin registers externally without an ID
   if (role === 'collegeAdmin' && !assignedCollegeId) {
+    const { endDate } = buildTrialWindow();
     const newCollege = await College.create({
-      name: `${name}'s College`,
+      name: collegeName || `${name}'s College`,
       code: `COL-${Math.floor(1000 + Math.random() * 9000)}`,
       address: 'To be updated',
+      email,
+      phone,
+      plan: 'basic',
+      planExpiry: endDate,
       isActive: true
     });
     assignedCollegeId = newCollege._id;
@@ -55,11 +113,18 @@ const register = asyncHandler(async (req, res) => {
 
   const user = await User.create({ name, email, password, role, collegeId: assignedCollegeId || null, phone });
 
+  if (role === 'collegeAdmin' && assignedCollegeId) {
+    await College.findByIdAndUpdate(assignedCollegeId, { adminId: user._id, email, phone }, { runValidators: false });
+    await ensureCollegeTrialSubscription(assignedCollegeId, 'basic');
+  }
+
   const token = generateToken({ id: user._id, role: user.role, collegeId: user.collegeId });
   const refreshToken = generateRefreshToken({ id: user._id, role: user.role, collegeId: user.collegeId });
 
   // Send welcome email in background (don't block registration)
   sendWelcomeEmail(email, name, 'Set via registration', role).catch(() => {});
+
+  const subscriptionActive = role === 'collegeAdmin' ? await hasActiveCollegeAccess(assignedCollegeId) : null;
 
   res.status(201).json({
     success: true,
@@ -74,6 +139,7 @@ const register = asyncHandler(async (req, res) => {
       collegeId: user.collegeId,
       avatar: user.avatar,
     },
+    subscriptionActive,
   });
 });
 
@@ -125,6 +191,12 @@ const login = asyncHandler(async (req, res) => {
   const token = generateToken({ id: user._id, role: user.role, collegeId: user.collegeId });
   const refreshToken = generateRefreshToken({ id: user._id, role: user.role, collegeId: user.collegeId });
 
+  // For college admins, check subscription status
+  let subscriptionActive = null;
+  if (user.role === 'collegeAdmin' && user.collegeId) {
+    subscriptionActive = await hasActiveCollegeAccess(user.collegeId);
+  }
+
   res.json({
     success: true,
     message: 'Login successful',
@@ -139,6 +211,7 @@ const login = asyncHandler(async (req, res) => {
       avatar: user.avatar,
       lastLogin: user.lastLogin,
     },
+    subscriptionActive,
   });
 });
 

@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exam Generator — College Admin | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../css/custom.css">
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-college" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" id="sidebar-avatar">A</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Admin</div><div class="sidebar-user-role">College Administrator</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <div class="nav-section-label">Academics</div>
+      <a href="students.html" class="nav-link"><i class="nav-link-icon fas fa-user-graduate"></i> Students</a>
+      <a href="faculty.html" class="nav-link"><i class="nav-link-icon fas fa-chalkboard-teacher"></i> Faculty</a>
+      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-open"></i> Courses & Exams</a>
+      <a href="notices.html" class="nav-link"><i class="nav-link-icon fas fa-bullhorn"></i> Notice Board</a>
+      <a href="exam-generator.html" class="nav-link active"><i class="nav-link-icon fas fa-file-alt"></i> Exam Generator</a>
+      <div class="nav-section-label">Finance & HR</div>
+      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-file-invoice-dollar"></i> Fee Management</a>
+      <a href="hr.html" class="nav-link"><i class="nav-link-icon fas fa-user-md"></i> HR & Leave</a>
+      <a href="subscription.html" class="nav-link"><i class="nav-link-icon fas fa-credit-card"></i> Subscription</a>
+      <div class="nav-section-label">Facilities</div>
+      <a href="logistics.html" class="nav-link"><i class="nav-link-icon fas fa-bus"></i> Logistics & Hostel</a>
+      <div class="nav-section-label">Tools</div>
+      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Hub</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">College Admin / <span>Exam Generator</span></div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-secondary" id="bulkImportBtn" onclick="openModal('bulkImportModal')"><i class="fas fa-file-import"></i> Bulk Import</button>
+        <div class="topbar-avatar" id="topbar-avatar">A</div>
+      </div>
+    </header>
+
+    <div class="erp-content">
+      <div class="page-header">
+        <h1 class="page-title">Exam Generator</h1>
+        <p class="page-subtitle">Build question banks, create exam templates, and generate question papers.</p>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tab-bar mb-6" style="max-width:450px">
+        <button class="tab-btn active" onclick="showTab('questionBank',this)">Question Bank</button>
+        <button class="tab-btn" onclick="showTab('templates',this)">Exam Templates</button>
+        <button class="tab-btn" onclick="showTab('generate',this)">Generate Paper</button>
+      </div>
+
+      <!-- ======================== TAB 1: QUESTION BANK ======================== -->
+      <div id="tab-questionBank">
+        <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px">
+          <div class="stat-card"><div class="stat-icon" style="background:#DBEAFE;color:#1E40AF"><i class="fas fa-database"></i></div><div class="stat-label">Total Questions</div><div class="stat-value" id="statTotalQ">0</div></div>
+          <div class="stat-card"><div class="stat-icon" style="background:#D1FAE5;color:#065F46"><i class="fas fa-check-circle"></i></div><div class="stat-label">Easy</div><div class="stat-value" id="statEasy">0</div></div>
+          <div class="stat-card"><div class="stat-icon" style="background:#FEF3C7;color:#92400E"><i class="fas fa-exclamation-circle"></i></div><div class="stat-label">Medium</div><div class="stat-value" id="statMedium">0</div></div>
+          <div class="stat-card"><div class="stat-icon" style="background:#FEE2E2;color:#991B1B"><i class="fas fa-fire"></i></div><div class="stat-label">Hard / Very Hard</div><div class="stat-value" id="statHard">0</div></div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Question Bank</div>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+              <div class="search-bar" style="width:180px"><i class="fas fa-search"></i><input type="text" placeholder="Search questions..." id="qSearch" oninput="debounceLoadQuestions()"></div>
+              <select class="form-control" style="width:140px" id="qSubjectFilter" onchange="loadQuestions()"><option value="">All Subjects</option></select>
+              <select class="form-control" style="width:130px" id="qDifficultyFilter" onchange="loadQuestions()">
+                <option value="">All Difficulty</option>
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+                <option value="very_hard">Very Hard</option>
+              </select>
+              <select class="form-control" style="width:140px" id="qTypeFilter" onchange="loadQuestions()">
+                <option value="">All Types</option>
+                <option value="mcq">MCQ</option>
+                <option value="short_answer">Short Answer</option>
+                <option value="long_answer">Long Answer</option>
+                <option value="true_false">True / False</option>
+                <option value="fill_blank">Fill in Blank</option>
+                <option value="numerical">Numerical</option>
+              </select>
+              <button class="btn btn-outline btn-sm" onclick="openModal('photoUploadModal')"><i class="fas fa-camera"></i> Add from Photo</button>
+              <button class="btn btn-primary btn-sm" onclick="openAddQuestionModal()"><i class="fas fa-plus"></i> Add Question</button>
+            </div>
+          </div>
+          <div class="table-wrap">
+            <table class="erp-table">
+              <thead><tr><th>#</th><th>Subject</th><th>Question</th><th>Type</th><th>Difficulty</th><th>Marks</th><th>Actions</th></tr></thead>
+              <tbody id="questionsBody"></tbody>
+            </table>
+          </div>
+          <div class="card-footer" style="display:flex;justify-content:space-between;align-items:center">
+            <span id="qPageInfo" style="font-size:13px;color:#888"></span>
+            <div style="display:flex;gap:6px" id="qPagination"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ======================== TAB 2: EXAM TEMPLATES ======================== -->
+      <div id="tab-templates" style="display:none">
+        <div style="display:flex;justify-content:flex-end;margin-bottom:16px">
+          <button class="btn btn-primary btn-sm" onclick="openCreateTemplateModal()"><i class="fas fa-plus"></i> Create Template</button>
+        </div>
+        <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px" id="templatesGrid"></div>
+        <div id="templatesEmpty" class="card" style="display:none;text-align:center;padding:48px 24px;color:#888">
+          <i class="fas fa-file-alt" style="font-size:48px;margin-bottom:12px;color:#ccc"></i>
+          <p>No templates yet. Create one to start generating papers.</p>
+        </div>
+      </div>
+
+      <!-- ======================== TAB 3: GENERATE PAPER ======================== -->
+      <div id="tab-generate" style="display:none">
+        <div class="card" style="max-width:600px">
+          <div class="card-header"><div class="card-title">Generate Question Paper</div></div>
+          <div class="card-body">
+            <div class="form-group">
+              <label class="form-label">Select Template *</label>
+              <select class="form-control" id="genTemplate"><option value="">-- Choose a template --</option></select>
+            </div>
+            <button class="btn btn-primary" onclick="generatePaper()" id="genPaperBtn"><i class="fas fa-magic"></i> Generate Paper</button>
+          </div>
+        </div>
+        <div id="generatedPaperArea" style="display:none;margin-top:24px">
+          <div style="display:flex;gap:10px;margin-bottom:16px">
+            <button class="btn btn-secondary btn-sm" onclick="downloadPDF()"><i class="fas fa-file-pdf"></i> Download PDF</button>
+            <button class="btn btn-outline btn-sm" onclick="window.print()"><i class="fas fa-print"></i> Print</button>
+          </div>
+          <div class="card" id="generatedPaperCard"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======================== ADD QUESTION MODAL ======================== -->
+<div class="modal-backdrop" id="addQuestionModal">
+  <div class="modal" style="max-width:720px">
+    <div class="modal-header"><div class="modal-title" id="aqModalTitle">Add Question</div><button class="modal-close" onclick="closeModal('addQuestionModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Subject *</label><select class="form-control" id="aqSubject"><option value="">Select Subject</option></select></div>
+        <div class="form-group"><label class="form-label">Question Type *</label><select class="form-control" id="aqType" onchange="toggleAnswerFields()"><option value="mcq">MCQ</option><option value="short_answer">Short Answer</option><option value="long_answer">Long Answer</option><option value="true_false">True / False</option><option value="fill_blank">Fill in Blank</option><option value="numerical">Numerical</option></select></div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Unit</label><input class="form-control" id="aqUnit" placeholder="e.g. Unit 1"></div>
+        <div class="form-group"><label class="form-label">Chapter</label><input class="form-control" id="aqChapter" placeholder="e.g. Trees & Graphs"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Question Text *</label><textarea class="form-control" id="aqQuestion" rows="3" placeholder="Enter the question..."></textarea></div>
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Difficulty *</label><select class="form-control" id="aqDifficulty"><option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option><option value="very_hard">Very Hard</option></select></div>
+        <div class="form-group"><label class="form-label">Marks *</label><input class="form-control" type="number" id="aqMarks" min="1" placeholder="e.g. 2"></div>
+      </div>
+
+      <!-- MCQ options -->
+      <div id="aqMcqOptions">
+        <label class="form-label">Options (check the correct answer)</label>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><input type="radio" name="aqCorrect" value="0" checked><input class="form-control" id="aqOpt0" placeholder="Option A"></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><input type="radio" name="aqCorrect" value="1"><input class="form-control" id="aqOpt1" placeholder="Option B"></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><input type="radio" name="aqCorrect" value="2"><input class="form-control" id="aqOpt2" placeholder="Option C"></div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><input type="radio" name="aqCorrect" value="3"><input class="form-control" id="aqOpt3" placeholder="Option D"></div>
+      </div>
+
+      <!-- True/False -->
+      <div id="aqTfOptions" style="display:none">
+        <label class="form-label">Correct Answer</label>
+        <div style="display:flex;gap:16px">
+          <label style="display:flex;align-items:center;gap:6px"><input type="radio" name="aqTf" value="true" checked> True</label>
+          <label style="display:flex;align-items:center;gap:6px"><input type="radio" name="aqTf" value="false"> False</label>
+        </div>
+      </div>
+
+      <!-- Other answer -->
+      <div id="aqOtherAnswer" style="display:none">
+        <div class="form-group"><label class="form-label">Correct Answer</label><input class="form-control" id="aqAnswer" placeholder="Enter the correct answer"></div>
+      </div>
+
+      <div class="form-group"><label class="form-label">Explanation (optional)</label><textarea class="form-control" id="aqExplanation" rows="2" placeholder="Explain the answer..."></textarea></div>
+      <input type="hidden" id="aqEditId" value="">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('addQuestionModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveQuestion()"><i class="fas fa-check"></i> <span id="aqSaveBtnText">Save Question</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- ======================== PHOTO UPLOAD MODAL ======================== -->
+<div class="modal-backdrop" id="photoUploadModal">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-header"><div class="modal-title">Add Question from Photo</div><button class="modal-close" onclick="closeModal('photoUploadModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:#666;margin-bottom:12px"><i class="fas fa-info-circle"></i> Upload a photo of a question from a textbook or paper. You'll add the question details manually after upload.</p>
+      <div id="photoDropArea" style="border:2px dashed #d1d5db;border-radius:12px;padding:40px;text-align:center;cursor:pointer;transition:border-color .2s" onclick="document.getElementById('photoFileInput').click()" ondragover="event.preventDefault();this.style.borderColor='#4F46E5'" ondragleave="this.style.borderColor='#d1d5db'" ondrop="event.preventDefault();this.style.borderColor='#4F46E5';handlePhotoDrop(event)">
+        <i class="fas fa-cloud-upload-alt" style="font-size:36px;color:#9ca3af;margin-bottom:8px;display:block"></i>
+        <span style="color:#666">Drag & drop an image or <strong style="color:#4F46E5">click to browse</strong></span>
+        <input type="file" id="photoFileInput" accept="image/*" style="display:none" onchange="previewPhoto(this)">
+      </div>
+      <div id="photoPreviewWrap" style="display:none;margin-top:16px;text-align:center">
+        <img id="photoPreviewImg" style="max-height:220px;border-radius:8px;border:1px solid #e5e7eb">
+        <div style="margin-top:8px"><button class="btn btn-outline btn-sm" onclick="clearPhotoPreview()"><i class="fas fa-times"></i> Remove</button></div>
+      </div>
+      <div style="margin-top:16px">
+        <div class="form-grid-2">
+          <div class="form-group"><label class="form-label">Subject *</label><select class="form-control" id="puSubject"><option value="">Select Subject</option></select></div>
+          <div class="form-group"><label class="form-label">Chapter</label><input class="form-control" id="puChapter" placeholder="e.g. Chapter 3"></div>
+        </div>
+        <div class="form-group"><label class="form-label">Unit</label><input class="form-control" id="puUnit" placeholder="e.g. Unit 2"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('photoUploadModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="uploadPhotoAndProceed()" id="puUploadBtn"><i class="fas fa-upload"></i> Upload & Add Question</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======================== BULK IMPORT MODAL ======================== -->
+<div class="modal-backdrop" id="bulkImportModal">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-header"><div class="modal-title">Bulk Import Questions</div><button class="modal-close" onclick="closeModal('bulkImportModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:#666;margin-bottom:12px"><i class="fas fa-info-circle"></i> Upload a JSON file with an array of question objects. Each object must include: <code>subjectId, question, questionType, difficulty, marks, options (for MCQ), answer</code>.</p>
+      <div class="form-group"><label class="form-label">Subject *</label><select class="form-control" id="biSubject"><option value="">Select Subject</option></select></div>
+      <div style="border:2px dashed #d1d5db;border-radius:12px;padding:24px;text-align:center;cursor:pointer" onclick="document.getElementById('biFileInput').click()">
+        <i class="fas fa-file-upload" style="font-size:28px;color:#9ca3af;margin-bottom:8px;display:block"></i>
+        <span style="color:#666">Click to select JSON file</span>
+        <input type="file" id="biFileInput" accept=".json" style="display:none" onchange="handleBulkFile(this)">
+      </div>
+      <div id="biFileInfo" style="display:none;margin-top:12px;padding:10px;background:#f3f4f6;border-radius:8px;font-size:13px"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('bulkImportModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="bulkImport()" id="biImportBtn" disabled><i class="fas fa-file-import"></i> Import</button>
+    </div>
+  </div>
+</div>
+
+<!-- ======================== CREATE TEMPLATE MODAL ======================== -->
+<div class="modal-backdrop" id="createTemplateModal">
+  <div class="modal" style="max-width:780px">
+    <div class="modal-header"><div class="modal-title">Create Exam Template</div><button class="modal-close" onclick="closeModal('createTemplateModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Template Name *</label><input class="form-control" id="ctName" placeholder="e.g. Mid-Sem 2026"></div>
+        <div class="form-group"><label class="form-label">Subject *</label><select class="form-control" id="ctSubject" onchange="loadStructureForTemplate()"><option value="">Select Subject</option></select></div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="form-label">Units / Chapters</label>
+          <div id="ctUnitsList" style="border:1px solid #d1d5db;border-radius:8px;padding:10px;max-height:120px;overflow-y:auto;font-size:13px">
+            <span style="color:#999">Select a subject first</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Difficulty Level *</label>
+          <select class="form-control" id="ctDifficulty">
+            <option value="mixed">Mixed</option>
+            <option value="easy">Easy</option>
+            <option value="medium">Medium</option>
+            <option value="hard">Hard</option>
+            <option value="very_hard">Very Hard</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Duration (minutes) *</label><input class="form-control" type="number" id="ctDuration" value="120" min="10"></div>
+        <div class="form-group"><label class="form-label">Total Marks</label><input class="form-control" type="number" id="ctTotalMarks" readonly style="background:#f3f4f6"></div>
+      </div>
+
+      <label class="form-label" style="margin-top:8px">Question Distribution</label>
+      <div class="table-wrap">
+        <table class="erp-table">
+          <thead><tr><th>Question Type</th><th style="width:100px">Count</th><th style="width:100px">Marks Each</th><th style="width:100px">Subtotal</th></tr></thead>
+          <tbody>
+            <tr><td>MCQ</td><td><input class="form-control" type="number" id="ctMcqCount" min="0" value="0" onchange="calcTotalMarks()" style="width:80px"></td><td><input class="form-control" type="number" id="ctMcqMarks" min="1" value="1" onchange="calcTotalMarks()" style="width:80px"></td><td id="ctMcqSub" style="text-align:center;font-weight:600">0</td></tr>
+            <tr><td>True / False</td><td><input class="form-control" type="number" id="ctTfCount" min="0" value="0" onchange="calcTotalMarks()" style="width:80px"></td><td><input class="form-control" type="number" id="ctTfMarks" min="1" value="1" onchange="calcTotalMarks()" style="width:80px"></td><td id="ctTfSub" style="text-align:center;font-weight:600">0</td></tr>
+            <tr><td>Fill in Blank</td><td><input class="form-control" type="number" id="ctFbCount" min="0" value="0" onchange="calcTotalMarks()" style="width:80px"></td><td><input class="form-control" type="number" id="ctFbMarks" min="1" value="1" onchange="calcTotalMarks()" style="width:80px"></td><td id="ctFbSub" style="text-align:center;font-weight:600">0</td></tr>
+            <tr><td>Short Answer</td><td><input class="form-control" type="number" id="ctSaCount" min="0" value="0" onchange="calcTotalMarks()" style="width:80px"></td><td><input class="form-control" type="number" id="ctSaMarks" min="1" value="5" onchange="calcTotalMarks()" style="width:80px"></td><td id="ctSaSub" style="text-align:center;font-weight:600">0</td></tr>
+            <tr><td>Long Answer</td><td><input class="form-control" type="number" id="ctLaCount" min="0" value="0" onchange="calcTotalMarks()" style="width:80px"></td><td><input class="form-control" type="number" id="ctLaMarks" min="1" value="10" onchange="calcTotalMarks()" style="width:80px"></td><td id="ctLaSub" style="text-align:center;font-weight:600">0</td></tr>
+            <tr><td>Numerical</td><td><input class="form-control" type="number" id="ctNmCount" min="0" value="0" onchange="calcTotalMarks()" style="width:80px"></td><td><input class="form-control" type="number" id="ctNmMarks" min="1" value="5" onchange="calcTotalMarks()" style="width:80px"></td><td id="ctNmSub" style="text-align:center;font-weight:600">0</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="form-group" style="margin-top:12px"><label class="form-label">Instructions (optional)</label><textarea class="form-control" id="ctInstructions" rows="3" placeholder="e.g. All questions are compulsory."></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('createTemplateModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveTemplate()"><i class="fas fa-check"></i> Save Template</button>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script src="../../live/live-admin-pages.js"></script>
+<script>
+(async function init() {
+  await loadSubjects();
+  await loadQuestionsStats();
+  await loadQuestions();
+  await loadTemplates();
+})();
+
+/* ─── HELPERS ─────────────────────────────────────── */
+let _qDebounce;
+function debounceLoadQuestions() { clearTimeout(_qDebounce); _qDebounce = setTimeout(loadQuestions, 350); }
+
+let subjectsCache = [];
+async function loadSubjects() {
+  try {
+    subjectsCache = await api.get('/academics/subjects');
+    const arr = Array.isArray(subjectsCache) ? subjectsCache : (subjectsCache.data || []);
+    subjectsCache = arr;
+    const opts = arr.map(s => `<option value="${s._id}">${s.name}</option>`).join('');
+    ['qSubjectFilter','aqSubject','puSubject','biSubject','ctSubject'].forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const first = el.options[0]?.outerHTML || '';
+      el.innerHTML = first + opts;
+    });
+  } catch(e) { console.error(e); }
+}
+
+const TYPE_LABELS = { mcq:'MCQ', short_answer:'Short Answer', long_answer:'Long Answer', true_false:'True / False', fill_blank:'Fill in Blank', numerical:'Numerical' };
+const DIFF_COLORS = { easy:'#065F46', medium:'#92400E', hard:'#991B1B', very_hard:'#7C2D12' };
+const DIFF_BG = { easy:'#D1FAE5', medium:'#FEF3C7', hard:'#FEE2E2', very_hard:'#FDE68A' };
+
+function escHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+/* ─── TAB SWITCHING ───────────────────────────────── */
+function showTab(name, btn) {
+  document.querySelectorAll('[id^="tab-"]').forEach(t => t.style.display = 'none');
+  document.getElementById('tab-' + name).style.display = '';
+  btn.closest('.tab-bar').querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+/* ─── QUESTION BANK ───────────────────────────────── */
+let qPage = 1;
+async function loadQuestionsStats() {
+  try {
+    const s = await api.get('/exam-generator/questions/stats');
+    document.getElementById('statTotalQ').textContent = s.total || 0;
+    document.getElementById('statEasy').textContent = s.easy || 0;
+    document.getElementById('statMedium').textContent = s.medium || 0;
+    document.getElementById('statHard').textContent = (s.hard || 0) + (s.very_hard || 0);
+  } catch(e) { console.error(e); }
+}
+
+async function loadQuestions(page) {
+  if (page) qPage = page;
+  const params = new URLSearchParams({ page: qPage, limit: 15 });
+  const sub = document.getElementById('qSubjectFilter').value;
+  const diff = document.getElementById('qDifficultyFilter').value;
+  const type = document.getElementById('qTypeFilter').value;
+  const search = document.getElementById('qSearch').value.trim();
+  if (sub) params.set('subjectId', sub);
+  if (diff) params.set('difficulty', diff);
+  if (type) params.set('questionType', type);
+  if (search) params.set('search', search);
+
+  try {
+    const res = await api.get('/exam-generator/questions?' + params.toString());
+    const questions = res.data || res.questions || res || [];
+    const total = res.total || questions.length;
+    const perPage = res.perPage || 15;
+    const totalPages = Math.ceil(total / perPage);
+
+    const tbody = document.getElementById('questionsBody');
+    if (!questions.length) { tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:32px;color:#999">No questions found.</td></tr>'; }
+    else {
+      tbody.innerHTML = questions.map((q, i) => {
+        const qText = escHtml((q.question || '').slice(0, 80)) + ((q.question || '').length > 80 ? '...' : '');
+        return `<tr>
+          <td>${(qPage - 1) * perPage + i + 1}</td>
+          <td>${escHtml(q.subject?.name || q.subjectName || '--')}</td>
+          <td style="max-width:300px">${qText}</td>
+          <td><span style="font-size:12px;background:#EEF2FF;color:#4338CA;padding:2px 8px;border-radius:6px">${TYPE_LABELS[q.questionType] || q.questionType}</span></td>
+          <td><span style="font-size:12px;background:${DIFF_BG[q.difficulty] || '#f3f4f6'};color:${DIFF_COLORS[q.difficulty] || '#333'};padding:2px 8px;border-radius:6px;text-transform:capitalize">${(q.difficulty || '').replace('_',' ')}</span></td>
+          <td>${q.marks || '--'}</td>
+          <td>
+            <button class="btn btn-outline btn-sm" style="padding:2px 8px" onclick="editQuestion('${q._id}')"><i class="fas fa-pen"></i></button>
+            <button class="btn btn-outline btn-sm" style="padding:2px 8px;color:#DC2626;border-color:#FCA5A5" onclick="deleteQuestion('${q._id}')"><i class="fas fa-trash"></i></button>
+          </td>
+        </tr>`;
+      }).join('');
+    }
+
+    document.getElementById('qPageInfo').textContent = `Showing ${questions.length ? (qPage - 1) * perPage + 1 : 0}–${Math.min(qPage * perPage, total)} of ${total}`;
+    const pagDiv = document.getElementById('qPagination');
+    pagDiv.innerHTML = '';
+    for (let p = 1; p <= totalPages; p++) {
+      pagDiv.innerHTML += `<button class="btn btn-sm ${p === qPage ? 'btn-primary' : 'btn-outline'}" onclick="loadQuestions(${p})">${p}</button>`;
+    }
+  } catch(e) { console.error(e); toast('Failed to load questions', 'error'); }
+}
+
+function openAddQuestionModal() {
+  document.getElementById('aqEditId').value = '';
+  document.getElementById('aqModalTitle').textContent = 'Add Question';
+  document.getElementById('aqSaveBtnText').textContent = 'Save Question';
+  ['aqSubject','aqType','aqDifficulty'].forEach(id => { document.getElementById(id).selectedIndex = 0; });
+  ['aqUnit','aqChapter','aqQuestion','aqAnswer','aqExplanation'].forEach(id => { document.getElementById(id).value = ''; });
+  ['aqOpt0','aqOpt1','aqOpt2','aqOpt3'].forEach((id,i) => { document.getElementById(id).value = ''; });
+  document.querySelector('input[name="aqCorrect"][value="0"]').checked = true;
+  document.querySelector('input[name="aqTf"][value="true"]').checked = true;
+  document.getElementById('aqMarks').value = '';
+  toggleAnswerFields();
+  openModal('addQuestionModal');
+}
+
+function toggleAnswerFields() {
+  const type = document.getElementById('aqType').value;
+  document.getElementById('aqMcqOptions').style.display = type === 'mcq' ? '' : 'none';
+  document.getElementById('aqTfOptions').style.display = type === 'true_false' ? '' : 'none';
+  document.getElementById('aqOtherAnswer').style.display = (!['mcq','true_false'].includes(type)) ? '' : 'none';
+}
+
+function buildQuestionData() {
+  const type = document.getElementById('aqType').value;
+  const data = {
+    subjectId: document.getElementById('aqSubject').value,
+    unit: document.getElementById('aqUnit').value.trim(),
+    chapter: document.getElementById('aqChapter').value.trim(),
+    questionType: type,
+    question: document.getElementById('aqQuestion').value.trim(),
+    difficulty: document.getElementById('aqDifficulty').value,
+    marks: parseInt(document.getElementById('aqMarks').value) || 1,
+    explanation: document.getElementById('aqExplanation').value.trim(),
+  };
+  if (type === 'mcq') {
+    data.options = [0,1,2,3].map(i => document.getElementById('aqOpt' + i).value.trim());
+    data.correctOption = parseInt(document.querySelector('input[name="aqCorrect"]:checked').value);
+  } else if (type === 'true_false') {
+    data.correctAnswer = document.querySelector('input[name="aqTf"]:checked').value;
+  } else {
+    data.correctAnswer = document.getElementById('aqAnswer').value.trim();
+  }
+  return data;
+}
+
+async function saveQuestion() {
+  const data = buildQuestionData();
+  if (!data.subjectId || !data.question) { toast('Subject and Question are required', 'error'); return; }
+  const editId = document.getElementById('aqEditId').value;
+  try {
+    if (editId) {
+      await api.put('/exam-generator/questions/' + editId, data);
+      toast('Question updated');
+    } else {
+      await api.post('/exam-generator/questions', data);
+      toast('Question added');
+    }
+    closeModal('addQuestionModal');
+    await loadQuestionsStats();
+    await loadQuestions();
+  } catch(e) { toast('Failed to save question', 'error'); console.error(e); }
+}
+
+async function editQuestion(id) {
+  try {
+    const res = await api.get('/exam-generator/questions/' + id);
+    const q = res.data || res;
+    openAddQuestionModal();
+    document.getElementById('aqEditId').value = q._id;
+    document.getElementById('aqModalTitle').textContent = 'Edit Question';
+    document.getElementById('aqSaveBtnText').textContent = 'Update Question';
+    document.getElementById('aqSubject').value = q.subjectId || q.subject?._id || '';
+    document.getElementById('aqType').value = q.questionType;
+    document.getElementById('aqUnit').value = q.unit || '';
+    document.getElementById('aqChapter').value = q.chapter || '';
+    document.getElementById('aqQuestion').value = q.question || '';
+    document.getElementById('aqDifficulty').value = q.difficulty || 'medium';
+    document.getElementById('aqMarks').value = q.marks || 1;
+    document.getElementById('aqExplanation').value = q.explanation || '';
+    toggleAnswerFields();
+    if (q.questionType === 'mcq' && q.options) {
+      q.options.forEach((o, i) => { if (i < 4) document.getElementById('aqOpt' + i).value = o; });
+      const ci = q.correctOption ?? 0;
+      document.querySelector(`input[name="aqCorrect"][value="${ci}"]`).checked = true;
+    } else if (q.questionType === 'true_false') {
+      const v = q.correctAnswer || 'true';
+      document.querySelector(`input[name="aqTf"][value="${v}"]`).checked = true;
+    } else {
+      document.getElementById('aqAnswer').value = q.correctAnswer || '';
+    }
+  } catch(e) { toast('Failed to load question', 'error'); console.error(e); }
+}
+
+async function deleteQuestion(id) {
+  if (!confirm('Delete this question?')) return;
+  try {
+    await api.delete('/exam-generator/questions/' + id);
+    toast('Question deleted');
+    await loadQuestionsStats();
+    await loadQuestions();
+  } catch(e) { toast('Failed to delete', 'error'); console.error(e); }
+}
+
+/* ─── PHOTO UPLOAD ─────────────────────────────────── */
+let photoFile = null;
+function handlePhotoDrop(e) { const f = e.dataTransfer.files[0]; if (f) previewPhotoFile(f); }
+function previewPhoto(input) { if (input.files[0]) previewPhotoFile(input.files[0]); }
+function previewPhotoFile(f) {
+  photoFile = f;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    document.getElementById('photoPreviewImg').src = ev.target.result;
+    document.getElementById('photoPreviewWrap').style.display = '';
+    document.getElementById('photoDropArea').style.display = 'none';
+  };
+  reader.readAsDataURL(f);
+}
+function clearPhotoPreview() {
+  photoFile = null;
+  document.getElementById('photoPreviewWrap').style.display = 'none';
+  document.getElementById('photoDropArea').style.display = '';
+  document.getElementById('photoFileInput').value = '';
+}
+
+async function uploadPhotoAndProceed() {
+  const subjectId = document.getElementById('puSubject').value;
+  if (!subjectId) { toast('Please select a subject', 'error'); return; }
+  if (!photoFile) { toast('Please upload a photo', 'error'); return; }
+
+  const btn = document.getElementById('puUploadBtn');
+  btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+  try {
+    const token = localStorage.getItem('token');
+    const formData = new FormData();
+    formData.append('image', photoFile);
+    const uploadRes = await fetch('/api/upload/image', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData
+    });
+    const uploadData = await uploadRes.json();
+    const imageUrl = uploadData.url || uploadData.data?.url || '';
+
+    closeModal('photoUploadModal');
+    clearPhotoPreview();
+    toast('Photo uploaded. Fill in the question details.');
+    openAddQuestionModal();
+    document.getElementById('aqSubject').value = subjectId;
+    document.getElementById('aqUnit').value = document.getElementById('puUnit').value || '';
+    document.getElementById('aqChapter').value = document.getElementById('puChapter').value || '';
+    if (imageUrl) {
+      document.getElementById('aqExplanation').value = '[Reference Image: ' + imageUrl + ']';
+    }
+  } catch(e) { toast('Upload failed', 'error'); console.error(e); }
+  finally { btn.disabled = false; btn.innerHTML = '<i class="fas fa-upload"></i> Upload & Add Question'; }
+}
+
+/* ─── BULK IMPORT ─────────────────────────────────── */
+let bulkData = null;
+function handleBulkFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    try {
+      bulkData = JSON.parse(ev.target.result);
+      if (!Array.isArray(bulkData)) throw new Error('Not an array');
+      document.getElementById('biFileInfo').style.display = '';
+      document.getElementById('biFileInfo').innerHTML = `<i class="fas fa-check-circle" style="color:#065F46"></i> ${bulkData.length} questions found in <strong>${file.name}</strong>`;
+      document.getElementById('biImportBtn').disabled = false;
+    } catch(e) {
+      toast('Invalid JSON file', 'error');
+      document.getElementById('biFileInfo').style.display = 'none';
+      bulkData = null;
+    }
+  };
+  reader.readAsText(file);
+}
+
+async function bulkImport() {
+  const subjectId = document.getElementById('biSubject').value;
+  if (!subjectId) { toast('Select a subject', 'error'); return; }
+  if (!bulkData || !bulkData.length) { toast('No data to import', 'error'); return; }
+  try {
+    await api.post('/exam-generator/questions/bulk', { subjectId, questions: bulkData });
+    toast(`${bulkData.length} questions imported`);
+    closeModal('bulkImportModal');
+    bulkData = null;
+    await loadQuestionsStats();
+    await loadQuestions();
+  } catch(e) { toast('Import failed', 'error'); console.error(e); }
+}
+
+/* ─── TEMPLATES ────────────────────────────────────── */
+let structureCache = {};
+async function loadStructureForTemplate() {
+  const subjectId = document.getElementById('ctSubject').value;
+  const listEl = document.getElementById('ctUnitsList');
+  if (!subjectId) { listEl.innerHTML = '<span style="color:#999">Select a subject first</span>'; return; }
+  try {
+    let struct = structureCache[subjectId];
+    if (!struct) {
+      struct = await api.get('/exam-generator/structure/' + subjectId);
+      structureCache[subjectId] = struct;
+    }
+    const units = struct.units || struct.data?.units || [];
+    if (!units.length) { listEl.innerHTML = '<span style="color:#999">No units found</span>'; return; }
+    listEl.innerHTML = units.map((u, i) => {
+      const label = u.name || `Unit ${i + 1}`;
+      return `<label style="display:block;padding:4px 0;cursor:pointer"><input type="checkbox" value="${u._id || u.id || i}" class="ct-unit-check" checked> ${escHtml(label)}</label>`;
+    }).join('');
+  } catch(e) { listEl.innerHTML = '<span style="color:#DC2626">Failed to load structure</span>'; console.error(e); }
+}
+
+function calcTotalMarks() {
+  const pairs = [
+    ['ctMcqCount','ctMcqMarks','ctMcqSub'],
+    ['ctTfCount','ctTfMarks','ctTfSub'],
+    ['ctFbCount','ctFbMarks','ctFbSub'],
+    ['ctSaCount','ctSaMarks','ctSaSub'],
+    ['ctLaCount','ctLaMarks','ctLaSub'],
+    ['ctNmCount','ctNmMarks','ctNmSub'],
+  ];
+  let total = 0;
+  pairs.forEach(([cId, mId, sId]) => {
+    const c = parseInt(document.getElementById(cId).value) || 0;
+    const m = parseInt(document.getElementById(mId).value) || 0;
+    const sub = c * m;
+    document.getElementById(sId).textContent = sub;
+    total += sub;
+  });
+  document.getElementById('ctTotalMarks').value = total;
+}
+
+function openCreateTemplateModal() {
+  ['ctName','ctDuration','ctInstructions'].forEach(id => { document.getElementById(id).value = id === 'ctDuration' ? '120' : ''; });
+  ['ctMcqCount','ctTfCount','ctFbCount','ctSaCount','ctLaCount','ctNmCount'].forEach(id => { document.getElementById(id).value = 0; });
+  ['ctMcqMarks','ctFbMarks','ctSaMarks','ctLaMarks','ctNmMarks'].forEach(id => { document.getElementById(id).value = id === 'ctMcqMarks' ? '1' : id === 'ctFbMarks' ? '1' : '5'; });
+  document.getElementById('ctTfMarks').value = 1;
+  document.getElementById('ctUnitsList').innerHTML = '<span style="color:#999">Select a subject first</span>';
+  document.getElementById('ctDifficulty').value = 'mixed';
+  calcTotalMarks();
+  openModal('createTemplateModal');
+}
+
+async function saveTemplate() {
+  const selectedUnits = [...document.querySelectorAll('.ct-unit-check:checked')].map(cb => cb.value);
+  const data = {
+    name: document.getElementById('ctName').value.trim(),
+    subjectId: document.getElementById('ctSubject').value,
+    units: selectedUnits,
+    difficulty: document.getElementById('ctDifficulty').value,
+    duration: parseInt(document.getElementById('ctDuration').value) || 120,
+    totalMarks: parseInt(document.getElementById('ctTotalMarks').value) || 0,
+    instructions: document.getElementById('ctInstructions').value.trim(),
+    distribution: {
+      mcq: { count: parseInt(document.getElementById('ctMcqCount').value) || 0, marksEach: parseInt(document.getElementById('ctMcqMarks').value) || 1 },
+      true_false: { count: parseInt(document.getElementById('ctTfCount').value) || 0, marksEach: parseInt(document.getElementById('ctTfMarks').value) || 1 },
+      fill_blank: { count: parseInt(document.getElementById('ctFbCount').value) || 0, marksEach: parseInt(document.getElementById('ctFbMarks').value) || 1 },
+      short_answer: { count: parseInt(document.getElementById('ctSaCount').value) || 0, marksEach: parseInt(document.getElementById('ctSaMarks').value) || 5 },
+      long_answer: { count: parseInt(document.getElementById('ctLaCount').value) || 0, marksEach: parseInt(document.getElementById('ctLaMarks').value) || 10 },
+      numerical: { count: parseInt(document.getElementById('ctNmCount').value) || 0, marksEach: parseInt(document.getElementById('ctNmMarks').value) || 5 },
+    }
+  };
+  if (!data.name || !data.subjectId) { toast('Name and Subject are required', 'error'); return; }
+  try {
+    await api.post('/exam-generator/templates', data);
+    toast('Template created');
+    closeModal('createTemplateModal');
+    await loadTemplates();
+  } catch(e) { toast('Failed to create template', 'error'); console.error(e); }
+}
+
+async function loadTemplates() {
+  try {
+    const res = await api.get('/exam-generator/templates');
+    const templates = res.data || res.templates || res || [];
+    const grid = document.getElementById('templatesGrid');
+    const empty = document.getElementById('templatesEmpty');
+
+    if (!templates.length) { grid.innerHTML = ''; empty.style.display = ''; return; }
+    empty.style.display = 'none';
+
+    grid.innerHTML = templates.map(t => {
+      const subName = t.subject?.name || t.subjectName || '--';
+      const dist = t.distribution || {};
+      const types = Object.entries(dist).filter(([,v]) => v.count > 0).map(([k,v]) => `${TYPE_LABELS[k] || k}: ${v.count}`).join(', ');
+      return `<div class="card" style="margin:0">
+        <div class="card-body">
+          <div style="display:flex;justify-content:space-between;align-items:start">
+            <div>
+              <h3 style="font-size:16px;font-weight:600;margin-bottom:4px">${escHtml(t.name)}</h3>
+              <div style="font-size:13px;color:#666;margin-bottom:8px">${escHtml(subName)} · ${t.duration || '--'} min · <strong>${t.totalMarks || 0}</strong> marks</div>
+              <div style="font-size:12px;color:#888">${escHtml(types) || 'No questions configured'}</div>
+            </div>
+            <button class="btn btn-outline btn-sm" style="padding:2px 8px;color:#DC2626;border-color:#FCA5A5" onclick="deleteTemplate('${t._id}')"><i class="fas fa-trash"></i></button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+
+    const genSel = document.getElementById('genTemplate');
+    genSel.innerHTML = '<option value="">-- Choose a template --</option>' + templates.map(t => `<option value="${t._id}">${escHtml(t.name)} (${t.totalMarks || 0} marks)</option>`).join('');
+  } catch(e) { console.error(e); }
+}
+
+async function deleteTemplate(id) {
+  if (!confirm('Delete this template?')) return;
+  try {
+    await api.delete('/exam-generator/templates/' + id);
+    toast('Template deleted');
+    await loadTemplates();
+  } catch(e) { toast('Failed to delete', 'error'); console.error(e); }
+}
+
+/* ─── GENERATE PAPER ──────────────────────────────── */
+let generatedHTML = '';
+
+async function generatePaper() {
+  const templateId = document.getElementById('genTemplate').value;
+  if (!templateId) { toast('Select a template', 'error'); return; }
+  const btn = document.getElementById('genPaperBtn');
+  btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+  try {
+    const res = await api.post('/exam-generator/generate/' + templateId);
+    const paper = res.data || res;
+    renderPaper(paper);
+    document.getElementById('generatedPaperArea').style.display = '';
+  } catch(e) { toast('Failed to generate paper', 'error'); console.error(e); }
+  finally { btn.disabled = false; btn.innerHTML = '<i class="fas fa-magic"></i> Generate Paper'; }
+}
+
+function renderPaper(paper) {
+  const collegeName = paper.collegeName || 'College Name';
+  const subject = paper.subject?.name || paper.subjectName || 'Subject';
+  const date = paper.date || new Date().toLocaleDateString('en-IN');
+  const duration = paper.duration || '--';
+  const totalMarks = paper.totalMarks || 0;
+  const instructions = paper.instructions || '';
+  const questions = paper.questions || [];
+
+  let typeGroups = {};
+  questions.forEach(q => {
+    const t = q.questionType || 'other';
+    if (!typeGroups[t]) typeGroups[t] = [];
+    typeGroups[t].push(q);
+  });
+
+  let questionsHTML = '';
+  let qNum = 1;
+  const typeOrder = ['mcq','true_false','fill_blank','short_answer','long_answer','numerical'];
+  typeOrder.forEach(t => {
+    const qs = typeGroups[t];
+    if (!qs || !qs.length) return;
+    questionsHTML += `<div style="margin-top:16px;margin-bottom:8px;font-weight:600;font-size:14px;border-bottom:2px solid #333;padding-bottom:4px">${TYPE_LABELS[t] || t}</div>`;
+    qs.forEach(q => {
+      questionsHTML += `<div style="margin-bottom:12px;padding-left:8px"><strong>${qNum}.</strong> ${escHtml(q.question)} <span style="color:#666;font-size:12px">[${q.marks || ''} marks]</span>`;
+      if (t === 'mcq' && q.options) {
+        questionsHTML += '<div style="margin-left:24px;margin-top:4px">';
+        q.options.forEach((o, i) => {
+          questionsHTML += `<div style="margin-bottom:2px">${String.fromCharCode(65 + i)}. ${escHtml(o)}</div>`;
+        });
+        questionsHTML += '</div>';
+      }
+      questionsHTML += '</div>';
+      qNum++;
+    });
+  });
+
+  generatedHTML = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${escHtml(subject)} Question Paper</title>
+  <style>body{font-family:Georgia,serif;padding:40px;max-width:800px;margin:auto;color:#111}
+  h1{text-align:center;font-size:20px;margin-bottom:4px}h2{text-align:center;font-size:16px;font-weight:normal;color:#444;margin-top:0}
+  .meta{text-align:center;font-size:13px;color:#666;margin-bottom:20px;border-bottom:1px solid #ccc;padding-bottom:12px}
+  .inst{background:#f9f9f9;padding:12px;border:1px solid #ddd;border-radius:4px;font-size:13px;margin-bottom:20px}
+  .inst strong{display:block;margin-bottom:4px}</style></head><body>
+  <h1>${escHtml(collegeName)}</h1>
+  <h2>${escHtml(subject)} — Question Paper</h2>
+  <div class="meta">Date: ${date} &nbsp;|&nbsp; Duration: ${duration} min &nbsp;|&nbsp; Total Marks: ${totalMarks}</div>
+  ${instructions ? `<div class="inst"><strong>Instructions:</strong><div style="white-space:pre-line">${escHtml(instructions)}</div></div>` : ''}
+  ${questionsHTML}
+  </body></html>`;
+
+  document.getElementById('generatedPaperCard').innerHTML = generatedHTML.replace(/<!DOCTYPE.*?<body>/s, '').replace(/<\/body><\/html>/s, '');
+}
+
+function downloadPDF() {
+  if (!generatedHTML) { toast('Generate a paper first', 'error'); return; }
+  const printWindow = window.open('', '_blank');
+  printWindow.document.write(generatedHTML);
+  printWindow.document.close();
+  setTimeout(() => printWindow.print(), 500);
+}
+</script>
+</body>
+</html>

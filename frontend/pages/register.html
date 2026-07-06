@@ -33,6 +33,11 @@
       </div>
 
       <div class="floating-input">
+        <input type="text" id="collegeName" placeholder=" " required />
+        <label for="collegeName">College / Institution Name</label>
+      </div>
+
+      <div class="floating-input">
         <input type="email" id="email" placeholder=" " required />
         <label for="email">Admin Email</label>
       </div>
@@ -41,9 +46,10 @@
         <input type="password" id="password" placeholder=" " required />
         <label for="password">Password</label>
       </div>
+      <p class="text-xs text-gray-500 -mt-2">Use 6+ characters with uppercase, lowercase, number, and special character.</p>
 
       <div class="bg-indigo-50 border border-indigo-100 p-4 rounded-xl text-sm text-indigo-700">
-        <i class="fas fa-info-circle mr-2"></i> On successful registration, you will be redirected as a SuperAdmin / CollegeAdmin to create your college profile.
+        <i class="fas fa-info-circle mr-2"></i> New colleges start with a trial workspace so you can open every page and finish setup immediately.
       </div>
 
       <button type="submit" id="submitBtn" class="w-full bg-primary text-white py-3 rounded-xl font-semibold hover:bg-indigo-700 transition flex items-center justify-center gap-2 shadow-lg shadow-indigo-200 mt-4">
@@ -59,15 +65,27 @@
 
   <script src="../js/api.js"></script>
   <script>
+    const roleRedirects = {
+      collegeAdmin: './college-admin/dashboard.html'
+    };
+
     document.getElementById('registerForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const btn = document.getElementById('submitBtn');
+      const password = document.getElementById('password').value;
+      const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
+      if (!passwordPattern.test(password)) {
+        showToast('Password must include uppercase, lowercase, number, and special character.', 'error');
+        return;
+      }
+
       const data = {
-        name: document.getElementById('name').value,
-        email: document.getElementById('email').value,
-        phone: document.getElementById('phone').value,
-        password: document.getElementById('password').value,
-        role: 'collegeAdmin' // By default, someone registering here wants to be a college admin
+        name: document.getElementById('name').value.trim(),
+        collegeName: document.getElementById('collegeName').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        phone: document.getElementById('phone').value.trim(),
+        password,
+        role: 'collegeAdmin'
       };
 
       try {
@@ -79,11 +97,15 @@
           body: JSON.stringify(data)
         });
 
-        api.setToken(res.token, res.user);
-        showToast('Registration successful!', 'success');
+        api.setToken(res.token, res.user, res.refreshToken);
+        showToast('Registration successful! Your college workspace is ready.', 'success');
         
         setTimeout(() => {
-          window.location.href = './college-admin/dashboard.html';
+          if (res.user?.role === 'collegeAdmin' && res.subscriptionActive === false) {
+            window.location.href = './college-admin/subscription.html';
+            return;
+          }
+          window.location.href = roleRedirects[res.user?.role] || './college-admin/dashboard.html';
         }, 1500);
 
       } catch (error) {

@@ -53,10 +53,21 @@ const reactBuildDir = path.resolve(__dirname, '../frontend-react/dist');
 const legacyFrontendDir = path.resolve(__dirname, '../frontend');
 const frontendDir = fs.existsSync(path.join(reactBuildDir, 'index.html')) ? reactBuildDir : legacyFrontendDir;
 const frontendIndex = path.join(frontendDir, 'index.html');
+const localAllowedOrigins = [
+  'http://localhost:5000',
+  'https://localhost:5000',
+  'http://127.0.0.1:5000',
+  'https://127.0.0.1:5000',
+  `http://localhost:${process.env.PORT || 5000}`,
+  `https://localhost:${process.env.PORT || 5000}`,
+  `http://127.0.0.1:${process.env.PORT || 5000}`,
+  `https://127.0.0.1:${process.env.PORT || 5000}`,
+];
+const effectiveAllowedOrigins = Array.from(new Set([...allowedOrigins, ...localAllowedOrigins]));
 
 const corsOptions = {
   origin(origin, callback) {
-    if (!origin || !isProduction || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+    if (!origin || !isProduction || effectiveAllowedOrigins.length === 0 || effectiveAllowedOrigins.includes(origin)) {
       callback(null, true);
       return;
     }
@@ -165,6 +176,8 @@ app.use('/api/config', require('./routes/config'));
 app.use('/api/health', require('./routes/health'));
 app.use('/api/upload', require('./routes/upload'));
 app.use('/api/reports', require('./routes/reports'));
+app.use('/api/subscriptions', require('./routes/subscription'));
+app.use('/api/exam-generator', require('./routes/examGenerator'));
 
 // Fallback for frontend routing (SPA support)
 app.get('*', (req, res) => {

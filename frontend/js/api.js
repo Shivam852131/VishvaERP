@@ -2,29 +2,41 @@ const API_URL = '/api';
 
 const api = {
   getToken() {
-    return localStorage.getItem('token');
+    return localStorage.getItem('erp_token') || localStorage.getItem('token');
   },
 
-  setToken(token, user) {
+  setToken(token, user, refreshToken) {
+    localStorage.setItem('erp_token', token);
+    localStorage.setItem('erp_user', JSON.stringify(user));
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(user));
+    if (refreshToken) {
+      localStorage.setItem('erp_refresh_token', refreshToken);
+      localStorage.setItem('refreshToken', refreshToken);
+    }
   },
 
   clearToken() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    ['erp_token', 'erp_user', 'erp_refresh_token', 'token', 'user', 'refreshToken'].forEach((key) => {
+      localStorage.removeItem(key);
+    });
   },
 
   getUser() {
-    const user = localStorage.getItem('user');
-    return user ? JSON.parse(user) : null;
+    const user = localStorage.getItem('erp_user') || localStorage.getItem('user');
+    if (!user) return null;
+    try {
+      return JSON.parse(user);
+    } catch {
+      this.clearToken();
+      return null;
+    }
   },
 
   async request(endpoint, options = {}) {
-    const headers = {
-      'Content-Type': 'application/json',
-      ...options.headers,
-    };
+    const isFormData = options.body instanceof FormData;
+    const headers = { ...options.headers };
+    if (!isFormData && !headers['Content-Type']) headers['Content-Type'] = 'application/json';
 
     const token = this.getToken();
     if (token) {
@@ -37,12 +49,20 @@ const api = {
         headers,
       });
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch {
+        data = { message: 'Invalid response from server' };
+      }
 
       if (!response.ok) {
-        if (response.status === 401 && !endpoint.includes('/auth/login')) {
+        if (response.status === 401 && !endpoint.includes('/auth/login') && !endpoint.includes('/auth/register')) {
           this.clearToken();
           window.location.href = '/pages/login.html';
+        }
+        if (response.status === 403 && data.code === 'SUBSCRIPTION_REQUIRED') {
+          window.location.href = '/pages/college-admin/subscription.html';
         }
         throw new Error(data.message || data.errors?.[0]?.msg || 'Request failed');
       }

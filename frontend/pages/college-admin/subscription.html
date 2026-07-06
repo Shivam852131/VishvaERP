@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Subscription & Billing — College Admin | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../css/custom.css">
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <style>
+    .plan-card { position: relative; border: 2px solid var(--card-border); transition: all 0.3s ease; }
+    .plan-card:hover { border-color: var(--primary); box-shadow: var(--card-shadow-hover); transform: translateY(-4px); }
+    .plan-card.current { border-color: var(--primary); }
+    .plan-card.recommended { border-color: var(--primary); }
+    .plan-card.recommended::before {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: var(--radius-lg);
+      background: linear-gradient(135deg, #4F46E5, #7C3AED);
+      z-index: -1;
+    }
+    .plan-card.recommended .card-inner { background: var(--card); border-radius: var(--radius-md); }
+    .badge-recommended {
+      position: absolute;
+      top: -12px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, #4F46E5, #7C3AED);
+      color: #fff;
+      padding: 4px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+      z-index: 1;
+    }
+    .badge-current {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      background: #D1FAE5;
+      color: #065F46;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      z-index: 1;
+    }
+    .toggle-wrapper { display: flex; align-items: center; justify-content: center; gap: 14px; }
+    .toggle-track {
+      width: 52px; height: 28px; border-radius: 14px; background: #CBD5E1;
+      cursor: pointer; position: relative; transition: background 0.3s ease;
+    }
+    .toggle-track.active { background: var(--primary); }
+    .toggle-thumb {
+      position: absolute; top: 3px; left: 3px; width: 22px; height: 22px;
+      border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+      transition: transform 0.3s ease;
+    }
+    .toggle-track.active .toggle-thumb { transform: translateX(24px); }
+    .plan-feature { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; }
+    .plan-feature i { margin-top: 2px; font-size: 13px; }
+    .plan-feature i.fa-check { color: #10B981; }
+    .savings-badge {
+      background: #FEF3C7;
+      color: #92400E;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 6px;
+    }
+    .status-dot.active { background: #10B981; box-shadow: 0 0 6px rgba(16,185,129,0.4); }
+    .status-dot.expired { background: #EF4444; box-shadow: 0 0 6px rgba(239,68,68,0.4); }
+    .status-dot.none { background: #94A3B8; }
+    .payment-row:hover { background: var(--primary-light); }
+    .receipt-link { color: var(--primary); text-decoration: none; font-weight: 600; font-size: 13px; }
+    .receipt-link:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-college" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" id="sidebar-avatar">A</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Admin</div><div class="sidebar-user-role">College Administrator</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <div class="nav-section-label">Academics</div>
+      <a href="students.html" class="nav-link"><i class="nav-link-icon fas fa-user-graduate"></i> Students</a>
+      <a href="faculty.html" class="nav-link"><i class="nav-link-icon fas fa-chalkboard-teacher"></i> Faculty</a>
+      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-open"></i> Courses & Exams</a>
+      <a href="notices.html" class="nav-link"><i class="nav-link-icon fas fa-bullhorn"></i> Notice Board</a>
+      <div class="nav-section-label">Finance & HR</div>
+      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-file-invoice-dollar"></i> Fee Management</a>
+      <a href="hr.html" class="nav-link"><i class="nav-link-icon fas fa-user-md"></i> HR & Leave</a>
+      <a href="subscription.html" class="nav-link active"><i class="nav-link-icon fas fa-credit-card"></i> Subscription</a>
+      <div class="nav-section-label">Facilities</div>
+      <a href="logistics.html" class="nav-link"><i class="nav-link-icon fas fa-bus"></i> Logistics & Hostel</a>
+      <div class="nav-section-label">Tools</div>
+      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Hub</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">College Admin / <span>Subscription & Billing</span></div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-search"><i class="fas fa-search"></i><input type="text" placeholder="Search plans, invoices..."></div>
+        <div class="topbar-avatar" id="topbar-avatar">A</div>
+      </div>
+    </header>
+
+    <div class="erp-content page-enter">
+      <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+        <div>
+          <h1 class="page-title">Subscription & Billing</h1>
+          <p class="page-subtitle">Manage your institution's subscription plan</p>
+        </div>
+        <button class="btn btn-secondary" id="viewInvoicesBtn"><i class="fas fa-receipt"></i> View Invoices</button>
+      </div>
+
+      <!-- CURRENT PLAN -->
+      <div class="card mb-6" id="currentPlanCard">
+        <div class="card-header">
+          <div class="card-title"><i class="fas fa-id-badge" style="color:var(--primary);margin-right:8px"></i>Current Plan</div>
+        </div>
+        <div class="card-body" id="currentPlanBody">
+          <div style="display:flex;align-items:center;justify-content:center;padding:30px">
+            <i class="fas fa-spinner fa-spin" style="color:var(--primary);font-size:20px"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- BILLING TOGGLE -->
+      <div style="text-align:center;margin-bottom:24px">
+        <div class="toggle-wrapper">
+          <span style="font-size:14px;font-weight:600;color:var(--text-secondary)" id="toggleLabelMonthly">Monthly</span>
+          <div class="toggle-track active" id="billingToggle" onclick="toggleBilling()">
+            <div class="toggle-thumb"></div>
+          </div>
+          <span style="font-size:14px;font-weight:600;color:var(--text-muted)" id="toggleLabelYearly">
+            Yearly <span class="savings-badge">Save 17%</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- PLAN CARDS -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;margin-bottom:36px" id="plansGrid">
+        <div style="text-align:center;padding:40px"><i class="fas fa-spinner fa-spin" style="color:var(--primary);font-size:20px"></i></div>
+      </div>
+
+      <!-- PAYMENT HISTORY -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><i class="fas fa-history" style="color:#10B981;margin-right:8px"></i>Payment History</div>
+          <div style="display:flex;gap:10px;align-items:center">
+            <div class="search-bar" style="width:220px"><i class="fas fa-search"></i><input type="text" placeholder="Search payments..." id="paymentSearch"></div>
+            <button class="btn btn-secondary btn-sm" id="exportPaymentsBtn"><i class="fas fa-download"></i> Export</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="erp-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Plan</th>
+                <th>Amount</th>
+                <th>Payment ID</th>
+                <th>Status</th>
+                <th>Receipt</th>
+              </tr>
+            </thead>
+            <tbody id="paymentHistoryBody">
+              <tr><td colspan="6" style="text-align:center;padding:20px"><i class="fas fa-spinner fa-spin" style="color:var(--primary)"></i></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--card-border)" id="paginationWrap">
+          <span style="font-size:13px;color:var(--text-secondary)" id="paymentCount">0 payments</span>
+          <div style="display:flex;gap:6px" id="paginationBtns"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script>
+(function() {
+  let currentSubscription = null;
+  let plans = [];
+  let payments = [];
+  let billingCycle = 'yearly';
+  let paymentPage = 1;
+  const paymentLimit = 10;
+  let selectedPlanForPayment = null;
+  let selectedCycleForPayment = null;
+
+  const PLANS_DATA = [
+    {
+      id: 'basic',
+      name: 'Basic',
+      price: { monthly: 999, yearly: 9999 },
+      color: '#3B82F6',
+      icon: 'fas fa-cube',
+      features: [
+        'Up to 500 students',
+        'Up to 50 faculty',
+        'Core ERP modules',
+        'Email support'
+      ]
+    },
+    {
+      id: 'pro',
+      name: 'Pro',
+      price: { monthly: 2999, yearly: 29999 },
+      color: '#4F46E5',
+      icon: 'fas fa-rocket',
+      recommended: true,
+      features: [
+        'Up to 2,000 students',
+        'Up to 200 faculty',
+        'All modules + AI tools',
+        'Priority support',
+        'Advanced analytics'
+      ]
+    },
+    {
+      id: 'enterprise',
+      name: 'Enterprise',
+      price: { monthly: 7999, yearly: 79999 },
+      color: '#8B5CF6',
+      icon: 'fas fa-building',
+      features: [
+        'Unlimited students & faculty',
+        'All modules + custom branding',
+        'Dedicated support',
+        'API access',
+        'SLA guarantee'
+      ]
+    }
+  ];
+
+  function formatCurrency(amount) {
+    return '₹' + Number(amount).toLocaleString('en-IN');
+  }
+
+  function formatDate(dateStr) {
+    if (!dateStr) return '—';
+    return new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  function getDaysRemaining(dateStr) {
+    if (!dateStr) return 0;
+    const diff = new Date(dateStr) - new Date();
+    return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
+  }
+
+  function normalizePlan(plan) {
+    const fallback = PLANS_DATA.find(p => p.id === plan?.id) || {};
+    return {
+      ...fallback,
+      ...plan,
+      price: plan?.price || plan?.pricing || fallback.price || {},
+      features: plan?.features || fallback.features || []
+    };
+  }
+
+  function getPlansData() {
+    return (plans && plans.length ? plans : PLANS_DATA).map(normalizePlan);
+  }
+
+  function normalizeSubscription(subscription) {
+    if (!subscription) return { status: 'none' };
+    return {
+      ...subscription,
+      status: subscription.isActive ? 'active' : (subscription.status || 'none'),
+      expiryDate: subscription.expiryDate || subscription.endDate,
+      price: subscription.price || subscription.amount
+    };
+  }
+
+  function normalizePayment(payment) {
+    return {
+      ...payment,
+      date: payment.date || payment.createdAt,
+      paymentId: payment.paymentId || payment.razorpayPaymentId || payment.receiptNo || payment.id,
+      status: payment.status === 'captured' ? 'success' : payment.status
+    };
+  }
+
+  function renderCurrentPlan() {
+    const container = document.getElementById('currentPlanBody');
+    if (!currentSubscription || currentSubscription.status === 'none') {
+      container.innerHTML = `
+        <div style="text-align:center;padding:20px">
+          <div style="width:64px;height:64px;border-radius:50%;background:rgba(239,68,68,0.1);display:inline-flex;align-items:center;justify-content:center;margin-bottom:14px">
+            <span class="status-dot none" style="width:16px;height:16px"></span>
+          </div>
+          <h3 style="font-size:18px;font-weight:700;margin-bottom:6px">No Active Plan</h3>
+          <p style="color:var(--text-secondary);font-size:14px;margin-bottom:16px">Subscribe to a plan to unlock all VishvaERP features for your institution.</p>
+          <button class="btn btn-primary" onclick="document.getElementById('plansGrid').scrollIntoView({behavior:'smooth'})">
+            <i class="fas fa-arrow-down"></i> View Plans
+          </button>
+        </div>`;
+      return;
+    }
+
+    const plan = getPlansData().find(p => p.id === currentSubscription.plan) || getPlansData()[0];
+    const isActive = currentSubscription.status === 'active' || currentSubscription.isActive;
+    const expiryDate = currentSubscription.expiryDate || currentSubscription.endDate;
+    const days = getDaysRemaining(expiryDate);
+    const statusClass = isActive ? 'active' : 'expired';
+    const statusText = isActive ? 'Active' : 'Expired';
+    const daysText = isActive ? (days <= 30 ? `${days} days remaining` : `Renews on ${formatDate(expiryDate)}`) : 'Expired on ' + formatDate(expiryDate);
+    const price = currentSubscription.price || currentSubscription.amount || plan.price?.[currentSubscription.billingCycle] || plan.price?.yearly || 0;
+
+    container.innerHTML = `
+      <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+        <div style="width:60px;height:60px;border-radius:var(--radius-md);background:${plan.color}15;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <i class="${plan.icon}" style="font-size:24px;color:${plan.color}"></i>
+        </div>
+        <div style="flex:1;min-width:200px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+            <h3 style="font-size:20px;font-weight:800">${plan.name} Plan</h3>
+            <span class="status-dot ${statusClass}"></span>
+            <span style="font-size:12px;font-weight:700;padding:3px 10px;border-radius:12px;background:${isActive ? '#D1FAE5;color:#065F46' : '#FEE2E2;color:#991B1B'}">${statusText}</span>
+          </div>
+          <div style="color:var(--text-secondary);font-size:14px">${daysText}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:28px;font-weight:800;color:var(--primary)">${formatCurrency(price)}</div>
+          <div style="font-size:12px;color:var(--text-muted)">${currentSubscription.billingCycle === 'yearly' ? 'per year' : 'per month'}</div>
+        </div>
+        <div style="display:flex;gap:8px">
+          ${isActive ? `<button class="btn btn-secondary btn-sm" onclick="showToast('Manage billing from your payment provider', 'info')"><i class="fas fa-cog"></i> Manage</button>` : `<button class="btn btn-primary btn-sm" onclick="document.getElementById('plansGrid').scrollIntoView({behavior:'smooth'})"><i class="fas fa-redo"></i> Renew</button>`}
+        </div>
+      </div>`;
+  }
+
+  function renderPlans() {
+    const grid = document.getElementById('plansGrid');
+    const currentPlanId = currentSubscription?.plan;
+    const currentStatus = currentSubscription?.status;
+
+    grid.innerHTML = getPlansData().map(plan => {
+      const isCurrent = currentPlanId === plan.id && currentStatus === 'active';
+      const price = plan.price?.[billingCycle] || 0;
+      const monthlyEquiv = billingCycle === 'yearly' ? Math.round((plan.price?.yearly || 0) / 12) : (plan.price?.monthly || 0);
+
+      return `
+        <div class="plan-card card ${plan.recommended ? 'recommended current' : ''} ${isCurrent ? 'current' : ''}" style="border-radius:var(--radius-lg);overflow:visible">
+          ${plan.recommended ? '<div class="badge-recommended"><i class="fas fa-star" style="margin-right:4px"></i> Recommended</div>' : ''}
+          ${isCurrent ? '<div class="badge-current"><i class="fas fa-check" style="margin-right:4px"></i> Current Plan</div>' : ''}
+          <div class="card-inner" style="padding:28px 24px">
+            <div style="text-align:center;margin-bottom:20px">
+              <div style="width:56px;height:56px;border-radius:50%;background:${plan.color}15;display:inline-flex;align-items:center;justify-content:center;margin-bottom:12px">
+                <i class="${plan.icon}" style="font-size:24px;color:${plan.color}"></i>
+              </div>
+              <h3 style="font-size:20px;font-weight:800;margin-bottom:4px">${plan.name}</h3>
+              <div style="display:flex;align-items:baseline;justify-content:center;gap:4px">
+                <span style="font-size:32px;font-weight:800;color:var(--primary)">${formatCurrency(price)}</span>
+                <span style="font-size:13px;color:var(--text-muted)">/${billingCycle === 'yearly' ? 'year' : 'month'}</span>
+              </div>
+              ${billingCycle === 'yearly' ? `<div style="font-size:12px;color:var(--text-muted);margin-top:2px">${formatCurrency(monthlyEquiv)}/month equivalent</div>` : ''}
+            </div>
+            <div style="border-top:1px solid var(--card-border);padding-top:16px;margin-bottom:20px">
+              ${plan.features.map(f => `
+                <div class="plan-feature">
+                  <i class="fas fa-check-circle"></i>
+                  <span style="font-size:14px;color:var(--text-primary)">${f}</span>
+                </div>
+              `).join('')}
+            </div>
+            ${isCurrent
+              ? `<button class="btn btn-secondary" style="width:100%" disabled><i class="fas fa-check"></i> Current Plan</button>`
+              : `<button class="btn btn-primary" style="width:100%;background:${plan.color};border-color:${plan.color}" onclick="subscribePlan('${plan.id}')"><i class="fas fa-credit-card"></i> Subscribe</button>`
+            }
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function renderPaymentHistory() {
+    const tbody = document.getElementById('paymentHistoryBody');
+    if (!payments.length) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted)"><i class="fas fa-receipt" style="font-size:24px;display:block;margin-bottom:8px"></i>No payment history yet.</td></tr>`;
+      document.getElementById('paymentCount').textContent = '0 payments';
+      document.getElementById('paginationBtns').innerHTML = '';
+      return;
+    }
+
+    const filtered = document.getElementById('paymentSearch').value
+      ? payments.filter(p =>
+          p.plan?.toLowerCase().includes(document.getElementById('paymentSearch').value.toLowerCase()) ||
+          p.paymentId?.toLowerCase().includes(document.getElementById('paymentSearch').value.toLowerCase()) ||
+          p.receiptNo?.toLowerCase().includes(document.getElementById('paymentSearch').value.toLowerCase()))
+      : payments;
+
+    const total = filtered.length;
+    const totalPages = Math.ceil(total / paymentLimit);
+    const start = (paymentPage - 1) * paymentLimit;
+    const pageItems = filtered.slice(start, start + paymentLimit);
+
+    document.getElementById('paymentCount').textContent = `${total} payment${total !== 1 ? 's' : ''}`;
+
+    tbody.innerHTML = pageItems.map(p => {
+      const normalizedStatus = p.status === 'captured' ? 'success' : p.status;
+      const statusColor = normalizedStatus === 'success' ? '#10B981' : normalizedStatus === 'failed' ? '#EF4444' : '#F59E0B';
+      const statusBg = normalizedStatus === 'success' ? '#D1FAE5' : normalizedStatus === 'failed' ? '#FEE2E2' : '#FEF3C7';
+      const statusLabel = normalizedStatus === 'success' ? 'Paid' : normalizedStatus === 'failed' ? 'Failed' : 'Pending';
+
+      return `
+        <tr class="payment-row">
+          <td style="font-weight:500">${formatDate(p.date)}</td>
+          <td><span style="font-weight:600">${p.plan || '—'}</span> <span style="font-size:11px;color:var(--text-muted)">${p.billingCycle === 'yearly' ? '(Yearly)' : '(Monthly)'}</span></td>
+          <td style="font-weight:700">${formatCurrency(p.amount)}</td>
+          <td><code style="background:var(--bg);padding:3px 8px;border-radius:4px;font-size:12px">${p.paymentId || '—'}</code></td>
+          <td><span style="padding:3px 10px;border-radius:12px;font-size:12px;font-weight:700;background:${statusBg};color:${statusColor}">${statusLabel}</span></td>
+          <td>${normalizedStatus === 'success' ? `<a href="#" class="receipt-link" onclick="downloadReceipt('${p.paymentId}');return false"><i class="fas fa-download"></i> PDF</a>` : '<span style="color:var(--text-muted);font-size:12px">—</span>'}</td>
+        </tr>`;
+    }).join('');
+
+    // Pagination
+    const btns = document.getElementById('paginationBtns');
+    let btnsHtml = '';
+    if (totalPages > 1) {
+      btnsHtml += `<button class="btn btn-sm btn-secondary" ${paymentPage <= 1 ? 'disabled' : ''} onclick="changePage(${paymentPage - 1})"><i class="fas fa-chevron-left"></i></button>`;
+      for (let i = 1; i <= totalPages; i++) {
+        btnsHtml += `<button class="btn btn-sm ${i === paymentPage ? 'btn-primary' : 'btn-secondary'}" onclick="changePage(${i})">${i}</button>`;
+      }
+      btnsHtml += `<button class="btn btn-sm btn-secondary" ${paymentPage >= totalPages ? 'disabled' : ''} onclick="changePage(${paymentPage + 1})"><i class="fas fa-chevron-right"></i></button>`;
+    }
+    btns.innerHTML = btnsHtml;
+  }
+
+  async function loadSubscription() {
+    try {
+      const res = await window.api.request('/subscriptions/current', { silent: true });
+      currentSubscription = normalizeSubscription(res.subscription || res.data);
+    } catch (e) {
+      currentSubscription = normalizeSubscription(null);
+    }
+    renderCurrentPlan();
+    renderPlans();
+  }
+
+  async function loadPlans() {
+    try {
+      const res = await window.api.request('/subscriptions/plans', { silent: true });
+      if (res.plans && res.plans.length) {
+        plans = res.plans.map(normalizePlan);
+      }
+    } catch (e) {
+      plans = [...PLANS_DATA];
+    }
+  }
+
+  async function loadPayments() {
+    try {
+      const res = await window.api.request('/subscriptions/payments', { silent: true });
+      payments = (res.payments || res.data || []).map(normalizePayment);
+    } catch (e) {
+      payments = [];
+    }
+    renderPaymentHistory();
+  }
+
+  window.toggleBilling = function() {
+    billingCycle = billingCycle === 'monthly' ? 'yearly' : 'monthly';
+    const toggle = document.getElementById('billingToggle');
+    const labelM = document.getElementById('toggleLabelMonthly');
+    const labelY = document.getElementById('toggleLabelYearly');
+    toggle.classList.toggle('active', billingCycle === 'yearly');
+    labelM.style.color = billingCycle === 'monthly' ? 'var(--text-primary)' : 'var(--text-muted)';
+    labelY.style.color = billingCycle === 'yearly' ? 'var(--text-primary)' : 'var(--text-muted)';
+    renderPlans();
+  };
+
+  window.changePage = function(page) {
+    paymentPage = page;
+    renderPaymentHistory();
+  };
+
+  window.subscribePlan = function(planId) {
+    const plan = getPlansData().find(p => p.id === planId);
+    if (!plan) return;
+    selectedPlanForPayment = planId;
+    selectedCycleForPayment = billingCycle;
+    initiatePayment(planId, billingCycle);
+  };
+
+  async function initiatePayment(planId, cycle) {
+    const plan = getPlansData().find(p => p.id === planId);
+    const user = window.api.getUser();
+
+    if (!window.Razorpay) {
+      showToast('Payment gateway is still loading. Please try again in a moment.', 'warning');
+      return;
+    }
+
+    try {
+      const orderRes = await window.api.request('/subscriptions/create-order', {
+        method: 'POST',
+        body: JSON.stringify({ plan: planId, billingCycle: cycle })
+      });
+
+      if (!orderRes || !orderRes.order) {
+        showToast('Failed to create order. Please try again.', 'error');
+        return;
+      }
+
+      const options = {
+        key: orderRes.key || orderRes.order.key || 'rzp_test_placeholder',
+        amount: orderRes.order.amount,
+        currency: orderRes.order.currency || 'INR',
+        name: 'Vishva ERP',
+        description: `${plan.name} Subscription (${cycle === 'yearly' ? 'Yearly' : 'Monthly'})`,
+        order_id: orderRes.order.id,
+        handler: async function(response) {
+          try {
+            await window.api.request('/subscriptions/verify', {
+              method: 'POST',
+              body: JSON.stringify({
+                razorpayOrderId: response.razorpay_order_id,
+                razorpayPaymentId: response.razorpay_payment_id,
+                razorpaySignature: response.razorpay_signature,
+                subscriptionId: orderRes.subscriptionId
+              })
+            });
+            showToast('Payment successful! Your subscription is now active.', 'success');
+            loadSubscription();
+            loadPayments();
+          } catch (e) {
+            showToast('Payment received but verification failed. Contact support.', 'warning');
+          }
+        },
+        prefill: {
+          name: user?.name || '',
+          email: user?.email || '',
+          contact: user?.phone || ''
+        },
+        theme: {
+          color: plan.color || '#4F46E5'
+        },
+        modal: {
+          ondismiss: function() {
+            showToast('Payment cancelled.', 'info');
+          }
+        }
+      };
+
+      const rzp = new Razorpay(options);
+      rzp.on('payment.failed', function(response) {
+        showToast('Payment failed: ' + (response.error?.description || 'Unknown error'), 'error');
+      });
+      rzp.open();
+    } catch (e) {
+      showToast('Could not initiate payment. Please try again.', 'error');
+    }
+  }
+
+  window.downloadReceipt = function(paymentId) {
+    showToast('Downloading receipt...', 'info');
+    window.open(`/api/subscriptions/receipts/${paymentId}`, '_blank');
+  };
+
+  document.getElementById('paymentSearch')?.addEventListener('input', function() {
+    paymentPage = 1;
+    renderPaymentHistory();
+  });
+
+  document.getElementById('exportPaymentsBtn')?.addEventListener('click', function() {
+    if (!payments.length) {
+      showToast('No payments to export.', 'info');
+      return;
+    }
+    const headers = ['Date', 'Plan', 'Billing Cycle', 'Amount', 'Payment ID', 'Status'];
+    const rows = payments.map(p => [
+      formatDate(p.date),
+      p.plan || '',
+      p.billingCycle || '',
+      p.amount || '',
+      p.paymentId || '',
+      p.status || ''
+    ]);
+    const csv = [headers, ...rows].map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `payment-history-${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Payment history exported.', 'success');
+  });
+
+  document.getElementById('viewInvoicesBtn')?.addEventListener('click', function() {
+    document.querySelector('.erp-content').scrollTo({ top: document.getElementById('paymentHistoryBody').closest('.card').offsetTop - 100, behavior: 'smooth' });
+  });
+
+  // Init
+  (async function init() {
+    await Promise.all([loadPlans(), loadSubscription(), loadPayments()]);
+  })();
+})();
+</script>
+</body>
+</html>
