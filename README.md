@@ -112,3 +112,4 @@ To activate real AI instead of the mock fallback, open the `.env` file and set:
 `OPENAI_API_KEY=your_actual_key_here`
 
 Enjoy managing your campus!
+"# VishvaERP" 
