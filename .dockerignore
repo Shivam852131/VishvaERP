@@ -18,10 +18,8 @@ dist
 build
 .cache
 Users
-Dockerfile
 docker-compose.yml
 nginx.conf
-render.yaml
 vercel.json
 PLAN.md
 README.md

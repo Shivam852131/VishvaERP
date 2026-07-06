@@ -2,6 +2,7 @@ services:
   - type: web
     name: vishva-erp
     runtime: node
+    rootDir: .
     plan: starter
     buildCommand: npm install
     startCommand: node backend/server.js
