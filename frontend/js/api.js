@@ -1,4 +1,7 @@
-const API_URL = '/api';
+const BACKEND_ORIGIN = window.location.hostname.endsWith('vercel.app')
+  ? 'https://vishvaerp.onrender.com'
+  : '';
+const API_URL = BACKEND_ORIGIN ? `${BACKEND_ORIGIN}/api` : '/api';
 
 const api = {
   getToken() {

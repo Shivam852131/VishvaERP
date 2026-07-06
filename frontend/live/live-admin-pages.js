@@ -149,10 +149,13 @@
     socketPromise = (async () => {
       const user = getUser();
       if (!user) return null;
+      const realtimeOrigin = window.location.hostname.endsWith('vercel.app')
+        ? 'https://vishvaerp.onrender.com'
+        : window.location.origin;
       if (!window.io) {
-        await loadScript('/socket.io/socket.io.js');
+        await loadScript(`${realtimeOrigin}/socket.io/socket.io.js`);
       }
-      const socket = window.io(window.location.origin, { transports: ['websocket', 'polling'] });
+      const socket = window.io(realtimeOrigin, { transports: ['websocket', 'polling'] });
       socket.on('connect', () => {
         const userId = getUserId(user);
         socket.emit('join_room', `role:${user.role}`);
