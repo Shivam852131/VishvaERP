@@ -40,6 +40,19 @@
     .tab-btn{padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;border:none;background:transparent;color:#64748B}
     .tab-btn.active{background:#4F46E5;color:white;box-shadow:0 2px 8px rgba(79,70,229,0.3)}
     .tab-btn:hover:not(.active){background:#F1F5F9}
+    .live-dot{width:8px;height:8px;border-radius:50%;background:#10B981;display:inline-block;animation:pulse 2s infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+    .threshold-bar{height:6px;border-radius:3px;background:#E2E8F0;overflow:hidden;margin-top:8px}
+    .threshold-fill{height:100%;border-radius:3px;transition:width .8s ease}
+    .modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,0.6);backdrop-filter:blur(4px);z-index:500;display:none;align-items:center;justify-content:center}
+    .modal-overlay.open{display:flex}
+    .modal-card{background:white;border-radius:16px;max-width:540px;width:95%;max-height:90vh;overflow-y:auto;box-shadow:0 25px 60px rgba(0,0,0,0.25)}
+    .empty-state{text-align:center;padding:40px 20px;color:#94A3B8}
+    .empty-state i{font-size:40px;margin-bottom:12px;display:block}
+    .btn-active-indicator{position:relative;padding-right:16px}
+    .btn-active-indicator::after{content:'';position:absolute;top:4px;right:4px;width:6px;height:6px;border-radius:50%;background:#10B981}
+    @media(max-width:768px){.sub-hero{padding:20px}.countdown-num{font-size:24px}}
+    @media(max-width:640px){.erp-content{padding:16px!important}}
   </style>
 </head>
 <body>
@@ -82,15 +95,21 @@
         <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
         <div class="topbar-breadcrumb">College Admin / <span>Subscription & Billing</span></div>
       </div>
-      <div class="topbar-right"><div class="topbar-avatar" id="topbar-avatar">A</div></div>
+      <div class="topbar-right">
+        <div class="topbar-avatar" id="topbar-avatar">A</div>
+        <div id="realtimeIndicator" class="btn-active-indicator" title="Real-time connected">
+          <span class="live-dot"></span>
+        </div>
+      </div>
     </header>
 
     <div class="erp-content page-enter">
-      <!-- HERO SECTION -->
+
+      <!-- HERO -->
       <div class="sub-hero mb-6" id="heroSection">
         <div style="position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px">
           <div>
-            <div style="font-size:13px;opacity:.8;margin-bottom:4px">Subscription Overview</div>
+            <div style="font-size:13px;opacity:.8;margin-bottom:4px;display:flex;align-items:center;gap:6px"><span class="live-dot" style="margin-right:4px"></span>Subscription Overview</div>
             <h1 style="font-size:28px;font-weight:900;margin-bottom:4px" id="heroPlanName">Loading...</h1>
             <div style="font-size:14px;opacity:.85" id="heroPlanStatus">Checking your plan...</div>
           </div>
@@ -117,12 +136,13 @@
         <button class="tab-btn" onclick="switchTab('plans')"><i class="fas fa-layer-group"></i> Plans & Pricing</button>
         <button class="tab-btn" onclick="switchTab('invoices')"><i class="fas fa-file-invoice"></i> Invoices</button>
         <button class="tab-btn" onclick="switchTab('history')"><i class="fas fa-clock-rotate-left"></i> Billing History</button>
+        <button class="tab-btn" onclick="switchTab('settings')"><i class="fas fa-gear"></i> Settings</button>
       </div>
 
-      <!-- TAB: OVERVIEW -->
+      <!-- ==================== TAB: OVERVIEW ==================== -->
       <div id="tab-overview">
         <!-- USAGE METERS -->
-        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px" id="usageGrid">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:24px" id="usageGrid">
           <div class="card glow-card" style="padding:20px;text-align:center">
             <div class="usage-ring" id="ring-students">
               <svg width="100" height="100"><circle class="ring-bg" cx="50" cy="50" r="42"/><circle class="ring-fill" cx="50" cy="50" r="42" stroke="#4F46E5" stroke-dasharray="264" stroke-dashoffset="264"/></svg>
@@ -130,98 +150,93 @@
             </div>
             <div style="font-size:13px;font-weight:600;margin-top:12px">Students</div>
             <div style="font-size:11px;color:#64748B" id="usage-students-label">-- / --</div>
+            <div class="threshold-bar"><div class="threshold-fill" id="threshold-students" style="width:0%;background:#4F46E5"></div></div>
           </div>
           <div class="card glow-card" style="padding:20px;text-align:center">
-            <div class="usage-ring">
+            <div class="usage-ring" id="ring-faculty">
               <svg width="100" height="100"><circle class="ring-bg" cx="50" cy="50" r="42"/><circle class="ring-fill" cx="50" cy="50" r="42" stroke="#10B981" stroke-dasharray="264" stroke-dashoffset="264"/></svg>
               <div class="ring-label"><div class="ring-num" style="color:#10B981" id="usage-faculty-num">--</div><div class="ring-text">faculty</div></div>
             </div>
             <div style="font-size:13px;font-weight:600;margin-top:12px">Faculty</div>
             <div style="font-size:11px;color:#64748B" id="usage-faculty-label">-- / --</div>
+            <div class="threshold-bar"><div class="threshold-fill" id="threshold-faculty" style="width:0%;background:#10B981"></div></div>
           </div>
           <div class="card glow-card" style="padding:20px;text-align:center">
-            <div class="usage-ring">
+            <div class="usage-ring" id="ring-courses">
               <svg width="100" height="100"><circle class="ring-bg" cx="50" cy="50" r="42"/><circle class="ring-fill" cx="50" cy="50" r="42" stroke="#F59E0B" stroke-dasharray="264" stroke-dashoffset="264"/></svg>
               <div class="ring-label"><div class="ring-num" style="color:#F59E0B" id="usage-courses-num">--</div><div class="ring-text">courses</div></div>
             </div>
             <div style="font-size:13px;font-weight:600;margin-top:12px">Courses</div>
             <div style="font-size:11px;color:#64748B" id="usage-courses-label">Active courses</div>
+            <div class="threshold-bar"><div class="threshold-fill" id="threshold-courses" style="width:0%;background:#F59E0B"></div></div>
           </div>
           <div class="card glow-card" style="padding:20px;text-align:center">
-            <div class="usage-ring">
+            <div class="usage-ring" id="ring-storage">
               <svg width="100" height="100"><circle class="ring-bg" cx="50" cy="50" r="42"/><circle class="ring-fill" cx="50" cy="50" r="42" stroke="#8B5CF6" stroke-dasharray="264" stroke-dashoffset="264"/></svg>
               <div class="ring-label"><div class="ring-num" style="color:#8B5CF6" id="usage-storage-num">--</div><div class="ring-text">GB</div></div>
             </div>
             <div style="font-size:13px;font-weight:600;margin-top:12px">Storage Used</div>
             <div style="font-size:11px;color:#64748B" id="usage-storage-label">-- / --</div>
+            <div class="threshold-bar"><div class="threshold-fill" id="threshold-storage" style="width:0%;background:#8B5CF6"></div></div>
           </div>
         </div>
 
-        <!-- CURRENT PLAN + RENEWAL COUNTDOWN -->
-        <div style="display:grid;grid-template-columns:1.2fr 0.8fr;gap:20px;margin-bottom:24px">
+        <!-- ALERTS -->
+        <div id="alertsArea"></div>
+
+        <!-- CURRENT PLAN + RENEWAL -->
+        <div style="display:grid;grid-template-columns:1.2fr 0.8fr;gap:20px;margin-bottom:24px" id="planGrid">
           <div class="card" style="padding:24px" id="currentPlanCard">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
               <h3 style="font-size:16px;font-weight:700"><i class="fas fa-id-badge" style="color:#4F46E5;margin-right:8px"></i>Current Plan</h3>
               <div id="planStatusBadge"></div>
             </div>
-            <div id="currentPlanBody">
-              <div style="text-align:center;padding:30px"><i class="fas fa-spinner fa-spin" style="color:#4F46E5;font-size:20px"></i></div>
-            </div>
+            <div id="currentPlanBody"><div style="text-align:center;padding:30px"><i class="fas fa-spinner fa-spin" style="color:#4F46E5;font-size:20px"></i></div></div>
           </div>
           <div class="card" style="padding:24px" id="renewalCard">
             <h3 style="font-size:16px;font-weight:700;margin-bottom:20px"><i class="fas fa-clock" style="color:#F59E0B;margin-right:8px"></i>Renewal Countdown</h3>
-            <div id="countdownBody">
-              <div style="text-align:center;padding:20px"><i class="fas fa-spinner fa-spin" style="color:#4F46E5"></i></div>
-            </div>
+            <div id="countdownBody"><div style="text-align:center;padding:20px"><i class="fas fa-spinner fa-spin" style="color:#4F46E5"></i></div></div>
             <div style="margin-top:20px;padding-top:16px;border-top:1px solid #F1F5F9" id="quickActions"></div>
           </div>
         </div>
 
-        <!-- BILLING SUMMARY + PLAN FEATURES -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px">
+        <!-- BILLING + FEATURES -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px" id="billingFeatureGrid">
           <div class="card" style="padding:24px">
             <h3 style="font-size:16px;font-weight:700;margin-bottom:16px"><i class="fas fa-chart-pie" style="color:#EC4899;margin-right:8px"></i>Billing Summary</h3>
-            <div id="billingSummary">
-              <div style="text-align:center;padding:20px"><i class="fas fa-spinner fa-spin" style="color:#4F46E5"></i></div>
-            </div>
+            <div id="billingSummary"><div style="text-align:center;padding:20px"><i class="fas fa-spinner fa-spin" style="color:#4F46E5"></i></div></div>
           </div>
           <div class="card" style="padding:24px">
             <h3 style="font-size:16px;font-weight:700;margin-bottom:16px"><i class="fas fa-list-check" style="color:#10B981;margin-right:8px"></i>Plan Features</h3>
-            <div id="planFeatures">
-              <div style="text-align:center;padding:20px"><i class="fas fa-spinner fa-spin" style="color:#4F46E5"></i></div>
-            </div>
+            <div id="planFeatures"><div style="text-align:center;padding:20px"><i class="fas fa-spinner fa-spin" style="color:#4F46E5"></i></div></div>
           </div>
         </div>
 
-        <!-- SUBSCRIPTION TIMELINE -->
+        <!-- TIMELINE -->
         <div class="card" style="padding:24px;margin-bottom:24px">
           <h3 style="font-size:16px;font-weight:700;margin-bottom:20px"><i class="fas fa-timeline" style="color:#8B5CF6;margin-right:8px"></i>Subscription Timeline</h3>
-          <div id="timelineBody">
-            <div style="text-align:center;padding:20px"><i class="fas fa-spinner fa-spin" style="color:#4F46E5"></i></div>
-          </div>
+          <div id="timelineBody"><div style="text-align:center;padding:20px"><i class="fas fa-spinner fa-spin" style="color:#4F46E5"></i></div></div>
         </div>
       </div>
 
-      <!-- TAB: PLANS -->
+      <!-- ==================== TAB: PLANS ==================== -->
       <div id="tab-plans" style="display:none">
         <div style="text-align:center;margin-bottom:24px">
-          <div class="toggle-wrapper" style="display:flex;align-items:center;justify-content:center;gap:14px">
+          <div style="display:flex;align-items:center;justify-content:center;gap:14px">
             <span style="font-size:14px;font-weight:600" id="toggleLabelMonthly">Monthly</span>
             <div class="toggle-track active" id="billingToggle" onclick="toggleBilling()" style="width:52px;height:28px;border-radius:14px;background:#CBD5E1;cursor:pointer;position:relative;transition:background .3s">
               <div style="position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:transform .3s" id="toggleThumb"></div>
             </div>
-            <span style="font-size:14px;font-weight:600;color:#64748B" id="toggleLabelYearly">Yearly <span class="savings-badge">Save 17%</span></span>
+            <span style="font-size:14px;font-weight:600;color:#64748B" id="toggleLabelYearly">Yearly <span style="background:#D1FAE5;color:#065F46;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">Save 17%</span></span>
           </div>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-bottom:36px" id="plansGrid">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:24px;margin-bottom:36px" id="plansGrid">
           <div style="text-align:center;padding:40px"><i class="fas fa-spinner fa-spin" style="color:#4F46E5;font-size:20px"></i></div>
         </div>
-
-        <!-- FEATURE COMPARISON TABLE -->
         <div class="card" style="padding:24px;margin-bottom:24px">
           <h3 style="font-size:16px;font-weight:700;margin-bottom:16px"><i class="fas fa-table" style="color:#4F46E5;margin-right:8px"></i>Feature Comparison</h3>
           <div style="overflow-x:auto">
-            <table class="feature-compare" id="featureTable" style="width:100%;border-collapse:collapse">
+            <table class="feature-compare" style="width:100%;border-collapse:collapse">
               <thead id="featureTableHead"></thead>
               <tbody id="featureTableBody"></tbody>
             </table>
@@ -229,27 +244,36 @@
         </div>
       </div>
 
-      <!-- TAB: INVOICES -->
+      <!-- ==================== TAB: INVOICES ==================== -->
       <div id="tab-invoices" style="display:none">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
           <h3 style="font-size:16px;font-weight:700"><i class="fas fa-file-invoice" style="color:#4F46E5;margin-right:8px"></i>Invoices & Receipts</h3>
-          <div style="display:flex;gap:8px">
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
             <input class="form-control" id="invoiceSearch" placeholder="Search invoices..." style="width:220px" oninput="renderInvoices()">
+            <select class="form-control" id="invoiceStatusFilter" style="width:140px" onchange="renderInvoices()">
+              <option value="">All Status</option>
+              <option value="paid">Paid</option>
+              <option value="failed">Failed</option>
+              <option value="pending">Pending</option>
+            </select>
             <button class="btn btn-secondary btn-sm" onclick="exportInvoices()"><i class="fas fa-download"></i> Export CSV</button>
           </div>
         </div>
-        <div id="invoiceList">
-          <div style="text-align:center;padding:40px"><i class="fas fa-spinner fa-spin" style="color:#4F46E5"></i></div>
-        </div>
+        <div id="invoiceList"><div style="text-align:center;padding:40px"><i class="fas fa-spinner fa-spin" style="color:#4F46E5"></i></div></div>
       </div>
 
-      <!-- TAB: BILLING HISTORY -->
+      <!-- ==================== TAB: HISTORY ==================== -->
       <div id="tab-history" style="display:none">
         <div class="card" style="padding:0;overflow:hidden">
-          <div style="padding:20px 24px;border-bottom:1px solid #F1F5F9;display:flex;align-items:center;justify-content:space-between">
+          <div style="padding:20px 24px;border-bottom:1px solid #F1F5F9;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
             <h3 style="font-size:16px;font-weight:700"><i class="fas fa-clock-rotate-left" style="color:#10B981;margin-right:8px"></i>Complete Billing History</h3>
-            <div style="display:flex;gap:8px">
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
               <input class="form-control" id="paymentSearch" placeholder="Search payments..." style="width:220px" oninput="filterPayments()">
+              <select class="form-control" id="paymentStatusFilter" style="width:140px" onchange="filterPayments()">
+                <option value="">All Status</option>
+                <option value="success">Paid</option>
+                <option value="failed">Failed</option>
+              </select>
               <button class="btn btn-secondary btn-sm" onclick="exportPayments()"><i class="fas fa-download"></i> Export</button>
             </div>
           </div>
@@ -271,11 +295,99 @@
               </tbody>
             </table>
           </div>
-          <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-top:1px solid #F1F5F9">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-top:1px solid #F1F5F9;flex-wrap:wrap;gap:8px">
             <span style="font-size:13px;color:#64748B" id="paymentCount">0 payments</span>
-            <div style="display:flex;gap:6px" id="paginationBtns"></div>
+            <div style="display:flex;gap:6px;align-items:center">
+              <span style="font-size:12px;color:#64748B;margin-right:8px">Page</span>
+              <div id="paginationBtns"></div>
+            </div>
           </div>
         </div>
+      </div>
+
+      <!-- ==================== TAB: SETTINGS ==================== -->
+      <div id="tab-settings" style="display:none">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px">
+          <!-- Subscription Management -->
+          <div class="card" style="padding:24px">
+            <h3 style="font-size:16px;font-weight:700;margin-bottom:20px"><i class="fas fa-sliders" style="color:#4F46E5;margin-right:8px"></i>Subscription Management</h3>
+            <div id="settingsBody"><div style="text-align:center;padding:20px"><i class="fas fa-spinner fa-spin" style="color:#4F46E5"></i></div></div>
+          </div>
+          <!-- Billing Preferences -->
+          <div class="card" style="padding:24px">
+            <h3 style="font-size:16px;font-weight:700;margin-bottom:20px"><i class="fas fa-receipt" style="color:#10B981;margin-right:8px"></i>Billing Preferences</h3>
+            <div style="display:flex;flex-direction:column;gap:16px">
+              <div>
+                <label style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#F8FAFC;border-radius:10px;cursor:pointer">
+                  <span style="font-size:14px;font-weight:600"><i class="fas fa-envelope" style="color:#64748B;margin-right:8px"></i>Email Invoices</span>
+                  <div class="toggle-track" onclick="this.classList.toggle('active');this.style.background=this.classList.contains('active')?'#4F46E5':'#CBD5E1';this.querySelector('div').style.transform=this.classList.contains('active')?'translateX(24px)':'translateX(0)'" style="width:44px;height:24px;border-radius:12px;background:#4F46E5;cursor:pointer;position:relative;transition:background .3s">
+                    <div style="position:absolute;top:3px;left:22px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:transform .3s"></div>
+                  </div>
+                </label>
+              </div>
+              <div>
+                <label style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#F8FAFC;border-radius:10px;cursor:pointer">
+                  <span style="font-size:14px;font-weight:600"><i class="fas fa-bell" style="color:#64748B;margin-right:8px"></i>Renewal Reminders</span>
+                  <div class="toggle-track active" onclick="this.classList.toggle('active');this.style.background=this.classList.contains('active')?'#4F46E5':'#CBD5E1';this.querySelector('div').style.transform=this.classList.contains('active')?'translateX(24px)':'translateX(0)'" style="width:44px;height:24px;border-radius:12px;background:#4F46E5;cursor:pointer;position:relative;transition:background .3s">
+                    <div style="position:absolute;top:3px;left:22px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:transform .3s"></div>
+                  </div>
+                </label>
+              </div>
+              <div>
+                <label style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#F8FAFC;border-radius:10px;cursor:pointer">
+                  <span style="font-size:14px;font-weight:600"><i class="fas fa-shield-halved" style="color:#64748B;margin-right:8px"></i>Auto-Renew Subscription</span>
+                  <div class="toggle-track" onclick="this.classList.toggle('active');this.style.background=this.classList.contains('active')?'#4F46E5':'#CBD5E1';this.querySelector('div').style.transform=this.classList.contains('active')?'translateX(24px)':'translateX(0)'" style="width:44px;height:24px;border-radius:12px;background:#CBD5E1;cursor:pointer;position:relative;transition:background .3s">
+                    <div style="position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:transform .3s"></div>
+                  </div>
+                </label>
+              </div>
+              <div style="margin-top:8px;padding-top:16px;border-top:1px solid #F1F5F9">
+                <div style="display:flex;gap:8px">
+                  <button class="btn btn-secondary" style="flex:1" onclick="exportPayments()"><i class="fas fa-download"></i> Download All Receipts</button>
+                  <button class="btn btn-danger" style="flex:1" onclick="openCancelModal()"><i class="fas fa-times-circle"></i> Cancel Subscription</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ==================== PLAN CHANGE MODAL ==================== -->
+<div class="modal-overlay" id="planChangeModal">
+  <div class="modal-card" style="padding:0">
+    <div style="padding:20px 24px;border-bottom:1px solid #F1F5F9;display:flex;align-items:center;justify-content:space-between">
+      <h3 style="font-size:18px;font-weight:700" id="planChangeTitle">Change Plan</h3>
+      <button class="btn btn-xs btn-secondary" onclick="closeModal('planChangeModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div style="padding:24px" id="planChangeBody"></div>
+  </div>
+</div>
+
+<!-- ==================== CANCEL MODAL ==================== -->
+<div class="modal-overlay" id="cancelModal">
+  <div class="modal-card" style="padding:0">
+    <div style="padding:20px 24px;border-bottom:1px solid #F1F5F9;display:flex;align-items:center;justify-content:space-between">
+      <h3 style="font-size:18px;font-weight:700;color:#EF4444"><i class="fas fa-exclamation-triangle" style="margin-right:8px"></i>Cancel Subscription</h3>
+      <button class="btn btn-xs btn-secondary" onclick="closeModal('cancelModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div style="padding:24px">
+      <p style="color:#64748B;margin-bottom:20px;font-size:14px">Are you sure you want to cancel your subscription? You will lose access to all premium features at the end of your current billing period.</p>
+      <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:10px;padding:16px;margin-bottom:20px">
+        <div style="font-size:13px;font-weight:600;color:#991B1B;margin-bottom:6px">What happens when you cancel:</div>
+        <ul style="color:#991B1B;font-size:12px;padding-left:20px;line-height:1.8">
+          <li>Access continues until current billing period ends</li>
+          <li>All data is retained for 30 days after expiry</li>
+          <li>Export your data before the subscription expires</li>
+          <li>Reactivation is available anytime</li>
+        </ul>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-secondary" style="flex:1" onclick="closeModal('cancelModal')">Keep Subscription</button>
+        <button class="btn btn-danger" style="flex:1" onclick="confirmCancel()">Yes, Cancel</button>
       </div>
     </div>
   </div>
@@ -318,16 +430,23 @@
     {name:'Grievance Management',basic:true,pro:true,enterprise:true},
   ];
 
-  function fmt(a){return '₹'+Number(a).toLocaleString('en-IN')}
-  function fmtDate(d){if(!d)return '—';return new Date(d).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}
+  function fmt(a){return '\u20B9'+Number(a).toLocaleString('en-IN')}
+  function fmtDate(d){if(!d)return '\u2014';return new Date(d).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}
   function daysLeft(d){if(!d)return 0;return Math.max(0,Math.ceil((new Date(d)-new Date())/(1000*60*60*24)))}
 
   function normalizeSub(s){
     if(!s)return{status:'none'};
-    return{...s,status:s.isActive?'active':(s.status||'none'),expiryDate:s.expiryDate||s.endDate,price:s.price||s.amount};
+    return{...s,status:s.isActive?'active':(s.status||'none'),expiryDate:s.endDate||s.expiryDate,price:s.price||s.amount};
   }
   function normalizePayment(p){return{...p,date:p.date||p.createdAt,paymentId:p.paymentId||p.razorpayPaymentId||p.receiptNo||p.id,status:p.status==='captured'?'success':p.status}}
   function getPlans(){return(plans.length?plans:PLANS_DATA).map(p=>{const fb=PLANS_DATA.find(x=>x.id===p.id)||{};return{...fb,...p,price:p.price||p.pricing||fb.price||{},features:p.features||fb.features||[],limits:fb.limits||{}}})}
+  function setCurrentTab(tab){
+    document.querySelectorAll('[id^="tab-"]').forEach(el=>el.style.display='none');
+    document.getElementById('tab-'+tab).style.display='block';
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    const btn=document.querySelector('.tab-btn[onclick="switchTab(\''+tab+'\')"]');
+    if(btn)btn.classList.add('active');
+  }
 
   // ===== HERO =====
   function renderHero(){
@@ -336,7 +455,7 @@
     const days=daysLeft(currentSubscription?.expiryDate);
     const totalSpent=payments.filter(p=>p.status==='success').reduce((s,p)=>s+Number(p.amount||0),0);
     document.getElementById('heroPlanName').textContent=(plan.name||'No')+' Plan';
-    document.getElementById('heroPlanStatus').innerHTML=isActive?`<i class="fas fa-circle" style="font-size:8px;color:#4ADE80;margin-right:4px"></i>Active — ${days>0?days+' days remaining':'Expiring soon'}`:'<i class="fas fa-circle" style="font-size:8px;color:#F87171;margin-right:4px"></i>No active subscription';
+    document.getElementById('heroPlanStatus').innerHTML=isActive?`<i class="fas fa-circle" style="font-size:8px;color:#4ADE80;margin-right:4px"></i>Active \u2014 ${days>0?days+' days remaining':'Expiring soon'}`:'<i class="fas fa-circle" style="font-size:8px;color:#F87171;margin-right:4px"></i>No active subscription';
     document.getElementById('heroAmount').textContent=fmt(totalSpent);
     document.getElementById('heroPayments').textContent=payments.filter(p=>p.status==='success').length;
     document.getElementById('heroDays').textContent=days>0?days:'--';
@@ -350,17 +469,41 @@
     function setRing(id,current,max,color){
       const pct=max<0?10:Math.min((current/max)*100,100);
       const offset=circumference-(pct/100)*circumference;
-      const ring=document.querySelector(`#${id} .ring-fill`);
+      const ring=document.querySelector('#'+id+' .ring-fill');
       if(ring)ring.style.strokeDashoffset=offset;
       const num=document.getElementById(id.replace('ring-','usage-')+'-num');
       if(num)num.textContent=current;
       const lbl=document.getElementById(id.replace('ring-','usage-')+'-label');
       if(lbl)lbl.textContent=max<0?current+' used':current+' / '+max;
+      const threshold=document.getElementById('threshold-'+id.replace('ring-',''));
+      if(threshold){
+        threshold.style.width=pct+'%';
+        threshold.style.background=pct>=90?'#EF4444':pct>=70?'#F59E0B':color;
+      }
     }
     setRing('ring-students',1247,limits.students||500,'#4F46E5');
     setRing('ring-faculty',89,limits.faculty||50,'#10B981');
     setRing('ring-courses',42,100,'#F59E0B');
     setRing('ring-storage',12,limits.storage||5,'#8B5CF6');
+  }
+
+  // ===== ALERTS =====
+  function renderAlerts(){
+    const area=document.getElementById('alertsArea');
+    if(!currentSubscription||currentSubscription.status==='none'){
+      area.innerHTML=`<div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:12px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;gap:12px"><i class="fas fa-exclamation-triangle" style="color:#EF4444;font-size:20px;flex-shrink:0"></i><div style="flex:1"><div style="font-weight:700;color:#991B1B;font-size:14px">No Active Subscription</div><div style="font-size:13px;color:#B91C1C">Subscribe to unlock all VishvaERP features and remove restrictions.</div></div><button class="btn btn-danger btn-sm" onclick="switchTab('plans')"><i class="fas fa-arrow-right"></i> View Plans</button></div>`;
+      return;
+    }
+    const days=daysLeft(currentSubscription.expiryDate);
+    const plan=getPlans().find(p=>p.id===currentSubscription.plan)||getPlans()[0];
+    let html='';
+    if(days<=7&&days>0){
+      html+=`<div style="background:#FEF3C7;border:1px solid #FDE68A;border-radius:12px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;gap:12px"><i class="fas fa-clock" style="color:#F59E0B;font-size:20px;flex-shrink:0"></i><div style="flex:1"><div style="font-weight:700;color:#92400E;font-size:14px">Subscription Expiring Soon</div><div style="font-size:13px;color:#A16207">Your ${plan.name} plan expires in ${days} day${days>1?'s':''}. Renew now to avoid service interruption.</div></div><button class="btn btn-secondary btn-sm" onclick="switchTab('plans')"><i class="fas fa-redo"></i> Renew</button></div>`;
+    }
+    if(days<=0){
+      html+=`<div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:12px;padding:16px 20px;margin-bottom:20px;display:flex;align-items:center;gap:12px"><i class="fas fa-exclamation-triangle" style="color:#EF4444;font-size:20px;flex-shrink:0"></i><div style="flex:1"><div style="font-weight:700;color:#991B1B;font-size:14px">Subscription Expired</div><div style="font-size:13px;color:#B91C1C">Your plan has expired. Some features may be restricted. Renew to restore access.</div></div><button class="btn btn-danger btn-sm" onclick="switchTab('plans')"><i class="fas fa-redo"></i> Renew Now</button></div>`;
+    }
+    area.innerHTML=html;
   }
 
   // ===== CURRENT PLAN =====
@@ -382,17 +525,18 @@
         <div style="width:64px;height:64px;border-radius:14px;background:${plan.color}15;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="${plan.icon}" style="font-size:28px;color:${plan.color}"></i></div>
         <div style="flex:1;min-width:200px">
           <h3 style="font-size:22px;font-weight:800;margin-bottom:2px">${plan.name} Plan</h3>
-          <div style="color:#64748B;font-size:14px">${currentSubscription.billingCycle==='yearly'?'Annual':'Monthly'} billing • Started ${fmtDate(currentSubscription.startDate||currentSubscription.createdAt)}</div>
+          <div style="color:#64748B;font-size:14px">${currentSubscription.billingCycle==='yearly'?'Annual':currentSubscription.billingCycle==='quarterly'?'Quarterly':'Monthly'} billing \u2022 Started ${fmtDate(currentSubscription.startDate||currentSubscription.createdAt)}</div>
         </div>
         <div style="text-align:right">
           <div style="font-size:32px;font-weight:900;color:#4F46E5">${fmt(price)}</div>
-          <div style="font-size:12px;color:#94A3B8">${currentSubscription.billingCycle==='yearly'?'per year':'per month'}</div>
+          <div style="font-size:12px;color:#94A3B8">/${currentSubscription.billingCycle==='yearly'?'year':currentSubscription.billingCycle==='quarterly'?'quarter':'month'}</div>
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px;padding-top:16px;border-top:1px solid #F1F5F9">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:16px;margin-top:20px;padding-top:16px;border-top:1px solid #F1F5F9">
         <div><div style="font-size:11px;color:#94A3B8;text-transform:uppercase;letter-spacing:.5px">Start Date</div><div style="font-size:14px;font-weight:600">${fmtDate(currentSubscription.startDate)}</div></div>
         <div><div style="font-size:11px;color:#94A3B8;text-transform:uppercase;letter-spacing:.5px">Next Billing</div><div style="font-size:14px;font-weight:600">${fmtDate(currentSubscription.expiryDate)}</div></div>
         <div><div style="font-size:11px;color:#94A3B8;text-transform:uppercase;letter-spacing:.5px">Days Remaining</div><div style="font-size:14px;font-weight:600;color:${days<=7?'#EF4444':days<=30?'#F59E0B':'#10B981'}">${days>0?days+' days':'Expired'}</div></div>
+        <div><div style="font-size:11px;color:#94A3B8;text-transform:uppercase;letter-spacing:.5px">Billing Cycle</div><div style="font-size:14px;font-weight:600;text-transform:capitalize">${currentSubscription.billingCycle||'Monthly'}</div></div>
       </div>`;
   }
 
@@ -439,12 +583,13 @@
     const totalSpent=success.reduce((s,p)=>s+Number(p.amount||0),0);
     const lastPayment=success[0];
     const avgPerMonth=success.length?Math.round(totalSpent/Math.max(1,Math.ceil((Date.now()-new Date(success[success.length-1]?.date||Date.now()))/(1000*60*60*24*30)))):0;
+    const failed=payments.filter(p=>p.status==='failed').length;
     c.innerHTML=`
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
         <div style="padding:16px;background:#F8FAFC;border-radius:10px"><div style="font-size:11px;color:#94A3B8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Total Spent</div><div style="font-size:22px;font-weight:800;color:#4F46E5">${fmt(totalSpent)}</div></div>
         <div style="padding:16px;background:#F8FAFC;border-radius:10px"><div style="font-size:11px;color:#94A3B8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Avg/Month</div><div style="font-size:22px;font-weight:800;color:#10B981">${fmt(avgPerMonth)}</div></div>
-        <div style="padding:16px;background:#F8FAFC;border-radius:10px"><div style="font-size:11px;color:#94A3B8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Last Payment</div><div style="font-size:14px;font-weight:600">${lastPayment?fmt(lastPayment.amount):'—'}</div><div style="font-size:11px;color:#94A3B8">${lastPayment?fmtDate(lastPayment.date):''}</div></div>
-        <div style="padding:16px;background:#F8FAFC;border-radius:10px"><div style="font-size:11px;color:#94A3B8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Total Transactions</div><div style="font-size:22px;font-weight:800;color:#8B5CF6">${success.length}</div></div>
+        <div style="padding:16px;background:#F8FAFC;border-radius:10px"><div style="font-size:11px;color:#94A3B8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Last Payment</div><div style="font-size:14px;font-weight:600">${lastPayment?fmt(lastPayment.amount):'\u2014'}</div><div style="font-size:11px;color:#94A3B8">${lastPayment?fmtDate(lastPayment.date):''}</div></div>
+        <div style="padding:16px;background:#F8FAFC;border-radius:10px"><div style="font-size:11px;color:#94A3B8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Failed Payments</div><div style="font-size:22px;font-weight:800;color:${failed?'#EF4444':'#10B981'}">${failed}</div></div>
       </div>`;
   }
 
@@ -462,7 +607,7 @@
     const sorted=[...payments].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,10);
     c.innerHTML=sorted.map((p,i)=>{
       const isPaid=p.status==='success';
-      return`<div class="timeline-item"><div class="timeline-dot" style="background:${isPaid?'#D1FAE5;color:#065F46':'#FEE2E2;color:#991B1B'}"><i class="fas ${isPaid?'fa-check':'fa-times'}"></i></div><div style="flex:1"><div style="display:flex;justify-content:space-between;align-items:center"><div><span style="font-weight:600;font-size:14px">${p.plan||'Subscription'} Plan</span><span style="font-size:12px;color:#64748B;margin-left:8px">${p.billingCycle==='yearly'?'Annual':'Monthly'}</span></div><span style="font-weight:700;font-size:14px">${fmt(p.amount)}</span></div><div style="display:flex;justify-content:space-between;margin-top:4px"><span style="font-size:12px;color:#94A3B8">${fmtDate(p.date)}</span><span style="font-size:11px;padding:2px 8px;border-radius:8px;background:${isPaid?'#D1FAE5;color:#065F46':'#FEE2E2;color:#991B1B'}">${isPaid?'Paid':'Failed'}</span></div></div></div>`;
+      return`<div class="timeline-item"><div class="timeline-dot" style="background:${isPaid?'#D1FAE5;color:#065F46':'#FEE2E2;color:#991B1B'}"><i class="fas ${isPaid?'fa-check':'fa-times'}"></i></div><div style="flex:1"><div style="display:flex;justify-content:space-between;align-items:center"><div><span style="font-weight:600;font-size:14px">${p.plan||'Subscription'} Plan</span><span style="font-size:12px;color:#64748B;margin-left:8px">${p.billingCycle==='yearly'?'Annual':p.billingCycle==='quarterly'?'Quarterly':'Monthly'}</span></div><span style="font-weight:700;font-size:14px">${fmt(p.amount)}</span></div><div style="display:flex;justify-content:space-between;margin-top:4px"><span style="font-size:12px;color:#94A3B8">${fmtDate(p.date)}</span><span style="font-size:11px;padding:2px 8px;border-radius:8px;background:${isPaid?'#D1FAE5;color:#065F46':'#FEE2E2;color:#991B1B'}">${isPaid?'Paid':'Failed'}</span></div></div></div>`;
     }).join('');
   }
 
@@ -473,7 +618,7 @@
     grid.innerHTML=getPlans().map(plan=>{
       const isCurrent=cur===plan.id&&currentSubscription?.status==='active';
       const price=plan.price?.[billingCycle]||0;
-      const monthlyEq=billingCycle==='yearly'?Math.round((plan.price?.yearly||0)/12):(plan.price?.monthly||0);
+      const monthlyEq=billingCycle==='yearly'?Math.round((plan.price?.yearly||0)/12):billingCycle==='quarterly'?Math.round((plan.price?.quarterly||0)/3):(plan.price?.monthly||0);
       return`<div class="plan-card card ${plan.recommended?'recommended':''} ${isCurrent?'current':''}" style="position:relative;border-radius:16px;overflow:visible;border:2px solid ${isCurrent?plan.color:'#E2E8F0'};transition:all .3s">
         ${plan.recommended?'<div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#4F46E5,#7C3AED);color:white;padding:4px 16px;border-radius:20px;font-size:12px;font-weight:700;white-space:nowrap;z-index:1"><i class="fas fa-star" style="margin-right:4px"></i>Most Popular</div>':''}
         ${isCurrent?'<div style="position:absolute;top:14px;right:14px;background:#D1FAE5;color:#065F46;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;z-index:1"><i class="fas fa-check" style="margin-right:4px"></i>Current</div>':''}
@@ -481,8 +626,8 @@
           <div style="text-align:center;margin-bottom:20px">
             <div style="width:56px;height:56px;border-radius:50%;background:${plan.color}15;display:inline-flex;align-items:center;justify-content:center;margin-bottom:12px"><i class="${plan.icon}" style="font-size:24px;color:${plan.color}"></i></div>
             <h3 style="font-size:20px;font-weight:800;margin-bottom:4px">${plan.name}</h3>
-            <div style="display:flex;align-items:baseline;justify-content:center;gap:4px"><span style="font-size:32px;font-weight:800;color:${plan.color}">${fmt(price)}</span><span style="font-size:13px;color:#94A3B8">/${billingCycle==='yearly'?'year':'month'}</span></div>
-            ${billingCycle==='yearly'?`<div style="font-size:12px;color:#94A3B8;margin-top:2px">${fmt(monthlyEq)}/month equivalent</div>`:''}
+            <div style="display:flex;align-items:baseline;justify-content:center;gap:4px"><span style="font-size:32px;font-weight:800;color:${plan.color}">${fmt(price)}</span><span style="font-size:13px;color:#94A3B8">/${billingCycle==='yearly'?'year':billingCycle==='quarterly'?'quarter':'month'}</span></div>
+            ${billingCycle!=='monthly'?`<div style="font-size:12px;color:#94A3B8;margin-top:2px">${fmt(monthlyEq)}/month equivalent</div>`:''}
           </div>
           <div style="border-top:1px solid #F1F5F9;padding-top:16px;margin-bottom:20px">
             ${plan.features.map(f=>`<div style="display:flex;align-items:flex-start;gap:8px;padding:5px 0"><i class="fas fa-check-circle" style="margin-top:2px;font-size:13px;color:#10B981"></i><span style="font-size:13px">${f}</span></div>`).join('')}
@@ -504,13 +649,20 @@
   function renderInvoices(){
     const c=document.getElementById('invoiceList');
     const q=(document.getElementById('invoiceSearch')?.value||'').toLowerCase();
-    const filtered=payments.filter(p=>!q||p.plan?.toLowerCase().includes(q)||p.paymentId?.toLowerCase().includes(q)||fmtDate(p.date).toLowerCase().includes(q));
-    if(!filtered.length){c.innerHTML='<div style="text-align:center;padding:40px;color:#94A3B8"><i class="fas fa-file-invoice" style="font-size:32px;display:block;margin-bottom:8px"></i>No invoices found</div>';return;}
+    const statusFilter=document.getElementById('invoiceStatusFilter')?.value||'';
+    const filtered=payments.filter(p=>{
+      if(statusFilter==='paid'&&p.status!=='success')return false;
+      if(statusFilter==='failed'&&p.status!=='failed')return false;
+      if(statusFilter==='pending'&&p.status!=='pending')return false;
+      if(q&&!p.plan?.toLowerCase().includes(q)&&!p.paymentId?.toLowerCase().includes(q)&&!fmtDate(p.date).toLowerCase().includes(q))return false;
+      return true;
+    });
+    if(!filtered.length){c.innerHTML='<div class="empty-state"><i class="fas fa-file-invoice"></i><div style="font-weight:600;margin-bottom:4px">No invoices found</div><div style="font-size:13px">Try adjusting your search or filters.</div></div>';return;}
     c.innerHTML=filtered.map(p=>{const isPaid=p.status==='success';return`<div class="invoice-card" style="margin-bottom:10px">
       <div style="width:44px;height:44px;background:${isPaid?'#D1FAE5':'#FEE2E2'};border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fas ${isPaid?'fa-file-invoice':'fa-file-circle-xmark'}" style="color:${isPaid?'#065F46':'#991B1B'};font-size:18px"></i></div>
       <div style="flex:1;min-width:0">
-        <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-weight:600;font-size:14px">${p.plan||'Subscription'} — ${p.billingCycle==='yearly'?'Annual':'Monthly'}</span><span style="font-weight:700;font-size:15px">${fmt(p.amount)}</span></div>
-        <div style="display:flex;justify-content:space-between;margin-top:4px"><span style="font-size:12px;color:#94A3B8">${fmtDate(p.date)} • ${p.paymentId||'—'}</span><span style="font-size:11px;padding:2px 8px;border-radius:8px;background:${isPaid?'#D1FAE5;color:#065F46':'#FEE2E2;color:#991B1B'};font-weight:600">${isPaid?'Paid':'Failed'}</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-weight:600;font-size:14px">${p.plan||'Subscription'} \u2014 ${p.billingCycle==='yearly'?'Annual':p.billingCycle==='quarterly'?'Quarterly':'Monthly'}</span><span style="font-weight:700;font-size:15px">${fmt(p.amount)}</span></div>
+        <div style="display:flex;justify-content:space-between;margin-top:4px"><span style="font-size:12px;color:#94A3B8">${fmtDate(p.date)} \u2022 ${p.paymentId||'\u2014'}</span><span style="font-size:11px;padding:2px 8px;border-radius:8px;background:${isPaid?'#D1FAE5;color:#065F46':'#FEE2E2;color:#991B1B'};font-weight:600">${isPaid?'Paid':p.status==='failed'?'Failed':'Pending'}</span></div>
       </div>
       ${isPaid?`<button class="btn btn-xs btn-secondary" onclick="downloadReceipt('${p.paymentId}')"><i class="fas fa-download"></i></button>`:''}
     </div>`}).join('');
@@ -519,14 +671,56 @@
   // ===== PAYMENT HISTORY =====
   function renderPayments(){
     const q=(document.getElementById('paymentSearch')?.value||'').toLowerCase();
-    const filtered=q?payments.filter(p=>(p.plan||'').toLowerCase().includes(q)||(p.paymentId||'').toLowerCase().includes(q)):payments;
+    const statusFilter=document.getElementById('paymentStatusFilter')?.value||'';
+    let filtered=payments;
+    if(q)filtered=filtered.filter(p=>(p.plan||'').toLowerCase().includes(q)||(p.paymentId||'').toLowerCase().includes(q));
+    if(statusFilter)filtered=filtered.filter(p=>p.status===statusFilter);
     const total=filtered.length;const totalPages=Math.ceil(total/paymentLimit);const start=(paymentPage-1)*paymentLimit;const pageItems=filtered.slice(start,start+paymentLimit);
     document.getElementById('paymentCount').textContent=total+' payment'+(total!==1?'s':'');
-    document.getElementById('paymentHistoryBody').innerHTML=pageItems.map(p=>{const ok=p.status==='success';return`<tr style="border-bottom:1px solid #F1F5F9"><td style="padding:12px 16px;font-weight:500;font-size:13px">${fmtDate(p.date)}</td><td style="padding:12px 16px"><span style="font-weight:600;font-size:13px">${p.plan||'—'}</span></td><td style="padding:12px 16px;font-size:13px;color:#64748B">${p.billingCycle==='yearly'?'Annual':'Monthly'}</td><td style="padding:12px 16px;font-weight:700;font-size:13px">${fmt(p.amount)}</td><td style="padding:12px 16px"><code style="background:#F1F5F9;padding:3px 8px;border-radius:4px;font-size:11px">${p.paymentId||'—'}</code></td><td style="padding:12px 16px"><span style="padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;background:${ok?'#D1FAE5;color:#065F46':p.status==='failed'?'#FEE2E2;color:#991B1B':'#FEF3C7;color:#92400E'}">${ok?'Paid':p.status==='failed'?'Failed':'Pending'}</span></td><td style="padding:12px 16px">${ok?`<a href="#" style="color:#4F46E5;font-weight:600;font-size:13px;text-decoration:none" onclick="downloadReceipt('${p.paymentId}');return false"><i class="fas fa-download"></i> PDF</a>`:'<span style="color:#94A3B8;font-size:12px">—</span>'}</td></tr>`}).join('')||'<tr><td colspan="7" style="text-align:center;padding:30px;color:#94A3B8">No payments found</td></tr>';
+    document.getElementById('paymentHistoryBody').innerHTML=pageItems.map(p=>{const ok=p.status==='success';return`<tr style="border-bottom:1px solid #F1F5F9"><td style="padding:12px 16px;font-weight:500;font-size:13px">${fmtDate(p.date)}</td><td style="padding:12px 16px"><span style="font-weight:600;font-size:13px">${p.plan||'\u2014'}</span></td><td style="padding:12px 16px;font-size:13px;color:#64748B">${p.billingCycle==='yearly'?'Annual':p.billingCycle==='quarterly'?'Quarterly':'Monthly'}</td><td style="padding:12px 16px;font-weight:700;font-size:13px">${fmt(p.amount)}</td><td style="padding:12px 16px"><code style="background:#F1F5F9;padding:3px 8px;border-radius:4px;font-size:11px">${p.paymentId||'\u2014'}</code></td><td style="padding:12px 16px"><span style="padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;background:${ok?'#D1FAE5;color:#065F46':p.status==='failed'?'#FEE2E2;color:#991B1B':'#FEF3C7;color:#92400E'}">${ok?'Paid':p.status==='failed'?'Failed':'Pending'}</span></td><td style="padding:12px 16px">${ok?`<a href="#" style="color:#4F46E5;font-weight:600;font-size:13px;text-decoration:none" onclick="downloadReceipt('${p.paymentId}');return false"><i class="fas fa-download"></i> PDF</a>`:'<span style="color:#94A3B8;font-size:12px">\u2014</span>'}</td></tr>`}).join('')||'<tr><td colspan="7" style="text-align:center;padding:30px;color:#94A3B8">No payments found</td></tr>';
     const btns=document.getElementById('paginationBtns');
     let html='';
     if(totalPages>1){html+=`<button class="btn btn-sm btn-secondary" ${paymentPage<=1?'disabled':''} onclick="changePage(${paymentPage-1})"><i class="fas fa-chevron-left"></i></button>`;for(let i=1;i<=totalPages;i++)html+=`<button class="btn btn-sm ${i===paymentPage?'btn-primary':'btn-secondary'}" onclick="changePage(${i})">${i}</button>`;html+=`<button class="btn btn-sm btn-secondary" ${paymentPage>=totalPages?'disabled':''} onclick="changePage(${paymentPage+1})"><i class="fas fa-chevron-right"></i></button>`;}
     btns.innerHTML=html;
+  }
+
+  // ===== SETTINGS =====
+  function renderSettings(){
+    const c=document.getElementById('settingsBody');
+    if(!currentSubscription||currentSubscription.status==='none'){
+      c.innerHTML='<div class="empty-state"><i class="fas fa-gear"></i><div style="font-weight:600;margin-bottom:4px">No subscription to manage</div><div style="font-size:13px">Subscribe to access plan management features.</div></div>';
+      return;
+    }
+    const plan=getPlans().find(p=>p.id===currentSubscription.plan)||getPlans()[0];
+    const isActive=currentSubscription.status==='active';
+    c.innerHTML=`
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div style="padding:16px;background:#F8FAFC;border-radius:10px;display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-size:12px;color:#94A3B8;text-transform:uppercase;letter-spacing:.5px">Current Plan</div>
+            <div style="font-size:16px;font-weight:700;color:${plan.color}">${plan.name}</div>
+          </div>
+          ${isActive?`<button class="btn btn-sm btn-secondary" onclick="openPlanChange('upgrade')"><i class="fas fa-arrow-up"></i> Upgrade</button>`:''}
+        </div>
+        <div style="padding:16px;background:#F8FAFC;border-radius:10px;display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-size:12px;color:#94A3B8;text-transform:uppercase;letter-spacing:.5px">Billing Cycle</div>
+            <div style="font-size:16px;font-weight:700;text-transform:capitalize">${currentSubscription.billingCycle||'Monthly'}</div>
+          </div>
+          <button class="btn btn-sm btn-secondary" onclick="switchTab('plans')"><i class="fas fa-sync"></i> Change</button>
+        </div>
+        <div style="padding:16px;background:${isActive?'#F0FDF4':'#FEF2F2'};border-radius:10px;display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-size:12px;color:#94A3B8;text-transform:uppercase;letter-spacing:.5px">Status</div>
+            <div style="font-size:16px;font-weight:700;color:${isActive?'#065F46':'#991B1B'}">${isActive?'Active':'Expired'}</div>
+          </div>
+          <span style="width:12px;height:12px;border-radius:50%;background:${isActive?'#10B981':'#EF4444'};display:block"></span>
+        </div>
+        <div style="padding:16px;background:#F8FAFC;border-radius:10px">
+          <div style="font-size:12px;color:#94A3B8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">Next Billing Date</div>
+          <div style="font-size:16px;font-weight:700">${fmtDate(currentSubscription.expiryDate)}</div>
+        </div>
+      </div>`;
   }
 
   // ===== DATA LOADING =====
@@ -537,17 +731,14 @@
     ]);
     currentSubscription=normalizeSub(subRes.subscription||subRes.data);
     payments=(payRes.payments||payRes.data||[]).map(normalizePayment);
-    renderHero();renderUsage();renderCurrentPlan();renderCountdown();renderBillingSummary();renderPlanFeatures();renderTimeline();renderPlans();renderFeatureTable();renderInvoices();renderPayments();
+    renderHero();renderUsage();renderAlerts();renderCurrentPlan();renderCountdown();renderBillingSummary();renderPlanFeatures();renderTimeline();renderPlans();renderFeatureTable();renderInvoices();renderPayments();renderSettings();
     if(countdownInterval)clearInterval(countdownInterval);
     countdownInterval=setInterval(renderCountdown,1000);
   }
 
   // ===== TABS =====
   window.switchTab=function(tab){
-    document.querySelectorAll('[id^="tab-"]').forEach(el=>el.style.display='none');
-    document.getElementById('tab-'+tab).style.display='block';
-    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-    document.querySelector(`.tab-btn[onclick="switchTab('${tab}')"]`).classList.add('active');
+    setCurrentTab(tab);
   };
 
   // ===== BILLING TOGGLE =====
@@ -560,6 +751,33 @@
     document.getElementById('toggleLabelMonthly').style.color=billingCycle==='monthly'?'#0F172A':'#94A3B8';
     document.getElementById('toggleLabelYearly').style.color=billingCycle==='yearly'?'#0F172A':'#94A3B8';
     renderPlans();
+  };
+
+  // ===== MODALS =====
+  window.closeModal=function(id){const m=document.getElementById(id);if(m)m.classList.remove('open')};
+  window.openPlanChange=function(type){
+    const m=document.getElementById('planChangeModal');
+    const title=document.getElementById('planChangeTitle');
+    const body=document.getElementById('planChangeBody');
+    title.textContent=type==='upgrade'?'Upgrade Plan':'Downgrade Plan';
+    body.innerHTML='<div style="text-align:center;padding:20px"><i class="fas fa-spinner fa-spin" style="color:#4F46E5"></i></div>';
+    m.classList.add('open');
+    const plans=getPlans();
+    const cur=currentSubscription?.plan;
+    body.innerHTML=plans.map(p=>{
+      const isCurrent=cur===p.id&&currentSubscription?.status==='active';
+      const price=p.price?.[billingCycle]||0;
+      return`<div style="padding:16px;border:1px solid ${isCurrent?p.color:'#E2E8F0'};border-radius:12px;margin-bottom:12px;display:flex;align-items:center;gap:16px;cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='${p.color}';this.style.background='${p.color}08'" onmouseout="this.style.borderColor='${isCurrent?p.color:'#E2E8F0'}';this.style.background='transparent'">
+        <div style="width:44px;height:44px;border-radius:50%;background:${p.color}15;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="${p.icon}" style="color:${p.color}"></i></div>
+        <div style="flex:1"><div style="font-weight:700;font-size:15px">${p.name}</div><div style="font-size:12px;color:#64748B">${fmt(price)}/${billingCycle==='yearly'?'yr':'mo'}${isCurrent?' \u2022 Current':''}</div></div>
+        ${isCurrent?`<span style="padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;background:#D1FAE5;color:#065F46">Active</span>`:`<button class="btn btn-sm btn-primary" style="background:${p.color};border-color:${p.color}" onclick="closeModal('planChangeModal');subscribePlan('${p.id}')"><i class="fas fa-${cur&&plans.findIndex(x=>x.id===cur)>plans.findIndex(x=>x.id===p.id)?'arrow-down':'arrow-up'}"></i> ${cur&&plans.findIndex(x=>x.id===cur)>plans.findIndex(x=>x.id===p.id)?'Downgrade':'Upgrade'}</button>`}
+      </div>`;
+    }).join('');
+  };
+  window.openCancelModal=function(){document.getElementById('cancelModal').classList.add('open')};
+  window.confirmCancel=function(){
+    closeModal('cancelModal');
+    showToast('Subscription cancellation request submitted. Contact support for assistance.','info');
   };
 
   window.changePage=function(p){paymentPage=p;renderPayments()};
@@ -581,7 +799,7 @@
       if(!orderRes||!orderRes.order){showToast('Failed to create order','error');return;}
       const options={
         key:orderRes.key||'rzp_test_placeholder',amount:orderRes.order.amount,currency:orderRes.order.currency||'INR',
-        name:'Vishva ERP',description:`${plan.name} Subscription (${cycle==='yearly'?'Annual':'Monthly'})`,
+        name:'Vishva ERP',description:plan.name+' Subscription ('+cycle.charAt(0).toUpperCase()+cycle.slice(1)+')',
         order_id:orderRes.order.id,
         handler:async function(response){
           try{
@@ -608,7 +826,18 @@
   };
   window.exportInvoices=window.exportPayments;
 
-  window.__erpAdminPageRefresh = function() { loadAll(); };
+  // Responsive grid adjustments
+  function adjustGrids(){
+    const w=window.innerWidth;
+    const planGrid=document.getElementById('planGrid');
+    if(planGrid)planGrid.style.gridTemplateColumns=w<768?'1fr':'1.2fr 0.8fr';
+    const bfGrid=document.getElementById('billingFeatureGrid');
+    if(bfGrid)bfGrid.style.gridTemplateColumns=w<768?'1fr':'1fr 1fr';
+  }
+  window.addEventListener('resize',adjustGrids);
+  adjustGrids();
+
+  window.__erpAdminPageRefresh=function(){loadAll()};
   loadAll();
 })();
 </script>
