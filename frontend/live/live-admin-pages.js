@@ -1529,6 +1529,10 @@
     }
   }
 
+  async function initCollegeAdminSubscriptionPage() {
+    await ensureRealtime();
+  }
+
   async function initCollegeAdminDashboardPage() {
     const downloadBtn = cloneById('downloadBtn');
     let dashboard;
@@ -3778,6 +3782,7 @@
     if (path.endsWith('/pages/super-admin/system.html')) return initSuperAdminSystemPage();
     if (path.endsWith('/pages/super-admin/broadcast.html')) return initSuperAdminBroadcastPage();
     if (path.endsWith('/pages/super-admin/settings.html')) return initSuperAdminSettingsPage();
+    if (path.endsWith('/pages/college-admin/subscription.html')) return initCollegeAdminSubscriptionPage();
     if (path.endsWith('/pages/college-admin/dashboard.html')) return initCollegeAdminDashboardPage();
     if (path.endsWith('/pages/college-admin/students.html')) return initCollegeAdminStudentsPage();
     if (path.endsWith('/pages/college-admin/faculty.html')) return initCollegeAdminFacultyPage();

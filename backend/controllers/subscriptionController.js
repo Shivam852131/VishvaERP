@@ -200,7 +200,7 @@ const verifyPayment = asyncHandler(async (req, res) => {
 
   emitDataChange(req, {
     collegeId: String(req.user.collegeId),
-    roles: ['superadmin'],
+    roles: ['superadmin', 'collegeAdmin'],
     resource: 'subscriptions',
     action: 'activated',
   });
