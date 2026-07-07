@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Placement Cell | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="../../css/custom.css">
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-college" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" id="sidebar-avatar">A</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Admin</div><div class="sidebar-user-role">College Administrator</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <div class="nav-section-label">Academics</div>
+      <a href="students.html" class="nav-link"><i class="nav-link-icon fas fa-user-graduate"></i> Students</a>
+      <a href="faculty.html" class="nav-link"><i class="nav-link-icon fas fa-chalkboard-teacher"></i> Faculty</a>
+      <div class="nav-section-label">Campus Life</div>
+      <a href="events.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Events</a>
+      <a href="grievances.html" class="nav-link"><i class="nav-link-icon fas fa-exclamation-circle"></i> Grievances</a>
+      <a href="feedback.html" class="nav-link"><i class="nav-link-icon fas fa-star"></i> Feedback</a>
+      <a href="inventory.html" class="nav-link"><i class="nav-link-icon fas fa-boxes"></i> Inventory</a>
+      <a href="placement.html" class="nav-link active"><i class="nav-link-icon fas fa-briefcase"></i> Placement</a>
+      <a href="alumni.html" class="nav-link"><i class="nav-link-icon fas fa-users"></i> Alumni</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <div class="erp-main">
+    <header class="erp-topbar"><div class="topbar-left"><button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button><div class="topbar-breadcrumb">College Admin / <span>Placement Cell</span></div></div><div class="topbar-right"><div class="topbar-avatar" id="topbar-avatar">A</div></div></header>
+    <div class="erp-content page-enter">
+      <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+        <div><h1 class="page-title"><i class="fas fa-briefcase"></i> Placement Cell</h1><p class="page-subtitle">Manage companies, job postings, and applications</p></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-secondary" onclick="openModal('addCompanyModal')"><i class="fas fa-building"></i> Add Company</button>
+          <button class="btn btn-primary" onclick="openModal('addJobModal')"><i class="fas fa-plus"></i> Post Job</button>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:24px" id="statsRow"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">
+        <div class="card" style="padding:20px"><h3 style="font-weight:700;font-size:14px;margin-bottom:12px">Application Pipeline</h3><canvas id="pipelineChart" height="200"></canvas></div>
+        <div class="card" style="padding:20px"><h3 style="font-weight:700;font-size:14px;margin-bottom:12px">Selection Rate</h3><div style="text-align:center;padding:30px"><div id="selectionRate" style="font-size:48px;font-weight:900;color:#4F46E5">0%</div><div style="font-size:13px;color:#64748B;margin-top:8px">Students placed</div></div></div>
+      </div>
+      <div class="card" style="padding:20px;margin-bottom:20px">
+        <h3 style="font-weight:700;font-size:16px;margin-bottom:16px"><i class="fas fa-building"></i> Companies</h3>
+        <div id="companyList"></div>
+      </div>
+      <div class="card" style="padding:20px">
+        <h3 style="font-weight:700;font-size:16px;margin-bottom:16px"><i class="fas fa-briefcase"></i> Job Postings</h3>
+        <div id="jobList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="addCompanyModal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header"><h3 class="modal-title">Add Company</h3><button class="modal-close" onclick="closeModal('addCompanyModal')">&times;</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Company Name *</label><input class="form-control" id="compName" placeholder="e.g. TCS"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group"><label class="form-label">Industry</label><input class="form-control" id="compIndustry" placeholder="e.g. IT Services"></div>
+        <div class="form-group"><label class="form-label">Size</label><select class="form-control" id="compSize"><option value="startup">Startup</option><option value="small">Small</option><option value="medium">Medium</option><option value="large" selected>Large</option><option value="enterprise">Enterprise</option></select></div>
+      </div>
+      <div class="form-group"><label class="form-label">Website</label><input class="form-control" id="compWebsite" placeholder="https://"></div>
+      <div class="form-group"><label class="form-label">Description</label><textarea class="form-control" id="compDesc" rows="2"></textarea></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('addCompanyModal')">Cancel</button><button class="btn btn-primary" onclick="addCompany()"><i class="fas fa-plus"></i> Add</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="addJobModal">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header"><h3 class="modal-title">Post Job</h3><button class="modal-close" onclick="closeModal('addJobModal')">&times;</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Job Title *</label><input class="form-control" id="jobTitle" placeholder="e.g. Software Engineer"></div>
+      <div class="form-group"><label class="form-label">Company *</label><select class="form-control" id="jobCompany"></select></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group"><label class="form-label">Type *</label><select class="form-control" id="jobType"><option value="full-time">Full-Time</option><option value="internship">Internship</option><option value="part-time">Part-Time</option><option value="contract">Contract</option></select></div>
+        <div class="form-group"><label class="form-label">Salary Range</label><input class="form-control" id="jobSalary" placeholder="e.g. 4-8 LPA"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Location</label><input class="form-control" id="jobLocation" placeholder="e.g. Bangalore"></div>
+      <div class="form-group"><label class="form-label">Description *</label><textarea class="form-control" id="jobDesc" rows="3"></textarea></div>
+      <div class="form-group"><label class="form-label">Skills Required</label><input class="form-control" id="jobSkills" placeholder="e.g. JavaScript, Python, React"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group"><label class="form-label">Application Deadline</label><input type="date" class="form-control" id="jobDeadline"></div>
+        <div class="form-group"><label class="form-label">Total Positions</label><input type="number" class="form-control" id="jobPositions" value="1"></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('addJobModal')">Cancel</button><button class="btn btn-primary" onclick="addJob()"><i class="fas fa-plus"></i> Post Job</button></div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script>
+let companies=[],pipelineChartInst=null;
+async function loadAll(){
+  const [statsRes,companiesRes,jobsRes]=await Promise.all([
+    window.api.request('/placements/stats'),
+    window.api.request('/placements/companies'),
+    window.api.request('/placements/jobs?limit=50'),
+  ]);
+  companies=companiesRes.companies||[];
+  const stats=statsRes;const jobs=jobsRes.jobs||[];
+  document.getElementById('statsRow').innerHTML=[
+    {icon:'fas fa-building',bg:'#EEF2FF',color:'#4F46E5',num:stats.companyCount||0,label:'Companies'},
+    {icon:'fas fa-briefcase',bg:'#D1FAE5',color:'#10B981',num:stats.totalJobs||0,label:'Total Jobs'},
+    {icon:'fas fa-check-circle',bg:'#FEF3C7',color:'#D97706',num:stats.activeJobs||0,label:'Active Jobs'},
+    {icon:'fas fa-users',bg:'#FCE7F3',color:'#EC4899',num:stats.totalApplications||0,label:'Applications'},
+    {icon:'fas fa-trophy',bg:'#FEE2E2',color:'#EF4444',num:stats.selectionRate||0+'%',label:'Selection Rate'},
+  ].map(s=>`<div class="card stat-card"><div class="stat-icon" style="background:${s.bg};color:${s.color}"><i class="${s.icon}"></i></div><div class="stat-info"><div class="stat-number">${s.num}</div><div class="stat-label">${s.label}</div></div></div>`).join('');
+
+  document.getElementById('selectionRate').textContent=(stats.selectionRate||0)+'%';
+
+  const byStatus=Object.entries(stats.byStatus||{});
+  if(pipelineChartInst)pipelineChartInst.destroy();
+  pipelineChartInst=new Chart(document.getElementById('pipelineChart'),{type:'bar',data:{labels:byStatus.map(s=>s[0]),datasets:[{data:byStatus.map(s=>s[1]),backgroundColor:['#4F46E5','#F59E0B','#10B981','#EF4444','#8B5CF6','#0EA5E9','#EC4899','#64748B'],borderRadius:4}]},options:{responsive:false,plugins:{legend:{display:false}}}});
+
+  document.getElementById('companyList').innerHTML=companies.map(c=>`<div style="display:flex;align-items:center;gap:12px;padding:10px;border-bottom:1px solid #F1F5F9"><div style="width:40px;height:40px;background:#EEF2FF;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#4F46E5;font-weight:700;font-size:14px">${c.name[0]}</div><div style="flex:1"><div style="font-weight:600;font-size:13px">${c.name}</div><div style="font-size:11px;color:#64748B">${c.industry||'-'} • ${c.size||'-'}</div></div></div>`).join('')||'<div style="padding:16px;color:#94A3B8;text-align:center;font-size:13px">No companies added yet</div>';
+
+  document.getElementById('jobList').innerHTML=jobs.map(j=>`<div style="padding:14px;border:1px solid #E2E8F0;border-radius:10px;margin-bottom:10px">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+      <div><div style="font-weight:700;font-size:14px">${j.title}</div><div style="font-size:12px;color:#64748B">${j.companyId?.name||'-'} • ${j.type} • ${j.location||'Remote'}</div></div>
+      <span class="badge" style="background:${j.status==='active'?'#D1FAE5':'#F1F5F9'};color:${j.status==='active'?'#065F46':'#64748B'};font-size:11px">${j.status}</span>
+    </div>
+    <div style="font-size:12px;color:#475569">${j.description?.slice(0,100)||''}...</div>
+    <div style="display:flex;gap:16px;margin-top:8px;font-size:11px;color:#64748B">
+      ${j.salary?`<span><i class="fas fa-rupee-sign"></i> ${j.salary}</span>`:''}
+      <span><i class="fas fa-users"></i> ${j.totalPositions||'-'} positions</span>
+      ${j.applicationDeadline?`<span><i class="fas fa-clock"></i> Deadline: ${new Date(j.applicationDeadline).toLocaleDateString()}</span>`:''}
+    </div>
+  </div>`).join('')||'<div class="empty-state"><div class="empty-state-title">No job postings yet</div></div>';
+
+  const companySelect=document.getElementById('jobCompany');
+  companySelect.innerHTML=companies.map(c=>`<option value="${c._id}">${c.name}</option>`).join('');
+}
+async function addCompany(){
+  const name=document.getElementById('compName').value;
+  if(!name){window.showToast('Company name is required','error');return;}
+  await window.api.request('/placements/companies',{method:'POST',body:JSON.stringify({name,industry:document.getElementById('compIndustry').value,size:document.getElementById('compSize').value,website:document.getElementById('compWebsite').value,description:document.getElementById('compDesc').value})});
+  window.closeModal('addCompanyModal');window.showToast('Company added','success');loadAll();
+}
+async function addJob(){
+  const title=document.getElementById('jobTitle').value;
+  if(!title){window.showToast('Job title is required','error');return;}
+  const skills=document.getElementById('jobSkills').value.split(',').map(s=>s.trim()).filter(Boolean);
+  await window.api.request('/placements/jobs',{method:'POST',body:JSON.stringify({title,companyId:document.getElementById('jobCompany').value,type:document.getElementById('jobType').value,salary:document.getElementById('jobSalary').value,location:document.getElementById('jobLocation').value,description:document.getElementById('jobDesc').value,skills,applicationDeadline:document.getElementById('jobDeadline').value||undefined,totalPositions:Number(document.getElementById('jobPositions').value)||1})});
+  window.closeModal('addJobModal');window.showToast('Job posted','success');loadAll();
+}
+loadAll();
+</script>
+</body>
+</html>

@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Alumni Network | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="../../css/custom.css">
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-college" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" id="sidebar-avatar">A</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Admin</div><div class="sidebar-user-role">College Administrator</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <div class="nav-section-label">Academics</div>
+      <a href="students.html" class="nav-link"><i class="nav-link-icon fas fa-user-graduate"></i> Students</a>
+      <a href="faculty.html" class="nav-link"><i class="nav-link-icon fas fa-chalkboard-teacher"></i> Faculty</a>
+      <div class="nav-section-label">Campus Life</div>
+      <a href="events.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Events</a>
+      <a href="grievances.html" class="nav-link"><i class="nav-link-icon fas fa-exclamation-circle"></i> Grievances</a>
+      <a href="feedback.html" class="nav-link"><i class="nav-link-icon fas fa-star"></i> Feedback</a>
+      <a href="inventory.html" class="nav-link"><i class="nav-link-icon fas fa-boxes"></i> Inventory</a>
+      <a href="placement.html" class="nav-link"><i class="nav-link-icon fas fa-briefcase"></i> Placement</a>
+      <a href="alumni.html" class="nav-link active"><i class="nav-link-icon fas fa-users"></i> Alumni</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <div class="erp-main">
+    <header class="erp-topbar"><div class="topbar-left"><button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button><div class="topbar-breadcrumb">College Admin / <span>Alumni Network</span></div></div><div class="topbar-right"><div class="topbar-avatar" id="topbar-avatar">A</div></div></header>
+    <div class="erp-content page-enter">
+      <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+        <div><h1 class="page-title"><i class="fas fa-users"></i> Alumni Network</h1><p class="page-subtitle">Manage alumni directory, events, and donations</p></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-secondary" onclick="openModal('addAlumniModal')"><i class="fas fa-user-plus"></i> Add Alumni</button>
+          <button class="btn btn-primary" onclick="openModal('createEventModal')"><i class="fas fa-calendar-plus"></i> Create Event</button>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:24px" id="statsRow"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">
+        <div class="card" style="padding:20px"><h3 style="font-weight:700;font-size:14px;margin-bottom:12px">Alumni by Year</h3><canvas id="yearChart" height="200"></canvas></div>
+        <div class="card" style="padding:20px"><h3 style="font-weight:700;font-size:14px;margin-bottom:12px">By Department</h3><canvas id="deptChart" height="200"></canvas></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+        <div class="card" style="padding:20px">
+          <h3 style="font-weight:700;font-size:16px;margin-bottom:16px"><i class="fas fa-user-graduate"></i> Alumni Directory</h3>
+          <input class="form-control" id="searchAlumni" placeholder="Search alumni..." style="margin-bottom:12px" oninput="loadAlumni()">
+          <div id="alumniList"></div>
+        </div>
+        <div class="card" style="padding:20px">
+          <h3 style="font-weight:700;font-size:16px;margin-bottom:16px"><i class="fas fa-calendar"></i> Alumni Events</h3>
+          <div id="eventList"></div>
+          <h3 style="font-weight:700;font-size:16px;margin:20px 0 12px"><i class="fas fa-donate"></i> Recent Donations</h3>
+          <div id="donationList"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="addAlumniModal">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header"><h3 class="modal-title">Add Alumni</h3><button class="modal-close" onclick="closeModal('addAlumniModal')">&times;</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Name *</label><input class="form-control" id="alName" placeholder="Full name"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group"><label class="form-label">Graduation Year *</label><input type="number" class="form-control" id="alYear" placeholder="e.g. 2020"></div>
+        <div class="form-group"><label class="form-label">Department</label><input class="form-control" id="alDept" placeholder="e.g. CSE"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group"><label class="form-label">Email</label><input type="email" class="form-control" id="alEmail"></div>
+        <div class="form-group"><label class="form-label">Phone</label><input class="form-control" id="alPhone"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group"><label class="form-label">Current Company</label><input class="form-control" id="alCompany"></div>
+        <div class="form-group"><label class="form-label">Designation</label><input class="form-control" id="alDesignation"></div>
+      </div>
+      <div class="form-group"><label class="form-label">LinkedIn</label><input class="form-control" id="alLinkedin" placeholder="LinkedIn URL"></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('addAlumniModal')">Cancel</button><button class="btn btn-primary" onclick="addAlumni()"><i class="fas fa-plus"></i> Add</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="createEventModal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header"><h3 class="modal-title">Create Alumni Event</h3><button class="modal-close" onclick="closeModal('createEventModal')">&times;</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Title *</label><input class="form-control" id="evTitle" placeholder="e.g. Annual Reunion 2026"></div>
+      <div class="form-group"><label class="form-label">Type</label><select class="form-control" id="evType"><option value="reunion">Reunion</option><option value="webinar">Webinar</option><option value="meetup">Meetup</option><option value="workshop">Workshop</option></select></div>
+      <div class="form-group"><label class="form-label">Date *</label><input type="date" class="form-control" id="evDate"></div>
+      <div class="form-group"><label class="form-label">Venue</label><input class="form-control" id="evVenue"></div>
+      <div class="form-group"><label class="form-label">Description</label><textarea class="form-control" id="evDesc" rows="2"></textarea></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('createEventModal')">Cancel</button><button class="btn btn-primary" onclick="createAlumniEvent()"><i class="fas fa-plus"></i> Create</button></div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script>
+let yearChartInst=null,deptChartInst=null;
+async function loadAll(){
+  const [statsRes,alumniRes,eventsRes,donationsRes]=await Promise.all([
+    window.api.request('/alumni/stats'),
+    window.api.request('/alumni?limit=100'),
+    window.api.request('/alumni/events'),
+    window.api.request('/alumni/donations'),
+  ]);
+  const stats=statsRes;const alumni=alumniRes.alumni||[];const events=eventsRes.events||[];const donations=donationsRes.donations||[];
+
+  document.getElementById('statsRow').innerHTML=[
+    {icon:'fas fa-users',bg:'#EEF2FF',color:'#4F46E5',num:stats.totalAlumni||0,label:'Total Alumni'},
+    {icon:'fas fa-chalkboard-teacher',bg:'#D1FAE5',color:'#10B981',num:stats.mentors||0,label:'Mentors'},
+    {icon:'fas fa-calendar',bg:'#FEF3C7',color:'#D97706',num:stats.eventCount||0,label:'Events'},
+    {icon:'fas fa-donate',bg:'#FCE7F3',color:'#EC4899',num:'₹'+((stats.totalDonations||0)/1000).toFixed(0)+'K',label:'Donations'},
+    {icon:'fas fa-hand-holding-heart',bg:'#FEE2E2',color:'#EF4444',num:stats.donationCount||0,label:'Donors'},
+  ].map(s=>`<div class="card stat-card"><div class="stat-icon" style="background:${s.bg};color:${s.color}"><i class="${s.icon}"></i></div><div class="stat-info"><div class="stat-number">${s.num}</div><div class="stat-label">${s.label}</div></div></div>`).join('');
+
+  const years=stats.byYear||[];
+  if(yearChartInst)yearChartInst.destroy();
+  yearChartInst=new Chart(document.getElementById('yearChart'),{type:'bar',data:{labels:years.map(y=>y._id),datasets:[{data:years.map(y=>y.count),backgroundColor:'#4F46E5',borderRadius:4}]},options:{responsive:false,plugins:{legend:{display:false}}}});
+
+  const depts=stats.byDepartment||[];
+  if(deptChartInst)deptChartInst.destroy();
+  deptChartInst=new Chart(document.getElementById('deptChart'),{type:'doughnut',data:{labels:depts.map(d=>d._id||'Unknown'),datasets:[{data:depts.map(d=>d.count),backgroundColor:['#4F46E5','#EC4899','#10B981','#F59E0B','#8B5CF6','#64748B'],borderWidth:0}]},options:{responsive:false,plugins:{legend:{position:'bottom',labels:{font:{size:10}}}}}});
+
+  document.getElementById('alumniList').innerHTML=alumni.map(a=>`<div style="display:flex;align-items:center;gap:12px;padding:10px;border-bottom:1px solid #F1F5F9">
+    <div style="width:40px;height:40px;background:linear-gradient(135deg,#4F46E5,#7C3AED);border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-weight:700;font-size:14px">${a.name[0]}</div>
+    <div style="flex:1"><div style="font-weight:600;font-size:13px">${a.name}</div><div style="font-size:11px;color:#64748B">Batch ${a.graduationYear} • ${a.department||'-'} ${a.currentCompany?'• '+a.currentCompany:''}</div></div>
+    ${a.isMentor?'<span class="badge" style="background:#D1FAE5;color:#065F46;font-size:10px">Mentor</span>':''}
+  </div>`).join('')||'<div style="padding:16px;color:#94A3B8;text-align:center;font-size:13px">No alumni added yet</div>';
+
+  document.getElementById('eventList').innerHTML=events.slice(0,5).map(e=>`<div style="padding:10px 0;border-bottom:1px solid #F1F5F9;display:flex;align-items:center;gap:10px"><div style="width:36px;height:36px;background:#EEF2FF;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#4F46E5;font-size:12px"><i class="fas fa-calendar"></i></div><div><div style="font-size:13px;font-weight:600">${e.title}</div><div style="font-size:11px;color:#64748B">${new Date(e.date).toLocaleDateString()} • ${e.type} • ${e.attendees?.length||0} attendees</div></div></div>`).join('')||'<div style="padding:16px;color:#94A3B8;text-align:center;font-size:13px">No events yet</div>';
+
+  document.getElementById('donationList').innerHTML=donations.slice(0,5).map(d=>`<div style="padding:10px 0;border-bottom:1px solid #F1F5F9;display:flex;align-items:center;gap:10px"><div style="width:36px;height:36px;background:#FEF3C7;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#D97706;font-size:12px"><i class="fas fa-rupee-sign"></i></div><div><div style="font-size:13px;font-weight:600">₹${d.amount.toLocaleString()}</div><div style="font-size:11px;color:#64748B">${d.alumniId?.name||'-'} • ${d.purpose} • ${new Date(d.createdAt).toLocaleDateString()}</div></div></div>`).join('')||'<div style="padding:16px;color:#94A3B8;text-align:center;font-size:13px">No donations yet</div>';
+}
+async function addAlumni(){
+  const name=document.getElementById('alName').value;
+  const graduationYear=document.getElementById('alYear').value;
+  if(!name||!graduationYear){window.showToast('Name and year are required','error');return;}
+  await window.api.request('/alumni',{method:'POST',body:JSON.stringify({name,graduationYear:Number(graduationYear),department:document.getElementById('alDept').value,email:document.getElementById('alEmail').value,phone:document.getElementById('alPhone').value,currentCompany:document.getElementById('alCompany').value,designation:document.getElementById('alDesignation').value,linkedin:document.getElementById('alLinkedin').value})});
+  window.closeModal('addAlumniModal');window.showToast('Alumni added','success');loadAll();
+}
+async function createAlumniEvent(){
+  const title=document.getElementById('evTitle').value;
+  const date=document.getElementById('evDate').value;
+  if(!title||!date){window.showToast('Title and date are required','error');return;}
+  await window.api.request('/alumni/events',{method:'POST',body:JSON.stringify({title,type:document.getElementById('evType').value,date,venue:document.getElementById('evVenue').value,description:document.getElementById('evDesc').value})});
+  window.closeModal('createEventModal');window.showToast('Event created','success');loadAll();
+}
+loadAll();
+</script>
+</body>
+</html>

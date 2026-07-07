@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Events & Calendar | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="../../css/custom.css">
+  <style>
+    .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+    .cal-day{min-height:80px;padding:6px;border:1px solid #E2E8F0;border-radius:6px;background:white;cursor:pointer;transition:all .15s}
+    .cal-day:hover{border-color:#4F46E5;background:#F5F3FF}
+    .cal-day.today{border-color:#4F46E5;background:#EEF2FF}
+    .cal-day.other-month{opacity:.4}
+    .cal-day-num{font-size:12px;font-weight:700;color:#334155;margin-bottom:4px}
+    .cal-event{font-size:10px;padding:2px 4px;border-radius:3px;margin-bottom:2px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .cat-academic{background:#DBEAFE;color:#1D4ED8}.cat-cultural{background:#FCE7F3;color:#BE185D}
+    .cat-sports{background:#D1FAE5;color:#065F46}.cat-technical{background:#EDE9FE;color:#5B21B6}
+    .cat-workshop{background:#FEF3C7;color:#92400E}.cat-seminar{background:#E0E7FF;color:#3730A3}
+    .cat-holiday{background:#FEE2E2;color:#991B1B}.cat-examination{background:#F3E8FF;color:#7C3AED}.cat-other{background:#F1F5F9;color:#475569}
+  </style>
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-college" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" id="sidebar-avatar">A</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Admin</div><div class="sidebar-user-role">College Administrator</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <div class="nav-section-label">Academics</div>
+      <a href="students.html" class="nav-link"><i class="nav-link-icon fas fa-user-graduate"></i> Students</a>
+      <a href="faculty.html" class="nav-link"><i class="nav-link-icon fas fa-chalkboard-teacher"></i> Faculty</a>
+      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-open"></i> Courses & Exams</a>
+      <a href="notices.html" class="nav-link"><i class="nav-link-icon fas fa-bullhorn"></i> Notice Board</a>
+      <div class="nav-section-label">Finance & HR</div>
+      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-file-invoice-dollar"></i> Fee Management</a>
+      <a href="hr.html" class="nav-link"><i class="nav-link-icon fas fa-user-md"></i> HR & Leave</a>
+      <a href="subscription.html" class="nav-link"><i class="nav-link-icon fas fa-credit-card"></i> Subscription</a>
+      <div class="nav-section-label">Campus Life</div>
+      <a href="events.html" class="nav-link active"><i class="nav-link-icon fas fa-calendar-alt"></i> Events</a>
+      <a href="grievances.html" class="nav-link"><i class="nav-link-icon fas fa-exclamation-circle"></i> Grievances</a>
+      <a href="feedback.html" class="nav-link"><i class="nav-link-icon fas fa-star"></i> Feedback</a>
+      <a href="inventory.html" class="nav-link"><i class="nav-link-icon fas fa-boxes"></i> Inventory</a>
+      <a href="placement.html" class="nav-link"><i class="nav-link-icon fas fa-briefcase"></i> Placement</a>
+      <a href="alumni.html" class="nav-link"><i class="nav-link-icon fas fa-users"></i> Alumni</a>
+      <div class="nav-section-label">Facilities</div>
+      <a href="logistics.html" class="nav-link"><i class="nav-link-icon fas fa-bus"></i> Logistics & Hostel</a>
+      <div class="nav-section-label">Tools</div>
+      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Hub</a>
+      <a href="../messages.html" class="nav-link"><i class="nav-link-icon fas fa-comments"></i> Messages</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">College Admin / <span>Events & Calendar</span></div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-avatar" id="topbar-avatar">A</div>
+      </div>
+    </header>
+    <div class="erp-content page-enter">
+      <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+        <div><h1 class="page-title"><i class="fas fa-calendar-alt"></i> Events & Calendar</h1><p class="page-subtitle">Manage college events and academic calendar</p></div>
+        <button class="btn btn-primary" onclick="openModal('createEventModal')"><i class="fas fa-plus"></i> Create Event</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px" id="statsRow">
+        <div class="card stat-card"><div class="stat-icon" style="background:#EEF2FF;color:#4F46E5"><i class="fas fa-calendar"></i></div><div class="stat-info"><div class="stat-number" id="totalEvents">0</div><div class="stat-label">Total Events</div></div></div>
+        <div class="card stat-card"><div class="stat-icon" style="background:#ECFDF5;color:#10B981"><i class="fas fa-clock"></i></div><div class="stat-info"><div class="stat-number" id="upcomingEvents">0</div><div class="stat-label">Upcoming</div></div></div>
+        <div class="card stat-card"><div class="stat-icon" style="background:#FEF3C7;color:#D97706"><i class="fas fa-users"></i></div><div class="stat-info"><div class="stat-number" id="totalRegistrations">0</div><div class="stat-label">Registrations</div></div></div>
+        <div class="card stat-card"><div class="stat-icon" style="background:#FEE2E2;color:#EF4444"><i class="fas fa-video"></i></div><div class="stat-info"><div class="stat-number" id="virtualEvents">0</div><div class="stat-label">Virtual Events</div></div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px">
+        <div class="card" style="padding:20px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+            <h3 style="font-weight:700;font-size:16px" id="calendarTitle">July 2026</h3>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-sm btn-secondary" onclick="changeMonth(-1)"><i class="fas fa-chevron-left"></i></button>
+              <button class="btn btn-sm btn-secondary" onclick="changeMonth(0)">Today</button>
+              <button class="btn btn-sm btn-secondary" onclick="changeMonth(1)"><i class="fas fa-chevron-right"></i></button>
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px">
+            ${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<div style="text-align:center;font-size:11px;font-weight:700;color:#64748B;padding:6px">${d}</div>`).join('')}
+          </div>
+          <div class="cal-grid" id="calendarGrid"></div>
+        </div>
+        <div>
+          <div class="card" style="padding:16px;margin-bottom:16px">
+            <h3 style="font-weight:700;font-size:14px;margin-bottom:12px"><i class="fas fa-list"></i> Upcoming Events</h3>
+            <div id="upcomingList"></div>
+          </div>
+          <div class="card" style="padding:16px">
+            <h3 style="font-weight:700;font-size:14px;margin-bottom:12px"><i class="fas fa-chart-pie"></i> By Category</h3>
+            <canvas id="categoryChart" height="180"></canvas>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="padding:20px;margin-top:20px">
+        <h3 style="font-weight:700;font-size:16px;margin-bottom:16px"><i class="fas fa-list"></i> All Events</h3>
+        <div id="eventsList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="createEventModal">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header"><h3 class="modal-title">Create Event</h3><button class="modal-close" onclick="closeModal('createEventModal')">&times;</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Title *</label><input class="form-control" id="evTitle" placeholder="Event title"></div>
+      <div class="form-group"><label class="form-label">Category *</label>
+        <select class="form-control" id="evCategory">
+          <option value="academic">Academic</option><option value="cultural">Cultural</option><option value="sports">Sports</option>
+          <option value="technical">Technical</option><option value="workshop">Workshop</option><option value="seminar">Seminar</option>
+          <option value="holiday">Holiday</option><option value="examination">Examination</option><option value="other">Other</option>
+        </select>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group"><label class="form-label">Start Date *</label><input type="date" class="form-control" id="evStartDate"></div>
+        <div class="form-group"><label class="form-label">End Date</label><input type="date" class="form-control" id="evEndDate"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group"><label class="form-label">Start Time</label><input type="time" class="form-control" id="evStartTime"></div>
+        <div class="form-group"><label class="form-label">End Time</label><input type="time" class="form-control" id="evEndTime"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Venue</label><input class="form-control" id="evVenue" placeholder="e.g. Auditorium, Hall A"></div>
+      <div class="form-group"><label class="form-label">Description</label><textarea class="form-control" id="evDescription" rows="3" placeholder="Event details..."></textarea></div>
+      <div style="display:flex;gap:12px">
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600"><input type="checkbox" id="evVirtual"> Virtual Event</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600"><input type="checkbox" id="evPublic" checked> Public Event</label>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('createEventModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="createEvent()"><i class="fas fa-plus"></i> Create Event</button>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script>
+let currentYear=new Date().getFullYear(),currentMonth=new Date().getMonth(),events=[],categoryChart=null;
+async function loadEvents(){
+  const res=await window.api.request('/events?limit=200');
+  events=res.events||[];
+  renderCalendar();renderUpcoming();renderStats();renderCategoryChart();
+}
+function renderCalendar(){
+  const grid=document.getElementById('calendarGrid');
+  const title=document.getElementById('calendarTitle');
+  const d=new Date(currentYear,currentMonth,1);
+  const startDay=d.getDay();const daysInMonth=new Date(currentYear,currentMonth+1,0).getDate();
+  const daysInPrev=new Date(currentYear,currentMonth,0).getDate();
+  const today=new Date();
+  title.textContent=d.toLocaleString('default',{month:'long',year:'numeric'});
+  let html='';
+  const colors={academic:'#DBEAFE',cultural:'#FCE7F3',sports:'#D1FAE5',technical:'#EDE9FE',workshop:'#FEF3C7',seminar:'#E0E7FF',holiday:'#FEE2E2',examination:'#F3E8FF',other:'#F1F5F9'};
+  for(let i=0;i<startDay;i++){
+    const day=daysInPrev-startDay+i+1;
+    html+=`<div class="cal-day other-month"><div class="cal-day-num">${day}</div></div>`;
+  }
+  for(let day=1;day<=daysInMonth;day++){
+    const date=new Date(currentYear,currentMonth,day);
+    const isToday=date.toDateString()===today.toDateString();
+    const dayEvents=events.filter(e=>{const s=new Date(e.startDate);return s.getDate()===day&&s.getMonth()===currentMonth&&s.getFullYear()===currentYear;});
+    html+=`<div class="cal-day${isToday?' today':''}" onclick="showDayEvents(${day})"><div class="cal-day-num">${day}</div>${dayEvents.slice(0,3).map(e=>`<div class="cal-event cat-${e.category}" style="background:${colors[e.category]||'#F1F5F9'}">${e.title}</div>`).join('')}${dayEvents.length>3?`<div style="font-size:9px;color:#64748B">+${dayEvents.length-3} more</div>`:''}</div>`;
+  }
+  const totalCells=startDay+daysInMonth;const remaining=totalCells%7===0?0:7-totalCells%7;
+  for(let i=1;i<=remaining;i++) html+=`<div class="cal-day other-month"><div class="cal-day-num">${i}</div></div>`;
+  grid.innerHTML=html;
+}
+function changeMonth(delta){
+  if(delta===0){currentYear=new Date().getFullYear();currentMonth=new Date().getMonth();}
+  else{currentMonth+=delta;if(currentMonth>11){currentMonth=0;currentYear++;}if(currentMonth<0){currentMonth=11;currentYear--;}}
+  renderCalendar();
+}
+function renderUpcoming(){
+  const upcoming=events.filter(e=>new Date(e.startDate)>=new Date()&&e.status!=='cancelled').sort((a,b)=>new Date(a.startDate)-new Date(b.startDate)).slice(0,8);
+  document.getElementById('upcomingList').innerHTML=upcoming.map(e=>`<div style="padding:8px 0;border-bottom:1px solid #F1F5F9;display:flex;align-items:center;gap:10px"><div style="width:40px;height:40px;background:#EEF2FF;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#4F46E5;font-size:14px;flex-shrink:0"><i class="fas fa-calendar-day"></i></div><div><div style="font-size:13px;font-weight:600">${e.title}</div><div style="font-size:11px;color:#64748B">${new Date(e.startDate).toLocaleDateString('en-US',{month:'short',day:'numeric'})} ${e.startTime||''}</div></div></div>`).join('')||'<div style="padding:16px;text-align:center;color:#94A3B8;font-size:13px">No upcoming events</div>';
+}
+function renderStats(){
+  const total=events.length;
+  const upcoming=events.filter(e=>new Date(e.startDate)>=new Date()&&e.status!=='cancelled').length;
+  const regs=events.reduce((s,e)=>s+(e.registrations?.length||0),0);
+  const virtual=events.filter(e=>e.isVirtual).length;
+  document.getElementById('totalEvents').textContent=total;
+  document.getElementById('upcomingEvents').textContent=upcoming;
+  document.getElementById('totalRegistrations').textContent=regs;
+  document.getElementById('virtualEvents').textContent=virtual;
+}
+function renderCategoryChart(){
+  const cats={};events.forEach(e=>{cats[e.category]=(cats[e.category]||0)+1;});
+  const labels=Object.keys(cats);const data=Object.values(cats);
+  const colors=['#4F46E5','#EC4899','#10B981','#8B5CF6','#F59E0B','#6366F1','#EF4444','#7C3AED','#64748B'];
+  if(categoryChart)categoryChart.destroy();
+  categoryChart=new Chart(document.getElementById('categoryChart'),{type:'doughnut',data:{labels,datasets:[{data,backgroundColor:colors.slice(0,labels.length),borderWidth:0}]},options:{responsive:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},padding:6}}}}});
+}
+function renderEventsList(){
+  const list=document.getElementById('eventsList');
+  list.innerHTML=events.map(e=>`<div style="display:flex;align-items:center;gap:12px;padding:12px;border-bottom:1px solid #F1F5F9"><div style="width:44px;height:44px;background:#EEF2FF;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#4F46E5"><i class="fas fa-calendar-day"></i></div><div style="flex:1"><div style="font-weight:600;font-size:14px">${e.title}</div><div style="font-size:12px;color:#64748B">${new Date(e.startDate).toLocaleDateString()} ${e.startTime||''} ${e.venue?'• '+e.venue:''}</div></div><span class="badge cat-${e.category}" style="background:#EEF2FF;color:#4F46E5;font-size:11px">${e.category}</span><span class="badge" style="background:${e.status==='published'?'#D1FAE5':'#F1F5F9'};color:${e.status==='published'?'#065F46':'#64748B'};font-size:11px">${e.status}</span></div>`).join('')||'<div class="empty-state"><div class="empty-state-title">No events yet</div></div>';
+}
+async function createEvent(){
+  const title=document.getElementById('evTitle').value;
+  const category=document.getElementById('evCategory').value;
+  const startDate=document.getElementById('evStartDate').value;
+  if(!title||!startDate){window.showToast('Title and start date are required','error');return;}
+  await window.api.request('/events',{method:'POST',body:JSON.stringify({
+    title,category,startDate,endDate:document.getElementById('evEndDate').value||undefined,
+    startTime:document.getElementById('evStartTime').value,endTime:document.getElementById('evEndTime').value,
+    venue:document.getElementById('evVenue').value,description:document.getElementById('evDescription').value,
+    isVirtual:document.getElementById('evVirtual').checked,isPublic:document.getElementById('evPublic').checked,
+    targetAudience:['all'],
+  })});
+  window.closeModal('createEventModal');window.showToast('Event created','success');loadEvents();
+}
+function showDayEvents(day){
+  const dayEvents=events.filter(e=>{const s=new Date(e.startDate);return s.getDate()===day&&s.getMonth()===currentMonth&&s.getFullYear()===currentYear;});
+  if(dayEvents.length)window.showToast(`${dayEvents.length} event(s) on this day`,'info');
+}
+loadEvents();renderEventsList();
+</script>
+</body>
+</html>

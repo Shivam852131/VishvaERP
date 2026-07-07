@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Grievances | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="../../css/custom.css">
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-college" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" id="sidebar-avatar">A</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Admin</div><div class="sidebar-user-role">College Administrator</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <div class="nav-section-label">Academics</div>
+      <a href="students.html" class="nav-link"><i class="nav-link-icon fas fa-user-graduate"></i> Students</a>
+      <a href="faculty.html" class="nav-link"><i class="nav-link-icon fas fa-chalkboard-teacher"></i> Faculty</a>
+      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-open"></i> Courses & Exams</a>
+      <a href="notices.html" class="nav-link"><i class="nav-link-icon fas fa-bullhorn"></i> Notice Board</a>
+      <div class="nav-section-label">Finance & HR</div>
+      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-file-invoice-dollar"></i> Fee Management</a>
+      <a href="hr.html" class="nav-link"><i class="nav-link-icon fas fa-user-md"></i> HR & Leave</a>
+      <div class="nav-section-label">Campus Life</div>
+      <a href="events.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Events</a>
+      <a href="grievances.html" class="nav-link active"><i class="nav-link-icon fas fa-exclamation-circle"></i> Grievances</a>
+      <a href="feedback.html" class="nav-link"><i class="nav-link-icon fas fa-star"></i> Feedback</a>
+      <a href="inventory.html" class="nav-link"><i class="nav-link-icon fas fa-boxes"></i> Inventory</a>
+      <a href="placement.html" class="nav-link"><i class="nav-link-icon fas fa-briefcase"></i> Placement</a>
+      <a href="alumni.html" class="nav-link"><i class="nav-link-icon fas fa-users"></i> Alumni</a>
+      <div class="nav-section-label">Facilities</div>
+      <a href="logistics.html" class="nav-link"><i class="nav-link-icon fas fa-bus"></i> Logistics</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <div class="erp-main">
+    <header class="erp-topbar"><div class="topbar-left"><button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button><div class="topbar-breadcrumb">College Admin / <span>Grievances</span></div></div><div class="topbar-right"><div class="topbar-avatar" id="topbar-avatar">A</div></div></header>
+    <div class="erp-content page-enter">
+      <div class="page-header"><h1 class="page-title"><i class="fas fa-exclamation-circle"></i> Grievance Management</h1><p class="page-subtitle">Track and resolve student/faculty grievances</p></div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px" id="statsRow"></div>
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px">
+        <div class="card" style="padding:20px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+            <div style="display:flex;gap:8px">
+              <select class="form-control" id="filterStatus" style="width:auto" onchange="loadGrievances()"><option value="">All Status</option><option value="open">Open</option><option value="in-progress">In Progress</option><option value="resolved">Resolved</option><option value="closed">Closed</option></select>
+              <select class="form-control" id="filterCategory" style="width:auto" onchange="loadGrievances()"><option value="">All Categories</option><option value="academic">Academic</option><option value="infrastructure">Infrastructure</option><option value="harassment">Harassment</option><option value="fee">Fee</option><option value="exam">Exam</option><option value="hostel">Hostel</option><option value="other">Other</option></select>
+            </div>
+          </div>
+          <div id="grievanceList"></div>
+        </div>
+        <div>
+          <div class="card" style="padding:16px;margin-bottom:16px"><h3 style="font-weight:700;font-size:14px;margin-bottom:12px">By Category</h3><canvas id="catChart" height="200"></canvas></div>
+          <div class="card" style="padding:16px"><h3 style="font-weight:700;font-size:14px;margin-bottom:12px">By Priority</h3><canvas id="prioChart" height="200"></canvas></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../../js/shared.js"></script>
+<script>
+let catChartInst=null,prioChartInst=null;
+async function loadGrievances(){
+  const status=document.getElementById('filterStatus').value;
+  const category=document.getElementById('filterCategory').value;
+  let url='/grievances?limit=50';if(status)url+=`&status=${status}`;if(category)url+=`&category=${category}`;
+  const res=await window.api.request(url);
+  const grievances=res.grievances||[];
+  document.getElementById('grievanceList').innerHTML=grievances.map(g=>`<div style="padding:14px;border:1px solid #E2E8F0;border-radius:10px;margin-bottom:10px;border-left:4px solid ${g.priority==='urgent'?'#EF4444':g.priority==='high'?'#F59E0B':g.priority==='medium'?'#4F46E5':'#10B981'}">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+      <div><div style="font-weight:700;font-size:14px">${g.subject}</div><div style="font-size:11px;color:#64748B">${g.trackingId} • ${g.category} • by ${g.raisedBy?.name||'Anonymous'}</div></div>
+      <span class="badge" style="background:${g.status==='open'?'#FEE2E2':g.status==='in-progress'?'#FEF3C7':g.status==='resolved'?'#D1FAE5':'#F1F5F9'};color:${g.status==='open'?'#991B1B':g.status==='in-progress'?'#92400E':g.status==='resolved'?'#065F46':'#64748B'};font-size:11px">${g.status}</span>
+    </div>
+    <p style="font-size:13px;color:#475569;margin-bottom:8px">${g.description?.slice(0,120)||''}${g.description?.length>120?'...':''}</p>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-xs btn-secondary" onclick="viewGrievance('${g._id}')"><i class="fas fa-eye"></i> View</button>
+      ${g.status!=='resolved'&&g.status!=='closed'?`<button class="btn btn-xs btn-success" onclick="resolveGrievance('${g._id}')"><i class="fas fa-check"></i> Resolve</button>`:''}
+    </div>
+  </div>`).join('')||'<div class="empty-state"><div class="empty-state-title">No grievances found</div></div>';
+  loadStats();
+}
+async function loadStats(){
+  const res=await window.api.request('/grievances/stats');
+  document.getElementById('statsRow').innerHTML=[
+    {icon:'fas fa-exclamation-circle',bg:'#FEE2E2',color:'#EF4444',num:res.total||0,label:'Total'},
+    {icon:'fas fa-folder-open',bg:'#FEF3C7',color:'#D97706',num:res.byStatus?.open||0,label:'Open'},
+    {icon:'fas fa-spinner',bg:'#DBEAFE',color:'#2563EB',num:res.byStatus?.['in-progress']||0,label:'In Progress'},
+    {icon:'fas fa-check-circle',bg:'#D1FAE5',color:'#10B981',num:res.byStatus?.resolved||0,label:'Resolved'},
+  ].map(s=>`<div class="card stat-card"><div class="stat-icon" style="background:${s.bg};color:${s.color}"><i class="${s.icon}"></i></div><div class="stat-info"><div class="stat-number">${s.num}</div><div class="stat-label">${s.label}</div></div></div>`).join('');
+  const catLabels=Object.keys(res.byCategory||{});const catData=Object.values(res.byCategory||{});
+  if(catChartInst)catChartInst.destroy();
+  catChartInst=new Chart(document.getElementById('catChart'),{type:'bar',data:{labels:catLabels,datasets:[{data:catData,backgroundColor:['#4F46E5','#EC4899','#10B981','#F59E0B','#EF4444','#8B5CF6','#64748B'],borderRadius:4}]},options:{responsive:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}});
+  const prioLabels=Object.keys(res.byPriority||{});const prioData=Object.values(res.byPriority||{});
+  if(prioChartInst)prioChartInst.destroy();
+  prioChartInst=new Chart(document.getElementById('prioChart'),{type:'doughnut',data:{labels:prioLabels,datasets:[{data:prioData,backgroundColor:['#10B981','#4F46E5','#F59E0B','#EF4444'],borderWidth:0}]},options:{responsive:false,plugins:{legend:{position:'bottom',labels:{font:{size:10}}}}}});
+}
+async function resolveGrievance(id){
+  if(!confirm('Mark this grievance as resolved?'))return;
+  await window.api.request(`/grievances/${id}`,{method:'PUT',body:JSON.stringify({status:'resolved'})});
+  window.showToast('Grievance resolved','success');loadGrievances();
+}
+function viewGrievance(id){window.showToast('Opening grievance details...','info');}
+loadGrievances();
+</script>
+</body>
+</html>

@@ -183,6 +183,12 @@ app.use('/api/upload', require('./routes/upload'));
 app.use('/api/reports', require('./routes/reports'));
 app.use('/api/subscriptions', require('./routes/subscription'));
 app.use('/api/exam-generator', require('./routes/examGenerator'));
+app.use('/api/grievances', require('./routes/grievance'));
+app.use('/api/feedback', require('./routes/feedback'));
+app.use('/api/inventory', require('./routes/inventory'));
+app.use('/api/placements', require('./routes/placement'));
+app.use('/api/alumni', require('./routes/alumni'));
+app.use('/api/events', require('./routes/event'));
 
 // Fallback for frontend routing (SPA support)
 app.get('*', (req, res) => {

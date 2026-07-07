@@ -823,18 +823,55 @@
         window.showToast('No pending fees to pay', 'info');
         return;
       }
-      const amount = Number(byId('payAmount')?.value || 0);
-      if (!amount) {
-        window.showToast('Enter a valid amount', 'error');
+      const pending = Number(nextPending.amount || 0) - Number(nextPending.paidAmount || 0);
+      if (pending <= 0) {
+        window.showToast('Fee already fully paid', 'info');
         return;
       }
-      await window.api.request(`/fees/${nextPending._id}/pay`, {
-        method: 'POST',
-        body: JSON.stringify({ amount, paymentMethod: 'online', receiptNo: `STU-${Date.now()}` }),
-      });
-      window.closeModal?.('payNowModal');
-      window.showToast('Payment recorded successfully', 'success');
-      initStudentFeesPage();
+      try {
+        const orderRes = await window.api.request(`/fees/${nextPending._id}/create-order`, { method: 'POST' });
+        if (!orderRes || !orderRes.order) {
+          window.showToast('Failed to create payment order', 'error');
+          return;
+        }
+        const user = JSON.parse(localStorage.getItem('erp_user') || '{}');
+        const options = {
+          key: orderRes.key,
+          amount: orderRes.order.amount,
+          currency: orderRes.order.currency || 'INR',
+          name: 'Vishva ERP',
+          description: `Fee Payment - ${nextPending.feeType || 'College Fee'}`,
+          order_id: orderRes.order.id,
+          handler: async function(response) {
+            try {
+              await window.api.request('/fees/verify-payment', {
+                method: 'POST',
+                body: JSON.stringify({
+                  razorpayOrderId: response.razorpay_order_id,
+                  razorpayPaymentId: response.razorpay_payment_id,
+                  razorpaySignature: response.razorpay_signature,
+                  feeId: orderRes.feeId,
+                }),
+              });
+              window.closeModal?.('payNowModal');
+              window.showToast('Payment successful!', 'success');
+              initStudentFeesPage();
+            } catch (e) {
+              window.showToast('Payment received but verification failed. Contact support.', 'warning');
+            }
+          },
+          prefill: { name: user.name || '', email: user.email || '', contact: user.phone || '' },
+          theme: { color: '#4F46E5' },
+          modal: { ondismiss: function() { window.showToast('Payment cancelled', 'info'); } },
+        };
+        const rzp = new window.Razorpay(options);
+        rzp.on('payment.failed', function(response) {
+          window.showToast('Payment failed: ' + (response.error?.description || 'Unknown error'), 'error');
+        });
+        rzp.open();
+      } catch (e) {
+        window.showToast('Could not initiate payment', 'error');
+      }
     };
 
     window.__erpLivePageRefresh = initStudentFeesPage;
@@ -1239,13 +1276,51 @@
         window.showToast('No outstanding fees to pay', 'info');
         return;
       }
-      await window.api.request(`/fees/${next._id}/pay`, {
-        method: 'POST',
-        body: JSON.stringify({ amount: next.amount - Number(next.paidAmount || 0), paymentMethod: 'online', receiptNo: `PAR-${Date.now()}` }),
-      });
-      window.closeModal?.('payModal');
-      window.showToast('Payment successful', 'success');
-      initParentFeesPage();
+      const pendingAmount = Number(next.amount || 0) - Number(next.paidAmount || 0);
+      try {
+        const orderRes = await window.api.request(`/fees/${next._id}/create-order`, { method: 'POST' });
+        if (!orderRes || !orderRes.order) {
+          window.showToast('Failed to create payment order', 'error');
+          return;
+        }
+        const user = JSON.parse(localStorage.getItem('erp_user') || '{}');
+        const options = {
+          key: orderRes.key,
+          amount: orderRes.order.amount,
+          currency: orderRes.order.currency || 'INR',
+          name: 'Vishva ERP',
+          description: `Fee Payment - ${next.feeType || 'College Fee'}`,
+          order_id: orderRes.order.id,
+          handler: async function(response) {
+            try {
+              await window.api.request('/fees/verify-payment', {
+                method: 'POST',
+                body: JSON.stringify({
+                  razorpayOrderId: response.razorpay_order_id,
+                  razorpayPaymentId: response.razorpay_payment_id,
+                  razorpaySignature: response.razorpay_signature,
+                  feeId: orderRes.feeId,
+                }),
+              });
+              window.closeModal?.('payModal');
+              window.showToast('Payment successful!', 'success');
+              initParentFeesPage();
+            } catch (e) {
+              window.showToast('Payment received but verification failed. Contact support.', 'warning');
+            }
+          },
+          prefill: { name: user.name || '', email: user.email || '', contact: user.phone || '' },
+          theme: { color: '#4F46E5' },
+          modal: { ondismiss: function() { window.showToast('Payment cancelled', 'info'); } },
+        };
+        const rzp = new window.Razorpay(options);
+        rzp.on('payment.failed', function(response) {
+          window.showToast('Payment failed: ' + (response.error?.description || 'Unknown error'), 'error');
+        });
+        rzp.open();
+      } catch (e) {
+        window.showToast('Could not initiate payment', 'error');
+      }
     };
 
     window.__erpLivePageRefresh = initParentFeesPage;

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Feedback | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="../../css/custom.css">
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-college" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" id="sidebar-avatar">A</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Admin</div><div class="sidebar-user-role">College Administrator</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <div class="nav-section-label">Academics</div>
+      <a href="students.html" class="nav-link"><i class="nav-link-icon fas fa-user-graduate"></i> Students</a>
+      <a href="faculty.html" class="nav-link"><i class="nav-link-icon fas fa-chalkboard-teacher"></i> Faculty</a>
+      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-open"></i> Courses</a>
+      <div class="nav-section-label">Campus Life</div>
+      <a href="events.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Events</a>
+      <a href="grievances.html" class="nav-link"><i class="nav-link-icon fas fa-exclamation-circle"></i> Grievances</a>
+      <a href="feedback.html" class="nav-link active"><i class="nav-link-icon fas fa-star"></i> Feedback</a>
+      <a href="inventory.html" class="nav-link"><i class="nav-link-icon fas fa-boxes"></i> Inventory</a>
+      <a href="placement.html" class="nav-link"><i class="nav-link-icon fas fa-briefcase"></i> Placement</a>
+      <a href="alumni.html" class="nav-link"><i class="nav-link-icon fas fa-users"></i> Alumni</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <div class="erp-main">
+    <header class="erp-topbar"><div class="topbar-left"><button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button><div class="topbar-breadcrumb">College Admin / <span>Feedback</span></div></div><div class="topbar-right"><div class="topbar-avatar" id="topbar-avatar">A</div></div></header>
+    <div class="erp-content page-enter">
+      <div class="page-header"><h1 class="page-title"><i class="fas fa-star"></i> Feedback Analytics</h1><p class="page-subtitle">Student and faculty feedback insights</p></div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px" id="statsRow"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">
+        <div class="card" style="padding:20px"><h3 style="font-weight:700;font-size:14px;margin-bottom:16px"><i class="fas fa-chart-bar"></i> Ratings by Type</h3><canvas id="typeChart" height="200"></canvas></div>
+        <div class="card" style="padding:20px"><h3 style="font-weight:700;font-size:14px;margin-bottom:16px"><i class="fas fa-chart-radar"></i> Average Ratings</h3><canvas id="radarChart" height="200"></canvas></div>
+      </div>
+      <div class="card" style="padding:20px">
+        <h3 style="font-weight:700;font-size:16px;margin-bottom:16px"><i class="fas fa-comments"></i> Recent Feedback</h3>
+        <div id="feedbackList"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="../../js/shared.js"></script>
+<script>
+let typeChartInst=null,radarChartInst=null;
+async function loadFeedback(){
+  const [statsRes,listRes]=await Promise.all([
+    window.api.request('/feedback/stats'),
+    window.api.request('/feedback?limit=50'),
+  ]);
+  const stats=statsRes;const feedbacks=listRes.feedbacks||[];
+  const avgs=stats.averages||{};
+  document.getElementById('statsRow').innerHTML=[
+    {icon:'fas fa-comments',bg:'#EEF2FF',color:'#4F46E5',num:stats.total||0,label:'Total Feedback'},
+    {icon:'fas fa-star',bg:'#FEF3C7',color:'#D97706',num:(avgs.avgOverall||0).toFixed(1),label:'Overall Rating'},
+    {icon:'fas fa-book',bg:'#D1FAE5',color:'#10B981',num:stats.byType?.find(t=>t._id==='course')?.avgOverall?.toFixed(1)||'N/A',label:'Course Rating'},
+    {icon:'fas fa-chalkboard-teacher',bg:'#FCE7F3',color:'#EC4899',num:stats.byType?.find(t=>t._id==='faculty')?.avgOverall?.toFixed(1)||'N/A',label:'Faculty Rating'},
+  ].map(s=>`<div class="card stat-card"><div class="stat-icon" style="background:${s.bg};color:${s.color}"><i class="${s.icon}"></i></div><div class="stat-info"><div class="stat-number">${s.num}</div><div class="stat-label">${s.label}</div></div></div>`).join('');
+
+  const byType=stats.byType||[];
+  if(typeChartInst)typeChartInst.destroy();
+  typeChartInst=new Chart(document.getElementById('typeChart'),{type:'bar',data:{labels:byType.map(t=>t._id),datasets:[{label:'Avg Rating',data:byType.map(t=>t.avgOverall?.toFixed(1)),backgroundColor:['#4F46E5','#EC4899','#10B981','#F59E0B'],borderRadius:6}]},options:{responsive:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,max:5}}}});
+
+  if(radarChartInst)radarChartInst.destroy();
+  radarChartInst=new Chart(document.getElementById('radarChart'),{type:'radar',data:{labels:['Content','Delivery','Communication','Overall'],datasets:[{label:'Average',data:[avgs.avgContent||0,avgs.avgDelivery||0,avgs.avgCommunication||0,avgs.avgOverall||0],backgroundColor:'rgba(79,70,229,0.2)',borderColor:'#4F46E5',borderWidth:2,pointBackgroundColor:'#4F46E5'}]},options:{responsive:false,scales:{r:{beginAtZero:true,max:5,ticks:{stepSize:1}}},plugins:{legend:{display:false}}}});
+
+  document.getElementById('feedbackList').innerHTML=feedbacks.map(f=>`<div style="padding:14px;border:1px solid #E2E8F0;border-radius:10px;margin-bottom:10px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <div style="font-weight:600;font-size:14px">${f.userId?.name||'Anonymous'} <span style="font-size:11px;color:#64748B;font-weight:400">• ${f.type}</span></div>
+      <div style="color:#F59E0B;font-size:13px">${'★'.repeat(f.ratings?.overall||0)}${'☆'.repeat(5-(f.ratings?.overall||0))}</div>
+    </div>
+    ${f.comment?`<p style="font-size:13px;color:#475569;margin-bottom:4px">${f.comment}</p>`:''}
+    ${f.suggestions?`<p style="font-size:12px;color:#64748B;font-style:italic">Suggestion: ${f.suggestions}</p>`:''}
+    <div style="font-size:11px;color:#94A3B8">${new Date(f.createdAt).toLocaleDateString()}</div>
+  </div>`).join('')||'<div class="empty-state"><div class="empty-state-title">No feedback yet</div></div>';
+}
+loadFeedback();
+</script>
+</body>
+</html>

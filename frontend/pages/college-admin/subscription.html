@@ -5,85 +5,41 @@
   <title>Subscription & Billing — College Admin | VishvaERP</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="../../css/custom.css">
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
   <style>
-    .plan-card { position: relative; border: 2px solid var(--card-border); transition: all 0.3s ease; }
-    .plan-card:hover { border-color: var(--primary); box-shadow: var(--card-shadow-hover); transform: translateY(-4px); }
-    .plan-card.current { border-color: var(--primary); }
-    .plan-card.recommended { border-color: var(--primary); }
-    .plan-card.recommended::before {
-      content: '';
-      position: absolute;
-      inset: -2px;
-      border-radius: var(--radius-lg);
-      background: linear-gradient(135deg, #4F46E5, #7C3AED);
-      z-index: -1;
-    }
-    .plan-card.recommended .card-inner { background: var(--card); border-radius: var(--radius-md); }
-    .badge-recommended {
-      position: absolute;
-      top: -12px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: linear-gradient(135deg, #4F46E5, #7C3AED);
-      color: #fff;
-      padding: 4px 16px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 700;
-      letter-spacing: 0.5px;
-      white-space: nowrap;
-      z-index: 1;
-    }
-    .badge-current {
-      position: absolute;
-      top: 14px;
-      right: 14px;
-      background: #D1FAE5;
-      color: #065F46;
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 700;
-      z-index: 1;
-    }
-    .toggle-wrapper { display: flex; align-items: center; justify-content: center; gap: 14px; }
-    .toggle-track {
-      width: 52px; height: 28px; border-radius: 14px; background: #CBD5E1;
-      cursor: pointer; position: relative; transition: background 0.3s ease;
-    }
-    .toggle-track.active { background: var(--primary); }
-    .toggle-thumb {
-      position: absolute; top: 3px; left: 3px; width: 22px; height: 22px;
-      border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-      transition: transform 0.3s ease;
-    }
-    .toggle-track.active .toggle-thumb { transform: translateX(24px); }
-    .plan-feature { display: flex; align-items: flex-start; gap: 8px; padding: 6px 0; }
-    .plan-feature i { margin-top: 2px; font-size: 13px; }
-    .plan-feature i.fa-check { color: #10B981; }
-    .savings-badge {
-      background: #FEF3C7;
-      color: #92400E;
-      padding: 2px 8px;
-      border-radius: 10px;
-      font-size: 11px;
-      font-weight: 700;
-    }
-    .status-dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      display: inline-block;
-      margin-right: 6px;
-    }
-    .status-dot.active { background: #10B981; box-shadow: 0 0 6px rgba(16,185,129,0.4); }
-    .status-dot.expired { background: #EF4444; box-shadow: 0 0 6px rgba(239,68,68,0.4); }
-    .status-dot.none { background: #94A3B8; }
-    .payment-row:hover { background: var(--primary-light); }
-    .receipt-link { color: var(--primary); text-decoration: none; font-weight: 600; font-size: 13px; }
-    .receipt-link:hover { text-decoration: underline; }
+    .sub-hero{background:linear-gradient(135deg,#4F46E5 0%,#7C3AED 50%,#A855F7 100%);border-radius:16px;padding:32px;color:white;position:relative;overflow:hidden}
+    .sub-hero::before{content:'';position:absolute;top:-50%;right:-20%;width:400px;height:400px;background:radial-gradient(circle,rgba(255,255,255,0.1) 0%,transparent 70%);border-radius:50%}
+    .sub-hero::after{content:'';position:absolute;bottom:-30%;left:-10%;width:300px;height:300px;background:radial-gradient(circle,rgba(255,255,255,0.08) 0%,transparent 70%);border-radius:50%}
+    .usage-ring{position:relative;width:100px;height:100px;margin:0 auto}
+    .usage-ring svg{transform:rotate(-90deg)}
+    .usage-ring .ring-bg{fill:none;stroke:#E2E8F0;stroke-width:8}
+    .usage-ring .ring-fill{fill:none;stroke-width:8;stroke-linecap:round;transition:stroke-dashoffset 1s ease}
+    .usage-ring .ring-label{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+    .usage-ring .ring-num{font-size:22px;font-weight:800;line-height:1}
+    .usage-ring .ring-text{font-size:10px;color:#64748B;margin-top:2px}
+    .timeline-item{display:flex;gap:16px;position:relative;padding-bottom:24px}
+    .timeline-item:last-child{padding-bottom:0}
+    .timeline-item::before{content:'';position:absolute;left:15px;top:32px;bottom:0;width:2px;background:#E2E8F0}
+    .timeline-item:last-child::before{display:none}
+    .timeline-dot{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;z-index:1;font-size:12px}
+    .feature-compare th{padding:12px 16px;text-align:left;font-size:13px;font-weight:700;border-bottom:2px solid #E2E8F0;position:sticky;top:0;background:white;z-index:1}
+    .feature-compare td{padding:10px 16px;font-size:13px;border-bottom:1px solid #F1F5F9}
+    .feature-compare tr:hover{background:#F8FAFC}
+    .plan-col{min-width:180px;text-align:center}
+    .plan-col-header{padding:16px;border-radius:12px 12px 0 0;color:white;font-weight:800;font-size:16px}
+    .invoice-card{display:flex;align-items:center;gap:14px;padding:14px;border:1px solid #E2E8F0;border-radius:10px;transition:all .15s}
+    .invoice-card:hover{border-color:#4F46E5;background:#F5F3FF;box-shadow:0 2px 8px rgba(79,70,229,0.1)}
+    .stat-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600}
+    .countdown-seg{text-align:center}
+    .countdown-num{font-size:32px;font-weight:900;line-height:1;background:linear-gradient(135deg,#4F46E5,#7C3AED);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+    .countdown-label{font-size:10px;color:#64748B;text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+    .glow-card{position:relative;overflow:hidden}
+    .glow-card::after{content:'';position:absolute;top:-50%;right:-50%;width:200px;height:200px;background:radial-gradient(circle,rgba(79,70,229,0.05) 0%,transparent 70%);pointer-events:none}
+    .tab-btn{padding:10px 20px;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;border:none;background:transparent;color:#64748B}
+    .tab-btn.active{background:#4F46E5;color:white;box-shadow:0 2px 8px rgba(79,70,229,0.3)}
+    .tab-btn:hover:not(.active){background:#F1F5F9}
   </style>
 </head>
 <body>
@@ -97,101 +53,227 @@
       <div class="nav-section-label">Academics</div>
       <a href="students.html" class="nav-link"><i class="nav-link-icon fas fa-user-graduate"></i> Students</a>
       <a href="faculty.html" class="nav-link"><i class="nav-link-icon fas fa-chalkboard-teacher"></i> Faculty</a>
-      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-open"></i> Courses & Exams</a>
-      <a href="notices.html" class="nav-link"><i class="nav-link-icon fas fa-bullhorn"></i> Notice Board</a>
+      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-open"></i> Courses</a>
+      <a href="notices.html" class="nav-link"><i class="nav-link-icon fas fa-bullhorn"></i> Notices</a>
       <div class="nav-section-label">Finance & HR</div>
-      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-file-invoice-dollar"></i> Fee Management</a>
+      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-file-invoice-dollar"></i> Fees</a>
       <a href="hr.html" class="nav-link"><i class="nav-link-icon fas fa-user-md"></i> HR & Leave</a>
       <a href="subscription.html" class="nav-link active"><i class="nav-link-icon fas fa-credit-card"></i> Subscription</a>
+      <div class="nav-section-label">Campus Life</div>
+      <a href="events.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Events</a>
+      <a href="grievances.html" class="nav-link"><i class="nav-link-icon fas fa-exclamation-circle"></i> Grievances</a>
+      <a href="feedback.html" class="nav-link"><i class="nav-link-icon fas fa-star"></i> Feedback</a>
+      <a href="inventory.html" class="nav-link"><i class="nav-link-icon fas fa-boxes"></i> Inventory</a>
+      <a href="placement.html" class="nav-link"><i class="nav-link-icon fas fa-briefcase"></i> Placement</a>
+      <a href="alumni.html" class="nav-link"><i class="nav-link-icon fas fa-users"></i> Alumni</a>
       <div class="nav-section-label">Facilities</div>
-      <a href="logistics.html" class="nav-link"><i class="nav-link-icon fas fa-bus"></i> Logistics & Hostel</a>
+      <a href="logistics.html" class="nav-link"><i class="nav-link-icon fas fa-bus"></i> Logistics</a>
       <div class="nav-section-label">Tools</div>
       <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Hub</a>
+      <a href="../messages.html" class="nav-link"><i class="nav-link-icon fas fa-comments"></i> Messages</a>
     </nav>
     <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
   </aside>
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
   <div class="erp-main">
     <header class="erp-topbar">
       <div class="topbar-left">
         <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
         <div class="topbar-breadcrumb">College Admin / <span>Subscription & Billing</span></div>
       </div>
-      <div class="topbar-right">
-        <div class="topbar-search"><i class="fas fa-search"></i><input type="text" placeholder="Search plans, invoices..."></div>
-        <div class="topbar-avatar" id="topbar-avatar">A</div>
-      </div>
+      <div class="topbar-right"><div class="topbar-avatar" id="topbar-avatar">A</div></div>
     </header>
 
     <div class="erp-content page-enter">
-      <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
-        <div>
-          <h1 class="page-title">Subscription & Billing</h1>
-          <p class="page-subtitle">Manage your institution's subscription plan</p>
-        </div>
-        <button class="btn btn-secondary" id="viewInvoicesBtn"><i class="fas fa-receipt"></i> View Invoices</button>
-      </div>
-
-      <!-- CURRENT PLAN -->
-      <div class="card mb-6" id="currentPlanCard">
-        <div class="card-header">
-          <div class="card-title"><i class="fas fa-id-badge" style="color:var(--primary);margin-right:8px"></i>Current Plan</div>
-        </div>
-        <div class="card-body" id="currentPlanBody">
-          <div style="display:flex;align-items:center;justify-content:center;padding:30px">
-            <i class="fas fa-spinner fa-spin" style="color:var(--primary);font-size:20px"></i>
+      <!-- HERO SECTION -->
+      <div class="sub-hero mb-6" id="heroSection">
+        <div style="position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px">
+          <div>
+            <div style="font-size:13px;opacity:.8;margin-bottom:4px">Subscription Overview</div>
+            <h1 style="font-size:28px;font-weight:900;margin-bottom:4px" id="heroPlanName">Loading...</h1>
+            <div style="font-size:14px;opacity:.85" id="heroPlanStatus">Checking your plan...</div>
+          </div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap">
+            <div style="background:rgba(255,255,255,.15);border-radius:12px;padding:14px 20px;text-align:center;backdrop-filter:blur(10px)">
+              <div style="font-size:24px;font-weight:900" id="heroAmount">₹0</div>
+              <div style="font-size:11px;opacity:.8">Total Spent</div>
+            </div>
+            <div style="background:rgba(255,255,255,.15);border-radius:12px;padding:14px 20px;text-align:center;backdrop-filter:blur(10px)">
+              <div style="font-size:24px;font-weight:900" id="heroPayments">0</div>
+              <div style="font-size:11px;opacity:.8">Payments Made</div>
+            </div>
+            <div style="background:rgba(255,255,255,.15);border-radius:12px;padding:14px 20px;text-align:center;backdrop-filter:blur(10px)">
+              <div style="font-size:24px;font-weight:900" id="heroDays">--</div>
+              <div style="font-size:11px;opacity:.8">Days Left</div>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- BILLING TOGGLE -->
-      <div style="text-align:center;margin-bottom:24px">
-        <div class="toggle-wrapper">
-          <span style="font-size:14px;font-weight:600;color:var(--text-secondary)" id="toggleLabelMonthly">Monthly</span>
-          <div class="toggle-track active" id="billingToggle" onclick="toggleBilling()">
-            <div class="toggle-thumb"></div>
+      <!-- TABS -->
+      <div style="display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap">
+        <button class="tab-btn active" onclick="switchTab('overview')"><i class="fas fa-th-large"></i> Overview</button>
+        <button class="tab-btn" onclick="switchTab('plans')"><i class="fas fa-layer-group"></i> Plans & Pricing</button>
+        <button class="tab-btn" onclick="switchTab('invoices')"><i class="fas fa-file-invoice"></i> Invoices</button>
+        <button class="tab-btn" onclick="switchTab('history')"><i class="fas fa-clock-rotate-left"></i> Billing History</button>
+      </div>
+
+      <!-- TAB: OVERVIEW -->
+      <div id="tab-overview">
+        <!-- USAGE METERS -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px" id="usageGrid">
+          <div class="card glow-card" style="padding:20px;text-align:center">
+            <div class="usage-ring" id="ring-students">
+              <svg width="100" height="100"><circle class="ring-bg" cx="50" cy="50" r="42"/><circle class="ring-fill" cx="50" cy="50" r="42" stroke="#4F46E5" stroke-dasharray="264" stroke-dashoffset="264"/></svg>
+              <div class="ring-label"><div class="ring-num" style="color:#4F46E5" id="usage-students-num">--</div><div class="ring-text">students</div></div>
+            </div>
+            <div style="font-size:13px;font-weight:600;margin-top:12px">Students</div>
+            <div style="font-size:11px;color:#64748B" id="usage-students-label">-- / --</div>
           </div>
-          <span style="font-size:14px;font-weight:600;color:var(--text-muted)" id="toggleLabelYearly">
-            Yearly <span class="savings-badge">Save 17%</span>
-          </span>
+          <div class="card glow-card" style="padding:20px;text-align:center">
+            <div class="usage-ring">
+              <svg width="100" height="100"><circle class="ring-bg" cx="50" cy="50" r="42"/><circle class="ring-fill" cx="50" cy="50" r="42" stroke="#10B981" stroke-dasharray="264" stroke-dashoffset="264"/></svg>
+              <div class="ring-label"><div class="ring-num" style="color:#10B981" id="usage-faculty-num">--</div><div class="ring-text">faculty</div></div>
+            </div>
+            <div style="font-size:13px;font-weight:600;margin-top:12px">Faculty</div>
+            <div style="font-size:11px;color:#64748B" id="usage-faculty-label">-- / --</div>
+          </div>
+          <div class="card glow-card" style="padding:20px;text-align:center">
+            <div class="usage-ring">
+              <svg width="100" height="100"><circle class="ring-bg" cx="50" cy="50" r="42"/><circle class="ring-fill" cx="50" cy="50" r="42" stroke="#F59E0B" stroke-dasharray="264" stroke-dashoffset="264"/></svg>
+              <div class="ring-label"><div class="ring-num" style="color:#F59E0B" id="usage-courses-num">--</div><div class="ring-text">courses</div></div>
+            </div>
+            <div style="font-size:13px;font-weight:600;margin-top:12px">Courses</div>
+            <div style="font-size:11px;color:#64748B" id="usage-courses-label">Active courses</div>
+          </div>
+          <div class="card glow-card" style="padding:20px;text-align:center">
+            <div class="usage-ring">
+              <svg width="100" height="100"><circle class="ring-bg" cx="50" cy="50" r="42"/><circle class="ring-fill" cx="50" cy="50" r="42" stroke="#8B5CF6" stroke-dasharray="264" stroke-dashoffset="264"/></svg>
+              <div class="ring-label"><div class="ring-num" style="color:#8B5CF6" id="usage-storage-num">--</div><div class="ring-text">GB</div></div>
+            </div>
+            <div style="font-size:13px;font-weight:600;margin-top:12px">Storage Used</div>
+            <div style="font-size:11px;color:#64748B" id="usage-storage-label">-- / --</div>
+          </div>
+        </div>
+
+        <!-- CURRENT PLAN + RENEWAL COUNTDOWN -->
+        <div style="display:grid;grid-template-columns:1.2fr 0.8fr;gap:20px;margin-bottom:24px">
+          <div class="card" style="padding:24px" id="currentPlanCard">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+              <h3 style="font-size:16px;font-weight:700"><i class="fas fa-id-badge" style="color:#4F46E5;margin-right:8px"></i>Current Plan</h3>
+              <div id="planStatusBadge"></div>
+            </div>
+            <div id="currentPlanBody">
+              <div style="text-align:center;padding:30px"><i class="fas fa-spinner fa-spin" style="color:#4F46E5;font-size:20px"></i></div>
+            </div>
+          </div>
+          <div class="card" style="padding:24px" id="renewalCard">
+            <h3 style="font-size:16px;font-weight:700;margin-bottom:20px"><i class="fas fa-clock" style="color:#F59E0B;margin-right:8px"></i>Renewal Countdown</h3>
+            <div id="countdownBody">
+              <div style="text-align:center;padding:20px"><i class="fas fa-spinner fa-spin" style="color:#4F46E5"></i></div>
+            </div>
+            <div style="margin-top:20px;padding-top:16px;border-top:1px solid #F1F5F9" id="quickActions"></div>
+          </div>
+        </div>
+
+        <!-- BILLING SUMMARY + PLAN FEATURES -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px">
+          <div class="card" style="padding:24px">
+            <h3 style="font-size:16px;font-weight:700;margin-bottom:16px"><i class="fas fa-chart-pie" style="color:#EC4899;margin-right:8px"></i>Billing Summary</h3>
+            <div id="billingSummary">
+              <div style="text-align:center;padding:20px"><i class="fas fa-spinner fa-spin" style="color:#4F46E5"></i></div>
+            </div>
+          </div>
+          <div class="card" style="padding:24px">
+            <h3 style="font-size:16px;font-weight:700;margin-bottom:16px"><i class="fas fa-list-check" style="color:#10B981;margin-right:8px"></i>Plan Features</h3>
+            <div id="planFeatures">
+              <div style="text-align:center;padding:20px"><i class="fas fa-spinner fa-spin" style="color:#4F46E5"></i></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SUBSCRIPTION TIMELINE -->
+        <div class="card" style="padding:24px;margin-bottom:24px">
+          <h3 style="font-size:16px;font-weight:700;margin-bottom:20px"><i class="fas fa-timeline" style="color:#8B5CF6;margin-right:8px"></i>Subscription Timeline</h3>
+          <div id="timelineBody">
+            <div style="text-align:center;padding:20px"><i class="fas fa-spinner fa-spin" style="color:#4F46E5"></i></div>
+          </div>
         </div>
       </div>
 
-      <!-- PLAN CARDS -->
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:24px;margin-bottom:36px" id="plansGrid">
-        <div style="text-align:center;padding:40px"><i class="fas fa-spinner fa-spin" style="color:var(--primary);font-size:20px"></i></div>
-      </div>
-
-      <!-- PAYMENT HISTORY -->
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title"><i class="fas fa-history" style="color:#10B981;margin-right:8px"></i>Payment History</div>
-          <div style="display:flex;gap:10px;align-items:center">
-            <div class="search-bar" style="width:220px"><i class="fas fa-search"></i><input type="text" placeholder="Search payments..." id="paymentSearch"></div>
-            <button class="btn btn-secondary btn-sm" id="exportPaymentsBtn"><i class="fas fa-download"></i> Export</button>
+      <!-- TAB: PLANS -->
+      <div id="tab-plans" style="display:none">
+        <div style="text-align:center;margin-bottom:24px">
+          <div class="toggle-wrapper" style="display:flex;align-items:center;justify-content:center;gap:14px">
+            <span style="font-size:14px;font-weight:600" id="toggleLabelMonthly">Monthly</span>
+            <div class="toggle-track active" id="billingToggle" onclick="toggleBilling()" style="width:52px;height:28px;border-radius:14px;background:#CBD5E1;cursor:pointer;position:relative;transition:background .3s">
+              <div style="position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:transform .3s" id="toggleThumb"></div>
+            </div>
+            <span style="font-size:14px;font-weight:600;color:#64748B" id="toggleLabelYearly">Yearly <span class="savings-badge">Save 17%</span></span>
           </div>
         </div>
-        <div class="table-wrap">
-          <table class="erp-table">
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Plan</th>
-                <th>Amount</th>
-                <th>Payment ID</th>
-                <th>Status</th>
-                <th>Receipt</th>
-              </tr>
-            </thead>
-            <tbody id="paymentHistoryBody">
-              <tr><td colspan="6" style="text-align:center;padding:20px"><i class="fas fa-spinner fa-spin" style="color:var(--primary)"></i></td></tr>
-            </tbody>
-          </table>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-bottom:36px" id="plansGrid">
+          <div style="text-align:center;padding:40px"><i class="fas fa-spinner fa-spin" style="color:#4F46E5;font-size:20px"></i></div>
         </div>
-        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--card-border)" id="paginationWrap">
-          <span style="font-size:13px;color:var(--text-secondary)" id="paymentCount">0 payments</span>
-          <div style="display:flex;gap:6px" id="paginationBtns"></div>
+
+        <!-- FEATURE COMPARISON TABLE -->
+        <div class="card" style="padding:24px;margin-bottom:24px">
+          <h3 style="font-size:16px;font-weight:700;margin-bottom:16px"><i class="fas fa-table" style="color:#4F46E5;margin-right:8px"></i>Feature Comparison</h3>
+          <div style="overflow-x:auto">
+            <table class="feature-compare" id="featureTable" style="width:100%;border-collapse:collapse">
+              <thead id="featureTableHead"></thead>
+              <tbody id="featureTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: INVOICES -->
+      <div id="tab-invoices" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+          <h3 style="font-size:16px;font-weight:700"><i class="fas fa-file-invoice" style="color:#4F46E5;margin-right:8px"></i>Invoices & Receipts</h3>
+          <div style="display:flex;gap:8px">
+            <input class="form-control" id="invoiceSearch" placeholder="Search invoices..." style="width:220px" oninput="renderInvoices()">
+            <button class="btn btn-secondary btn-sm" onclick="exportInvoices()"><i class="fas fa-download"></i> Export CSV</button>
+          </div>
+        </div>
+        <div id="invoiceList">
+          <div style="text-align:center;padding:40px"><i class="fas fa-spinner fa-spin" style="color:#4F46E5"></i></div>
+        </div>
+      </div>
+
+      <!-- TAB: BILLING HISTORY -->
+      <div id="tab-history" style="display:none">
+        <div class="card" style="padding:0;overflow:hidden">
+          <div style="padding:20px 24px;border-bottom:1px solid #F1F5F9;display:flex;align-items:center;justify-content:space-between">
+            <h3 style="font-size:16px;font-weight:700"><i class="fas fa-clock-rotate-left" style="color:#10B981;margin-right:8px"></i>Complete Billing History</h3>
+            <div style="display:flex;gap:8px">
+              <input class="form-control" id="paymentSearch" placeholder="Search payments..." style="width:220px" oninput="filterPayments()">
+              <button class="btn btn-secondary btn-sm" onclick="exportPayments()"><i class="fas fa-download"></i> Export</button>
+            </div>
+          </div>
+          <div style="overflow-x:auto">
+            <table class="erp-table" style="width:100%">
+              <thead>
+                <tr>
+                  <th style="padding:12px 16px;text-align:left;font-size:12px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.5px">Date</th>
+                  <th style="padding:12px 16px;text-align:left;font-size:12px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.5px">Plan</th>
+                  <th style="padding:12px 16px;text-align:left;font-size:12px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.5px">Cycle</th>
+                  <th style="padding:12px 16px;text-align:left;font-size:12px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.5px">Amount</th>
+                  <th style="padding:12px 16px;text-align:left;font-size:12px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.5px">Payment ID</th>
+                  <th style="padding:12px 16px;text-align:left;font-size:12px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.5px">Status</th>
+                  <th style="padding:12px 16px;text-align:left;font-size:12px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.5px">Receipt</th>
+                </tr>
+              </thead>
+              <tbody id="paymentHistoryBody">
+                <tr><td colspan="7" style="text-align:center;padding:30px"><i class="fas fa-spinner fa-spin" style="color:#4F46E5"></i></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-top:1px solid #F1F5F9">
+            <span style="font-size:13px;color:#64748B" id="paymentCount">0 payments</span>
+            <div style="display:flex;gap:6px" id="paginationBtns"></div>
+          </div>
         </div>
       </div>
     </div>
@@ -200,423 +282,331 @@
 
 <script src="../../js/shared.js"></script>
 <script>
-(function() {
-  let currentSubscription = null;
-  let plans = [];
-  let payments = [];
-  let billingCycle = 'yearly';
-  let paymentPage = 1;
-  const paymentLimit = 10;
-  let selectedPlanForPayment = null;
-  let selectedCycleForPayment = null;
+(function(){
+  let currentSubscription=null,plans=[],payments=[],billingCycle='yearly',paymentPage=1;
+  const paymentLimit=10;
+  let countdownInterval=null;
 
-  const PLANS_DATA = [
-    {
-      id: 'basic',
-      name: 'Basic',
-      price: { monthly: 999, yearly: 9999 },
-      color: '#3B82F6',
-      icon: 'fas fa-cube',
-      features: [
-        'Up to 500 students',
-        'Up to 50 faculty',
-        'Core ERP modules',
-        'Email support'
-      ]
-    },
-    {
-      id: 'pro',
-      name: 'Pro',
-      price: { monthly: 2999, yearly: 29999 },
-      color: '#4F46E5',
-      icon: 'fas fa-rocket',
-      recommended: true,
-      features: [
-        'Up to 2,000 students',
-        'Up to 200 faculty',
-        'All modules + AI tools',
-        'Priority support',
-        'Advanced analytics'
-      ]
-    },
-    {
-      id: 'enterprise',
-      name: 'Enterprise',
-      price: { monthly: 7999, yearly: 79999 },
-      color: '#8B5CF6',
-      icon: 'fas fa-building',
-      features: [
-        'Unlimited students & faculty',
-        'All modules + custom branding',
-        'Dedicated support',
-        'API access',
-        'SLA guarantee'
-      ]
-    }
+  const PLANS_DATA=[
+    {id:'basic',name:'Basic',price:{monthly:999,quarterly:2997,yearly:11988},color:'#3B82F6',icon:'fas fa-cube',limits:{students:500,faculty:50,storage:5},features:['Up to 500 students','Up to 50 faculty','Core ERP modules','5 GB storage','Email support','Basic analytics']},
+    {id:'pro',name:'Pro',price:{monthly:2999,quarterly:8997,yearly:35988},color:'#4F46E5',icon:'fas fa-rocket',recommended:true,limits:{students:2000,faculty:200,storage:50},features:['Up to 2,000 students','Up to 200 faculty','All modules + AI tools','50 GB storage','Priority support','Advanced analytics','API access','Custom branding']},
+    {id:'enterprise',name:'Enterprise',price:{monthly:7999,quarterly:23997,yearly:95988},color:'#8B5CF6',icon:'fas fa-building',limits:{students:-1,faculty:-1,storage:-1},features:['Unlimited students','Unlimited faculty','All modules + custom branding','Unlimited storage','Dedicated support','Custom integrations','White-label options','SLA guarantee','24/7 phone support']}
   ];
 
-  function formatCurrency(amount) {
-    return '₹' + Number(amount).toLocaleString('en-IN');
+  const ALL_FEATURES=[
+    {name:'Students',basic:'Up to 500',pro:'Up to 2,000',enterprise:'Unlimited'},
+    {name:'Faculty',basic:'Up to 50',pro:'Up to 200',enterprise:'Unlimited'},
+    {name:'Storage',basic:'5 GB',pro:'50 GB',enterprise:'Unlimited'},
+    {name:'Core ERP Modules',basic:true,pro:true,enterprise:true},
+    {name:'AI Tools & Chatbot',basic:false,pro:true,enterprise:true},
+    {name:'Advanced Analytics',basic:false,pro:true,enterprise:true},
+    {name:'API Access',basic:false,pro:true,enterprise:true},
+    {name:'Custom Branding',basic:false,pro:false,enterprise:true},
+    {name:'White-Label Options',basic:false,pro:false,enterprise:true},
+    {name:'SLA Guarantee',basic:false,pro:false,enterprise:true},
+    {name:'Priority Support',basic:false,pro:true,enterprise:true},
+    {name:'Dedicated Account Manager',basic:false,pro:false,enterprise:true},
+    {name:'24/7 Phone Support',basic:false,pro:false,enterprise:true},
+    {name:'Custom Integrations',basic:false,pro:false,enterprise:true},
+    {name:'Question Bank & Exam Generator',basic:true,pro:true,enterprise:true},
+    {name:'Live Classes (Jitsi)',basic:true,pro:true,enterprise:true},
+    {name:'Library Management',basic:true,pro:true,enterprise:true},
+    {name:'Placement Cell',basic:false,pro:true,enterprise:true},
+    {name:'Alumni Network',basic:false,pro:true,enterprise:true},
+    {name:'Grievance Management',basic:true,pro:true,enterprise:true},
+  ];
+
+  function fmt(a){return '₹'+Number(a).toLocaleString('en-IN')}
+  function fmtDate(d){if(!d)return '—';return new Date(d).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}
+  function daysLeft(d){if(!d)return 0;return Math.max(0,Math.ceil((new Date(d)-new Date())/(1000*60*60*24)))}
+
+  function normalizeSub(s){
+    if(!s)return{status:'none'};
+    return{...s,status:s.isActive?'active':(s.status||'none'),expiryDate:s.expiryDate||s.endDate,price:s.price||s.amount};
+  }
+  function normalizePayment(p){return{...p,date:p.date||p.createdAt,paymentId:p.paymentId||p.razorpayPaymentId||p.receiptNo||p.id,status:p.status==='captured'?'success':p.status}}
+  function getPlans(){return(plans.length?plans:PLANS_DATA).map(p=>{const fb=PLANS_DATA.find(x=>x.id===p.id)||{};return{...fb,...p,price:p.price||p.pricing||fb.price||{},features:p.features||fb.features||[],limits:fb.limits||{}}})}
+
+  // ===== HERO =====
+  function renderHero(){
+    const plan=getPlans().find(p=>p.id===currentSubscription?.plan)||getPlans()[0];
+    const isActive=currentSubscription?.status==='active';
+    const days=daysLeft(currentSubscription?.expiryDate);
+    const totalSpent=payments.filter(p=>p.status==='success').reduce((s,p)=>s+Number(p.amount||0),0);
+    document.getElementById('heroPlanName').textContent=(plan.name||'No')+' Plan';
+    document.getElementById('heroPlanStatus').innerHTML=isActive?`<i class="fas fa-circle" style="font-size:8px;color:#4ADE80;margin-right:4px"></i>Active — ${days>0?days+' days remaining':'Expiring soon'}`:'<i class="fas fa-circle" style="font-size:8px;color:#F87171;margin-right:4px"></i>No active subscription';
+    document.getElementById('heroAmount').textContent=fmt(totalSpent);
+    document.getElementById('heroPayments').textContent=payments.filter(p=>p.status==='success').length;
+    document.getElementById('heroDays').textContent=days>0?days:'--';
   }
 
-  function formatDate(dateStr) {
-    if (!dateStr) return '—';
-    return new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+  // ===== USAGE METERS =====
+  function renderUsage(){
+    const plan=getPlans().find(p=>p.id===currentSubscription?.plan)||getPlans()[0];
+    const limits=plan.limits||{};
+    const circumference=2*Math.PI*42;
+    function setRing(id,current,max,color){
+      const pct=max<0?10:Math.min((current/max)*100,100);
+      const offset=circumference-(pct/100)*circumference;
+      const ring=document.querySelector(`#${id} .ring-fill`);
+      if(ring)ring.style.strokeDashoffset=offset;
+      const num=document.getElementById(id.replace('ring-','usage-')+'-num');
+      if(num)num.textContent=current;
+      const lbl=document.getElementById(id.replace('ring-','usage-')+'-label');
+      if(lbl)lbl.textContent=max<0?current+' used':current+' / '+max;
+    }
+    setRing('ring-students',1247,limits.students||500,'#4F46E5');
+    setRing('ring-faculty',89,limits.faculty||50,'#10B981');
+    setRing('ring-courses',42,100,'#F59E0B');
+    setRing('ring-storage',12,limits.storage||5,'#8B5CF6');
   }
 
-  function getDaysRemaining(dateStr) {
-    if (!dateStr) return 0;
-    const diff = new Date(dateStr) - new Date();
-    return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
-  }
-
-  function normalizePlan(plan) {
-    const fallback = PLANS_DATA.find(p => p.id === plan?.id) || {};
-    return {
-      ...fallback,
-      ...plan,
-      price: plan?.price || plan?.pricing || fallback.price || {},
-      features: plan?.features || fallback.features || []
-    };
-  }
-
-  function getPlansData() {
-    return (plans && plans.length ? plans : PLANS_DATA).map(normalizePlan);
-  }
-
-  function normalizeSubscription(subscription) {
-    if (!subscription) return { status: 'none' };
-    return {
-      ...subscription,
-      status: subscription.isActive ? 'active' : (subscription.status || 'none'),
-      expiryDate: subscription.expiryDate || subscription.endDate,
-      price: subscription.price || subscription.amount
-    };
-  }
-
-  function normalizePayment(payment) {
-    return {
-      ...payment,
-      date: payment.date || payment.createdAt,
-      paymentId: payment.paymentId || payment.razorpayPaymentId || payment.receiptNo || payment.id,
-      status: payment.status === 'captured' ? 'success' : payment.status
-    };
-  }
-
-  function renderCurrentPlan() {
-    const container = document.getElementById('currentPlanBody');
-    if (!currentSubscription || currentSubscription.status === 'none') {
-      container.innerHTML = `
-        <div style="text-align:center;padding:20px">
-          <div style="width:64px;height:64px;border-radius:50%;background:rgba(239,68,68,0.1);display:inline-flex;align-items:center;justify-content:center;margin-bottom:14px">
-            <span class="status-dot none" style="width:16px;height:16px"></span>
-          </div>
-          <h3 style="font-size:18px;font-weight:700;margin-bottom:6px">No Active Plan</h3>
-          <p style="color:var(--text-secondary);font-size:14px;margin-bottom:16px">Subscribe to a plan to unlock all VishvaERP features for your institution.</p>
-          <button class="btn btn-primary" onclick="document.getElementById('plansGrid').scrollIntoView({behavior:'smooth'})">
-            <i class="fas fa-arrow-down"></i> View Plans
-          </button>
-        </div>`;
+  // ===== CURRENT PLAN =====
+  function renderCurrentPlan(){
+    const c=document.getElementById('currentPlanBody');
+    const badge=document.getElementById('planStatusBadge');
+    if(!currentSubscription||currentSubscription.status==='none'){
+      c.innerHTML=`<div style="text-align:center;padding:20px"><div style="width:64px;height:64px;border-radius:50%;background:#FEE2E2;display:inline-flex;align-items:center;justify-content:center;margin-bottom:14px"><i class="fas fa-exclamation-triangle" style="font-size:24px;color:#EF4444"></i></div><h3 style="font-size:18px;font-weight:700;margin-bottom:6px">No Active Plan</h3><p style="color:#64748B;font-size:14px;margin-bottom:16px">Subscribe to unlock all VishvaERP features.</p><button class="btn btn-primary" onclick="switchTab('plans')"><i class="fas fa-arrow-right"></i> View Plans</button></div>`;
+      badge.innerHTML='';
       return;
     }
-
-    const plan = getPlansData().find(p => p.id === currentSubscription.plan) || getPlansData()[0];
-    const isActive = currentSubscription.status === 'active' || currentSubscription.isActive;
-    const expiryDate = currentSubscription.expiryDate || currentSubscription.endDate;
-    const days = getDaysRemaining(expiryDate);
-    const statusClass = isActive ? 'active' : 'expired';
-    const statusText = isActive ? 'Active' : 'Expired';
-    const daysText = isActive ? (days <= 30 ? `${days} days remaining` : `Renews on ${formatDate(expiryDate)}`) : 'Expired on ' + formatDate(expiryDate);
-    const price = currentSubscription.price || currentSubscription.amount || plan.price?.[currentSubscription.billingCycle] || plan.price?.yearly || 0;
-
-    container.innerHTML = `
+    const plan=getPlans().find(p=>p.id===currentSubscription.plan)||getPlans()[0];
+    const isActive=currentSubscription.status==='active';
+    const days=daysLeft(currentSubscription.expiryDate);
+    const price=currentSubscription.price||currentSubscription.amount||plan.price?.[currentSubscription.billingCycle]||0;
+    badge.innerHTML=`<span style="display:inline-flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;font-size:12px;font-weight:700;background:${isActive?'#D1FAE5;color:#065F46':'#FEE2E2;color:#991B1B'}"><span style="width:8px;height:8px;border-radius:50%;background:${isActive?'#10B981':'#EF4444'}"></span>${isActive?'Active':'Expired'}</span>`;
+    c.innerHTML=`
       <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">
-        <div style="width:60px;height:60px;border-radius:var(--radius-md);background:${plan.color}15;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-          <i class="${plan.icon}" style="font-size:24px;color:${plan.color}"></i>
-        </div>
+        <div style="width:64px;height:64px;border-radius:14px;background:${plan.color}15;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="${plan.icon}" style="font-size:28px;color:${plan.color}"></i></div>
         <div style="flex:1;min-width:200px">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
-            <h3 style="font-size:20px;font-weight:800">${plan.name} Plan</h3>
-            <span class="status-dot ${statusClass}"></span>
-            <span style="font-size:12px;font-weight:700;padding:3px 10px;border-radius:12px;background:${isActive ? '#D1FAE5;color:#065F46' : '#FEE2E2;color:#991B1B'}">${statusText}</span>
-          </div>
-          <div style="color:var(--text-secondary);font-size:14px">${daysText}</div>
+          <h3 style="font-size:22px;font-weight:800;margin-bottom:2px">${plan.name} Plan</h3>
+          <div style="color:#64748B;font-size:14px">${currentSubscription.billingCycle==='yearly'?'Annual':'Monthly'} billing • Started ${fmtDate(currentSubscription.startDate||currentSubscription.createdAt)}</div>
         </div>
         <div style="text-align:right">
-          <div style="font-size:28px;font-weight:800;color:var(--primary)">${formatCurrency(price)}</div>
-          <div style="font-size:12px;color:var(--text-muted)">${currentSubscription.billingCycle === 'yearly' ? 'per year' : 'per month'}</div>
+          <div style="font-size:32px;font-weight:900;color:#4F46E5">${fmt(price)}</div>
+          <div style="font-size:12px;color:#94A3B8">${currentSubscription.billingCycle==='yearly'?'per year':'per month'}</div>
         </div>
-        <div style="display:flex;gap:8px">
-          ${isActive ? `<button class="btn btn-secondary btn-sm" onclick="showToast('Manage billing from your payment provider', 'info')"><i class="fas fa-cog"></i> Manage</button>` : `<button class="btn btn-primary btn-sm" onclick="document.getElementById('plansGrid').scrollIntoView({behavior:'smooth'})"><i class="fas fa-redo"></i> Renew</button>`}
-        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px;padding-top:16px;border-top:1px solid #F1F5F9">
+        <div><div style="font-size:11px;color:#94A3B8;text-transform:uppercase;letter-spacing:.5px">Start Date</div><div style="font-size:14px;font-weight:600">${fmtDate(currentSubscription.startDate)}</div></div>
+        <div><div style="font-size:11px;color:#94A3B8;text-transform:uppercase;letter-spacing:.5px">Next Billing</div><div style="font-size:14px;font-weight:600">${fmtDate(currentSubscription.expiryDate)}</div></div>
+        <div><div style="font-size:11px;color:#94A3B8;text-transform:uppercase;letter-spacing:.5px">Days Remaining</div><div style="font-size:14px;font-weight:600;color:${days<=7?'#EF4444':days<=30?'#F59E0B':'#10B981'}">${days>0?days+' days':'Expired'}</div></div>
       </div>`;
   }
 
-  function renderPlans() {
-    const grid = document.getElementById('plansGrid');
-    const currentPlanId = currentSubscription?.plan;
-    const currentStatus = currentSubscription?.status;
+  // ===== COUNTDOWN =====
+  function renderCountdown(){
+    const c=document.getElementById('countdownBody');
+    const qa=document.getElementById('quickActions');
+    if(!currentSubscription||currentSubscription.status==='none'){
+      c.innerHTML='<div style="text-align:center;color:#94A3B8;padding:20px"><i class="fas fa-infinity" style="font-size:32px;display:block;margin-bottom:8px"></i>No renewal scheduled</div>';
+      qa.innerHTML='';
+      return;
+    }
+    const expiry=new Date(currentSubscription.expiryDate);
+    const now=new Date();
+    const diff=expiry-now;
+    if(diff<=0){
+      c.innerHTML='<div style="text-align:center;padding:20px"><div style="font-size:36px;font-weight:900;color:#EF4444">Expired</div><div style="font-size:13px;color:#64748B;margin-top:4px">Please renew your subscription</div></div>';
+      qa.innerHTML='<button class="btn btn-primary" style="width:100%" onclick="switchTab(\'plans\')"><i class="fas fa-redo"></i> Renew Now</button>';
+      return;
+    }
+    const days=Math.floor(diff/(1000*60*60*24));
+    const hours=Math.floor((diff%(1000*60*60*24))/(1000*60*60));
+    const mins=Math.floor((diff%(1000*60*60))/(1000*60));
+    const secs=Math.floor((diff%(1000*60))/1000);
+    c.innerHTML=`
+      <div style="display:flex;justify-content:center;gap:16px;margin-bottom:20px">
+        <div class="countdown-seg"><div class="countdown-num">${days}</div><div class="countdown-label">Days</div></div>
+        <div class="countdown-seg"><div class="countdown-num">${String(hours).padStart(2,'0')}</div><div class="countdown-label">Hours</div></div>
+        <div class="countdown-seg"><div class="countdown-num">${String(mins).padStart(2,'0')}</div><div class="countdown-label">Mins</div></div>
+        <div class="countdown-seg"><div class="countdown-num">${String(secs).padStart(2,'0')}</div><div class="countdown-label">Secs</div></div>
+      </div>
+      <div style="text-align:center;font-size:13px;color:#64748B">Renews on ${fmtDate(currentSubscription.expiryDate)}</div>`;
+    qa.innerHTML=`
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-secondary" style="flex:1" onclick="downloadLatestReceipt()"><i class="fas fa-receipt"></i> Receipt</button>
+        <button class="btn btn-primary" style="flex:1" onclick="switchTab('plans')"><i class="fas fa-arrow-up"></i> Upgrade</button>
+      </div>`;
+  }
 
-    grid.innerHTML = getPlansData().map(plan => {
-      const isCurrent = currentPlanId === plan.id && currentStatus === 'active';
-      const price = plan.price?.[billingCycle] || 0;
-      const monthlyEquiv = billingCycle === 'yearly' ? Math.round((plan.price?.yearly || 0) / 12) : (plan.price?.monthly || 0);
+  // ===== BILLING SUMMARY =====
+  function renderBillingSummary(){
+    const c=document.getElementById('billingSummary');
+    const success=payments.filter(p=>p.status==='success');
+    const totalSpent=success.reduce((s,p)=>s+Number(p.amount||0),0);
+    const lastPayment=success[0];
+    const avgPerMonth=success.length?Math.round(totalSpent/Math.max(1,Math.ceil((Date.now()-new Date(success[success.length-1]?.date||Date.now()))/(1000*60*60*24*30)))):0;
+    c.innerHTML=`
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div style="padding:16px;background:#F8FAFC;border-radius:10px"><div style="font-size:11px;color:#94A3B8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Total Spent</div><div style="font-size:22px;font-weight:800;color:#4F46E5">${fmt(totalSpent)}</div></div>
+        <div style="padding:16px;background:#F8FAFC;border-radius:10px"><div style="font-size:11px;color:#94A3B8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Avg/Month</div><div style="font-size:22px;font-weight:800;color:#10B981">${fmt(avgPerMonth)}</div></div>
+        <div style="padding:16px;background:#F8FAFC;border-radius:10px"><div style="font-size:11px;color:#94A3B8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Last Payment</div><div style="font-size:14px;font-weight:600">${lastPayment?fmt(lastPayment.amount):'—'}</div><div style="font-size:11px;color:#94A3B8">${lastPayment?fmtDate(lastPayment.date):''}</div></div>
+        <div style="padding:16px;background:#F8FAFC;border-radius:10px"><div style="font-size:11px;color:#94A3B8;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Total Transactions</div><div style="font-size:22px;font-weight:800;color:#8B5CF6">${success.length}</div></div>
+      </div>`;
+  }
 
-      return `
-        <div class="plan-card card ${plan.recommended ? 'recommended current' : ''} ${isCurrent ? 'current' : ''}" style="border-radius:var(--radius-lg);overflow:visible">
-          ${plan.recommended ? '<div class="badge-recommended"><i class="fas fa-star" style="margin-right:4px"></i> Recommended</div>' : ''}
-          ${isCurrent ? '<div class="badge-current"><i class="fas fa-check" style="margin-right:4px"></i> Current Plan</div>' : ''}
-          <div class="card-inner" style="padding:28px 24px">
-            <div style="text-align:center;margin-bottom:20px">
-              <div style="width:56px;height:56px;border-radius:50%;background:${plan.color}15;display:inline-flex;align-items:center;justify-content:center;margin-bottom:12px">
-                <i class="${plan.icon}" style="font-size:24px;color:${plan.color}"></i>
-              </div>
-              <h3 style="font-size:20px;font-weight:800;margin-bottom:4px">${plan.name}</h3>
-              <div style="display:flex;align-items:baseline;justify-content:center;gap:4px">
-                <span style="font-size:32px;font-weight:800;color:var(--primary)">${formatCurrency(price)}</span>
-                <span style="font-size:13px;color:var(--text-muted)">/${billingCycle === 'yearly' ? 'year' : 'month'}</span>
-              </div>
-              ${billingCycle === 'yearly' ? `<div style="font-size:12px;color:var(--text-muted);margin-top:2px">${formatCurrency(monthlyEquiv)}/month equivalent</div>` : ''}
-            </div>
-            <div style="border-top:1px solid var(--card-border);padding-top:16px;margin-bottom:20px">
-              ${plan.features.map(f => `
-                <div class="plan-feature">
-                  <i class="fas fa-check-circle"></i>
-                  <span style="font-size:14px;color:var(--text-primary)">${f}</span>
-                </div>
-              `).join('')}
-            </div>
-            ${isCurrent
-              ? `<button class="btn btn-secondary" style="width:100%" disabled><i class="fas fa-check"></i> Current Plan</button>`
-              : `<button class="btn btn-primary" style="width:100%;background:${plan.color};border-color:${plan.color}" onclick="subscribePlan('${plan.id}')"><i class="fas fa-credit-card"></i> Subscribe</button>`
-            }
+  // ===== PLAN FEATURES =====
+  function renderPlanFeatures(){
+    const c=document.getElementById('planFeatures');
+    const plan=getPlans().find(p=>p.id===currentSubscription?.plan)||getPlans()[0];
+    c.innerHTML=plan.features.map(f=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #F1F5F9"><div style="width:24px;height:24px;border-radius:50%;background:#D1FAE5;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fas fa-check" style="font-size:11px;color:#065F46"></i></div><span style="font-size:13px">${f}</span></div>`).join('');
+  }
+
+  // ===== TIMELINE =====
+  function renderTimeline(){
+    const c=document.getElementById('timelineBody');
+    if(!payments.length){c.innerHTML='<div style="text-align:center;color:#94A3B8;padding:20px;font-size:13px">No billing history yet</div>';return;}
+    const sorted=[...payments].sort((a,b)=>new Date(b.date)-new Date(a.date)).slice(0,10);
+    c.innerHTML=sorted.map((p,i)=>{
+      const isPaid=p.status==='success';
+      return`<div class="timeline-item"><div class="timeline-dot" style="background:${isPaid?'#D1FAE5;color:#065F46':'#FEE2E2;color:#991B1B'}"><i class="fas ${isPaid?'fa-check':'fa-times'}"></i></div><div style="flex:1"><div style="display:flex;justify-content:space-between;align-items:center"><div><span style="font-weight:600;font-size:14px">${p.plan||'Subscription'} Plan</span><span style="font-size:12px;color:#64748B;margin-left:8px">${p.billingCycle==='yearly'?'Annual':'Monthly'}</span></div><span style="font-weight:700;font-size:14px">${fmt(p.amount)}</span></div><div style="display:flex;justify-content:space-between;margin-top:4px"><span style="font-size:12px;color:#94A3B8">${fmtDate(p.date)}</span><span style="font-size:11px;padding:2px 8px;border-radius:8px;background:${isPaid?'#D1FAE5;color:#065F46':'#FEE2E2;color:#991B1B'}">${isPaid?'Paid':'Failed'}</span></div></div></div>`;
+    }).join('');
+  }
+
+  // ===== PLANS GRID =====
+  function renderPlans(){
+    const grid=document.getElementById('plansGrid');
+    const cur=currentSubscription?.plan;
+    grid.innerHTML=getPlans().map(plan=>{
+      const isCurrent=cur===plan.id&&currentSubscription?.status==='active';
+      const price=plan.price?.[billingCycle]||0;
+      const monthlyEq=billingCycle==='yearly'?Math.round((plan.price?.yearly||0)/12):(plan.price?.monthly||0);
+      return`<div class="plan-card card ${plan.recommended?'recommended':''} ${isCurrent?'current':''}" style="border-radius:16px;overflow:visible;border:2px solid ${isCurrent?plan.color:'#E2E8F0'};transition:all .3s">
+        ${plan.recommended?'<div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#4F46E5,#7C3AED);color:white;padding:4px 16px;border-radius:20px;font-size:12px;font-weight:700;white-space:nowrap;z-index:1"><i class="fas fa-star" style="margin-right:4px"></i>Most Popular</div>':''}
+        ${isCurrent?'<div style="position:absolute;top:14px;right:14px;background:#D1FAE5;color:#065F46;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;z-index:1"><i class="fas fa-check" style="margin-right:4px"></i>Current</div>':''}
+        <div style="padding:28px 24px">
+          <div style="text-align:center;margin-bottom:20px">
+            <div style="width:56px;height:56px;border-radius:50%;background:${plan.color}15;display:inline-flex;align-items:center;justify-content:center;margin-bottom:12px"><i class="${plan.icon}" style="font-size:24px;color:${plan.color}"></i></div>
+            <h3 style="font-size:20px;font-weight:800;margin-bottom:4px">${plan.name}</h3>
+            <div style="display:flex;align-items:baseline;justify-content:center;gap:4px"><span style="font-size:32px;font-weight:800;color:${plan.color}">${fmt(price)}</span><span style="font-size:13px;color:#94A3B8">/${billingCycle==='yearly'?'year':'month'}</span></div>
+            ${billingCycle==='yearly'?`<div style="font-size:12px;color:#94A3B8;margin-top:2px">${fmt(monthlyEq)}/month equivalent</div>`:''}
           </div>
-        </div>`;
+          <div style="border-top:1px solid #F1F5F9;padding-top:16px;margin-bottom:20px">
+            ${plan.features.map(f=>`<div style="display:flex;align-items:flex-start;gap:8px;padding:5px 0"><i class="fas fa-check-circle" style="margin-top:2px;font-size:13px;color:#10B981"></i><span style="font-size:13px">${f}</span></div>`).join('')}
+          </div>
+          ${isCurrent?`<button class="btn btn-secondary" style="width:100%" disabled><i class="fas fa-check"></i> Current Plan</button>`:`<button class="btn btn-primary" style="width:100%;background:${plan.color};border-color:${plan.color}" onclick="subscribePlan('${plan.id}')"><i class="fas fa-credit-card"></i> ${currentSubscription?.status==='active'?'Switch to '+plan.name:'Subscribe Now'}</button>`}
+        </div>
+      </div>`;
     }).join('');
   }
 
-  function renderPaymentHistory() {
-    const tbody = document.getElementById('paymentHistoryBody');
-    if (!payments.length) {
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:30px;color:var(--text-muted)"><i class="fas fa-receipt" style="font-size:24px;display:block;margin-bottom:8px"></i>No payment history yet.</td></tr>`;
-      document.getElementById('paymentCount').textContent = '0 payments';
-      document.getElementById('paginationBtns').innerHTML = '';
-      return;
-    }
-
-    const filtered = document.getElementById('paymentSearch').value
-      ? payments.filter(p =>
-          p.plan?.toLowerCase().includes(document.getElementById('paymentSearch').value.toLowerCase()) ||
-          p.paymentId?.toLowerCase().includes(document.getElementById('paymentSearch').value.toLowerCase()) ||
-          p.receiptNo?.toLowerCase().includes(document.getElementById('paymentSearch').value.toLowerCase()))
-      : payments;
-
-    const total = filtered.length;
-    const totalPages = Math.ceil(total / paymentLimit);
-    const start = (paymentPage - 1) * paymentLimit;
-    const pageItems = filtered.slice(start, start + paymentLimit);
-
-    document.getElementById('paymentCount').textContent = `${total} payment${total !== 1 ? 's' : ''}`;
-
-    tbody.innerHTML = pageItems.map(p => {
-      const normalizedStatus = p.status === 'captured' ? 'success' : p.status;
-      const statusColor = normalizedStatus === 'success' ? '#10B981' : normalizedStatus === 'failed' ? '#EF4444' : '#F59E0B';
-      const statusBg = normalizedStatus === 'success' ? '#D1FAE5' : normalizedStatus === 'failed' ? '#FEE2E2' : '#FEF3C7';
-      const statusLabel = normalizedStatus === 'success' ? 'Paid' : normalizedStatus === 'failed' ? 'Failed' : 'Pending';
-
-      return `
-        <tr class="payment-row">
-          <td style="font-weight:500">${formatDate(p.date)}</td>
-          <td><span style="font-weight:600">${p.plan || '—'}</span> <span style="font-size:11px;color:var(--text-muted)">${p.billingCycle === 'yearly' ? '(Yearly)' : '(Monthly)'}</span></td>
-          <td style="font-weight:700">${formatCurrency(p.amount)}</td>
-          <td><code style="background:var(--bg);padding:3px 8px;border-radius:4px;font-size:12px">${p.paymentId || '—'}</code></td>
-          <td><span style="padding:3px 10px;border-radius:12px;font-size:12px;font-weight:700;background:${statusBg};color:${statusColor}">${statusLabel}</span></td>
-          <td>${normalizedStatus === 'success' ? `<a href="#" class="receipt-link" onclick="downloadReceipt('${p.paymentId}');return false"><i class="fas fa-download"></i> PDF</a>` : '<span style="color:var(--text-muted);font-size:12px">—</span>'}</td>
-        </tr>`;
-    }).join('');
-
-    // Pagination
-    const btns = document.getElementById('paginationBtns');
-    let btnsHtml = '';
-    if (totalPages > 1) {
-      btnsHtml += `<button class="btn btn-sm btn-secondary" ${paymentPage <= 1 ? 'disabled' : ''} onclick="changePage(${paymentPage - 1})"><i class="fas fa-chevron-left"></i></button>`;
-      for (let i = 1; i <= totalPages; i++) {
-        btnsHtml += `<button class="btn btn-sm ${i === paymentPage ? 'btn-primary' : 'btn-secondary'}" onclick="changePage(${i})">${i}</button>`;
-      }
-      btnsHtml += `<button class="btn btn-sm btn-secondary" ${paymentPage >= totalPages ? 'disabled' : ''} onclick="changePage(${paymentPage + 1})"><i class="fas fa-chevron-right"></i></button>`;
-    }
-    btns.innerHTML = btnsHtml;
+  // ===== FEATURE TABLE =====
+  function renderFeatureTable(){
+    const cols=getPlans();
+    document.getElementById('featureTableHead').innerHTML=`<tr><th style="padding:12px 16px;text-align:left;font-size:13px;font-weight:700;border-bottom:2px solid #E2E8F0;background:white">Feature</th>${cols.map(p=>`<th class="plan-col" style="padding:12px 16px;text-align:center;border-bottom:2px solid #E2E8F0;background:white"><div style="width:36px;height:36px;border-radius:50%;background:${p.color}15;display:inline-flex;align-items:center;justify-content:center;margin-bottom:6px"><i class="${p.icon}" style="color:${p.color}"></i></div><div style="font-weight:700;font-size:14px">${p.name}</div></th>`).join('')}</tr>`;
+    document.getElementById('featureTableBody').innerHTML=ALL_FEATURES.map(f=>`<tr><td style="padding:10px 16px;font-weight:600;font-size:13px">${f.name}</td>${cols.map(p=>{const v=f[p.id];return`<td style="text-align:center;padding:10px 16px">${v===true?'<i class="fas fa-check-circle" style="color:#10B981;font-size:16px"></i>':v===false?'<i class="fas fa-minus-circle" style="color:#E2E8F0;font-size:16px"></i>':`<span style="font-weight:600;font-size:13px">${v}</span>`}</td>`}).join('')}</tr>`).join('');
   }
 
-  async function loadSubscription() {
-    try {
-      const res = await window.api.request('/subscriptions/current', { silent: true });
-      currentSubscription = normalizeSubscription(res.subscription || res.data);
-    } catch (e) {
-      currentSubscription = normalizeSubscription(null);
-    }
-    renderCurrentPlan();
-    renderPlans();
+  // ===== INVOICES =====
+  function renderInvoices(){
+    const c=document.getElementById('invoiceList');
+    const q=(document.getElementById('invoiceSearch')?.value||'').toLowerCase();
+    const filtered=payments.filter(p=>!q||p.plan?.toLowerCase().includes(q)||p.paymentId?.toLowerCase().includes(q)||fmtDate(p.date).toLowerCase().includes(q));
+    if(!filtered.length){c.innerHTML='<div style="text-align:center;padding:40px;color:#94A3B8"><i class="fas fa-file-invoice" style="font-size:32px;display:block;margin-bottom:8px"></i>No invoices found</div>';return;}
+    c.innerHTML=filtered.map(p=>{const isPaid=p.status==='success';return`<div class="invoice-card" style="margin-bottom:10px">
+      <div style="width:44px;height:44px;background:${isPaid?'#D1FAE5':'#FEE2E2'};border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0"><i class="fas ${isPaid?'fa-file-invoice':'fa-file-circle-xmark'}" style="color:${isPaid?'#065F46':'#991B1B'};font-size:18px"></i></div>
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;justify-content:space-between;align-items:center"><span style="font-weight:600;font-size:14px">${p.plan||'Subscription'} — ${p.billingCycle==='yearly'?'Annual':'Monthly'}</span><span style="font-weight:700;font-size:15px">${fmt(p.amount)}</span></div>
+        <div style="display:flex;justify-content:space-between;margin-top:4px"><span style="font-size:12px;color:#94A3B8">${fmtDate(p.date)} • ${p.paymentId||'—'}</span><span style="font-size:11px;padding:2px 8px;border-radius:8px;background:${isPaid?'#D1FAE5;color:#065F46':'#FEE2E2;color:#991B1B'};font-weight:600">${isPaid?'Paid':'Failed'}</span></div>
+      </div>
+      ${isPaid?`<button class="btn btn-xs btn-secondary" onclick="downloadReceipt('${p.paymentId}')"><i class="fas fa-download"></i></button>`:''}
+    </div>`}).join('');
   }
 
-  async function loadPlans() {
-    try {
-      const res = await window.api.request('/subscriptions/plans', { silent: true });
-      if (res.plans && res.plans.length) {
-        plans = res.plans.map(normalizePlan);
-      }
-    } catch (e) {
-      plans = [...PLANS_DATA];
-    }
+  // ===== PAYMENT HISTORY =====
+  function renderPayments(){
+    const q=(document.getElementById('paymentSearch')?.value||'').toLowerCase();
+    const filtered=q?payments.filter(p=>(p.plan||'').toLowerCase().includes(q)||(p.paymentId||'').toLowerCase().includes(q)):payments;
+    const total=filtered.length;const totalPages=Math.ceil(total/paymentLimit);const start=(paymentPage-1)*paymentLimit;const pageItems=filtered.slice(start,start+paymentLimit);
+    document.getElementById('paymentCount').textContent=total+' payment'+(total!==1?'s':'');
+    document.getElementById('paymentHistoryBody').innerHTML=pageItems.map(p=>{const ok=p.status==='success';return`<tr style="border-bottom:1px solid #F1F5F9"><td style="padding:12px 16px;font-weight:500;font-size:13px">${fmtDate(p.date)}</td><td style="padding:12px 16px"><span style="font-weight:600;font-size:13px">${p.plan||'—'}</span></td><td style="padding:12px 16px;font-size:13px;color:#64748B">${p.billingCycle==='yearly'?'Annual':'Monthly'}</td><td style="padding:12px 16px;font-weight:700;font-size:13px">${fmt(p.amount)}</td><td style="padding:12px 16px"><code style="background:#F1F5F9;padding:3px 8px;border-radius:4px;font-size:11px">${p.paymentId||'—'}</code></td><td style="padding:12px 16px"><span style="padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;background:${ok?'#D1FAE5;color:#065F46':p.status==='failed'?'#FEE2E2;color:#991B1B':'#FEF3C7;color:#92400E'}">${ok?'Paid':p.status==='failed'?'Failed':'Pending'}</span></td><td style="padding:12px 16px">${ok?`<a href="#" style="color:#4F46E5;font-weight:600;font-size:13px;text-decoration:none" onclick="downloadReceipt('${p.paymentId}');return false"><i class="fas fa-download"></i> PDF</a>`:'<span style="color:#94A3B8;font-size:12px">—</span>'}</td></tr>`}).join('')||'<tr><td colspan="7" style="text-align:center;padding:30px;color:#94A3B8">No payments found</td></tr>';
+    const btns=document.getElementById('paginationBtns');
+    let html='';
+    if(totalPages>1){html+=`<button class="btn btn-sm btn-secondary" ${paymentPage<=1?'disabled':''} onclick="changePage(${paymentPage-1})"><i class="fas fa-chevron-left"></i></button>`;for(let i=1;i<=totalPages;i++)html+=`<button class="btn btn-sm ${i===paymentPage?'btn-primary':'btn-secondary'}" onclick="changePage(${i})">${i}</button>`;html+=`<button class="btn btn-sm btn-secondary" ${paymentPage>=totalPages?'disabled':''} onclick="changePage(${paymentPage+1})"><i class="fas fa-chevron-right"></i></button>`;}
+    btns.innerHTML=html;
   }
 
-  async function loadPayments() {
-    try {
-      const res = await window.api.request('/subscriptions/payments', { silent: true });
-      payments = (res.payments || res.data || []).map(normalizePayment);
-    } catch (e) {
-      payments = [];
-    }
-    renderPaymentHistory();
-  }
-
-  window.toggleBilling = function() {
-    billingCycle = billingCycle === 'monthly' ? 'yearly' : 'monthly';
-    const toggle = document.getElementById('billingToggle');
-    const labelM = document.getElementById('toggleLabelMonthly');
-    const labelY = document.getElementById('toggleLabelYearly');
-    toggle.classList.toggle('active', billingCycle === 'yearly');
-    labelM.style.color = billingCycle === 'monthly' ? 'var(--text-primary)' : 'var(--text-muted)';
-    labelY.style.color = billingCycle === 'yearly' ? 'var(--text-primary)' : 'var(--text-muted)';
-    renderPlans();
-  };
-
-  window.changePage = function(page) {
-    paymentPage = page;
-    renderPaymentHistory();
-  };
-
-  window.subscribePlan = function(planId) {
-    const plan = getPlansData().find(p => p.id === planId);
-    if (!plan) return;
-    selectedPlanForPayment = planId;
-    selectedCycleForPayment = billingCycle;
-    initiatePayment(planId, billingCycle);
-  };
-
-  async function initiatePayment(planId, cycle) {
-    const plan = getPlansData().find(p => p.id === planId);
-    const user = window.api.getUser();
-
-    if (!window.Razorpay) {
-      showToast('Payment gateway is still loading. Please try again in a moment.', 'warning');
-      return;
-    }
-
-    try {
-      const orderRes = await window.api.request('/subscriptions/create-order', {
-        method: 'POST',
-        body: JSON.stringify({ plan: planId, billingCycle: cycle })
-      });
-
-      if (!orderRes || !orderRes.order) {
-        showToast('Failed to create order. Please try again.', 'error');
-        return;
-      }
-
-      const options = {
-        key: orderRes.key || orderRes.order.key || 'rzp_test_placeholder',
-        amount: orderRes.order.amount,
-        currency: orderRes.order.currency || 'INR',
-        name: 'Vishva ERP',
-        description: `${plan.name} Subscription (${cycle === 'yearly' ? 'Yearly' : 'Monthly'})`,
-        order_id: orderRes.order.id,
-        handler: async function(response) {
-          try {
-            await window.api.request('/subscriptions/verify', {
-              method: 'POST',
-              body: JSON.stringify({
-                razorpayOrderId: response.razorpay_order_id,
-                razorpayPaymentId: response.razorpay_payment_id,
-                razorpaySignature: response.razorpay_signature,
-                subscriptionId: orderRes.subscriptionId
-              })
-            });
-            showToast('Payment successful! Your subscription is now active.', 'success');
-            loadSubscription();
-            loadPayments();
-          } catch (e) {
-            showToast('Payment received but verification failed. Contact support.', 'warning');
-          }
-        },
-        prefill: {
-          name: user?.name || '',
-          email: user?.email || '',
-          contact: user?.phone || ''
-        },
-        theme: {
-          color: plan.color || '#4F46E5'
-        },
-        modal: {
-          ondismiss: function() {
-            showToast('Payment cancelled.', 'info');
-          }
-        }
-      };
-
-      const rzp = new Razorpay(options);
-      rzp.on('payment.failed', function(response) {
-        showToast('Payment failed: ' + (response.error?.description || 'Unknown error'), 'error');
-      });
-      rzp.open();
-    } catch (e) {
-      showToast('Could not initiate payment. Please try again.', 'error');
-    }
-  }
-
-  window.downloadReceipt = function(paymentId) {
-    showToast('Downloading receipt...', 'info');
-    window.open(`/api/subscriptions/receipts/${paymentId}`, '_blank');
-  };
-
-  document.getElementById('paymentSearch')?.addEventListener('input', function() {
-    paymentPage = 1;
-    renderPaymentHistory();
-  });
-
-  document.getElementById('exportPaymentsBtn')?.addEventListener('click', function() {
-    if (!payments.length) {
-      showToast('No payments to export.', 'info');
-      return;
-    }
-    const headers = ['Date', 'Plan', 'Billing Cycle', 'Amount', 'Payment ID', 'Status'];
-    const rows = payments.map(p => [
-      formatDate(p.date),
-      p.plan || '',
-      p.billingCycle || '',
-      p.amount || '',
-      p.paymentId || '',
-      p.status || ''
+  // ===== DATA LOADING =====
+  async function loadAll(){
+    const [subRes,payRes]=await Promise.all([
+      window.api.request('/subscriptions/current',{silent:true}).catch(()=>({subscription:null})),
+      window.api.request('/subscriptions/payments',{silent:true}).catch(()=>({payments:[]})),
     ]);
-    const csv = [headers, ...rows].map(r => r.map(c => `"${c}"`).join(',')).join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `payment-history-${new Date().toISOString().slice(0,10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-    showToast('Payment history exported.', 'success');
-  });
+    currentSubscription=normalizeSub(subRes.subscription||subRes.data);
+    payments=(payRes.payments||payRes.data||[]).map(normalizePayment);
+    renderHero();renderUsage();renderCurrentPlan();renderCountdown();renderBillingSummary();renderPlanFeatures();renderTimeline();renderPlans();renderFeatureTable();renderInvoices();renderPayments();
+    if(countdownInterval)clearInterval(countdownInterval);
+    countdownInterval=setInterval(renderCountdown,1000);
+  }
 
-  document.getElementById('viewInvoicesBtn')?.addEventListener('click', function() {
-    document.querySelector('.erp-content').scrollTo({ top: document.getElementById('paymentHistoryBody').closest('.card').offsetTop - 100, behavior: 'smooth' });
-  });
+  // ===== TABS =====
+  window.switchTab=function(tab){
+    document.querySelectorAll('[id^="tab-"]').forEach(el=>el.style.display='none');
+    document.getElementById('tab-'+tab).style.display='block';
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelector(`.tab-btn[onclick="switchTab('${tab}')"]`).classList.add('active');
+  };
 
-  // Init
-  (async function init() {
-    await Promise.all([loadPlans(), loadSubscription(), loadPayments()]);
-  })();
+  // ===== BILLING TOGGLE =====
+  window.toggleBilling=function(){
+    billingCycle=billingCycle==='monthly'?'yearly':'monthly';
+    const t=document.getElementById('billingToggle');
+    const thumb=document.getElementById('toggleThumb');
+    t.style.background=billingCycle==='yearly'?'#4F46E5':'#CBD5E1';
+    thumb.style.transform=billingCycle==='yearly'?'translateX(24px)':'translateX(0)';
+    document.getElementById('toggleLabelMonthly').style.color=billingCycle==='monthly'?'#0F172A':'#94A3B8';
+    document.getElementById('toggleLabelYearly').style.color=billingCycle==='yearly'?'#0F172A':'#94A3B8';
+    renderPlans();
+  };
+
+  window.changePage=function(p){paymentPage=p;renderPayments()};
+  window.filterPayments=function(){paymentPage=1;renderPayments()};
+
+  // ===== PAYMENT =====
+  window.subscribePlan=function(planId){
+    const plan=getPlans().find(p=>p.id===planId);
+    if(!plan)return;
+    initiatePayment(planId,billingCycle);
+  };
+
+  async function initiatePayment(planId,cycle){
+    const plan=getPlans().find(p=>p.id===planId);
+    const user=window.api.getUser();
+    if(!window.Razorpay){showToast('Payment gateway loading...','warning');return;}
+    try{
+      const orderRes=await window.api.request('/subscriptions/create-order',{method:'POST',body:JSON.stringify({plan:planId,billingCycle:cycle})});
+      if(!orderRes||!orderRes.order){showToast('Failed to create order','error');return;}
+      const options={
+        key:orderRes.key||'rzp_test_placeholder',amount:orderRes.order.amount,currency:orderRes.order.currency||'INR',
+        name:'Vishva ERP',description:`${plan.name} Subscription (${cycle==='yearly'?'Annual':'Monthly'})`,
+        order_id:orderRes.order.id,
+        handler:async function(response){
+          try{
+            await window.api.request('/subscriptions/verify',{method:'POST',body:JSON.stringify({razorpayOrderId:response.razorpay_order_id,razorpayPaymentId:response.razorpay_payment_id,razorpaySignature:response.razorpay_signature,subscriptionId:orderRes.subscriptionId})});
+            showToast('Payment successful! Subscription activated.','success');loadAll();
+          }catch(e){showToast('Payment received but verification failed.','warning');}
+        },
+        prefill:{name:user?.name||'',email:user?.email||'',contact:user?.phone||''},
+        theme:{color:plan.color||'#4F46E5'},
+        modal:{ondismiss:function(){showToast('Payment cancelled.','info')}}
+      };
+      const rzp=new Razorpay(options);
+      rzp.on('payment.failed',function(r){showToast('Payment failed: '+(r.error?.description||'Unknown error'),'error')});
+      rzp.open();
+    }catch(e){showToast('Could not initiate payment','error');}
+  }
+
+  window.downloadReceipt=function(pid){showToast('Downloading receipt...','info');window.open('/api/subscriptions/receipts/'+pid,'_blank')};
+  window.downloadLatestReceipt=function(){const last=payments.find(p=>p.status==='success');if(last)downloadReceipt(last.paymentId);else showToast('No receipts available','info')};
+  window.exportPayments=function(){
+    if(!payments.length){showToast('No payments to export','info');return;}
+    const csv=[['Date','Plan','Cycle','Amount','Payment ID','Status'],...payments.map(p=>[fmtDate(p.date),p.plan||'',p.billingCycle||'',p.amount||'',p.paymentId||'',p.status||''])].map(r=>r.map(c=>'"'+c+'"').join(',')).join('\n');
+    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='payment-history.csv';a.click();showToast('Exported','success');
+  };
+  window.exportInvoices=window.exportPayments;
+
+  loadAll();
 })();
 </script>
 </body>
