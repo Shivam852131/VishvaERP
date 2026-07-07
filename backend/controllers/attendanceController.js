@@ -455,6 +455,235 @@ const getLiveClassPresence = asyncHandler(async (req, res) => {
     });
   });
 
+// @desc    Get all classroom locations for college
+const getClassroomLocations = asyncHandler(async (req, res) => {
+  const classrooms = await ClassroomLocation.find({ collegeId: req.user.collegeId })
+    .sort({ roomName: 1 });
+  res.json({ success: true, classrooms });
+});
+
+// @desc    Delete a classroom location
+const deleteClassroomLocation = asyncHandler(async (req, res) => {
+  const classroom = await ClassroomLocation.findOneAndDelete({
+    _id: req.params.id,
+    collegeId: req.user.collegeId,
+  });
+  if (!classroom) {
+    return res.status(404).json({ success: false, message: 'Classroom not found' });
+  }
+  res.json({ success: true, message: 'Classroom location deleted' });
+});
+
+// @desc    Get college-wide attendance analytics
+const getAttendanceAnalytics = asyncHandler(async (req, res) => {
+  const collegeId = req.user.collegeId;
+  const { days = 30, subjectId, semester } = req.query;
+  const since = new Date();
+  since.setDate(since.getDate() - Number(days));
+
+  const matchQuery = { collegeId, date: { $gte: since } };
+  if (subjectId) matchQuery.subjectId = subjectId;
+
+  const [overallStats, dailyTrends, subjectWise, sourceBreakdown, topAbsentees] = await Promise.all([
+    Attendance.aggregate([
+      { $match: matchQuery },
+      { $group: {
+        _id: '$status',
+        count: { $sum: 1 },
+      }},
+    ]),
+    Attendance.aggregate([
+      { $match: matchQuery },
+      { $group: {
+        _id: { $dateToString: { format: '%Y-%m-%d', date: '$date' } },
+        present: { $sum: { $cond: [{ $eq: ['$status', 'present'] }, 1, 0] } },
+        absent: { $sum: { $cond: [{ $eq: ['$status', 'absent'] }, 1, 0] } },
+        late: { $sum: { $cond: [{ $eq: ['$status', 'late'] }, 1, 0] } },
+        total: { $sum: 1 },
+      }},
+      { $sort: { _id: 1 } },
+    ]),
+    Attendance.aggregate([
+      { $match: matchQuery },
+      { $group: {
+        _id: '$subjectId',
+        present: { $sum: { $cond: [{ $eq: ['$status', 'present'] }, 1, 0] } },
+        absent: { $sum: { $cond: [{ $eq: ['$status', 'absent'] }, 1, 0] } },
+        late: { $sum: { $cond: [{ $eq: ['$status', 'late'] }, 1, 0] } },
+        total: { $sum: 1 },
+      }},
+      { $lookup: { from: 'subjects', localField: '_id', foreignField: '_id', as: 'subject' } },
+      { $unwind: { path: '$subject', preserveNullAndEmptyArrays: true } },
+      { $sort: { total: -1 } },
+    ]),
+    Attendance.aggregate([
+      { $match: matchQuery },
+      { $group: {
+        _id: '$source',
+        count: { $sum: 1 },
+      }},
+    ]),
+    Attendance.aggregate([
+      { $match: matchQuery },
+      { $group: {
+        _id: '$studentId',
+        total: { $sum: 1 },
+        absent: { $sum: { $cond: [{ $eq: ['$status', 'absent'] }, 1, 0] } },
+        present: { $sum: { $cond: [{ $eq: ['$status', 'present'] }, 1, 0] } },
+      }},
+      { $addFields: { absenceRate: { $divide: ['$absent', '$total'] } } },
+      { $match: { total: { $gte: 3 }, absenceRate: { $gte: 0.3 } } },
+      { $lookup: { from: 'users', localField: '_id', foreignField: '_id', as: 'student' } },
+      { $unwind: { path: '$student', preserveNullAndEmptyArrays: true } },
+      { $sort: { absenceRate: -1 } },
+      { $limit: 20 },
+    ]),
+  ]);
+
+  const totalRecords = overallStats.reduce((s, r) => s + r.count, 0);
+  const presentCount = overallStats.find(r => r._id === 'present')?.count || 0;
+  const lateCount = overallStats.find(r => r._id === 'late')?.count || 0;
+  const absentCount = overallStats.find(r => r._id === 'absent')?.count || 0;
+
+  res.json({
+    success: true,
+    analytics: {
+      overall: {
+        total: totalRecords,
+        present: presentCount,
+        absent: absentCount,
+        late: lateCount,
+        rate: totalRecords > 0 ? ((presentCount + lateCount * 0.5) / totalRecords * 100).toFixed(1) : 0,
+      },
+      dailyTrends,
+      subjectWise: subjectWise.map(s => ({
+        subjectId: s._id,
+        name: s.subject?.name || 'Unknown',
+        code: s.subject?.code || '',
+        present: s.present,
+        absent: s.absent,
+        late: s.late,
+        total: s.total,
+        rate: s.total > 0 ? ((s.present + s.late * 0.5) / s.total * 100).toFixed(1) : 0,
+      })),
+      sourceBreakdown: sourceBreakdown.map(s => ({ source: s._id || 'manual', count: s.count })),
+      topAbsentees: topAbsentees.map(a => ({
+        studentId: a._id,
+        name: a.student?.name || 'Unknown',
+        rollNo: a.student?.rollNo || '',
+        total: a.total,
+        absent: a.absent,
+        present: a.present,
+        absenceRate: (a.absenceRate * 100).toFixed(1),
+      })),
+    },
+  });
+});
+
+// @desc    Send notifications to absentees' parents
+const notifyAbsentees = asyncHandler(async (req, res) => {
+  const collegeId = req.user.collegeId;
+  const { date, subjectId } = req.body;
+  const targetDate = date ? startOfDay(date) : startOfDay();
+
+  const absentQuery = { collegeId, date: targetDate, status: 'absent' };
+  if (subjectId) absentQuery.subjectId = subjectId;
+
+  const absentRecords = await Attendance.find(absentQuery)
+    .populate('studentId', 'name rollNo')
+    .populate('subjectId', 'name code');
+
+  const studentIds = [...new Set(absentRecords.map(r => String(r.studentId?._id)).filter(Boolean))];
+  if (!studentIds.length) {
+    return res.json({ success: true, message: 'No absentees found', notified: 0 });
+  }
+
+  const students = await User.find({ _id: { $in: studentIds }, collegeId })
+    .select('name rollNo parentEmail parentName');
+
+  let notifiedCount = 0;
+  for (const student of students) {
+    if (!student.parentEmail) continue;
+    const subjects = absentRecords
+      .filter(r => String(r.studentId?._id) === String(student._id))
+      .map(r => r.subjectId?.name || r.subjectId?.code || 'Unknown')
+      .join(', ');
+
+    try {
+      const { sendMail } = require('../services/emailService');
+      await sendMail({
+        to: student.parentEmail,
+        subject: `Attendance Alert - ${student.name} was absent`,
+        html: `
+          <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px">
+            <div style="background:linear-gradient(135deg,#4F46E5,#7C3AED);color:white;padding:20px;border-radius:12px 12px 0 0">
+              <h2 style="margin:0;font-size:18px">Attendance Alert</h2>
+            </div>
+            <div style="padding:20px;background:#f8fafc;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 12px 12px">
+              <p>Dear Parent,</p>
+              <p>Your child <strong>${student.name}</strong> (Roll: ${student.rollNo || '-'}) was marked <span style="color:#ef4444;font-weight:700">ABSENT</span> on ${targetDate.toLocaleDateString('en-IN')}.</p>
+              <p><strong>Subjects:</strong> ${subjects}</p>
+              <p>Please contact the college administration if you have any questions.</p>
+              <hr style="border:none;border-top:1px solid #e2e8f0;margin:16px 0">
+              <p style="font-size:12px;color:#94a3b8">This is an automated notification from VishvaERP.</p>
+            </div>
+          </div>
+        `,
+      });
+      notifiedCount++;
+    } catch (err) {
+      // Email not configured, skip
+    }
+  }
+
+  logAudit(req, 'notify', 'attendance', {
+    description: `Sent absentee notifications to ${notifiedCount} parents`,
+    metadata: { date: targetDate, subjectId, notifiedCount },
+  });
+
+  res.json({ success: true, message: `Notified ${notifiedCount} parents`, notified: notifiedCount });
+});
+
+// @desc    Get timetable slots for attendance management
+const getTimetableSlots = asyncHandler(async (req, res) => {
+  const { dayOfWeek, semester, courseId } = req.query;
+  const query = { collegeId: req.user.collegeId, isActive: true };
+  if (dayOfWeek) query.dayOfWeek = dayOfWeek;
+  if (semester) query.semester = Number(semester);
+  if (courseId) query.courseId = courseId;
+
+  const slots = await Timetable.find(query)
+    .populate('courseId', 'name code department')
+    .populate('subjectId', 'name code')
+    .populate('facultyId', 'name email')
+    .sort({ dayOfWeek: 1, startTime: 1 });
+
+  res.json({ success: true, slots });
+});
+
+// @desc    Get attendance heatmap data (weekly pattern)
+const getAttendanceHeatmap = asyncHandler(async (req, res) => {
+  const collegeId = req.user.collegeId;
+  const { weeks = 12 } = req.query;
+  const since = new Date();
+  since.setDate(since.getDate() - Number(weeks) * 7);
+
+  const data = await Attendance.aggregate([
+    { $match: { collegeId, date: { $gte: since } } },
+    { $group: {
+      _id: {
+        dayOfWeek: { $dayOfWeek: '$date' },
+        hour: { $hour: '$date' },
+      },
+      present: { $sum: { $cond: [{ $eq: ['$status', 'present'] }, 1, 0] } },
+      total: { $sum: 1 },
+    }},
+    { $addFields: { rate: { $cond: [{ $gt: ['$total', 0] }, { $multiply: [{ $divide: ['$present', '$total'] }, 100] }, 0] } } },
+  ]);
+
+  res.json({ success: true, heatmap: data });
+});
+
 module.exports = {
   markAttendance,
   getAttendance,
@@ -464,4 +693,10 @@ module.exports = {
   upsertClassroomLocation,
   publishLiveLocation,
   getLiveClassPresence,
+  getClassroomLocations,
+  deleteClassroomLocation,
+  getAttendanceAnalytics,
+  notifyAbsentees,
+  getTimetableSlots,
+  getAttendanceHeatmap,
 };

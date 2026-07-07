@@ -10,6 +10,12 @@ const {
   upsertClassroomLocation,
   publishLiveLocation,
   getLiveClassPresence,
+  getClassroomLocations,
+  deleteClassroomLocation,
+  getAttendanceAnalytics,
+  notifyAbsentees,
+  getTimetableSlots,
+  getAttendanceHeatmap,
 } = require('../controllers/attendanceController');
 
 const router = express.Router();
@@ -30,5 +36,13 @@ router.get('/live-class', authorize('faculty', 'collegeAdmin'), getLiveClassPres
 
 // Student/Parent routes
 router.get('/summary/:studentId?', authorize('student', 'parent', 'faculty', 'collegeAdmin'), getStudentAttendanceSummary);
+
+// College Admin attendance management routes
+router.get('/classrooms', authorize('faculty', 'collegeAdmin'), getClassroomLocations);
+router.delete('/classrooms/:id', authorize('collegeAdmin'), deleteClassroomLocation);
+router.get('/analytics', authorize('collegeAdmin', 'superadmin'), getAttendanceAnalytics);
+router.post('/notify-absentees', authorize('collegeAdmin'), notifyAbsentees);
+router.get('/timetable', authorize('faculty', 'collegeAdmin'), getTimetableSlots);
+router.get('/heatmap', authorize('collegeAdmin', 'superadmin'), getAttendanceHeatmap);
 
 module.exports = router;
