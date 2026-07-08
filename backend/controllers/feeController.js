@@ -1,31 +1,28 @@
 const asyncHandler = require('../middleware/asyncHandler');
-const crypto = require('crypto');
 const Fee = require('../models/Fee');
 const Payment = require('../models/Payment');
 const User = require('../models/User');
 const { emitDataChange } = require('../utils/realtime');
 const { parseSemester } = require('../utils/parseHelpers');
 const { logAudit } = require('../services/auditService');
+const { getRazorpay, getRazorpayKeyId, verifyRazorpaySignature } = require('../services/razorpayService');
 
-let razorpay;
-function getRazorpay() {
-  if (!razorpay) {
-    const Razorpay = require('razorpay');
-    razorpay = new Razorpay({
-      key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_placeholder',
-      key_secret: process.env.RAZORPAY_KEY_SECRET || 'placeholder_secret',
-    });
-  }
-  return razorpay;
+function getPendingAmount(fee) {
+  return Math.max(Number(fee.amount || 0) - Number(fee.paidAmount || 0), 0);
 }
 
-function verifyRazorpaySignature(orderId, paymentId, signature) {
-  const body = orderId + '|' + paymentId;
-  const expectedSignature = crypto
-    .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || 'placeholder_secret')
-    .update(body)
-    .digest('hex');
-  return expectedSignature === signature;
+async function canAccessFee(req, fee) {
+  if (req.user.role === 'student') {
+    return String(fee.studentId) === String(req.user._id);
+  }
+
+  if (req.user.role === 'parent') {
+    const parent = await User.findById(req.user._id).select('children');
+    const childIds = (parent?.children || []).map(String);
+    return childIds.includes(String(fee.studentId));
+  }
+
+  return true;
 }
 
 const feeTypeMap = {
@@ -103,23 +100,29 @@ const getFees = asyncHandler(async (req, res) => {
 const payFee = asyncHandler(async (req, res) => {
     const { id } = req.params;
     const { amount, paymentMethod, receiptNo } = req.body;
+    const paymentAmount = Number(amount);
 
     const fee = await Fee.findOne({ _id: id, collegeId: req.user.collegeId });
     if (!fee) return res.status(404).json({ success: false, message: 'Fee not found' });
 
-    if (req.user.role === 'student' && String(fee.studentId) !== String(req.user._id)) {
-      return res.status(403).json({ success: false, message: 'You can only pay your own fees' });
+    if (!(await canAccessFee(req, fee))) {
+      return res.status(403).json({ success: false, message: 'You are not allowed to pay this fee' });
     }
 
-    if (req.user.role === 'parent') {
-      const parent = await User.findById(req.user._id).select('children');
-      const childIds = (parent?.children || []).map(String);
-      if (!childIds.includes(String(fee.studentId))) {
-        return res.status(403).json({ success: false, message: 'You can only pay your child fee records' });
-      }
+    if (!Number.isFinite(paymentAmount) || paymentAmount <= 0) {
+      return res.status(400).json({ success: false, message: 'Valid payment amount is required' });
     }
 
-    fee.paidAmount = (fee.paidAmount || 0) + amount;
+    const pendingAmount = getPendingAmount(fee);
+    if (pendingAmount <= 0) {
+      return res.status(400).json({ success: false, message: 'Fee already paid' });
+    }
+
+    if (paymentAmount > pendingAmount) {
+      return res.status(400).json({ success: false, message: 'Payment amount exceeds pending amount' });
+    }
+
+    fee.paidAmount = Number(fee.paidAmount || 0) + paymentAmount;
     fee.paymentMethod = paymentMethod;
     fee.paidDate = new Date();
     fee.receiptNo = receiptNo || `RCPT-${Date.now()}`;
@@ -172,29 +175,43 @@ const createFeeOrder = asyncHandler(async (req, res) => {
   const fee = await Fee.findOne({ _id: id, collegeId: req.user.collegeId });
   if (!fee) return res.status(404).json({ success: false, message: 'Fee not found' });
 
-  if (req.user.role === 'student' && String(fee.studentId) !== String(req.user._id)) {
-    return res.status(403).json({ success: false, message: 'You can only pay your own fees' });
+  if (!(await canAccessFee(req, fee))) {
+    return res.status(403).json({ success: false, message: 'You are not allowed to pay this fee' });
   }
 
-  const pendingAmount = fee.amount - (fee.paidAmount || 0);
+  const pendingAmount = getPendingAmount(fee);
   if (pendingAmount <= 0) return res.status(400).json({ success: false, message: 'Fee already paid' });
 
+  const amountInPaise = Math.round(pendingAmount * 100);
   const razorpayInstance = getRazorpay();
   const order = await razorpayInstance.orders.create({
-    amount: pendingAmount * 100,
+    amount: amountInPaise,
     currency: 'INR',
-    receipt: `fee_${fee._id}_${Date.now()}`,
+    receipt: `fee_${Date.now()}_${String(fee._id).slice(-8)}`,
     notes: { feeId: String(fee._id), collegeId: String(req.user.collegeId) },
+  });
+
+  await Payment.create({
+    collegeId: req.user.collegeId,
+    userId: req.user._id,
+    type: 'fee',
+    referenceId: fee._id,
+    razorpayOrderId: order.id,
+    amount: pendingAmount,
+    currency: 'INR',
+    status: 'created',
+    description: `Fee payment - ${fee.feeType}`,
+    metadata: { feeType: fee.feeType, semester: fee.semester },
   });
 
   logAudit(req, 'create', 'fee-order', { resourceId: fee._id, description: `Created Razorpay order for fee payment of ₹${pendingAmount}` });
 
   res.status(201).json({
     success: true,
-    order: { id: order.id, amount: pendingAmount * 100, currency: 'INR' },
+    order: { id: order.id, amount: amountInPaise, currency: 'INR' },
     feeId: fee._id,
     pendingAmount,
-    key: process.env.RAZORPAY_KEY_ID || 'rzp_test_placeholder',
+    key: getRazorpayKeyId(),
   });
 });
 
@@ -211,31 +228,55 @@ const verifyFeePayment = asyncHandler(async (req, res) => {
   const fee = await Fee.findOne({ _id: feeId, collegeId: req.user.collegeId });
   if (!fee) return res.status(404).json({ success: false, message: 'Fee not found' });
 
-  const pendingAmount = fee.amount - (fee.paidAmount || 0);
-  fee.paidAmount = (fee.paidAmount || 0) + pendingAmount;
-  fee.paymentMethod = 'online';
-  fee.paidDate = new Date();
-  fee.receiptNo = `FEE-${Date.now()}`;
-  fee.status = 'paid';
-  await fee.save();
+  if (!(await canAccessFee(req, fee))) {
+    return res.status(403).json({ success: false, message: 'You are not allowed to pay this fee' });
+  }
 
-  await Payment.create({
+  const payment = await Payment.findOne({
     collegeId: req.user.collegeId,
-    userId: req.user._id,
     type: 'fee',
     referenceId: fee._id,
     razorpayOrderId,
-    razorpayPaymentId,
-    razorpaySignature,
-    amount: pendingAmount,
-    currency: 'INR',
-    status: 'captured',
-    receiptNo: fee.receiptNo,
-    description: `Fee payment - ${fee.feeType}`,
-    metadata: { feeType: fee.feeType, semester: fee.semester },
+    status: 'created',
   });
 
-  logAudit(req, 'fee_payment', 'fee', { resourceId: fee._id, description: `Razorpay payment of ₹${pendingAmount} verified for fee`, metadata: { studentId: fee.studentId, amount: pendingAmount } });
+  if (!payment) {
+    const processedPayment = await Payment.findOne({
+      collegeId: req.user.collegeId,
+      type: 'fee',
+      referenceId: fee._id,
+      razorpayOrderId,
+      razorpayPaymentId,
+      status: 'captured',
+    });
+    if (processedPayment) {
+      return res.json({ success: true, message: 'Payment already verified', fee, receiptNo: fee.receiptNo });
+    }
+
+    return res.status(404).json({ success: false, message: 'Payment order not found or already processed' });
+  }
+
+  const pendingAmount = getPendingAmount(fee);
+  const paidAmount = Number(payment.amount || 0);
+  if (pendingAmount <= 0 || paidAmount > pendingAmount) {
+    return res.status(400).json({ success: false, message: 'Fee amount changed. Please create a new payment order.' });
+  }
+
+  fee.paidAmount = Number(fee.paidAmount || 0) + paidAmount;
+  fee.paymentMethod = 'online';
+  fee.paidDate = new Date();
+  fee.receiptNo = `FEE-${Date.now()}-${String(fee._id).slice(-6)}`;
+  fee.status = fee.paidAmount >= fee.amount ? 'paid' : 'partial';
+  await fee.save();
+
+  payment.razorpayPaymentId = razorpayPaymentId;
+  payment.razorpaySignature = razorpaySignature;
+  payment.amount = paidAmount;
+  payment.status = 'captured';
+  payment.receiptNo = fee.receiptNo;
+  await payment.save();
+
+  logAudit(req, 'fee_payment', 'fee', { resourceId: fee._id, description: `Razorpay payment of ₹${paidAmount} verified for fee`, metadata: { studentId: fee.studentId, amount: paidAmount } });
   emitDataChange(req, { collegeId: String(req.user.collegeId), roles: ['collegeAdmin', 'superadmin'], resource: 'fees', action: 'paid' });
 
   res.json({ success: true, message: 'Payment verified and recorded', fee, receiptNo: fee.receiptNo });

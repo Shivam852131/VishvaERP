@@ -144,6 +144,12 @@
     });
   }
 
+  async function ensureRazorpayCheckout() {
+    if (window.Razorpay) return true;
+    await loadScript('https://checkout.razorpay.com/v1/checkout.js');
+    return Boolean(window.Razorpay);
+  }
+
   async function ensureRealtime() {
     if (socketPromise) return socketPromise;
     socketPromise = (async () => {
@@ -2075,7 +2081,7 @@
           <td style="font-size:12px;color:#64748B">${formatDate(item.dueDate)}</td>
           <td style="font-size:12px;color:#64748B">${item.paidDate ? formatDate(item.paidDate) : '-'}</td>
           <td><span class="badge ${item.status === 'paid' ? 'badge-success' : item.status === 'overdue' ? 'badge-danger' : 'badge-warning'}">${escapeHTML(item.status)}</span></td>
-          <td><div style="display:flex;gap:5px">${item.status !== 'paid' ? `<button class="btn btn-xs btn-success" onclick="recordExistingFee('${item._id}', ${Math.max(Number(item.amount || 0) - Number(item.paidAmount || 0), 0)})"><i class="fas fa-check"></i></button>` : ''}<button class="btn btn-xs btn-secondary" onclick="showToast('${escapeHTML(item.receiptNo || 'No receipt')}', 'info')"><i class="fas fa-file-invoice"></i></button></div></td>
+          <td><div style="display:flex;gap:5px;flex-wrap:wrap">${item.status !== 'paid' ? `<button class="btn btn-xs btn-primary" title="Collect online with Razorpay" onclick="payExistingFeeOnline('${item._id}')"><i class="fas fa-credit-card"></i></button><button class="btn btn-xs btn-success" title="Mark as collected manually" onclick="recordExistingFee('${item._id}', ${Math.max(Number(item.amount || 0) - Number(item.paidAmount || 0), 0)})"><i class="fas fa-check"></i></button>` : ''}<button class="btn btn-xs btn-secondary" onclick="showToast('${escapeHTML(item.receiptNo || 'No receipt')}', 'info')"><i class="fas fa-file-invoice"></i></button></div></td>
         </tr>
       `).join(''));
       renderCharts();
@@ -2091,6 +2097,68 @@
       await window.api.request(`/fees/${id}/pay`, { method: 'POST', body: JSON.stringify({ amount, paymentMethod: 'online', receiptNo: `ADMIN-${Date.now()}` }) });
       window.showToast?.('Payment recorded successfully', 'success');
       await loadFees();
+    };
+
+    window.payExistingFeeOnline = async function payExistingFeeOnline(id) {
+      const fee = fees.find((item) => String(item._id) === String(id));
+      if (!fee) {
+        window.showToast?.('Fee record not found', 'error');
+        return;
+      }
+
+      try {
+        await ensureRazorpayCheckout();
+        if (!window.Razorpay) {
+          window.showToast?.('Payment gateway failed to load', 'error');
+          return;
+        }
+
+        const orderRes = await window.api.request(`/fees/${id}/create-order`, { method: 'POST' });
+        if (!orderRes?.order || !orderRes.key) {
+          window.showToast?.('Failed to create payment order', 'error');
+          return;
+        }
+
+        const user = getUser() || {};
+        const student = fee.studentId || {};
+        const options = {
+          key: orderRes.key,
+          amount: orderRes.order.amount,
+          currency: orderRes.order.currency || 'INR',
+          name: 'Vishva ERP',
+          description: `Fee Payment - ${fee.feeType || 'College Fee'} (${student.name || 'Student'})`,
+          order_id: orderRes.order.id,
+          handler: async function handlePayment(response) {
+            try {
+              await window.api.request('/fees/verify-payment', {
+                method: 'POST',
+                body: JSON.stringify({
+                  razorpayOrderId: response.razorpay_order_id,
+                  razorpayPaymentId: response.razorpay_payment_id,
+                  razorpaySignature: response.razorpay_signature,
+                  feeId: orderRes.feeId,
+                }),
+              });
+              window.showToast?.('Online fee payment verified', 'success');
+              await loadFees();
+            } catch (error) {
+              window.showToast?.('Payment received but verification failed. Contact support.', 'warning');
+            }
+          },
+          prefill: { name: student.name || user.name || '', email: user.email || '', contact: user.phone || '' },
+          notes: { feeId: String(id), rollNo: student.rollNo || '' },
+          theme: { color: '#4F46E5' },
+          modal: { ondismiss: function onDismiss() { window.showToast?.('Payment cancelled', 'info'); } },
+        };
+
+        const rzp = new window.Razorpay(options);
+        rzp.on('payment.failed', function onFailed(response) {
+          window.showToast?.('Payment failed: ' + (response.error?.description || 'Unknown error'), 'error');
+        });
+        rzp.open();
+      } catch (error) {
+        window.showToast?.(error.message || 'Could not initiate online payment', 'error');
+      }
     };
 
     window.recordFee = async function recordFee() {

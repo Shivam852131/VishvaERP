@@ -16,7 +16,7 @@ router.route('/')
 
 router.post('/bulk', authorize('collegeAdmin'), createBulkFees);
 router.post('/:id/pay', authorize('collegeAdmin', 'student', 'parent'), payFee);
-router.post('/:id/create-order', authorize('student', 'parent'), createFeeOrder);
-router.post('/verify-payment', authorize('student', 'parent'), verifyFeePayment);
+router.post('/:id/create-order', authorize('collegeAdmin', 'student', 'parent'), createFeeOrder);
+router.post('/verify-payment', authorize('collegeAdmin', 'student', 'parent'), verifyFeePayment);
 
 module.exports = router;

@@ -1,5 +1,4 @@
 const asyncHandler = require('../middleware/asyncHandler');
-const crypto = require('crypto');
 const mongoose = require('mongoose');
 const Subscription = require('../models/Subscription');
 const Payment = require('../models/Payment');
@@ -7,6 +6,7 @@ const College = require('../models/College');
 const { generateSubscriptionReceipt } = require('../services/pdfService');
 const { logAudit } = require('../services/auditService');
 const { emitDataChange } = require('../utils/realtime');
+const { getRazorpay, getRazorpayKeyId, verifyRazorpaySignature } = require('../services/razorpayService');
 
 const PLAN_DETAILS = {
   basic: {
@@ -46,27 +46,6 @@ async function getFallbackCollegeSubscription(collegeId) {
   };
 }
 
-let razorpay;
-function getRazorpay() {
-  if (!razorpay) {
-    const Razorpay = require('razorpay');
-    razorpay = new Razorpay({
-      key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_placeholder',
-      key_secret: process.env.RAZORPAY_KEY_SECRET || 'placeholder_secret',
-    });
-  }
-  return razorpay;
-}
-
-function verifyRazorpaySignature(orderId, paymentId, signature) {
-  const body = orderId + '|' + paymentId;
-  const expectedSignature = crypto
-    .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET || 'placeholder_secret')
-    .update(body)
-    .digest('hex');
-  return expectedSignature === signature;
-}
-
 // @desc    Get available plans and pricing
 const getPlans = asyncHandler(async (req, res) => {
   const plans = Object.entries(PLAN_DETAILS).map(([key, plan]) => ({
@@ -91,11 +70,12 @@ const createOrder = asyncHandler(async (req, res) => {
 
   const planDetail = PLAN_DETAILS[plan];
   const amount = planDetail.price[billingCycle];
-  const receipt = `sub_${req.user.collegeId}_${Date.now()}`;
+  const amountInPaise = Math.round(amount * 100);
+  const receipt = `sub_${Date.now()}_${String(req.user.collegeId).slice(-8)}`;
 
   const razorpayInstance = getRazorpay();
   const order = await razorpayInstance.orders.create({
-    amount: amount * 100,
+    amount: amountInPaise,
     currency: 'INR',
     receipt,
     notes: { collegeId: String(req.user.collegeId), plan, billingCycle },
@@ -121,11 +101,11 @@ const createOrder = asyncHandler(async (req, res) => {
     message: 'Order created',
     order: {
       id: order.id,
-      amount: amount * 100,
+      amount: amountInPaise,
       currency: 'INR',
     },
     subscriptionId: subscription._id,
-    key: process.env.RAZORPAY_KEY_ID || 'rzp_test_placeholder',
+    key: getRazorpayKeyId(),
   });
 });
 
@@ -152,6 +132,26 @@ const verifyPayment = asyncHandler(async (req, res) => {
     return res.status(404).json({ success: false, message: 'Subscription not found' });
   }
 
+  if (subscription.status === 'active' && subscription.razorpayPaymentId === razorpayPaymentId) {
+    return res.json({
+      success: true,
+      message: 'Subscription already activated',
+      subscription: {
+        id: subscription._id,
+        plan: subscription.plan,
+        status: subscription.status,
+        startDate: subscription.startDate,
+        endDate: subscription.endDate,
+        billingCycle: subscription.billingCycle,
+        amount: subscription.amount,
+      },
+    });
+  }
+
+  if (subscription.status !== 'created') {
+    return res.status(400).json({ success: false, message: 'Subscription order already processed' });
+  }
+
   const now = new Date();
   const months = CYCLE_MONTHS[subscription.billingCycle];
   const endDate = new Date(now);
@@ -171,21 +171,29 @@ const verifyPayment = asyncHandler(async (req, res) => {
   });
   await subscription.save();
 
-  await Payment.create({
+  const existingPayment = await Payment.findOne({
     collegeId: req.user.collegeId,
-    userId: req.user._id,
     type: 'subscription',
-    referenceId: subscription._id,
     razorpayOrderId,
-    razorpayPaymentId,
-    razorpaySignature,
-    amount: subscription.amount,
-    currency: subscription.currency,
-    status: 'captured',
-    receiptNo: `PAY-SUB-${Date.now()}`,
-    description: `${PLAN_DETAILS[subscription.plan]?.name || subscription.plan} subscription (${subscription.billingCycle})`,
-    metadata: { plan: subscription.plan, billingCycle: subscription.billingCycle },
   });
+
+  if (!existingPayment) {
+    await Payment.create({
+      collegeId: req.user.collegeId,
+      userId: req.user._id,
+      type: 'subscription',
+      referenceId: subscription._id,
+      razorpayOrderId,
+      razorpayPaymentId,
+      razorpaySignature,
+      amount: subscription.amount,
+      currency: subscription.currency,
+      status: 'captured',
+      receiptNo: `PAY-SUB-${Date.now()}`,
+      description: `${PLAN_DETAILS[subscription.plan]?.name || subscription.plan} subscription (${subscription.billingCycle})`,
+      metadata: { plan: subscription.plan, billingCycle: subscription.billingCycle },
+    });
+  }
 
   await College.findByIdAndUpdate(req.user.collegeId, {
     plan: subscription.plan,

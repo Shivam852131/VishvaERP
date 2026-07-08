@@ -796,9 +796,9 @@
     if(!window.Razorpay){showToast('Payment gateway loading...','warning');return;}
     try{
       const orderRes=await window.api.request('/subscriptions/create-order',{method:'POST',body:JSON.stringify({plan:planId,billingCycle:cycle})});
-      if(!orderRes||!orderRes.order){showToast('Failed to create order','error');return;}
+      if(!orderRes||!orderRes.order||!orderRes.key){showToast('Failed to create payment order','error');return;}
       const options={
-        key:orderRes.key||'rzp_test_placeholder',amount:orderRes.order.amount,currency:orderRes.order.currency||'INR',
+        key:orderRes.key,amount:orderRes.order.amount,currency:orderRes.order.currency||'INR',
         name:'Vishva ERP',description:plan.name+' Subscription ('+cycle.charAt(0).toUpperCase()+cycle.slice(1)+')',
         order_id:orderRes.order.id,
         handler:async function(response){
@@ -811,7 +811,7 @@
         theme:{color:plan.color||'#4F46E5'},
         modal:{ondismiss:function(){showToast('Payment cancelled.','info')}}
       };
-      const rzp=new Razorpay(options);
+      const rzp=new window.Razorpay(options);
       rzp.on('payment.failed',function(r){showToast('Payment failed: '+(r.error?.description||'Unknown error'),'error')});
       rzp.open();
     }catch(e){showToast('Could not initiate payment','error');}

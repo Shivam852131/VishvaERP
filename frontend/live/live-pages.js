@@ -159,6 +159,12 @@
     });
   }
 
+  async function ensureRazorpayCheckout() {
+    if (window.Razorpay) return true;
+    await loadScript('https://checkout.razorpay.com/v1/checkout.js');
+    return Boolean(window.Razorpay);
+  }
+
   async function ensureRealtime() {
     if (socketPromise) return socketPromise;
 
@@ -829,8 +835,13 @@
         return;
       }
       try {
+        await ensureRazorpayCheckout();
+        if (!window.Razorpay) {
+          window.showToast('Payment gateway failed to load', 'error');
+          return;
+        }
         const orderRes = await window.api.request(`/fees/${nextPending._id}/create-order`, { method: 'POST' });
-        if (!orderRes || !orderRes.order) {
+        if (!orderRes || !orderRes.order || !orderRes.key) {
           window.showToast('Failed to create payment order', 'error');
           return;
         }
@@ -1278,8 +1289,13 @@
       }
       const pendingAmount = Number(next.amount || 0) - Number(next.paidAmount || 0);
       try {
+        await ensureRazorpayCheckout();
+        if (!window.Razorpay) {
+          window.showToast('Payment gateway failed to load', 'error');
+          return;
+        }
         const orderRes = await window.api.request(`/fees/${next._id}/create-order`, { method: 'POST' });
-        if (!orderRes || !orderRes.order) {
+        if (!orderRes || !orderRes.order || !orderRes.key) {
           window.showToast('Failed to create payment order', 'error');
           return;
         }
