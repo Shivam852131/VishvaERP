@@ -41,7 +41,7 @@
     <div class="erp-content">
       <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:24px">
         <div>
-          <h1 class="page-title">🏛 College Management</h1>
+          <h1 class="page-title">College Management</h1>
           <p class="page-subtitle">Add, view, and manage all registered institutions.</p>
         </div>
         <div style="display:flex;gap:10px">
@@ -95,6 +95,15 @@
           </table>
         </div>
       </div>
+
+      <!-- Pagination -->
+      <div class="pagination-wrap" style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding:12px 20px;background:#fff;border-radius:10px;border:1px solid #F1F5F9">
+        <div id="collegePageInfo" style="font-size:13px;color:#64748B"></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-secondary btn-sm" id="collegePrevBtn" disabled><i class="fas fa-chevron-left"></i> Prev</button>
+          <button class="btn btn-secondary btn-sm" id="collegeNextBtn" disabled>Next <i class="fas fa-chevron-right"></i></button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -137,6 +146,68 @@
       <button class="modal-close" onclick="closeModal('viewCollegeModal')"><i class="fas fa-times"></i></button>
     </div>
     <div class="modal-body" id="viewCollegeBody" style="min-height:200px"></div>
+  </div>
+</div>
+
+<!-- EDIT COLLEGE MODAL -->
+<div class="modal-backdrop" id="editCollegeModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title"><i class="fas fa-pen" style="color:#4F46E5;margin-right:8px"></i>Edit College</div>
+      <button class="modal-close" onclick="closeModal('editCollegeModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <form id="editCollegeForm">
+        <div class="form-group"><label class="form-label">College Name *</label><input class="form-control" id="ecName" required placeholder="e.g. IIT Delhi"></div>
+        <div class="form-grid-2">
+          <div class="form-group"><label class="form-label">College Code</label><input class="form-control" id="ecCode" placeholder="e.g. IITD"></div>
+          <div class="form-group"><label class="form-label">Phone</label><input class="form-control" id="ecPhone" placeholder="+91 ..."></div>
+        </div>
+        <div class="form-group"><label class="form-label">Address</label><input class="form-control" id="ecAddress" placeholder="Full address"></div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('editCollegeModal')">Cancel</button>
+      <button class="btn btn-primary" id="updateCollegeBtn" onclick="updateCollege()"><i class="fas fa-check"></i> Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- ASSIGN ADMIN MODAL -->
+<div class="modal-backdrop" id="assignAdminModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title"><i class="fas fa-user-plus" style="color:#4F46E5;margin-right:8px"></i>Assign New Admin</div>
+      <button class="modal-close" onclick="closeModal('assignAdminModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:#64748B;margin-bottom:16px">This will send an invitation email to the new admin for <strong id="assignAdminCollegeName"></strong>.</p>
+      <form id="assignAdminForm">
+        <div class="form-group"><label class="form-label">Admin Email *</label><input class="form-control" type="email" id="aaEmail" required placeholder="admin@college.com"></div>
+      </form>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('assignAdminModal')">Cancel</button>
+      <button class="btn btn-primary" id="assignAdminBtn" onclick="assignAdmin()"><i class="fas fa-paper-plane"></i> Send Invitation</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE COLLEGE MODAL -->
+<div class="modal-backdrop" id="deleteCollegeModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title"><i class="fas fa-exclamation-triangle" style="color:#DC2626;margin-right:8px"></i>Delete College</div>
+      <button class="modal-close" onclick="closeModal('deleteCollegeModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:14px;color:#334155">Are you sure you want to delete <strong id="deleteCollegeName"></strong>?</p>
+      <p style="font-size:13px;color:#94A3B8;margin-top:8px">This action cannot be undone. All associated data including admin accounts, students, and records will be permanently removed.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('deleteCollegeModal')">Cancel</button>
+      <button class="btn btn-danger" id="confirmDeleteCollegeBtn" onclick="confirmDeleteCollege()"><i class="fas fa-trash"></i> Delete College</button>
+    </div>
   </div>
 </div>
 

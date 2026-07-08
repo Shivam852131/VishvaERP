@@ -12,6 +12,20 @@
     .plan-card.popular::before { content: '⭐ Most Popular'; position: absolute; top: 14px; right: 14px; background: #F59E0B; color: white; font-size: 11px; font-weight: 700; padding: 3px 10px; border-radius: 20px; }
     .plan-feature { display: flex; align-items: center; gap: 10px; padding: 6px 0; font-size: 13.5px; }
     .plan-feature i { width: 16px; }
+    .usage-card { display: flex; flex-direction: column; gap: 6px; }
+    .usage-bar-track { height: 10px; background: #E2E8F0; border-radius: 999px; overflow: hidden; width: 100%; }
+    .usage-bar-fill { height: 100%; border-radius: 999px; transition: width 0.6s ease; }
+    .college-chip { display: inline-flex; align-items: center; gap: 6px; background: #EEF2FF; border: 1px solid #C7D2FE; border-radius: 8px; padding: 4px 10px; font-size: 12px; margin: 2px; }
+    .college-chip .remove-chip { cursor: pointer; color: #6366F1; font-weight: 700; margin-left: 2px; }
+    .college-chip .remove-chip:hover { color: #DC2626; }
+    #collegeSearchDropdown { max-height: 200px; overflow-y: auto; }
+    .dropdown-item { padding: 8px 12px; cursor: pointer; font-size: 13px; }
+    .dropdown-item:hover { background: #EEF2FF; }
+    .selected-colleges-container { min-height: 44px; border: 1px solid #CBD5E1; border-radius: 8px; padding: 6px; display: flex; flex-wrap: wrap; align-items: center; gap: 2px; background: white; }
+    @media (max-width: 768px) {
+      .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .erp-table { min-width: 700px; }
+    }
   </style>
 </head>
 <body>
@@ -50,16 +64,16 @@
 
     <div class="erp-content">
       <div class="page-header">
-        <h1 class="page-title">💳 Subscription Plans</h1>
+        <h1 class="page-title">Subscription Plans</h1>
         <p class="page-subtitle">Manage plan assignments, renewals, and pricing for all institutions.</p>
       </div>
 
       <!-- Revenue Stats -->
       <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
         <div class="stat-card" style="background:linear-gradient(135deg,#D1FAE5,#A7F3D0)"><div class="stat-icon" style="background:rgba(255,255,255,0.5);color:#065F46"><i class="fas fa-rupee-sign"></i></div><div class="stat-label">Monthly Revenue</div><div class="stat-value" style="color:#059669">₹4,80,000</div><div class="stat-change up"><i class="fas fa-arrow-up"></i> 18% this month</div></div>
-        <div class="stat-card"><div class="stat-icon" style="background:#EDE9FE;color:#5B21B6"><i class="fas fa-crown"></i></div><div class="stat-label">Enterprise Clients</div><div class="stat-value" data-counter="3">3</div></div>
-        <div class="stat-card"><div class="stat-icon" style="background:#DBEAFE;color:#1E40AF"><i class="fas fa-star"></i></div><div class="stat-label">Pro Clients</div><div class="stat-value" data-counter="7">7</div></div>
-        <div class="stat-card"><div class="stat-icon" style="background:#FEF3C7;color:#92400E"><i class="fas fa-exclamation-triangle"></i></div><div class="stat-label">Expiring Soon</div><div class="stat-value" data-counter="2" style="color:#D97706">2</div><div class="stat-change down"><i class="fas fa-clock"></i> Within 30 days</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#EDE9FE;color:#5B21B6"><i class="fas fa-crown"></i></div><div class="stat-label">Enterprise Clients</div><div class="stat-value" id="basicCount" data-counter="3">3</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#DBEAFE;color:#1E40AF"><i class="fas fa-star"></i></div><div class="stat-label">Pro Clients</div><div class="stat-value" id="proCount" data-counter="7">7</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#FEF3C7;color:#92400E"><i class="fas fa-exclamation-triangle"></i></div><div class="stat-label">Expiring Soon</div><div class="stat-value" id="enterpriseCount" data-counter="2" style="color:#D97706">2</div><div class="stat-change down"><i class="fas fa-clock"></i> Within 30 days</div></div>
       </div>
 
       <!-- Plan Cards -->
@@ -94,11 +108,52 @@
         </div>
       </div>
 
+      <!-- Usage Overview -->
+      <div class="card mb-8">
+        <div class="card-header">
+          <div class="card-title"><i class="fas fa-chart-pie" style="color:#6366F1;margin-right:8px"></i>Usage Overview</div>
+        </div>
+        <div style="padding:24px">
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px">
+            <div class="usage-card">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="font-size:13px;font-weight:600;color:#334155">Basic Plan</span>
+                <span style="font-size:13px;font-weight:700;color:#059669" id="basicUsageCount">0 colleges</span>
+              </div>
+              <div class="usage-bar-track">
+                <div class="usage-bar-fill" id="basicUsageBar" style="width:0%;background:linear-gradient(90deg,#34D399,#10B981)"></div>
+              </div>
+            </div>
+            <div class="usage-card">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="font-size:13px;font-weight:600;color:#334155">Pro Plan</span>
+                <span style="font-size:13px;font-weight:700;color:#4F46E5" id="proUsageCount">0 colleges</span>
+              </div>
+              <div class="usage-bar-track">
+                <div class="usage-bar-fill" id="proUsageBar" style="width:0%;background:linear-gradient(90deg,#818CF8,#6366F1)"></div>
+              </div>
+            </div>
+            <div class="usage-card">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="font-size:13px;font-weight:600;color:#334155">Enterprise Plan</span>
+                <span style="font-size:13px;font-weight:700;color:#D97706" id="enterpriseUsageCount">0 colleges</span>
+              </div>
+              <div class="usage-bar-track">
+                <div class="usage-bar-fill" id="enterpriseUsageBar" style="width:0%;background:linear-gradient(90deg,#FBBF24,#F59E0B)"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- College Plan Management Table -->
       <div class="card">
         <div class="card-header">
           <div class="card-title">College Plan Assignments</div>
-          <button class="btn btn-primary btn-sm" onclick="openModal('upgradePlanModal')"><i class="fas fa-edit"></i> Change Plan</button>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-secondary btn-sm" onclick="openModal('bulkAssignModal')"><i class="fas fa-layer-group"></i> Bulk Assign</button>
+            <button class="btn btn-primary btn-sm" onclick="openModal('upgradePlanModal')"><i class="fas fa-edit"></i> Change Plan</button>
+          </div>
         </div>
         <div class="table-wrap">
           <table class="erp-table">
@@ -140,6 +195,41 @@
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('upgradePlanModal')">Cancel</button>
       <button class="btn btn-primary" onclick="updatePlan()"><i class="fas fa-save"></i> Update Plan</button>
+    </div>
+  </div>
+</div>
+
+<!-- BULK ASSIGN PLAN MODAL -->
+<div class="modal-backdrop" id="bulkAssignModal">
+  <div class="modal modal-lg">
+    <div class="modal-header"><div class="modal-title"><i class="fas fa-layer-group" style="color:#6366F1;margin-right:8px"></i>Bulk Assign Plan</div><button class="modal-close" onclick="closeBulkAssignModal()"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Select Colleges *</label>
+        <div id="bulkCollegeContainer" class="selected-colleges-container">
+          <input type="text" id="bulkCollegeSearch" class="form-control" style="border:none;outline:none;flex:1;min-width:120px;padding:4px" placeholder="Type to search colleges...">
+        </div>
+        <div id="collegeSearchDropdown" style="display:none;position:relative;border:1px solid #CBD5E1;border-top:none;border-radius:0 0 8px 8px;background:white;z-index:10"></div>
+        <div style="font-size:11px;color:#64748B;margin-top:4px">Selected: <span id="bulkSelectedCount">0</span> college(s)</div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label class="form-label">Assign Plan *</label>
+          <select class="form-control" id="bulkPlanSelect">
+            <option value="basic">Basic — ₹5,000/month</option>
+            <option value="pro">Pro — ₹15,000/month</option>
+            <option value="enterprise">Enterprise — ₹40,000/month</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Expiry Date *</label>
+          <input class="form-control" type="date" id="bulkPlanExpiry">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeBulkAssignModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="bulkAssignPlan()"><i class="fas fa-save"></i> Assign to Selected</button>
     </div>
   </div>
 </div>

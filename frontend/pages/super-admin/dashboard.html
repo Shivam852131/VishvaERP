@@ -75,7 +75,7 @@
       <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
         <div>
           <div class="breadcrumb"><a href="../../index.html">Home</a><i class="fas fa-chevron-right" style="font-size:9px"></i><span>Super Admin</span></div>
-          <h1 class="page-title">🛰 Platform Overview</h1>
+          <h1 class="page-title">Platform Overview</h1>
           <p class="page-subtitle">Real-time system health across all connected institutions.</p>
         </div>
         <div style="display:flex;gap:10px">
@@ -84,35 +84,49 @@
         </div>
       </div>
 
-      <!-- STAT CARDS -->
-      <div class="stats-grid" id="statsGrid">
+      <!-- STAT CARDS (6 total) -->
+      <div class="stats-grid" id="statsGrid" style="display:grid;grid-template-columns:repeat(6,1fr);gap:16px;margin-bottom:24px">
         <div class="stat-card">
           <div class="stat-card-accent" style="background:#4F46E5"></div>
           <div class="stat-icon" style="background:#EDE9FE;color:#5B21B6"><i class="fas fa-university"></i></div>
           <div class="stat-label">Total Colleges</div>
-          <div class="stat-value" data-counter="0">—</div>
+          <div class="stat-value" id="statColleges" data-counter="0">—</div>
           <div class="stat-change neutral"><i class="fas fa-circle" style="font-size:6px"></i> Loading...</div>
         </div>
         <div class="stat-card">
           <div class="stat-card-accent" style="background:#10B981"></div>
           <div class="stat-icon" style="background:#D1FAE5;color:#065F46"><i class="fas fa-users"></i></div>
           <div class="stat-label">Total Users</div>
-          <div class="stat-value" data-counter="0">—</div>
+          <div class="stat-value" id="statUsers" data-counter="0">—</div>
           <div class="stat-change up"><i class="fas fa-arrow-up"></i> Loading...</div>
         </div>
         <div class="stat-card">
           <div class="stat-card-accent" style="background:#0EA5E9"></div>
           <div class="stat-icon" style="background:#E0F2FE;color:#0369A1"><i class="fas fa-user-graduate"></i></div>
           <div class="stat-label">Total Students</div>
-          <div class="stat-value" data-counter="0">—</div>
+          <div class="stat-value" id="statStudents" data-counter="0">—</div>
           <div class="stat-change up"><i class="fas fa-arrow-up"></i> Loading...</div>
         </div>
         <div class="stat-card">
           <div class="stat-card-accent" style="background:#F59E0B"></div>
           <div class="stat-icon" style="background:#FEF3C7;color:#92400E"><i class="fas fa-chalkboard-teacher"></i></div>
           <div class="stat-label">Total Faculty</div>
-          <div class="stat-value" data-counter="0">—</div>
+          <div class="stat-value" id="statFaculty" data-counter="0">—</div>
           <div class="stat-change neutral"><i class="fas fa-circle" style="font-size:6px"></i> Loading...</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-accent" style="background:#8B5CF6"></div>
+          <div class="stat-icon" style="background:#EDE9FE;color:#5B21B6"><i class="fas fa-rupee-sign"></i></div>
+          <div class="stat-label">Revenue</div>
+          <div class="stat-value" id="statRevenue" data-counter="0">—</div>
+          <div class="stat-change up"><i class="fas fa-arrow-up"></i> Loading...</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-accent" style="background:#EC4899"></div>
+          <div class="stat-icon" style="background:#FCE7F3;color:#9D174D"><i class="fas fa-signal"></i></div>
+          <div class="stat-label">Active Sessions</div>
+          <div class="stat-value" id="statSessions" data-counter="0">—</div>
+          <div class="stat-change neutral"><i class="fas fa-circle" style="font-size:6px"></i> Live</div>
         </div>
       </div>
 
@@ -154,8 +168,8 @@
         </div>
       </div>
 
-      <!-- QUICK ACTIONS + RECENT ACTIVITY -->
-      <div class="grid col-2">
+      <!-- QUICK ACTIONS + SYSTEM HEALTH + RECENT ACTIVITY -->
+      <div class="grid col-2" style="grid-template-columns:1fr 1fr;gap:24px">
         <div class="card">
           <div class="card-header"><div class="card-title">Quick Actions</div></div>
           <div class="card-body" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
@@ -163,6 +177,15 @@
             <a href="users.html" class="btn btn-secondary" style="flex-direction:column;gap:6px;padding:16px;height:auto"><i class="fas fa-user-plus" style="font-size:20px;color:#10B981"></i><span>Manage Users</span></a>
             <button class="btn btn-secondary" style="flex-direction:column;gap:6px;padding:16px;height:auto" id="exportBtn2"><i class="fas fa-file-csv" style="font-size:20px;color:#F59E0B"></i><span>Export CSV</span></button>
             <a href="analytics.html" class="btn btn-secondary" style="flex-direction:column;gap:6px;padding:16px;height:auto"><i class="fas fa-chart-line" style="font-size:20px;color:#8B5CF6"></i><span>Analytics</span></a>
+            <button class="btn btn-secondary" style="flex-direction:column;gap:6px;padding:16px;height:auto" id="broadcastBtn"><i class="fas fa-bullhorn" style="font-size:20px;color:#EC4899"></i><span>Broadcast</span></button>
+            <!-- System Health Mini-Widget -->
+            <div id="systemHealthWidget" style="display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;border-radius:10px;border:1px solid #E2E8F0;background:#F8FAFC;gap:6px">
+              <div style="display:flex;align-items:center;gap:8px">
+                <span id="healthDot" style="width:10px;height:10px;border-radius:50%;background:#F59E0B;display:inline-block"></span>
+                <span id="healthStatus" style="font-size:13px;font-weight:600;color:#334155">Checking...</span>
+              </div>
+              <div id="healthDetail" style="font-size:11px;color:#64748B">Server uptime loading</div>
+            </div>
           </div>
         </div>
         <div class="card">
