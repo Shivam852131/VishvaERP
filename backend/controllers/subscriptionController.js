@@ -6,7 +6,12 @@ const College = require('../models/College');
 const { generateSubscriptionReceipt } = require('../services/pdfService');
 const { logAudit } = require('../services/auditService');
 const { emitDataChange } = require('../utils/realtime');
-const { getRazorpay, getRazorpayKeyId, verifyRazorpaySignature } = require('../services/razorpayService');
+const {
+  confirmRazorpayPayment,
+  getRazorpay,
+  getRazorpayKeyId,
+  verifyRazorpaySignature,
+} = require('../services/razorpayService');
 
 const PLAN_DETAILS = {
   basic: {
@@ -27,6 +32,131 @@ const PLAN_DETAILS = {
 };
 
 const CYCLE_MONTHS = { monthly: 1, quarterly: 3, yearly: 12 };
+
+function serializeSubscription(subscription) {
+  if (!subscription) return null;
+  return {
+    id: subscription._id,
+    plan: subscription.plan,
+    status: subscription.status,
+    startDate: subscription.startDate,
+    endDate: subscription.endDate,
+    billingCycle: subscription.billingCycle,
+    amount: subscription.amount,
+    isActive: typeof subscription.isActive === 'function' ? subscription.isActive() : Boolean(subscription.isActive),
+  };
+}
+
+async function markSubscriptionPaymentFailed(req, subscription, message, details) {
+  if (!subscription || subscription.status === 'active' || subscription.status === 'failed') return;
+
+  subscription.status = 'failed';
+  if (details?.razorpayPaymentId) {
+    subscription.razorpayPaymentId = details.razorpayPaymentId;
+  }
+  await subscription.save();
+
+  const existingPayment = await Payment.findOne({
+    collegeId: req.user.collegeId,
+    type: 'subscription',
+    razorpayOrderId: subscription.razorpayOrderId,
+  });
+
+  if (existingPayment) {
+    existingPayment.status = 'failed';
+    if (details?.razorpayPaymentId) {
+      existingPayment.razorpayPaymentId = details.razorpayPaymentId;
+    }
+    if (message) {
+      existingPayment.metadata = { ...(existingPayment.metadata || {}), failureReason: message };
+    }
+    await existingPayment.save();
+  }
+}
+
+async function activateSubscriptionPayment(req, subscription, payload) {
+  const now = new Date();
+  const months = CYCLE_MONTHS[subscription.billingCycle];
+  const endDate = new Date(now);
+  endDate.setMonth(endDate.getMonth() + months);
+
+  subscription.razorpayPaymentId = payload.razorpayPaymentId;
+  subscription.razorpaySignature = payload.razorpaySignature || subscription.razorpaySignature;
+  subscription.status = 'active';
+  subscription.startDate = subscription.startDate || now;
+  subscription.endDate = endDate;
+
+  const historyExists = subscription.paymentHistory.some(
+    (entry) => entry.razorpayPaymentId === payload.razorpayPaymentId
+  );
+  if (!historyExists) {
+    subscription.paymentHistory.push({
+      razorpayOrderId: subscription.razorpayOrderId,
+      razorpayPaymentId: payload.razorpayPaymentId,
+      amount: subscription.amount,
+      status: 'captured',
+      date: now,
+    });
+  }
+  await subscription.save();
+
+  const paymentDescription = `${PLAN_DETAILS[subscription.plan]?.name || subscription.plan} subscription (${subscription.billingCycle})`;
+  const payment = await Payment.findOneAndUpdate(
+    {
+      collegeId: req.user.collegeId,
+      type: 'subscription',
+      razorpayOrderId: subscription.razorpayOrderId,
+    },
+    {
+      $set: {
+        userId: req.user._id,
+        referenceId: subscription._id,
+        razorpayPaymentId: payload.razorpayPaymentId,
+        razorpaySignature: payload.razorpaySignature,
+        amount: subscription.amount,
+        currency: subscription.currency,
+        status: 'captured',
+        receiptNo: payload.receiptNo || `PAY-SUB-${Date.now()}`,
+        description: paymentDescription,
+        metadata: {
+          plan: subscription.plan,
+          billingCycle: subscription.billingCycle,
+          orderStatus: payload.orderStatus,
+          paymentStatus: payload.paymentStatus,
+          paymentMethod: payload.paymentMethod,
+          email: payload.email,
+          contact: payload.contact,
+        },
+      },
+      $setOnInsert: {
+        collegeId: req.user.collegeId,
+        userId: req.user._id,
+        type: 'subscription',
+      },
+    },
+    { new: true, upsert: true }
+  );
+
+  await College.findByIdAndUpdate(req.user.collegeId, {
+    plan: subscription.plan,
+    planExpiry: endDate,
+  });
+
+  logAudit(req, 'activate', 'subscription', {
+    resourceId: subscription._id,
+    description: `Activated ${subscription.plan} subscription`,
+    metadata: { plan: subscription.plan, endDate, paymentId: payload.razorpayPaymentId },
+  });
+
+  emitDataChange(req, {
+    collegeId: String(req.user.collegeId),
+    roles: ['superadmin', 'collegeAdmin'],
+    resource: 'subscriptions',
+    action: 'activated',
+  });
+
+  return { payment, subscription };
+}
 
 async function getFallbackCollegeSubscription(collegeId) {
   const college = await College.findById(collegeId).select('plan planExpiry').lean();
@@ -90,6 +220,19 @@ const createOrder = asyncHandler(async (req, res) => {
     status: 'created',
   });
 
+  await Payment.create({
+    collegeId: req.user.collegeId,
+    userId: req.user._id,
+    type: 'subscription',
+    referenceId: subscription._id,
+    razorpayOrderId: order.id,
+    amount,
+    currency: 'INR',
+    status: 'created',
+    description: `${planDetail.name} subscription (${billingCycle})`,
+    metadata: { plan, billingCycle },
+  });
+
   logAudit(req, 'create', 'subscription', {
     resourceId: subscription._id,
     description: `Created ${plan} subscription order`,
@@ -136,15 +279,7 @@ const verifyPayment = asyncHandler(async (req, res) => {
     return res.json({
       success: true,
       message: 'Subscription already activated',
-      subscription: {
-        id: subscription._id,
-        plan: subscription.plan,
-        status: subscription.status,
-        startDate: subscription.startDate,
-        endDate: subscription.endDate,
-        billingCycle: subscription.billingCycle,
-        amount: subscription.amount,
-      },
+      subscription: serializeSubscription(subscription),
     });
   }
 
@@ -152,78 +287,121 @@ const verifyPayment = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: 'Subscription order already processed' });
   }
 
-  const now = new Date();
-  const months = CYCLE_MONTHS[subscription.billingCycle];
-  const endDate = new Date(now);
-  endDate.setMonth(endDate.getMonth() + months);
-
-  subscription.razorpayPaymentId = razorpayPaymentId;
-  subscription.razorpaySignature = razorpaySignature;
-  subscription.status = 'active';
-  subscription.startDate = now;
-  subscription.endDate = endDate;
-  subscription.paymentHistory.push({
-    razorpayOrderId,
-    razorpayPaymentId,
-    amount: subscription.amount,
-    status: 'captured',
-    date: now,
-  });
-  await subscription.save();
-
-  const existingPayment = await Payment.findOne({
-    collegeId: req.user.collegeId,
-    type: 'subscription',
-    razorpayOrderId,
+  const { order, payment } = await confirmRazorpayPayment({
+    orderId: razorpayOrderId,
+    paymentId: razorpayPaymentId,
+    expectedAmount: subscription.amount,
+    currency: subscription.currency,
   });
 
-  if (!existingPayment) {
-    await Payment.create({
-      collegeId: req.user.collegeId,
-      userId: req.user._id,
-      type: 'subscription',
-      referenceId: subscription._id,
-      razorpayOrderId,
-      razorpayPaymentId,
-      razorpaySignature,
-      amount: subscription.amount,
-      currency: subscription.currency,
-      status: 'captured',
-      receiptNo: `PAY-SUB-${Date.now()}`,
-      description: `${PLAN_DETAILS[subscription.plan]?.name || subscription.plan} subscription (${subscription.billingCycle})`,
-      metadata: { plan: subscription.plan, billingCycle: subscription.billingCycle },
-    });
+  if (payment.status !== 'captured') {
+    await markSubscriptionPaymentFailed(req, subscription, 'Payment could not be captured', { razorpayPaymentId });
+    return res.status(400).json({ success: false, message: 'Payment is not captured by Razorpay yet' });
   }
 
-  await College.findByIdAndUpdate(req.user.collegeId, {
-    plan: subscription.plan,
-    planExpiry: endDate,
-  });
-
-  logAudit(req, 'activate', 'subscription', {
-    resourceId: subscription._id,
-    description: `Activated ${subscription.plan} subscription`,
-    metadata: { plan: subscription.plan, endDate },
-  });
-
-  emitDataChange(req, {
-    collegeId: String(req.user.collegeId),
-    roles: ['superadmin', 'collegeAdmin'],
-    resource: 'subscriptions',
-    action: 'activated',
+  await activateSubscriptionPayment(req, subscription, {
+    razorpayPaymentId,
+    razorpaySignature,
+    receiptNo: `PAY-SUB-${Date.now()}`,
+    orderStatus: order?.status,
+    paymentStatus: payment.status,
+    paymentMethod: payment.method,
+    email: payment.email,
+    contact: payment.contact,
   });
 
   res.json({
     success: true,
     message: 'Subscription activated',
-    subscription: {
-      id: subscription._id,
-      plan: subscription.plan,
-      status: subscription.status,
-      startDate: subscription.startDate,
-      endDate: subscription.endDate,
-      billingCycle: subscription.billingCycle,
-      amount: subscription.amount,
+    subscription: serializeSubscription(subscription),
+  });
+});
+
+// @desc    Get live Razorpay payment status for a subscription order
+const getSubscriptionPaymentStatus = asyncHandler(async (req, res) => {
+  const subscription = await Subscription.findOne({
+    _id: req.params.subscriptionId,
+    collegeId: req.user.collegeId,
+  });
+
+  if (!subscription) {
+    return res.status(404).json({ success: false, message: 'Subscription not found' });
+  }
+
+  let payment = subscription.razorpayPaymentId
+    ? await Payment.findOne({
+      collegeId: req.user.collegeId,
+      type: 'subscription',
+      referenceId: subscription._id,
+      razorpayPaymentId: subscription.razorpayPaymentId,
+    })
+    : await Payment.findOne({
+      collegeId: req.user.collegeId,
+      type: 'subscription',
+      referenceId: subscription._id,
+      razorpayOrderId: subscription.razorpayOrderId,
+    });
+
+  let razorpayOrder = null;
+  let razorpayPayment = null;
+
+  try {
+    const lookupPaymentId = payment?.razorpayPaymentId || req.query.razorpayPaymentId;
+    if (subscription.razorpayOrderId && lookupPaymentId && payment?.status !== 'captured') {
+      const confirmation = await confirmRazorpayPayment({
+        orderId: subscription.razorpayOrderId,
+        paymentId: lookupPaymentId,
+        expectedAmount: subscription.amount,
+        currency: subscription.currency,
+      });
+      razorpayOrder = confirmation.order;
+      razorpayPayment = confirmation.payment;
+
+      if (confirmation.localStatus === 'captured') {
+        await activateSubscriptionPayment(req, subscription, {
+          razorpayPaymentId: razorpayPayment.id,
+          razorpaySignature: subscription.razorpaySignature,
+          receiptNo: payment?.receiptNo || `PAY-SUB-${Date.now()}`,
+          orderStatus: razorpayOrder?.status,
+          paymentStatus: razorpayPayment.status,
+          paymentMethod: razorpayPayment.method,
+          email: razorpayPayment.email,
+          contact: razorpayPayment.contact,
+        });
+      } else if (confirmation.localStatus === 'failed') {
+        await markSubscriptionPaymentFailed(req, subscription, 'Razorpay marked the payment as failed', {
+          razorpayPaymentId: razorpayPayment.id,
+        });
+      }
+
+      payment = await Payment.findOne({
+        collegeId: req.user.collegeId,
+        type: 'subscription',
+        razorpayOrderId: subscription.razorpayOrderId,
+      });
+    }
+  } catch (error) {
+    if (error.statusCode && error.statusCode < 500) {
+      throw error;
+    }
+  }
+
+  res.json({
+    success: true,
+    subscription: serializeSubscription(subscription),
+    payment: payment
+      ? {
+        id: String(payment._id),
+        status: payment.status,
+        paymentId: payment.razorpayPaymentId,
+        orderId: payment.razorpayOrderId,
+        receiptNo: payment.receiptNo,
+        amount: payment.amount,
+      }
+      : null,
+    razorpay: {
+      orderStatus: razorpayOrder?.status || null,
+      paymentStatus: razorpayPayment?.status || null,
     },
   });
 });
@@ -242,16 +420,7 @@ const getSubscription = asyncHandler(async (req, res) => {
 
   res.json({
     success: true,
-    subscription: {
-      id: subscription._id,
-      plan: subscription.plan,
-      status: subscription.status,
-      startDate: subscription.startDate,
-      endDate: subscription.endDate,
-      billingCycle: subscription.billingCycle,
-      amount: subscription.amount,
-      isActive: subscription.isActive(),
-    },
+    subscription: serializeSubscription(subscription),
   });
 });
 
@@ -345,6 +514,7 @@ module.exports = {
   getPlans,
   createOrder,
   verifyPayment,
+  getSubscriptionPaymentStatus,
   getSubscription,
   getPaymentHistory,
   getSubscriptionStatus,

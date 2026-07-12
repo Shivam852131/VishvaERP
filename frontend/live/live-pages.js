@@ -165,6 +165,150 @@
     return Boolean(window.Razorpay);
   }
 
+  function getFeePendingAmount(fee) {
+    return Math.max(Number(fee?.amount || 0) - Number(fee?.paidAmount || 0), 0);
+  }
+
+  async function pollFeePaymentStatus(feeId, orderId, paymentId, attempts) {
+    let remaining = Number(attempts || 6);
+    while (remaining > 0) {
+      await new Promise((resolve) => window.setTimeout(resolve, 1800));
+      const query = new URLSearchParams();
+      if (orderId) query.set('orderId', orderId);
+      if (paymentId) query.set('razorpayPaymentId', paymentId);
+      const suffix = query.toString() ? `?${query.toString()}` : '';
+      const statusRes = await window.api.request(`/fees/${feeId}/payment-status${suffix}`, { silent: true });
+      if (statusRes?.payment?.status === 'captured' || statusRes?.fee?.status === 'paid' || statusRes?.fee?.status === 'partial') {
+        return statusRes;
+      }
+      if (statusRes?.payment?.status === 'failed' || statusRes?.razorpay?.paymentStatus === 'failed') {
+        throw new Error('Payment failed at gateway');
+      }
+      remaining -= 1;
+    }
+    throw new Error('Payment verification is still pending');
+  }
+
+  async function startFeeCheckout(options) {
+    const {
+      fee,
+      onSuccess,
+      onPending,
+      onFailure,
+      onFinally,
+      notes,
+      modalId,
+      accentColor,
+    } = options || {};
+
+    if (!fee?._id) {
+      throw new Error('Fee record is missing');
+    }
+
+    const pendingAmount = getFeePendingAmount(fee);
+    if (pendingAmount <= 0) {
+      throw new Error('Fee already fully paid');
+    }
+
+    await ensureRazorpayCheckout();
+    if (!window.Razorpay) {
+      throw new Error('Payment gateway failed to load');
+    }
+
+    const orderRes = await window.api.request(`/fees/${fee._id}/create-order`, { method: 'POST' });
+    if (!orderRes?.order || !orderRes?.key) {
+      throw new Error('Failed to create payment order');
+    }
+
+    const user = getUser() || JSON.parse(localStorage.getItem('erp_user') || '{}');
+
+    return new Promise((resolve, reject) => {
+      let settled = false;
+      const finalize = () => {
+        if (typeof onFinally === 'function') onFinally();
+      };
+
+      const finishResolve = async (payload) => {
+        if (settled) return;
+        settled = true;
+        try {
+          if (typeof onSuccess === 'function') await onSuccess(payload);
+        } finally {
+          finalize();
+        }
+        resolve(payload);
+      };
+
+      const finishReject = async (error) => {
+        if (settled) return;
+        settled = true;
+        try {
+          if (typeof onFailure === 'function') await onFailure(error);
+        } finally {
+          finalize();
+        }
+        reject(error);
+      };
+
+      const rzp = new window.Razorpay({
+        key: orderRes.key,
+        amount: orderRes.order.amount,
+        currency: orderRes.order.currency || 'INR',
+        name: 'Vishva ERP',
+        description: `Fee Payment - ${fee.feeType || 'College Fee'}`,
+        order_id: orderRes.order.id,
+        image: '/icons/icon.svg',
+        notes: {
+          feeId: String(fee._id),
+          rollNo: fee.studentId?.rollNo || '',
+          ...(notes || {}),
+        },
+        prefill: {
+          name: fee.studentId?.name || user.name || '',
+          email: user.email || '',
+          contact: user.phone || '',
+        },
+        theme: { color: accentColor || '#4F46E5' },
+        modal: {
+          confirm_close: true,
+          ondismiss: function onDismiss() {
+            if (!settled) {
+              finishReject(new Error(modalId ? 'Payment window closed' : 'Payment cancelled'));
+            }
+          },
+        },
+        handler: async function handlePayment(response) {
+          try {
+            const verifyRes = await window.api.request('/fees/verify-payment', {
+              method: 'POST',
+              body: JSON.stringify({
+                razorpayOrderId: response.razorpay_order_id,
+                razorpayPaymentId: response.razorpay_payment_id,
+                razorpaySignature: response.razorpay_signature,
+                feeId: orderRes.feeId,
+              }),
+            }).catch(async () => {
+              if (typeof onPending === 'function') {
+                await onPending(response);
+              }
+              return pollFeePaymentStatus(orderRes.feeId, response.razorpay_order_id, response.razorpay_payment_id, 7);
+            });
+            await finishResolve({ order: orderRes.order, gateway: response, verify: verifyRes, feeId: orderRes.feeId });
+          } catch (error) {
+            await finishReject(error);
+          }
+        },
+      });
+
+      rzp.on('payment.failed', function onFailed(response) {
+        const error = new Error(response?.error?.description || 'Payment failed');
+        finishReject(error);
+      });
+
+      rzp.open();
+    });
+  }
+
   async function ensureRealtime() {
     if (socketPromise) return socketPromise;
 
@@ -787,6 +931,7 @@
   }
 
   async function initStudentFeesPage() {
+    await ensureRealtime();
     const res = await window.api.request('/fees', { silent: true });
     const fees = res.fees || [];
     const paidTotal = fees.reduce((sum, item) => sum + Number(item.paidAmount || 0), 0);
@@ -798,16 +943,58 @@
     if (statValues[1]) statValues[1].textContent = formatMoney(nextPending ? nextPending.amount - Number(nextPending.paidAmount || 0) : 0);
     if (statValues[2]) statValues[2].textContent = formatMoney(totalProgram);
 
+    let selectedFeeId = nextPending?._id || null;
+
+    function getSelectedFee() {
+      return fees.find((item) => String(item._id) === String(selectedFeeId)) || nextPending;
+    }
+
+    function syncFeePaymentModal() {
+      const activeFee = getSelectedFee();
+      const pendingAmount = getFeePendingAmount(activeFee);
+      const modal = byId('payNowModal');
+      if (!modal) return;
+      const summary = modal.querySelector('#studentFeePaymentSummary');
+      const amountInput = byId('payAmount');
+      const payButton = modal.querySelector('#studentFeePayButton');
+      const title = modal.querySelector('#studentFeePaymentTitle');
+      const meta = modal.querySelector('#studentFeePaymentMeta');
+
+      if (summary) {
+        summary.innerHTML = activeFee ? `
+          <div style="font-size:12px;font-weight:700;color:#065F46;margin-bottom:4px">OUTSTANDING AMOUNT</div>
+          <div style="font-size:24px;font-weight:900;color:#059669">${formatMoney(pendingAmount)}</div>
+          <div style="font-size:12px;color:#64748B">${escapeHTML(String(activeFee.feeType || 'College Fee').toUpperCase())}${activeFee.semester ? ` • Semester ${activeFee.semester}` : ''} • Due ${formatDate(activeFee.dueDate)}</div>
+        ` : '<div style="font-size:14px;color:#64748B">No pending fee selected.</div>';
+      }
+      if (amountInput) {
+        amountInput.value = pendingAmount > 0 ? String(pendingAmount) : '';
+        amountInput.readOnly = true;
+      }
+      if (payButton) {
+        payButton.disabled = !activeFee || pendingAmount <= 0;
+        payButton.innerHTML = `<i class="fas fa-lock"></i> Pay ${activeFee ? formatMoney(pendingAmount) : ''} Securely`;
+      }
+      if (title) title.textContent = activeFee ? `${String(activeFee.feeType || 'College Fee').toUpperCase()} Payment` : 'Secure Payment';
+      if (meta) meta.textContent = activeFee?.receiptNo ? `Previous receipt: ${activeFee.receiptNo}` : 'UPI, cards, net banking, and wallets are supported via Razorpay.';
+    }
+
+    window.openStudentFeeModal = function openStudentFeeModal(id) {
+      selectedFeeId = id || nextPending?._id || null;
+      syncFeePaymentModal();
+      window.openModal?.('payNowModal');
+    };
+
     const banner = document.querySelector('.erp-content > div[style*="linear-gradient(135deg,#EF4444"]');
     if (banner) {
       setHTML(banner, nextPending ? `
         <div>
           <div style="font-size:13px;font-weight:600;color:#FCA5A5;margin-bottom:4px">Outstanding Due</div>
-          <div style="font-size:28px;font-weight:900">${formatMoney(nextPending.amount - Number(nextPending.paidAmount || 0))}</div>
-          <div style="font-size:13px;color:#FCA5A5">${String(nextPending.feeType || '').toUpperCase()} • Deadline: ${formatDate(nextPending.dueDate)}</div>
+          <div style="font-size:28px;font-weight:900">${formatMoney(getFeePendingAmount(nextPending))}</div>
+          <div style="font-size:13px;color:#FCA5A5">${String(nextPending.feeType || '').toUpperCase()}${nextPending.semester ? ` • Semester ${nextPending.semester}` : ''} • Deadline: ${formatDate(nextPending.dueDate)}</div>
         </div>
         <div style="display:flex;gap:10px">
-          <button class="btn" style="background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.4)" onclick="openModal('payNowModal')"><i class="fas fa-credit-card"></i> Pay Now</button>
+          <button class="btn" style="background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.4)" onclick="openStudentFeeModal('${nextPending._id}')"><i class="fas fa-credit-card"></i> Pay Now</button>
         </div>
       ` : '<div style="font-weight:700">No outstanding dues</div>');
     }
@@ -820,70 +1007,44 @@
         <td style="font-size:13px;color:#64748B">${fee.paymentMethod || '-'}</td>
         <td style="font-size:12px;color:#64748B">${formatDate(fee.paidDate || fee.dueDate)}</td>
         <td>${fee.receiptNo ? `<code style="font-size:11px;background:#F1F5F9;padding:2px 6px;border-radius:4px">${fee.receiptNo}</code>` : '-'}</td>
-        <td>${fee.status === 'paid' ? `<div style="display:flex;gap:6px;align-items:center"><span class="badge badge-success">Paid</span></div>` : `<button class="btn btn-xs btn-danger" onclick="openModal('payNowModal')"><i class="fas fa-credit-card"></i> Pay Now</button>`}</td>
+        <td>${fee.status === 'paid' ? `<div style="display:flex;gap:6px;align-items:center"><span class="badge badge-success">Paid</span></div>` : `<button class="btn btn-xs btn-danger" onclick="openStudentFeeModal('${fee._id}')"><i class="fas fa-credit-card"></i> Pay Now</button>`}</td>
       </tr>
     `).join('') || '<tr><td colspan="7"><div class="empty-state"><div class="empty-state-title">No fee records found</div></div></td></tr>');
 
     window.processPayment = async function processPayment() {
-      if (!nextPending) {
+      const activeFee = getSelectedFee();
+      if (!activeFee) {
         window.showToast('No pending fees to pay', 'info');
         return;
       }
-      const pending = Number(nextPending.amount || 0) - Number(nextPending.paidAmount || 0);
+      const pending = getFeePendingAmount(activeFee);
       if (pending <= 0) {
         window.showToast('Fee already fully paid', 'info');
         return;
       }
       try {
-        await ensureRazorpayCheckout();
-        if (!window.Razorpay) {
-          window.showToast('Payment gateway failed to load', 'error');
-          return;
-        }
-        const orderRes = await window.api.request(`/fees/${nextPending._id}/create-order`, { method: 'POST' });
-        if (!orderRes || !orderRes.order || !orderRes.key) {
-          window.showToast('Failed to create payment order', 'error');
-          return;
-        }
-        const user = JSON.parse(localStorage.getItem('erp_user') || '{}');
-        const options = {
-          key: orderRes.key,
-          amount: orderRes.order.amount,
-          currency: orderRes.order.currency || 'INR',
-          name: 'Vishva ERP',
-          description: `Fee Payment - ${nextPending.feeType || 'College Fee'}`,
-          order_id: orderRes.order.id,
-          handler: async function(response) {
-            try {
-              await window.api.request('/fees/verify-payment', {
-                method: 'POST',
-                body: JSON.stringify({
-                  razorpayOrderId: response.razorpay_order_id,
-                  razorpayPaymentId: response.razorpay_payment_id,
-                  razorpaySignature: response.razorpay_signature,
-                  feeId: orderRes.feeId,
-                }),
-              });
-              window.closeModal?.('payNowModal');
-              window.showToast('Payment successful!', 'success');
-              initStudentFeesPage();
-            } catch (e) {
-              window.showToast('Payment received but verification failed. Contact support.', 'warning');
-            }
+        await startFeeCheckout({
+          fee: activeFee,
+          modalId: 'payNowModal',
+          accentColor: '#0EA5E9',
+          onPending: async function onPending() {
+            window.showToast('Payment received. Confirming with Razorpay...', 'info');
           },
-          prefill: { name: user.name || '', email: user.email || '', contact: user.phone || '' },
-          theme: { color: '#4F46E5' },
-          modal: { ondismiss: function() { window.showToast('Payment cancelled', 'info'); } },
-        };
-        const rzp = new window.Razorpay(options);
-        rzp.on('payment.failed', function(response) {
-          window.showToast('Payment failed: ' + (response.error?.description || 'Unknown error'), 'error');
+          onSuccess: async function onSuccess() {
+            window.closeModal?.('payNowModal');
+            window.showToast('Payment successful!', 'success');
+            await initStudentFeesPage();
+          },
+          onFailure: async function onFailure(error) {
+            window.showToast(error.message || 'Could not complete payment', 'error');
+          },
         });
-        rzp.open();
       } catch (e) {
-        window.showToast('Could not initiate payment', 'error');
+        window.showToast(e.message || 'Could not initiate payment', 'error');
       }
     };
+
+    syncFeePaymentModal();
 
     window.__erpLivePageRefresh = initStudentFeesPage;
   }
@@ -1246,10 +1407,37 @@
   }
 
   async function initParentFeesPage() {
+    await ensureRealtime();
     const res = await window.api.request('/fees', { silent: true });
     const fees = res.fees || [];
     const pending = fees.filter((item) => item.status !== 'paid').sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
     const outstanding = pending.reduce((sum, item) => sum + Math.max(Number(item.amount || 0) - Number(item.paidAmount || 0), 0), 0);
+    let selectedFeeId = pending[0]?._id || null;
+
+    function getSelectedFee() {
+      return fees.find((item) => String(item._id) === String(selectedFeeId)) || pending[0] || null;
+    }
+
+    function syncParentFeeModal() {
+      const activeFee = getSelectedFee();
+      const summary = byId('parentFeePaymentAmount');
+      const meta = byId('parentFeePaymentMeta');
+      const button = byId('parentFeePayButton');
+      if (summary) summary.textContent = activeFee ? formatMoney(getFeePendingAmount(activeFee)) : formatMoney(0);
+      if (meta) {
+        meta.textContent = activeFee
+          ? `${String(activeFee.feeType || '').toUpperCase()}${activeFee.semester ? ` • Semester ${activeFee.semester}` : ''} due by ${formatDate(activeFee.dueDate)}`
+          : 'No outstanding fee selected';
+      }
+      if (button) button.disabled = !activeFee;
+    }
+
+    window.openParentFeeModal = function openParentFeeModal(id) {
+      selectedFeeId = id || pending[0]?._id || null;
+      syncParentFeeModal();
+      window.openModal?.('payModal');
+    };
+
     const alertBox = document.querySelector('.erp-content > div[style*="#FEF2F2"]');
     if (alertBox) {
       setHTML(alertBox, `
@@ -1276,68 +1464,40 @@
           <td>${String(fee.feeType || '').toUpperCase()}</td>
           <td>${formatMoney(fee.amount)}</td>
           <td>${statusBadge(fee.status)}</td>
-          <td>${fee.receiptNo ? `<button class="btn btn-xs btn-secondary" onclick="showToast('${fee.receiptNo}', 'info')"><i class="fas fa-download"></i></button>` : '-'}</td>
+          <td>${fee.receiptNo ? `<button class="btn btn-xs btn-secondary" onclick="showToast('${fee.receiptNo}', 'info')"><i class="fas fa-download"></i></button>` : fee.status !== 'paid' ? `<button class="btn btn-xs btn-primary" onclick="openParentFeeModal('${fee._id}')"><i class="fas fa-credit-card"></i></button>` : '-'}</td>
         </tr>
       `).join('') || '<tr><td colspan="5"><div class="empty-state"><div class="empty-state-title">No fee records found</div></div></td></tr>');
     }
 
     window.simulatePayment = async function simulatePayment() {
-      const next = pending[0];
+      const next = getSelectedFee();
       if (!next) {
         window.showToast('No outstanding fees to pay', 'info');
         return;
       }
-      const pendingAmount = Number(next.amount || 0) - Number(next.paidAmount || 0);
       try {
-        await ensureRazorpayCheckout();
-        if (!window.Razorpay) {
-          window.showToast('Payment gateway failed to load', 'error');
-          return;
-        }
-        const orderRes = await window.api.request(`/fees/${next._id}/create-order`, { method: 'POST' });
-        if (!orderRes || !orderRes.order || !orderRes.key) {
-          window.showToast('Failed to create payment order', 'error');
-          return;
-        }
-        const user = JSON.parse(localStorage.getItem('erp_user') || '{}');
-        const options = {
-          key: orderRes.key,
-          amount: orderRes.order.amount,
-          currency: orderRes.order.currency || 'INR',
-          name: 'Vishva ERP',
-          description: `Fee Payment - ${next.feeType || 'College Fee'}`,
-          order_id: orderRes.order.id,
-          handler: async function(response) {
-            try {
-              await window.api.request('/fees/verify-payment', {
-                method: 'POST',
-                body: JSON.stringify({
-                  razorpayOrderId: response.razorpay_order_id,
-                  razorpayPaymentId: response.razorpay_payment_id,
-                  razorpaySignature: response.razorpay_signature,
-                  feeId: orderRes.feeId,
-                }),
-              });
-              window.closeModal?.('payModal');
-              window.showToast('Payment successful!', 'success');
-              initParentFeesPage();
-            } catch (e) {
-              window.showToast('Payment received but verification failed. Contact support.', 'warning');
-            }
+        await startFeeCheckout({
+          fee: next,
+          modalId: 'payModal',
+          accentColor: '#10B981',
+          onPending: async function onPending() {
+            window.showToast('Payment received. Confirming with Razorpay...', 'info');
           },
-          prefill: { name: user.name || '', email: user.email || '', contact: user.phone || '' },
-          theme: { color: '#4F46E5' },
-          modal: { ondismiss: function() { window.showToast('Payment cancelled', 'info'); } },
-        };
-        const rzp = new window.Razorpay(options);
-        rzp.on('payment.failed', function(response) {
-          window.showToast('Payment failed: ' + (response.error?.description || 'Unknown error'), 'error');
+          onSuccess: async function onSuccess() {
+            window.closeModal?.('payModal');
+            window.showToast('Payment successful!', 'success');
+            await initParentFeesPage();
+          },
+          onFailure: async function onFailure(error) {
+            window.showToast(error.message || 'Could not complete payment', 'error');
+          },
         });
-        rzp.open();
       } catch (e) {
-        window.showToast('Could not initiate payment', 'error');
+        window.showToast(e.message || 'Could not initiate payment', 'error');
       }
     };
+
+    syncParentFeeModal();
 
     window.__erpLivePageRefresh = initParentFeesPage;
   }

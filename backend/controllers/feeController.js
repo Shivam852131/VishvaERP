@@ -5,10 +5,68 @@ const User = require('../models/User');
 const { emitDataChange } = require('../utils/realtime');
 const { parseSemester } = require('../utils/parseHelpers');
 const { logAudit } = require('../services/auditService');
-const { getRazorpay, getRazorpayKeyId, verifyRazorpaySignature } = require('../services/razorpayService');
+const {
+  confirmRazorpayPayment,
+  getRazorpay,
+  getRazorpayKeyId,
+  verifyRazorpaySignature,
+} = require('../services/razorpayService');
 
 function getPendingAmount(fee) {
   return Math.max(Number(fee.amount || 0) - Number(fee.paidAmount || 0), 0);
+}
+
+async function markFeePaymentFailed(req, fee, payment, failureReason, razorpayPaymentId) {
+  if (payment && payment.status !== 'captured') {
+    payment.status = 'failed';
+    if (razorpayPaymentId) payment.razorpayPaymentId = razorpayPaymentId;
+    payment.metadata = { ...(payment.metadata || {}), failureReason };
+    await payment.save();
+  }
+
+  logAudit(req, 'fee_payment_failed', 'fee', {
+    resourceId: fee._id,
+    description: `Fee payment failed for ${fee.feeType}`,
+    metadata: { studentId: fee.studentId, reason: failureReason, razorpayPaymentId },
+  });
+}
+
+async function captureFeePayment(req, fee, payment, payload) {
+  const paidAmount = Number(payment.amount || 0);
+
+  if (payment.status === 'captured' && fee.receiptNo && Number(fee.paidAmount || 0) >= paidAmount) {
+    return { fee, payment };
+  }
+
+  fee.paidAmount = Number(fee.paidAmount || 0) + paidAmount;
+  fee.paymentMethod = 'online';
+  fee.paidDate = new Date();
+  fee.receiptNo = fee.receiptNo || `FEE-${Date.now()}-${String(fee._id).slice(-6)}`;
+  fee.status = fee.paidAmount >= fee.amount ? 'paid' : 'partial';
+  await fee.save();
+
+  payment.razorpayPaymentId = payload.razorpayPaymentId;
+  payment.razorpaySignature = payload.razorpaySignature || payment.razorpaySignature;
+  payment.status = 'captured';
+  payment.receiptNo = fee.receiptNo;
+  payment.metadata = {
+    ...(payment.metadata || {}),
+    orderStatus: payload.orderStatus,
+    paymentStatus: payload.paymentStatus,
+    paymentMethod: payload.paymentMethod,
+    email: payload.email,
+    contact: payload.contact,
+  };
+  await payment.save();
+
+  logAudit(req, 'fee_payment', 'fee', {
+    resourceId: fee._id,
+    description: `Razorpay payment of ₹${paidAmount} verified for fee`,
+    metadata: { studentId: fee.studentId, amount: paidAmount, paymentId: payload.razorpayPaymentId },
+  });
+  emitDataChange(req, { collegeId: String(req.user.collegeId), roles: ['collegeAdmin', 'superadmin'], resource: 'fees', action: 'paid' });
+
+  return { fee, payment };
 }
 
 async function canAccessFee(req, fee) {
@@ -262,24 +320,106 @@ const verifyFeePayment = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: 'Fee amount changed. Please create a new payment order.' });
   }
 
-  fee.paidAmount = Number(fee.paidAmount || 0) + paidAmount;
-  fee.paymentMethod = 'online';
-  fee.paidDate = new Date();
-  fee.receiptNo = `FEE-${Date.now()}-${String(fee._id).slice(-6)}`;
-  fee.status = fee.paidAmount >= fee.amount ? 'paid' : 'partial';
-  await fee.save();
+  const { order, payment: razorpayPayment } = await confirmRazorpayPayment({
+    orderId: razorpayOrderId,
+    paymentId: razorpayPaymentId,
+    expectedAmount: paidAmount,
+    currency: payment.currency || 'INR',
+  });
 
-  payment.razorpayPaymentId = razorpayPaymentId;
-  payment.razorpaySignature = razorpaySignature;
-  payment.amount = paidAmount;
-  payment.status = 'captured';
-  payment.receiptNo = fee.receiptNo;
-  await payment.save();
+  if (razorpayPayment.status !== 'captured') {
+    await markFeePaymentFailed(req, fee, payment, 'Payment is not captured by Razorpay yet', razorpayPaymentId);
+    return res.status(400).json({ success: false, message: 'Payment is not captured by Razorpay yet' });
+  }
 
-  logAudit(req, 'fee_payment', 'fee', { resourceId: fee._id, description: `Razorpay payment of ₹${paidAmount} verified for fee`, metadata: { studentId: fee.studentId, amount: paidAmount } });
-  emitDataChange(req, { collegeId: String(req.user.collegeId), roles: ['collegeAdmin', 'superadmin'], resource: 'fees', action: 'paid' });
+  await captureFeePayment(req, fee, payment, {
+    razorpayPaymentId,
+    razorpaySignature,
+    orderStatus: order?.status,
+    paymentStatus: razorpayPayment.status,
+    paymentMethod: razorpayPayment.method,
+    email: razorpayPayment.email,
+    contact: razorpayPayment.contact,
+  });
 
   res.json({ success: true, message: 'Payment verified and recorded', fee, receiptNo: fee.receiptNo });
 });
 
-module.exports = { createFee, getFees, payFee, createBulkFees, createFeeOrder, verifyFeePayment };
+// @desc    Get live fee payment status for an order
+const getFeePaymentStatus = asyncHandler(async (req, res) => {
+  const { id } = req.params;
+  const fee = await Fee.findOne({ _id: id, collegeId: req.user.collegeId });
+  if (!fee) return res.status(404).json({ success: false, message: 'Fee not found' });
+
+  if (!(await canAccessFee(req, fee))) {
+    return res.status(403).json({ success: false, message: 'You are not allowed to view this fee payment' });
+  }
+
+  const payment = await Payment.findOne({
+    collegeId: req.user.collegeId,
+    type: 'fee',
+    referenceId: fee._id,
+    razorpayOrderId: req.query.orderId,
+  }).sort({ createdAt: -1 });
+
+  if (!payment) {
+    return res.status(404).json({ success: false, message: 'Payment order not found' });
+  }
+
+  const lookupPaymentId = payment.razorpayPaymentId || req.query.razorpayPaymentId;
+  let razorpayOrder = null;
+  let razorpayPayment = null;
+
+  try {
+    if (lookupPaymentId && payment.status !== 'captured') {
+      const confirmation = await confirmRazorpayPayment({
+        orderId: payment.razorpayOrderId,
+        paymentId: lookupPaymentId,
+        expectedAmount: payment.amount,
+        currency: payment.currency || 'INR',
+      });
+      razorpayOrder = confirmation.order;
+      razorpayPayment = confirmation.payment;
+
+      if (confirmation.localStatus === 'captured') {
+        await captureFeePayment(req, fee, payment, {
+          razorpayPaymentId: razorpayPayment.id,
+          razorpaySignature: payment.razorpaySignature,
+          orderStatus: razorpayOrder?.status,
+          paymentStatus: razorpayPayment.status,
+          paymentMethod: razorpayPayment.method,
+          email: razorpayPayment.email,
+          contact: razorpayPayment.contact,
+        });
+      } else if (confirmation.localStatus === 'failed') {
+        await markFeePaymentFailed(req, fee, payment, 'Razorpay marked the payment as failed', razorpayPayment.id);
+      }
+    }
+  } catch (error) {
+    if (error.statusCode && error.statusCode < 500) throw error;
+  }
+
+  const refreshedPayment = await Payment.findById(payment._id);
+  const refreshedFee = await Fee.findById(fee._id);
+
+  res.json({
+    success: true,
+    fee: refreshedFee,
+    payment: refreshedPayment
+      ? {
+        id: String(refreshedPayment._id),
+        status: refreshedPayment.status,
+        orderId: refreshedPayment.razorpayOrderId,
+        paymentId: refreshedPayment.razorpayPaymentId,
+        receiptNo: refreshedPayment.receiptNo,
+        amount: refreshedPayment.amount,
+      }
+      : null,
+    razorpay: {
+      orderStatus: razorpayOrder?.status || null,
+      paymentStatus: razorpayPayment?.status || null,
+    },
+  });
+});
+
+module.exports = { createFee, getFees, payFee, createBulkFees, createFeeOrder, verifyFeePayment, getFeePaymentStatus };

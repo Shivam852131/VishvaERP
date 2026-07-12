@@ -150,6 +150,30 @@
     return Boolean(window.Razorpay);
   }
 
+  function getFeePendingAmount(fee) {
+    return Math.max(Number(fee?.amount || 0) - Number(fee?.paidAmount || 0), 0);
+  }
+
+  async function pollFeePaymentStatus(feeId, orderId, paymentId, attempts) {
+    let remaining = Number(attempts || 7);
+    while (remaining > 0) {
+      await new Promise((resolve) => window.setTimeout(resolve, 1800));
+      const query = new URLSearchParams();
+      if (orderId) query.set('orderId', orderId);
+      if (paymentId) query.set('razorpayPaymentId', paymentId);
+      const suffix = query.toString() ? `?${query.toString()}` : '';
+      const statusRes = await window.api.request(`/fees/${feeId}/payment-status${suffix}`, { silent: true });
+      if (statusRes?.payment?.status === 'captured' || statusRes?.fee?.status === 'paid' || statusRes?.fee?.status === 'partial') {
+        return statusRes;
+      }
+      if (statusRes?.payment?.status === 'failed' || statusRes?.razorpay?.paymentStatus === 'failed') {
+        throw new Error('Payment failed at gateway');
+      }
+      remaining -= 1;
+    }
+    throw new Error('Payment verification is still pending');
+  }
+
   async function ensureRealtime() {
     if (socketPromise) return socketPromise;
     socketPromise = (async () => {
@@ -984,7 +1008,7 @@
     };
 
     window.openBroadcastModal = function openBroadcastModal() {
-      window.openModal?.('broadcastQuickModal');
+      window.location.href = 'broadcast.html';
     };
 
     function exportOverview() {
@@ -2422,6 +2446,7 @@
   }
 
   async function initCollegeAdminFeesPage() {
+    await ensureRealtime();
     const searchInput = cloneById('feeSearch');
     const statusFilter = cloneById('feeStatusFilter');
     const exportBtn = cloneById('exportFeesBtn');
@@ -2499,7 +2524,7 @@
     }
 
     window.recordExistingFee = async function recordExistingFee(id, amount) {
-      await window.api.request(`/fees/${id}/pay`, { method: 'POST', body: JSON.stringify({ amount, paymentMethod: 'online', receiptNo: `ADMIN-${Date.now()}` }) });
+      await window.api.request(`/fees/${id}/pay`, { method: 'POST', body: JSON.stringify({ amount, paymentMethod: 'cash', receiptNo: `ADMIN-${Date.now()}` }) });
       window.showToast?.('Payment recorded successfully', 'success');
       await loadFees();
     };
@@ -2543,11 +2568,11 @@
                   razorpaySignature: response.razorpay_signature,
                   feeId: orderRes.feeId,
                 }),
-              });
+              }).catch(() => pollFeePaymentStatus(orderRes.feeId, response.razorpay_order_id, response.razorpay_payment_id, 7));
               window.showToast?.('Online fee payment verified', 'success');
               await loadFees();
             } catch (error) {
-              window.showToast?.('Payment received but verification failed. Contact support.', 'warning');
+              window.showToast?.(error.message || 'Payment received but verification failed. Contact support.', 'warning');
             }
           },
           prefill: { name: student.name || user.name || '', email: user.email || '', contact: user.phone || '' },

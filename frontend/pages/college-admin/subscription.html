@@ -439,6 +439,18 @@
     return{...s,status:s.isActive?'active':(s.status||'none'),expiryDate:s.endDate||s.expiryDate,price:s.price||s.amount};
   }
   function normalizePayment(p){return{...p,date:p.date||p.createdAt,paymentId:p.paymentId||p.razorpayPaymentId||p.receiptNo||p.id,status:p.status==='captured'?'success':p.status}}
+  async function pollSubscriptionActivation(subscriptionId, paymentId, attempts){
+    let remaining=Number(attempts||7);
+    while(remaining>0){
+      await new Promise(resolve=>window.setTimeout(resolve,1800));
+      const q=paymentId?`?razorpayPaymentId=${encodeURIComponent(paymentId)}`:'';
+      const res=await window.api.request(`/subscriptions/status/${subscriptionId}${q}`,{silent:true});
+      if(res?.subscription?.status==='active'||res?.payment?.status==='captured')return res;
+      if(res?.payment?.status==='failed'||res?.subscription?.status==='failed')throw new Error('Payment failed at gateway');
+      remaining-=1;
+    }
+    throw new Error('Subscription activation is still pending');
+  }
   function getPlans(){return(plans.length?plans:PLANS_DATA).map(p=>{const fb=PLANS_DATA.find(x=>x.id===p.id)||{};return{...fb,...p,price:p.price||p.pricing||fb.price||{},features:p.features||fb.features||[],limits:fb.limits||{}}})}
   function setCurrentTab(tab){
     document.querySelectorAll('[id^="tab-"]').forEach(el=>el.style.display='none');
@@ -793,7 +805,7 @@
   async function initiatePayment(planId,cycle){
     const plan=getPlans().find(p=>p.id===planId);
     const user=window.api.getUser();
-    if(!window.Razorpay){showToast('Payment gateway loading...','warning');return;}
+    if(!window.Razorpay){showToast('Payment gateway is not available right now','error');return;}
     try{
       const orderRes=await window.api.request('/subscriptions/create-order',{method:'POST',body:JSON.stringify({plan:planId,billingCycle:cycle})});
       if(!orderRes||!orderRes.order||!orderRes.key){showToast('Failed to create payment order','error');return;}
@@ -801,15 +813,17 @@
         key:orderRes.key,amount:orderRes.order.amount,currency:orderRes.order.currency||'INR',
         name:'Vishva ERP',description:plan.name+' Subscription ('+cycle.charAt(0).toUpperCase()+cycle.slice(1)+')',
         order_id:orderRes.order.id,
+        image:'/icons/icon.svg',
+        notes:{subscriptionId:orderRes.subscriptionId,plan:planId,billingCycle:cycle},
         handler:async function(response){
           try{
-            await window.api.request('/subscriptions/verify',{method:'POST',body:JSON.stringify({razorpayOrderId:response.razorpay_order_id,razorpayPaymentId:response.razorpay_payment_id,razorpaySignature:response.razorpay_signature,subscriptionId:orderRes.subscriptionId})});
+            await window.api.request('/subscriptions/verify',{method:'POST',body:JSON.stringify({razorpayOrderId:response.razorpay_order_id,razorpayPaymentId:response.razorpay_payment_id,razorpaySignature:response.razorpay_signature,subscriptionId:orderRes.subscriptionId})}).catch(()=>pollSubscriptionActivation(orderRes.subscriptionId,response.razorpay_payment_id,7));
             showToast('Payment successful! Subscription activated.','success');loadAll();
-          }catch(e){showToast('Payment received but verification failed.','warning');}
+          }catch(e){showToast(e.message||'Payment received but verification failed.','warning');}
         },
         prefill:{name:user?.name||'',email:user?.email||'',contact:user?.phone||''},
         theme:{color:plan.color||'#4F46E5'},
-        modal:{ondismiss:function(){showToast('Payment cancelled.','info')}}
+        modal:{confirm_close:true,ondismiss:function(){showToast('Payment window closed.','info')}}
       };
       const rzp=new window.Razorpay(options);
       rzp.on('payment.failed',function(r){showToast('Payment failed: '+(r.error?.description||'Unknown error'),'error')});

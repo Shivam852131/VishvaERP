@@ -108,6 +108,14 @@ app.use(helmet({
   contentSecurityPolicy: false,
   referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
 }));
+
+// Razorpay webhooks need the untouched raw body for signature verification.
+app.post(
+  '/api/razorpay/webhook',
+  express.raw({ type: 'application/json', limit: '2mb' }),
+  require('./controllers/razorpayWebhookController').handleRazorpayWebhook
+);
+
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 app.use(sanitize);

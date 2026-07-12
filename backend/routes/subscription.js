@@ -5,6 +5,7 @@ const {
   getPlans,
   createOrder,
   verifyPayment,
+  getSubscriptionPaymentStatus,
   getSubscription,
   getPaymentHistory,
   getSubscriptionStatus,
@@ -22,6 +23,7 @@ router.use(sameCollege);
 
 router.post('/create-order', authorize('collegeAdmin', 'superadmin'), createOrder);
 router.post('/verify', authorize('collegeAdmin', 'superadmin'), verifyPayment);
+router.get('/status/:subscriptionId', authorize('collegeAdmin', 'superadmin'), getSubscriptionPaymentStatus);
 router.get('/current', authorize('collegeAdmin', 'superadmin'), getSubscription);
 router.get('/status', authorize('collegeAdmin', 'superadmin'), getSubscriptionStatus);
 router.get('/payments', authorize('collegeAdmin', 'superadmin'), getPaymentHistory);

@@ -37,7 +37,7 @@ services:
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRE: ${JWT_EXPIRE:-7d}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
-      FRONTEND_URL: ${FRONTEND_URL:-https://vishvaerp.com}
+      FRONTEND_URL: ${FRONTEND_URL:-https://vishvaerp.vercel.app/}
       SUPER_ADMIN_EMAIL: ${SUPER_ADMIN_EMAIL:-superadmin@vishvaerp.com}
       SUPER_ADMIN_PASSWORD: ${SUPER_ADMIN_PASSWORD:-SuperAdmin@123}
       LOG_LEVEL: info
