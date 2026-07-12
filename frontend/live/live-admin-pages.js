@@ -2452,6 +2452,26 @@
     const exportBtn = cloneById('exportFeesBtn');
     const reminderBtn = cloneById('sendReminderBtn');
     let fees = [];
+    let installments = [];
+    let currentView = 'fees';
+
+    function switchFeeView(view) {
+      currentView = view;
+      byId('feesCard').style.display = view === 'fees' ? '' : 'none';
+      byId('installmentsCard').style.display = view === 'installments' ? '' : 'none';
+      byId('overdueCard').style.display = view === 'overdue' ? '' : 'none';
+      ['viewFeesTab', 'viewInstallmentsTab', 'viewOverdueTab'].forEach((id) => {
+        const btn = byId(id);
+        if (btn) { btn.className = 'btn btn-sm'; }
+      });
+      const activeId = view === 'fees' ? 'viewFeesTab' : view === 'installments' ? 'viewInstallmentsTab' : 'viewOverdueTab';
+      const activeBtn = byId(activeId);
+      if (activeBtn) activeBtn.className = 'btn btn-sm btn-primary';
+      if (view === 'installments') renderInstallments();
+      if (view === 'overdue') renderOverdue();
+      if (view === 'fees') renderFees();
+    }
+    window.switchFeeView = switchFeeView;
 
     function renderCharts() {
       const collectionCanvas = replaceCanvas('feeCollectionChart');
@@ -2479,7 +2499,7 @@
       if (statusCanvas && window.Chart) {
         new window.Chart(statusCanvas, {
           type: 'doughnut',
-          data: { labels: Object.keys(statusMap), datasets: [{ data: Object.values(statusMap), backgroundColor: ['#10B981', '#F59E0B', '#EF4444', '#94A3B8'], borderWidth: 0 }] },
+          data: { labels: Object.keys(statusMap), datasets: [{ data: Object.values(statusMap), backgroundColor: ['#10B981', '#F59E0B', '#EF4444', '#94A3B8', '#8B5CF6'], borderWidth: 0 }] },
           options: { ...getChartDefaults(), cutout: '65%' },
         });
       }
@@ -2502,25 +2522,81 @@
       setStatCard(3, 'Collection Rate', `${totalAmount ? Math.round((collected / totalAmount) * 100) : 0}%`);
 
       if (!filtered.length) return renderEmptyTable('feeBody', 8, 'No fee records found', 'fa-file-invoice-dollar');
-      setHTML('feeBody', filtered.map((item, index) => `
+      setHTML('feeBody', filtered.map((item, index) => {
+        const pending = Math.max(Number(item.amount || 0) - Number(item.paidAmount || 0), 0);
+        return `
         <tr>
           <td style="color:#94A3B8;font-size:12px">${index + 1}</td>
           <td><div style="font-weight:600">${escapeHTML(item.studentId?.name || '-')}</div><div style="font-size:11px;color:#94A3B8">${escapeHTML(item.studentId?.rollNo || '-')}</div></td>
-          <td style="font-weight:700">${formatMoney(item.amount)}</td>
+          <td style="font-weight:700">${formatMoney(item.amount)}${item.discountAmount ? `<div style="font-size:10px;color:#8B5CF6">-${formatMoney(item.discountAmount)} disc</div>` : ''}</td>
           <td><span class="badge badge-gray">${escapeHTML(item.feeType || 'other')}</span></td>
           <td style="font-size:12px;color:#64748B">${formatDate(item.dueDate)}</td>
           <td style="font-size:12px;color:#64748B">${item.paidDate ? formatDate(item.paidDate) : '-'}</td>
-          <td><span class="badge ${item.status === 'paid' ? 'badge-success' : item.status === 'overdue' ? 'badge-danger' : 'badge-warning'}">${escapeHTML(item.status)}</span></td>
-          <td><div style="display:flex;gap:5px;flex-wrap:wrap">${item.status !== 'paid' ? `<button class="btn btn-xs btn-primary" title="Collect online with Razorpay" onclick="payExistingFeeOnline('${item._id}')"><i class="fas fa-credit-card"></i></button><button class="btn btn-xs btn-success" title="Mark as collected manually" onclick="recordExistingFee('${item._id}', ${Math.max(Number(item.amount || 0) - Number(item.paidAmount || 0), 0)})"><i class="fas fa-check"></i></button>` : ''}<button class="btn btn-xs btn-secondary" onclick="showToast('${escapeHTML(item.receiptNo || 'No receipt')}', 'info')"><i class="fas fa-file-invoice"></i></button></div></td>
-        </tr>
-      `).join(''));
+          <td><span class="badge ${item.status === 'paid' ? 'badge-success' : item.status === 'overdue' ? 'badge-danger' : item.status === 'waived' ? 'badge-info' : item.status === 'partial' ? 'badge-warning' : 'badge-warning'}">${escapeHTML(item.status)}</span></td>
+          <td><div style="display:flex;gap:4px;flex-wrap:wrap">${item.status !== 'paid' && item.status !== 'waived' ? `<button class="btn btn-xs btn-primary" title="Collect online" onclick="payExistingFeeOnline('${item._id}')"><i class="fas fa-credit-card"></i></button><button class="btn btn-xs btn-success" title="Mark collected" onclick="recordExistingFee('${item._id}', ${pending})"><i class="fas fa-check"></i></button><button class="btn btn-xs btn-secondary" title="Discount" onclick="openDiscountModal('${item._id}')"><i class="fas fa-percentage"></i></button><button class="btn btn-xs btn-danger" title="Waive" onclick="openWaiveModal('${item._id}')"><i class="fas fa-ban"></i></button>` : ''}<button class="btn btn-xs btn-secondary" onclick="showToast('${escapeHTML(item.receiptNo || 'No receipt')}', 'info')"><i class="fas fa-file-invoice"></i></button></div></td>
+        </tr>`;
+      }).join(''));
       renderCharts();
     }
 
+    function renderInstallments() {
+      const query = (searchInput?.value || '').toLowerCase();
+      const allInst = [];
+      installments.forEach((fee) => {
+        (fee.installments || []).forEach((inst) => {
+          allInst.push({ ...inst, feeId: fee._id, studentName: fee.studentId?.name, rollNo: fee.studentId?.rollNo, feeType: fee.feeType });
+        });
+      });
+      const filtered = allInst.filter((inst) => {
+        if (query && ![inst.studentName, inst.rollNo].join(' ').toLowerCase().includes(query)) return false;
+        return true;
+      });
+      if (!filtered.length) return renderEmptyTable('installmentBody', 9, 'No installments found', 'fa-list-ol');
+      setHTML('installmentBody', filtered.map((inst, i) => `
+        <tr>
+          <td style="color:#94A3B8;font-size:12px">${i + 1}</td>
+          <td><div style="font-weight:600">${escapeHTML(inst.studentName || '-')}</div><div style="font-size:11px;color:#94A3B8">${escapeHTML(inst.rollNo || '-')}</div></td>
+          <td><span class="badge badge-gray">${escapeHTML(inst.feeType || '-')}</span></td>
+          <td style="font-weight:700">#${inst.installmentNumber}</td>
+          <td style="font-weight:700">${formatMoney(inst.amount)}${inst.paidAmount ? `<div style="font-size:10px;color:#10B981">Paid: ${formatMoney(inst.paidAmount)}</div>` : ''}</td>
+          <td style="font-size:12px;color:#64748B">${formatDate(inst.dueDate)}</td>
+          <td>${inst.lateFee ? `<span style="color:#EF4444;font-weight:600">${formatMoney(inst.lateFee)}</span>` : '-'}</td>
+          <td><span class="badge ${inst.status === 'paid' ? 'badge-success' : inst.status === 'overdue' ? 'badge-danger' : inst.status === 'waived' ? 'badge-info' : 'badge-warning'}">${escapeHTML(inst.status)}</span></td>
+          <td><div style="display:flex;gap:4px">${inst.status !== 'paid' && inst.status !== 'waived' ? `<button class="btn btn-xs btn-primary" title="Pay installment" onclick="payInstallment('${inst.feeId}','${inst._id}')"><i class="fas fa-credit-card"></i></button>` : ''}</div></td>
+        </tr>
+      `).join(''));
+    }
+
+    function renderOverdue() {
+      const now = new Date();
+      const overdue = fees.filter((f) => f.status !== 'paid' && f.status !== 'waived' && new Date(f.dueDate) < now);
+      if (!overdue.length) return renderEmptyTable('overdueBody', 7, 'No overdue fees', 'fa-check-circle');
+      setHTML('overdueBody', overdue.map((item, i) => {
+        const daysOverdue = Math.floor((now - new Date(item.dueDate)) / 86400000);
+        const pending = Math.max(Number(item.amount || 0) - Number(item.paidAmount || 0), 0);
+        return `
+        <tr>
+          <td style="color:#94A3B8;font-size:12px">${i + 1}</td>
+          <td><div style="font-weight:600">${escapeHTML(item.studentId?.name || '-')}</div><div style="font-size:11px;color:#94A3B8">${escapeHTML(item.studentId?.rollNo || '-')}</div></td>
+          <td style="font-weight:700;color:#EF4444">${formatMoney(pending)}</td>
+          <td style="font-size:12px;color:#64748B">${formatDate(item.dueDate)}</td>
+          <td><span class="badge badge-danger">${daysOverdue} days</span></td>
+          <td>${item.totalLateFee ? `<span style="color:#EF4444;font-weight:600">${formatMoney(item.totalLateFee)}</span>` : '-'}</td>
+          <td><div style="display:flex;gap:4px"><button class="btn btn-xs btn-primary" onclick="payExistingFeeOnline('${item._id}')"><i class="fas fa-credit-card"></i></button><button class="btn btn-xs btn-success" onclick="recordExistingFee('${item._id}', ${pending})"><i class="fas fa-check"></i></button></div></td>
+        </tr>`;
+      }).join(''));
+    }
+
     async function loadFees() {
-      const res = await window.api.request('/fees', { silent: true });
-      fees = res.fees || [];
-      renderFees();
+      const [feeRes, instRes] = await Promise.all([
+        window.api.request('/fees', { silent: true }),
+        window.api.request('/fees/installments', { silent: true }).catch(() => ({ fees: [] })),
+      ]);
+      fees = feeRes.fees || [];
+      installments = instRes.fees || [];
+      if (currentView === 'fees') renderFees();
+      else if (currentView === 'installments') renderInstallments();
+      else if (currentView === 'overdue') renderOverdue();
     }
 
     window.recordExistingFee = async function recordExistingFee(id, amount) {
@@ -2589,6 +2665,35 @@
       } catch (error) {
         window.showToast?.(error.message || 'Could not initiate online payment', 'error');
       }
+    };
+
+    window.payInstallment = async function payInstallment(feeId, installmentId) {
+      try {
+        await ensureRazorpayCheckout();
+        if (!window.Razorpay) { window.showToast?.('Payment gateway failed to load', 'error'); return; }
+        const orderRes = await window.api.request(`/fees/${feeId}/installments/${installmentId}/create-order`, { method: 'POST' });
+        if (!orderRes?.order || !orderRes.key) { window.showToast?.('Failed to create order', 'error'); return; }
+        const fee = fees.find((f) => String(f._id) === String(feeId));
+        const user = getUser() || {};
+        const student = fee?.studentId || {};
+        const rzp = new window.Razorpay({
+          key: orderRes.key, amount: orderRes.order.amount, currency: orderRes.order.currency || 'INR',
+          name: 'Vishva ERP', description: `Installment #${orderRes.installmentId || ''} Payment`,
+          order_id: orderRes.order.id,
+          handler: async (response) => {
+            try {
+              await window.api.request('/fees/verify-payment', { method: 'POST', body: JSON.stringify({ razorpayOrderId: response.razorpay_order_id, razorpayPaymentId: response.razorpay_payment_id, razorpaySignature: response.razorpay_signature, feeId }) });
+            } catch {}
+            window.showToast?.('Installment payment verified', 'success');
+            await loadFees();
+          },
+          prefill: { name: student.name || user.name || '', email: user.email || '' },
+          theme: { color: '#4F46E5' },
+          modal: { ondismiss: () => window.showToast?.('Payment cancelled', 'info') },
+        });
+        rzp.on('payment.failed', (resp) => window.showToast?.('Payment failed: ' + (resp.error?.description || 'Unknown'), 'error'));
+        rzp.open();
+      } catch (error) { window.showToast?.(error.message || 'Could not initiate payment', 'error'); }
     };
 
     window.recordFee = async function recordFee() {
@@ -2674,6 +2779,54 @@
       select.onchange();
     }
 
+    window.openDiscountModal = function openDiscountModal(feeId) {
+      byId('discountFeeId').value = feeId;
+      byId('discountType').value = 'percentage';
+      byId('discountValue').value = '';
+      byId('discountReason').value = '';
+      byId('discountScholarshipName').value = '';
+      byId('scholarshipNameGroup').style.display = 'none';
+      openModal('discountModal');
+    };
+    byId('discountType')?.addEventListener('change', function () {
+      byId('scholarshipNameGroup').style.display = this.value === 'scholarship' ? '' : 'none';
+    });
+
+    window.executeDiscount = async function executeDiscount() {
+      const id = byId('discountFeeId').value;
+      const payload = {
+        discountType: byId('discountType').value,
+        discountValue: Number(byId('discountValue').value || 0),
+        discountReason: byId('discountReason').value.trim(),
+        scholarshipName: byId('discountType').value === 'scholarship' ? byId('discountScholarshipName').value.trim() : undefined,
+      };
+      if (!payload.discountValue && payload.discountType !== 'scholarship') return window.showToast?.('Enter a discount value', 'error');
+      await window.api.request(`/fees/${id}/discount`, { method: 'POST', body: JSON.stringify(payload) });
+      window.closeModal?.('discountModal');
+      window.showToast?.('Discount applied', 'success');
+      await loadFees();
+    };
+
+    window.openWaiveModal = function openWaiveModal(feeId) {
+      byId('waiveFeeId').value = feeId;
+      byId('waiveReason').value = '';
+      openModal('waiveModal');
+    };
+
+    window.executeWaive = async function executeWaive() {
+      const id = byId('waiveFeeId').value;
+      await window.api.request(`/fees/${id}/waive`, { method: 'POST', body: JSON.stringify({ reason: byId('waiveReason').value.trim() || 'Waived by admin' }) });
+      window.closeModal?.('waiveModal');
+      window.showToast?.('Fee waived', 'success');
+      await loadFees();
+    };
+
+    window.applyLateFees = async function applyLateFees() {
+      const res = await window.api.request('/fees/late-fees/apply', { method: 'POST' });
+      window.showToast?.(`Late fees applied to ${res.updated || 0} records`, 'success');
+      await loadFees();
+    };
+
     const collectModal = byId('collectOnlineModal');
     if (collectModal) {
       const observer = new MutationObserver(() => {
@@ -2684,13 +2837,281 @@
       observer.observe(collectModal, { attributes: true, attributeFilter: ['class', 'style'] });
     }
 
-    if (searchInput) searchInput.oninput = renderFees;
+    if (searchInput) searchInput.oninput = debounce(() => { if (currentView === 'fees') renderFees(); else if (currentView === 'installments') renderInstallments(); else renderOverdue(); }, 250);
     if (statusFilter) statusFilter.onchange = renderFees;
     if (exportBtn) exportBtn.onclick = function exportFees() { downloadCsv('fees.csv', [['Student', 'Roll', 'Amount', 'Type', 'Due Date', 'Status'], ...fees.map((item) => [item.studentId?.name, item.studentId?.rollNo, item.amount, item.feeType, formatDate(item.dueDate), item.status])]); };
     if (reminderBtn) reminderBtn.onclick = function remindPending() { window.showToast?.(`${fees.filter((item) => item.status !== 'paid').length} pending fee reminders queued`, 'info'); };
 
     window.__erpAdminPageRefresh = loadFees;
     await loadFees();
+  }
+
+  async function initCollegeAdminFeeStructuresPage() {
+    await ensureRealtime();
+    const searchInput = cloneById('structureSearch');
+    const statusFilter = cloneById('statusFilter');
+    const exportBtn = cloneById('exportStructuresBtn');
+    let structures = [];
+    let deletingStructureId = null;
+    let componentCount = 0;
+
+    const feeTypes = ['tuition', 'hostel', 'transport', 'library', 'lab', 'exam', 'development', 'exam-retake', 'sports', 'other'];
+
+    function addFeeComponent(name, feeType, amount) {
+      componentCount++;
+      const id = componentCount;
+      const container = byId('componentsList');
+      if (!container) return;
+      const row = document.createElement('div');
+      row.id = `comp-${id}`;
+      row.style.cssText = 'display:grid;grid-template-columns:1fr 130px 110px 32px;gap:8px;align-items:center;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;padding:10px 12px';
+      row.innerHTML = `
+        <input class="form-control comp-name" value="${escapeHTML(name || '')}" placeholder="Component name" style="border:1px solid #E2E8F0;border-radius:6px;height:36px;font-size:12px">
+        <select class="form-control comp-type" style="border:1px solid #E2E8F0;border-radius:6px;height:36px;font-size:12px">${feeTypes.map((t) => `<option value="${t}" ${t === feeType ? 'selected' : ''}>${t}</option>`).join('')}</select>
+        <input class="form-control comp-amount" type="number" min="0" value="${amount || 0}" placeholder="₹" style="border:1px solid #E2E8F0;border-radius:6px;height:36px;font-size:12px" oninput="recalcComponentTotal()">
+        <button class="btn btn-xs btn-danger" onclick="document.getElementById('comp-${id}').remove();recalcComponentTotal()" style="height:32px;width:32px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:6px"><i class="fas fa-times"></i></button>
+      `;
+      container.appendChild(row);
+      recalcComponentTotal();
+    }
+    window.addFeeComponent = addFeeComponent;
+
+    window.recalcComponentTotal = function recalcComponentTotal() {
+      const total = qa('.comp-amount').reduce((sum, input) => sum + Number(input.value || 0), 0);
+      const el = byId('componentTotal');
+      if (el) el.textContent = `₹${total.toLocaleString('en-IN')}`;
+    };
+
+    function getComponents() {
+      return qa('#componentsList > div').map((row) => ({
+        name: row.querySelector('.comp-name')?.value.trim() || '',
+        feeType: row.querySelector('.comp-type')?.value || 'other',
+        amount: Number(row.querySelector('.comp-amount')?.value || 0),
+      })).filter((c) => c.name && c.amount > 0);
+    }
+
+    function renderStructures() {
+      const query = (searchInput?.value || '').toLowerCase();
+      const filtered = structures.filter((s) => {
+        if (query && ![s.name, s.department, s.academicYear].join(' ').toLowerCase().includes(query)) return false;
+        if (statusFilter?.value && s.status !== statusFilter.value) return false;
+        return true;
+      });
+
+      setText('statTotalStructures', String(structures.length));
+      setText('statActiveStructures', String(structures.filter((s) => s.status === 'active').length));
+      setText('statAssigned', String(structures.reduce((sum, s) => sum + (s.assignedCount || 0), 0)));
+      setText('statTotalCollected', formatMoney(structures.reduce((sum, s) => sum + (s.totalCollected || 0), 0)));
+
+      if (!filtered.length) return renderEmptyTable('structureBody', 8, 'No fee structures found', 'fa-layer-group');
+      setHTML('structureBody', filtered.map((s, i) => `
+        <tr>
+          <td style="color:#94A3B8;font-size:12px">${i + 1}</td>
+          <td><div style="font-weight:600">${escapeHTML(s.name)}</div><div style="font-size:11px;color:#94A3B8">${escapeHTML(s.department || 'All Depts')}</div></td>
+          <td style="font-weight:700">${formatMoney(s.totalAmount)}</td>
+          <td style="font-size:12px;color:#64748B">${escapeHTML(s.academicYear || '-')}</td>
+          <td style="font-size:12px;color:#64748B">${s.semester || '-'}</td>
+          <td><span class="badge ${s.status === 'active' ? 'badge-success' : s.status === 'draft' ? 'badge-warning' : 'badge-gray'}">${escapeHTML(s.status)}</span></td>
+          <td><span class="badge badge-info">${s.assignedCount || 0}</span></td>
+          <td>
+            <div style="display:flex;gap:4px;flex-wrap:wrap">
+              <button class="btn btn-xs btn-primary" title="Assign" onclick="openAssignModal('${s._id}')"><i class="fas fa-user-plus"></i></button>
+              <button class="btn btn-xs btn-secondary" title="Edit" onclick="editStructure('${s._id}')"><i class="fas fa-pen"></i></button>
+              <button class="btn btn-xs btn-danger" title="Delete" onclick="confirmDeleteStructure('${s._id}','${escapeHTML(s.name).replace(/'/g, "\\'")}')"><i class="fas fa-trash"></i></button>
+            </div>
+          </td>
+        </tr>
+      `).join(''));
+    }
+
+    async function loadStructures() {
+      const res = await window.api.request('/fees/structures', { silent: true });
+      structures = res.structures || [];
+      renderStructures();
+    }
+
+    window.openCreateStructureModal = function openCreateStructureModal() {
+      byId('editingStructureId').value = '';
+      byId('structureModalTitle').innerHTML = '<i class="fas fa-layer-group" style="color:#4F46E5;margin-right:8px"></i>Create Fee Structure';
+      byId('stName').value = '';
+      byId('stYear').value = '';
+      byId('stDesc').value = '';
+      byId('stDept').value = '';
+      byId('stSem').value = '';
+      byId('stInstallmentEnabled').checked = false;
+      byId('installmentOptions').style.display = 'none';
+      byId('stInstallmentCount').value = '3';
+      byId('stInstallmentFreq').value = 'monthly';
+      byId('stLateFeeEnabled').checked = false;
+      byId('lateFeeOptions').style.display = 'none';
+      byId('stLateFeePerDay').value = '50';
+      byId('stLateFeeCap').value = '2000';
+      byId('componentsList').innerHTML = '';
+      componentCount = 0;
+      addFeeComponent('Tuition Fee', 'tuition', 45000);
+      addFeeComponent('Development Fund', 'development', 5000);
+      openModal('structureModal');
+    };
+
+    window.editStructure = function editStructure(id) {
+      const s = structures.find((x) => x._id === id);
+      if (!s) return;
+      byId('editingStructureId').value = id;
+      byId('structureModalTitle').innerHTML = '<i class="fas fa-layer-group" style="color:#4F46E5;margin-right:8px"></i>Edit Fee Structure';
+      byId('stName').value = s.name || '';
+      byId('stYear').value = s.academicYear || '';
+      byId('stDesc').value = s.description || '';
+      byId('stDept').value = s.department || '';
+      byId('stSem').value = s.semester || '';
+      byId('stInstallmentEnabled').checked = s.installmentEnabled || false;
+      byId('installmentOptions').style.display = s.installmentEnabled ? '' : 'none';
+      byId('stInstallmentCount').value = s.installmentCount || 3;
+      byId('stInstallmentFreq').value = s.installmentFrequency || 'monthly';
+      byId('stLateFeeEnabled').checked = (s.lateFeePerDay || 0) > 0;
+      byId('lateFeeOptions').style.display = (s.lateFeePerDay || 0) > 0 ? '' : 'none';
+      byId('stLateFeePerDay').value = s.lateFeePerDay || 0;
+      byId('stLateFeeCap').value = s.lateFeeCap || 0;
+      byId('componentsList').innerHTML = '';
+      componentCount = 0;
+      (s.components || []).forEach((c) => addFeeComponent(c.name, c.feeType, c.amount));
+      openModal('structureModal');
+    };
+
+    window.saveStructure = async function saveStructure() {
+      const id = byId('editingStructureId').value;
+      const components = getComponents();
+      if (!components.length) return window.showToast?.('Add at least one fee component', 'error');
+      const payload = {
+        name: byId('stName').value.trim(),
+        academicYear: byId('stYear').value.trim(),
+        description: byId('stDesc').value.trim(),
+        department: byId('stDept').value.trim(),
+        semester: byId('stSem').value ? Number(byId('stSem').value) : undefined,
+        components,
+        installmentEnabled: byId('stInstallmentEnabled').checked,
+        installmentCount: byId('stInstallmentEnabled').checked ? Number(byId('stInstallmentCount').value) : 1,
+        installmentFrequency: byId('stInstallmentFreq').value,
+        lateFeePerDay: byId('stLateFeeEnabled').checked ? Number(byId('stLateFeePerDay').value) : 0,
+        lateFeeCap: byId('stLateFeeEnabled').checked ? Number(byId('stLateFeeCap').value) : 0,
+      };
+      if (!payload.name || !payload.academicYear) return window.showToast?.('Name and academic year are required', 'error');
+      const button = byId('saveStructureBtn');
+      setLoading(button, true);
+      try {
+        if (id) {
+          await window.api.request(`/fees/structures/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+          window.showToast?.('Structure updated', 'success');
+        } else {
+          await window.api.request('/fees/structures', { method: 'POST', body: JSON.stringify(payload) });
+          window.showToast?.('Structure created', 'success');
+        }
+        closeModal('structureModal');
+        await loadStructures();
+      } finally {
+        setLoading(button, false);
+      }
+    };
+
+    window.confirmDeleteStructure = function confirmDeleteStructure(id, name) {
+      deletingStructureId = id;
+      setText('deleteStructureName', name);
+      openModal('deleteStructureModal');
+    };
+
+    window.executeDeleteStructure = async function executeDeleteStructure() {
+      if (!deletingStructureId) return;
+      await window.api.request(`/fees/structures/${deletingStructureId}`, { method: 'DELETE' });
+      closeModal('deleteStructureModal');
+      window.showToast?.('Structure deleted', 'success');
+      deletingStructureId = null;
+      await loadStructures();
+    };
+
+    window.openAssignModal = function openAssignModal(id) {
+      const s = structures.find((x) => x._id === id);
+      if (!s) return;
+      byId('assignStructureId').value = id;
+      byId('assignDept').value = s.department || '';
+      byId('assignSem').value = s.semester || '';
+      byId('assignDueDate').value = '';
+      byId('assignDiscountType').value = 'none';
+      byId('assignDiscountValue').value = '0';
+      byId('assignDiscountValue').disabled = true;
+      byId('assignScholarshipGroup').style.display = 'none';
+      byId('assignDiscountReason').value = '';
+      byId('executeAssignBtn').disabled = false;
+      const preview = byId('assignPreview');
+      if (preview) {
+        preview.style.display = '';
+        setText('assignPreviewName', s.name);
+        setText('assignPreviewAmount', formatMoney(s.totalAmount));
+        setText('assignPreviewFinal', formatMoney(s.totalAmount));
+      }
+      openModal('assignStructureModal');
+    };
+
+    byId('assignDiscountType')?.addEventListener('change', function () {
+      const val = this.value;
+      byId('assignDiscountValue').disabled = val === 'none';
+      byId('assignScholarshipGroup').style.display = val === 'scholarship' ? '' : 'none';
+      updateAssignPreview();
+    });
+    byId('assignDiscountValue')?.addEventListener('input', updateAssignPreview);
+
+    function updateAssignPreview() {
+      const id = byId('assignStructureId').value;
+      const s = structures.find((x) => x._id === id);
+      if (!s) return;
+      const total = Number(s.totalAmount || 0);
+      const discType = byId('assignDiscountType')?.value || 'none';
+      const discVal = Number(byId('assignDiscountValue')?.value || 0);
+      const discAmt = discType === 'percentage' ? Math.round(total * (discVal / 100)) : discType === 'fixed' ? discVal : 0;
+      const final = Math.max(total - discAmt, 0);
+      setText('assignPreviewAmount', formatMoney(total));
+      setText('assignPreviewFinal', formatMoney(final));
+    }
+
+    window.executeAssign = async function executeAssign() {
+      const id = byId('assignStructureId').value;
+      if (!id) return;
+      const button = byId('executeAssignBtn');
+      setLoading(button, true);
+      try {
+        const payload = {
+          structureId: id,
+          department: byId('assignDept').value.trim(),
+          semester: byId('assignSem').value || undefined,
+          dueDate: byId('assignDueDate').value || undefined,
+          discountType: byId('assignDiscountType').value,
+          discountValue: Number(byId('assignDiscountValue').value || 0),
+          discountReason: byId('assignDiscountReason').value.trim(),
+          scholarshipName: byId('assignDiscountType').value === 'scholarship' ? byId('assignScholarshipName')?.value.trim() : undefined,
+        };
+        const res = await window.api.request('/fees/structures/assign', { method: 'POST', body: JSON.stringify(payload) });
+        closeModal('assignStructureModal');
+        window.showToast?.(`Assigned to ${res.count || 0} students`, 'success');
+        await loadStructures();
+      } finally {
+        setLoading(button, false);
+      }
+    };
+
+    if (searchInput) searchInput.oninput = debounce(renderStructures, 250);
+    if (statusFilter) statusFilter.onchange = renderStructures;
+    if (exportBtn) exportBtn.onclick = function exportStructures() {
+      downloadCsv('fee-structures.csv', [['Name', 'Amount', 'Year', 'Semester', 'Status', 'Assigned', 'Collected'], ...structures.map((s) => [s.name, s.totalAmount, s.academicYear, s.semester || '', s.status, s.assignedCount || 0, s.totalCollected || 0])]);
+      window.showToast?.('Structures exported', 'success');
+    };
+
+    document.getElementById('stInstallmentEnabled')?.addEventListener('change', function () {
+      document.getElementById('installmentOptions').style.display = this.checked ? '' : 'none';
+    });
+    document.getElementById('stLateFeeEnabled')?.addEventListener('change', function () {
+      document.getElementById('lateFeeOptions').style.display = this.checked ? '' : 'none';
+    });
+
+    window.__erpAdminPageRefresh = loadStructures;
+    await loadStructures();
   }
 
   async function initCollegeAdminNoticesPage() {
@@ -4360,6 +4781,7 @@
     if (path.endsWith('/pages/college-admin/dashboard.html')) return initCollegeAdminDashboardPage();
     if (path.endsWith('/pages/college-admin/students.html')) return initCollegeAdminStudentsPage();
     if (path.endsWith('/pages/college-admin/faculty.html')) return initCollegeAdminFacultyPage();
+    if (path.endsWith('/pages/college-admin/fee-structures.html')) return initCollegeAdminFeeStructuresPage();
     if (path.endsWith('/pages/college-admin/fees.html')) return initCollegeAdminFeesPage();
     if (path.endsWith('/pages/college-admin/notices.html')) return initCollegeAdminNoticesPage();
     if (path.endsWith('/pages/college-admin/hr.html')) return initCollegeAdminHrPage();

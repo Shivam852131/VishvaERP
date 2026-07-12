@@ -45,7 +45,11 @@
           <h1 class="page-title">💳 Fee Information</h1>
           <p class="page-subtitle">Manage tuition, hostel, and miscellaneous fee payments.</p>
         </div>
-        <button class="btn btn-primary" onclick="openParentFeeModal()"><i class="fas fa-credit-card"></i> Pay Outstanding Fees</button>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn btn-sm btn-primary" id="parentViewOverview" onclick="switchParentFeeView('overview')" style="background:linear-gradient(135deg,#10B981,#059669);border:none">Overview</button>
+          <button class="btn btn-sm btn-secondary" id="parentViewInstallments" onclick="switchParentFeeView('installments')"><i class="fas fa-list-ol"></i> Installments</button>
+          <button class="btn btn-primary" onclick="openParentFeeModal()"><i class="fas fa-credit-card"></i> Pay Outstanding Fees</button>
+        </div>
       </div>
 
       <!-- Outstanding Alert -->
@@ -64,11 +68,6 @@
           <div class="card-body" style="padding:0">
              <table class="erp-table">
                <tbody>
-                 <tr><td style="font-weight:600">Tuition Fee</td><td style="text-align:right">₹45,000</td></tr>
-                 <tr><td style="font-weight:600">Development Fund</td><td style="text-align:right">₹5,000</td></tr>
-                 <tr><td style="font-weight:600">Library & Facilities</td><td style="text-align:right">₹2,000</td></tr>
-                 <tr><td style="font-weight:600">Examination Fee</td><td style="text-align:right">₹3,000</td></tr>
-                 <tr style="background:#F8FAFC"><td style="font-weight:800">Total Payable</td><td style="text-align:right;font-weight:800;color:#0F172A;font-size:16px">₹55,000</td></tr>
                </tbody>
              </table>
           </div>
@@ -78,14 +77,22 @@
           <div class="card-header"><div class="card-title">Payment History</div></div>
           <div class="card-body" style="padding:0">
             <table class="erp-table">
-              <thead><tr><th>Date</th><th>Description</th><th>Amount</th><th>Status</th><th>Receipt</th></tr></thead>
+              <thead><tr><th>Date</th><th>Description</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead>
               <tbody>
-                <tr><td>Jan 10, 2026</td><td>Hostel Fee (Sem 4)</td><td>₹25,000</td><td><span class="badge badge-success">Paid</span></td><td><button class="btn btn-xs btn-secondary"><i class="fas fa-download"></i></button></td></tr>
-                <tr><td>Jul 15, 2025</td><td>Tuition Fee (Sem 3)</td><td>₹55,000</td><td><span class="badge badge-success">Paid</span></td><td><button class="btn btn-xs btn-secondary"><i class="fas fa-download"></i></button></td></tr>
-                <tr><td>Jul 10, 2025</td><td>Hostel Fee (Sem 3)</td><td>₹25,000</td><td><span class="badge badge-success">Paid</span></td><td><button class="btn btn-xs btn-secondary"><i class="fas fa-download"></i></button></td></tr>
               </tbody>
             </table>
           </div>
+        </div>
+      </div>
+
+      <!-- Installments Card (hidden by default) -->
+      <div class="card" id="parentInstCard" style="display:none">
+        <div class="card-header"><div class="card-title"><i class="fas fa-list-ol" style="color:#8B5CF6;margin-right:8px"></i>Installment Tracker</div></div>
+        <div class="table-wrap">
+          <table class="erp-table">
+            <thead><tr><th>#</th><th>Fee Type</th><th>Installment</th><th>Amount</th><th>Due Date</th><th>Late Fee</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="parentInstBody"></tbody>
+          </table>
         </div>
       </div>
     </div>

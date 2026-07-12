@@ -23,6 +23,7 @@
       <a href="notices.html" class="nav-link"><i class="nav-link-icon fas fa-bullhorn"></i> Notice Board</a>
       <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-check"></i> Attendance</a>
       <div class="nav-section-label">Finance & HR</div>
+      <a href="fee-structures.html" class="nav-link"><i class="nav-link-icon fas fa-layer-group"></i> Fee Structures</a>
       <a href="fees.html" class="nav-link active"><i class="nav-link-icon fas fa-file-invoice-dollar"></i> Fee Management</a>
       <a href="hr.html" class="nav-link"><i class="nav-link-icon fas fa-user-md"></i> HR & Leave</a>
       <a href="subscription.html" class="nav-link"><i class="nav-link-icon fas fa-credit-card"></i> Subscription</a>
@@ -45,6 +46,7 @@
         <button class="btn btn-secondary" id="sendReminderBtn"><i class="fas fa-bell"></i> Send Reminders</button>
         <button class="btn btn-primary" onclick="openModal('collectOnlineModal')"><i class="fas fa-credit-card"></i> Collect Online</button>
         <button class="btn btn-secondary" onclick="openModal('recordFeeModal')"><i class="fas fa-plus"></i> Record Payment</button>
+        <button class="btn btn-secondary" onclick="applyLateFees()"><i class="fas fa-clock"></i> Apply Late Fees</button>
         <div class="topbar-avatar" id="topbar-avatar">A</div>
       </div>
     </header>
@@ -74,8 +76,15 @@
         </div>
       </div>
 
+      <!-- View Tabs -->
+      <div style="display:flex;gap:8px;margin-bottom:16px">
+        <button class="btn btn-sm btn-primary" id="viewFeesTab" onclick="switchFeeView('fees')" style="background:linear-gradient(135deg,#4F46E5,#7C3AED);border:none">Fee Records</button>
+        <button class="btn btn-sm btn-secondary" id="viewInstallmentsTab" onclick="switchFeeView('installments')">Installments</button>
+        <button class="btn btn-sm btn-secondary" id="viewOverdueTab" onclick="switchFeeView('overdue')"><i class="fas fa-exclamation-triangle" style="color:#EF4444"></i> Overdue</button>
+      </div>
+
       <!-- Fee Records Table -->
-      <div class="card">
+      <div class="card" id="feesCard">
         <div class="card-header">
           <div class="card-title">Fee Records</div>
           <div style="display:flex;gap:10px;align-items:center">
@@ -88,6 +97,32 @@
           <table class="erp-table">
             <thead><tr><th>#</th><th>Student</th><th>Amount</th><th>Type</th><th>Due Date</th><th>Paid On</th><th>Status</th><th>Actions</th></tr></thead>
             <tbody id="feeBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Installments Table (hidden by default) -->
+      <div class="card" id="installmentsCard" style="display:none">
+        <div class="card-header">
+          <div class="card-title"><i class="fas fa-list-ol" style="color:#8B5CF6;margin-right:8px"></i>Installment Tracker</div>
+        </div>
+        <div class="table-wrap">
+          <table class="erp-table">
+            <thead><tr><th>#</th><th>Student</th><th>Fee Type</th><th>Installment</th><th>Amount</th><th>Due Date</th><th>Late Fee</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="installmentBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Overdue Table (hidden by default) -->
+      <div class="card" id="overdueCard" style="display:none">
+        <div class="card-header">
+          <div class="card-title"><i class="fas fa-exclamation-triangle" style="color:#EF4444;margin-right:8px"></i>Overdue Fees</div>
+        </div>
+        <div class="table-wrap">
+          <table class="erp-table">
+            <thead><tr><th>#</th><th>Student</th><th>Amount</th><th>Due Date</th><th>Days Overdue</th><th>Late Fee</th><th>Actions</th></tr></thead>
+            <tbody id="overdueBody"></tbody>
           </table>
         </div>
       </div>
@@ -153,6 +188,47 @@
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('recordFeeModal')">Cancel</button>
       <button class="btn btn-primary" onclick="recordFee()"><i class="fas fa-check"></i> Record Payment</button>
+    </div>
+  </div>
+</div>
+
+<!-- DISCOUNT MODAL -->
+<div class="modal-backdrop" id="discountModal">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-header"><div class="modal-title"><i class="fas fa-percentage" style="color:#8B5CF6;margin-right:8px"></i>Apply Discount</div><button class="modal-close" onclick="closeModal('discountModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body" style="padding:20px 24px">
+      <input type="hidden" id="discountFeeId">
+      <div style="padding:12px 14px;border-radius:10px;background:#F5F3FF;border:1px solid #DDD6FE;margin-bottom:16px">
+        <div style="font-size:12px;font-weight:600;color:#6D28D9"><i class="fas fa-info-circle" style="margin-right:6px"></i>Apply a percentage or fixed discount to this fee record.</div>
+      </div>
+      <div class="form-group"><label class="form-label" style="font-weight:700">Discount Type</label>
+        <select class="form-control" id="discountType"><option value="percentage">Percentage (%)</option><option value="fixed">Fixed Amount (₹)</option><option value="scholarship">Scholarship</option></select>
+      </div>
+      <div class="form-group"><label class="form-label" style="font-weight:700">Discount Value</label><input class="form-control" type="number" id="discountValue" min="0" placeholder="e.g. 10 or 5000"></div>
+      <div class="form-group" id="scholarshipNameGroup" style="display:none"><label class="form-label">Scholarship Name</label><input class="form-control" id="discountScholarshipName" placeholder="e.g. Merit Scholarship"></div>
+      <div class="form-group"><label class="form-label">Reason</label><input class="form-control" id="discountReason" placeholder="Optional reason"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('discountModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="executeDiscount()" style="background:#8B5CF6;border-color:#8B5CF6"><i class="fas fa-check"></i> Apply Discount</button>
+    </div>
+  </div>
+</div>
+
+<!-- WAIVE MODAL -->
+<div class="modal-backdrop" id="waiveModal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header"><div class="modal-title"><i class="fas fa-ban" style="color:#EF4444;margin-right:8px"></i>Waive Fee</div><button class="modal-close" onclick="closeModal('waiveModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body" style="padding:20px 24px">
+      <input type="hidden" id="waiveFeeId">
+      <div style="padding:12px 14px;border-radius:10px;background:#FEF2F2;border:1px solid #FECACA;margin-bottom:16px">
+        <div style="font-size:12px;font-weight:600;color:#991B1B"><i class="fas fa-exclamation-triangle" style="margin-right:6px"></i>This will mark the fee as waived. This action cannot be undone.</div>
+      </div>
+      <div class="form-group"><label class="form-label" style="font-weight:700">Reason</label><input class="form-control" id="waiveReason" placeholder="e.g. Scholarship, Financial hardship"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('waiveModal')">Cancel</button>
+      <button class="btn btn-danger" onclick="executeWaive()"><i class="fas fa-ban"></i> Waive Fee</button>
     </div>
   </div>
 </div>

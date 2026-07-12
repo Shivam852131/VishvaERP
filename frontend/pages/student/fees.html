@@ -51,32 +51,39 @@
       </div>
 
       <!-- Outstanding Fee Banner -->
-      <div style="background:linear-gradient(135deg,#EF4444,#DC2626);border-radius:16px;padding:20px 24px;color:white;display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px">
-        <div>
-          <div style="font-size:13px;font-weight:600;color:#FCA5A5;margin-bottom:4px">⚠️ Outstanding Due</div>
-          <div style="font-size:28px;font-weight:900">₹55,000</div>
-          <div style="font-size:13px;color:#FCA5A5">Deadline: April 15, 2026 • Tuition Fee Sem IV</div>
-        </div>
-        <div style="display:flex;gap:10px">
-          <button class="btn" style="background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.4)" onclick="openStudentFeeModal()"><i class="fas fa-credit-card"></i> Pay Now</button>
-          <button class="btn" style="background:rgba(255,255,255,0.1);color:white;border:1px solid rgba(255,255,255,0.2)" onclick="showToast('Payment reminder sent to parent','info')"><i class="fas fa-paper-plane"></i> Notify Parent</button>
-        </div>
-      </div>
+      <div id="studentOutstandingBanner" style="background:linear-gradient(135deg,#EF4444,#DC2626);border-radius:16px;padding:20px 24px;color:white;display:none;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px"></div>
 
       <!-- Stats -->
       <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
-        <div class="stat-card"><div class="stat-icon" style="background:#D1FAE5;color:#065F46"><i class="fas fa-check-circle"></i></div><div class="stat-label">Total Paid</div><div class="stat-value">₹1,65,000</div></div>
-        <div class="stat-card"><div class="stat-icon" style="background:#FEE2E2;color:#991B1B"><i class="fas fa-hourglass-half"></i></div><div class="stat-label">Pending Amount</div><div class="stat-value" style="color:#EF4444">₹55,000</div></div>
-        <div class="stat-card"><div class="stat-icon" style="background:#DBEAFE;color:#1E40AF"><i class="fas fa-percentage"></i></div><div class="stat-label">Total Fee (Program)</div><div class="stat-value">₹2,40,000</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#D1FAE5;color:#065F46"><i class="fas fa-check-circle"></i></div><div class="stat-label">Total Paid</div><div class="stat-value" id="studentTotalPaid">₹0</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#FEE2E2;color:#991B1B"><i class="fas fa-hourglass-half"></i></div><div class="stat-label">Pending Amount</div><div class="stat-value" id="studentPendingAmount" style="color:#EF4444">₹0</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#DBEAFE;color:#1E40AF"><i class="fas fa-percentage"></i></div><div class="stat-label">Total Fee (Program)</div><div class="stat-value" id="studentTotalFee">₹0</div></div>
+      </div>
+
+      <!-- View Tabs -->
+      <div style="display:flex;gap:8px;margin-bottom:16px">
+        <button class="btn btn-sm btn-primary" id="viewAllTab" onclick="switchStudentFeeView('all')" style="background:linear-gradient(135deg,#0284C7,#0EA5E9);border:none">All Fees</button>
+        <button class="btn btn-sm btn-secondary" id="viewInstTab" onclick="switchStudentFeeView('installments')"><i class="fas fa-list-ol"></i> Installments</button>
       </div>
 
       <!-- Fee Records -->
-      <div class="card">
-        <div class="card-header"><div class="card-title">Payment History</div><button class="btn btn-sm btn-secondary" onclick="showToast('Downloading all receipts...','info')"><i class="fas fa-download"></i> Download All</button></div>
+      <div class="card" id="studentFeesCard">
+        <div class="card-header"><div class="card-title">Fee Records</div></div>
         <div class="table-wrap">
           <table class="erp-table">
-            <thead><tr><th>#</th><th>Description</th><th>Amount</th><th>Mode</th><th>Date</th><th>Receipt</th><th>Status</th></tr></thead>
+            <thead><tr><th>#</th><th>Description</th><th>Amount</th><th>Due Date</th><th>Receipt</th><th>Status</th><th>Action</th></tr></thead>
             <tbody id="feeHistory"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Installments Table (hidden by default) -->
+      <div class="card" id="studentInstCard" style="display:none">
+        <div class="card-header"><div class="card-title"><i class="fas fa-list-ol" style="color:#8B5CF6;margin-right:8px"></i>Installment Tracker</div></div>
+        <div class="table-wrap">
+          <table class="erp-table">
+            <thead><tr><th>#</th><th>Fee Type</th><th>Installment</th><th>Amount</th><th>Due Date</th><th>Late Fee</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="studentInstBody"></tbody>
           </table>
         </div>
       </div>

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Fee Structures — College Admin | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="../../css/custom.css">
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-college" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" id="sidebar-avatar">A</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Admin</div><div class="sidebar-user-role">College Administrator</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <div class="nav-section-label">Academics</div>
+      <a href="students.html" class="nav-link"><i class="nav-link-icon fas fa-user-graduate"></i> Students</a>
+      <a href="faculty.html" class="nav-link"><i class="nav-link-icon fas fa-chalkboard-teacher"></i> Faculty</a>
+      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-open"></i> Courses & Exams</a>
+      <a href="notices.html" class="nav-link"><i class="nav-link-icon fas fa-bullhorn"></i> Notice Board</a>
+      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-check"></i> Attendance</a>
+      <div class="nav-section-label">Finance & HR</div>
+      <a href="fee-structures.html" class="nav-link active"><i class="nav-link-icon fas fa-layer-group"></i> Fee Structures</a>
+      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-file-invoice-dollar"></i> Fee Management</a>
+      <a href="hr.html" class="nav-link"><i class="nav-link-icon fas fa-user-md"></i> HR & Leave</a>
+      <a href="subscription.html" class="nav-link"><i class="nav-link-icon fas fa-credit-card"></i> Subscription</a>
+      <div class="nav-section-label">Facilities</div>
+      <a href="logistics.html" class="nav-link"><i class="nav-link-icon fas fa-bus"></i> Logistics & Hostel</a>
+      <div class="nav-section-label">Tools</div>
+      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Hub</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">College Admin / <span>Fee Structures</span></div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-secondary" id="exportStructuresBtn"><i class="fas fa-download"></i> Export</button>
+        <button class="btn btn-primary" onclick="openCreateStructureModal()"><i class="fas fa-plus"></i> Create Structure</button>
+        <div class="topbar-avatar" id="topbar-avatar">A</div>
+      </div>
+    </header>
+
+    <div class="erp-content">
+      <div class="page-header">
+        <h1 class="page-title">📐 Fee Structures</h1>
+        <p class="page-subtitle">Create, manage, and assign fee templates to students and departments.</p>
+      </div>
+
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
+        <div class="stat-card"><div class="stat-icon" style="background:#EEF2FF;color:#4338CA"><i class="fas fa-layer-group"></i></div><div class="stat-label">Total Structures</div><div class="stat-value" id="statTotalStructures">0</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#D1FAE5;color:#065F46"><i class="fas fa-check-circle"></i></div><div class="stat-label">Active</div><div class="stat-value" id="statActiveStructures">0</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#DBEAFE;color:#1E40AF"><i class="fas fa-users"></i></div><div class="stat-label">Assigned</div><div class="stat-value" id="statAssigned">0</div></div>
+        <div class="stat-card"><div class="stat-icon" style="background:#FEF3C7;color:#92400E"><i class="fas fa-rupee-sign"></i></div><div class="stat-label">Total Collected</div><div class="stat-value" id="statTotalCollected">₹0</div></div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">Fee Structures</div>
+          <div style="display:flex;gap:10px;align-items:center">
+            <div class="search-bar" style="width:220px"><i class="fas fa-search"></i><input type="text" placeholder="Search structures..." id="structureSearch"></div>
+            <select class="form-control" style="width:130px" id="statusFilter"><option value="">All Status</option><option value="active">Active</option><option value="draft">Draft</option><option value="archived">Archived</option></select>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="erp-table">
+            <thead><tr><th>#</th><th>Name</th><th>Amount</th><th>Academic Year</th><th>Semester</th><th>Status</th><th>Assigned</th><th>Actions</th></tr></thead>
+            <tbody id="structureBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CREATE/EDIT STRUCTURE MODAL -->
+<div class="modal-backdrop" id="structureModal">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-header">
+      <div class="modal-title" id="structureModalTitle"><i class="fas fa-layer-group" style="color:#4F46E5;margin-right:8px"></i>Create Fee Structure</div>
+      <button class="modal-close" onclick="closeModal('structureModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body" style="padding:20px 24px;max-height:65vh;overflow-y:auto">
+      <input type="hidden" id="editingStructureId">
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label" style="font-weight:700">Structure Name *</label><input class="form-control" id="stName" placeholder="e.g. B.Tech CS 2026"></div>
+        <div class="form-group"><label class="form-label" style="font-weight:700">Academic Year *</label><input class="form-control" id="stYear" placeholder="e.g. 2025-26"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Description</label><input class="form-control" id="stDesc" placeholder="Optional description"></div>
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Department</label><input class="form-control" id="stDept" placeholder="e.g. Computer Science"></div>
+        <div class="form-group"><label class="form-label">Semester</label><select class="form-control" id="stSem"><option value="">Select</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></div>
+      </div>
+
+      <div style="margin-top:16px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center">
+        <label class="form-label" style="font-weight:800;color:#1E293B;font-size:14px;margin:0">Fee Components *</label>
+        <button class="btn btn-xs btn-secondary" onclick="addFeeComponent()"><i class="fas fa-plus"></i> Add Component</button>
+      </div>
+      <div id="componentsList" style="display:flex;flex-direction:column;gap:8px"></div>
+      <div style="text-align:right;margin-top:8px;font-size:13px;color:#64748B">Total: <strong id="componentTotal" style="color:#059669;font-size:16px">₹0</strong></div>
+
+      <div style="margin-top:20px;padding-top:16px;border-top:1px solid #E2E8F0">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+          <input type="checkbox" id="stInstallmentEnabled" style="accent-color:#4F46E5;width:16px;height:16px">
+          <label for="stInstallmentEnabled" style="font-weight:700;color:#1E293B;font-size:13px">Enable Installments</label>
+        </div>
+        <div id="installmentOptions" style="display:none">
+          <div class="form-grid-2">
+            <div class="form-group"><label class="form-label">Number of Installments</label><input class="form-control" type="number" id="stInstallmentCount" min="2" max="12" value="3"></div>
+            <div class="form-group"><label class="form-label">Frequency</label><select class="form-control" id="stInstallmentFreq"><option value="monthly">Monthly</option><option value="quarterly">Quarterly</option><option value="custom">Custom</option></select></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:16px;padding-top:16px;border-top:1px solid #E2E8F0">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+          <input type="checkbox" id="stLateFeeEnabled" style="accent-color:#EF4444;width:16px;height:16px">
+          <label for="stLateFeeEnabled" style="font-weight:700;color:#1E293B;font-size:13px">Enable Late Fees</label>
+        </div>
+        <div id="lateFeeOptions" style="display:none">
+          <div class="form-grid-2">
+            <div class="form-group"><label class="form-label">Late Fee Per Day (₹)</label><input class="form-control" type="number" id="stLateFeePerDay" min="0" value="50"></div>
+            <div class="form-group"><label class="form-label">Late Fee Cap (₹)</label><input class="form-control" type="number" id="stLateFeeCap" min="0" value="2000"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer" style="padding:16px 24px;border-top:1px solid #F1F5F9">
+      <button class="btn btn-secondary" onclick="closeModal('structureModal')" style="flex:1">Cancel</button>
+      <button class="btn btn-primary" id="saveStructureBtn" onclick="saveStructure()" style="flex:2;background:linear-gradient(135deg,#4F46E5,#7C3AED);border:none;padding:12px 24px;font-weight:700"><i class="fas fa-save"></i> Save Structure</button>
+    </div>
+  </div>
+</div>
+
+<!-- ASSIGN STRUCTURE MODAL -->
+<div class="modal-backdrop" id="assignStructureModal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header">
+      <div class="modal-title"><i class="fas fa-user-plus" style="color:#10B981;margin-right:8px"></i>Assign Fee Structure</div>
+      <button class="modal-close" onclick="closeModal('assignStructureModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body" style="padding:20px 24px">
+      <input type="hidden" id="assignStructureId">
+      <div style="padding:12px 14px;border-radius:10px;background:#EEF2FF;border:1px solid #C7D2FE;margin-bottom:16px">
+        <div style="font-size:12px;font-weight:600;color:#4338CA"><i class="fas fa-info-circle" style="margin-right:6px"></i>Bulk assign this fee structure to students by department or individual selection.</div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label" style="font-weight:700">Department</label><input class="form-control" id="assignDept" placeholder="e.g. Computer Science"></div>
+        <div class="form-group"><label class="form-label" style="font-weight:700">Semester</label><select class="form-control" id="assignSem"><option value="">All</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></div>
+      </div>
+      <div class="form-group"><label class="form-label">Due Date</label><input class="form-control" type="date" id="assignDueDate"></div>
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Discount Type</label><select class="form-control" id="assignDiscountType"><option value="none">No Discount</option><option value="percentage">Percentage</option><option value="fixed">Fixed Amount</option><option value="scholarship">Scholarship</option></select></div>
+        <div class="form-group"><label class="form-label">Discount Value</label><input class="form-control" type="number" id="assignDiscountValue" min="0" value="0" disabled></div>
+      </div>
+      <div class="form-group" id="assignScholarshipGroup" style="display:none"><label class="form-label">Scholarship Name</label><input class="form-control" id="assignScholarshipName" placeholder="e.g. Merit Scholarship"></div>
+      <div class="form-group"><label class="form-label">Discount Reason</label><input class="form-control" id="assignDiscountReason" placeholder="Optional reason"></div>
+      <div id="assignPreview" style="display:none;margin-top:12px;padding:14px;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:12px;color:#64748B">Structure</span><span id="assignPreviewName" style="font-size:13px;font-weight:600">-</span></div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:12px;color:#64748B">Total Amount</span><span id="assignPreviewAmount" style="font-size:13px;font-weight:600">-</span></div>
+        <div style="display:flex;justify-content:space-between"><span style="font-size:12px;color:#64748B">After Discount</span><span id="assignPreviewFinal" style="font-size:14px;font-weight:800;color:#059669">-</span></div>
+      </div>
+    </div>
+    <div class="modal-footer" style="padding:16px 24px;border-top:1px solid #F1F5F9">
+      <button class="btn btn-secondary" onclick="closeModal('assignStructureModal')" style="flex:1">Cancel</button>
+      <button class="btn btn-primary" id="executeAssignBtn" onclick="executeAssign()" style="flex:2;background:linear-gradient(135deg,#10B981,#059669);border:none;padding:12px 24px;font-weight:700" disabled><i class="fas fa-check"></i> Assign to Students</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE CONFIRM MODAL -->
+<div class="modal-backdrop" id="deleteStructureModal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header"><div class="modal-title"><i class="fas fa-exclamation-triangle" style="color:#EF4444;margin-right:8px"></i>Delete Structure</div><button class="modal-close" onclick="closeModal('deleteStructureModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body" style="padding:20px 24px">
+      <p style="font-size:14px;color:#475569">Are you sure you want to delete <strong id="deleteStructureName">-</strong>? This cannot be undone.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('deleteStructureModal')">Cancel</button>
+      <button class="btn btn-danger" onclick="executeDeleteStructure()"><i class="fas fa-trash"></i> Delete</button>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script src="../../live/payment-gateway.js"></script>
+<script src="../../live/live-admin-pages.js"></script>
+</body>
+</html>

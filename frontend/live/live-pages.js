@@ -946,18 +946,86 @@
 
   async function initStudentFeesPage() {
     await ensureRealtime();
-    const res = await window.api.request('/fees', { silent: true });
-    const fees = res.fees || [];
+    const [feeRes, instRes] = await Promise.all([
+      window.api.request('/fees', { silent: true }),
+      window.api.request('/fees/installments', { silent: true }).catch(() => ({ fees: [] })),
+    ]);
+    const fees = feeRes.fees || [];
+    const installmentFees = instRes.fees || [];
     const paidTotal = fees.reduce((sum, item) => sum + Number(item.paidAmount || 0), 0);
     const totalProgram = fees.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+    const pendingTotal = fees.filter((item) => item.status !== 'paid').reduce((sum, item) => sum + getFeePendingAmount(item), 0);
     const pending = fees.filter((item) => item.status !== 'paid').sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
     const nextPending = pending[0] || null;
-    const statValues = document.querySelectorAll('.stats-grid .stat-value');
-    if (statValues[0]) statValues[0].textContent = formatMoney(paidTotal);
-    if (statValues[1]) statValues[1].textContent = formatMoney(nextPending ? getFeePendingAmount(nextPending) : 0);
-    if (statValues[2]) statValues[2].textContent = formatMoney(totalProgram);
+
+    setText('studentTotalPaid', formatMoney(paidTotal));
+    setText('studentPendingAmount', formatMoney(pendingTotal));
+    setText('studentTotalFee', formatMoney(totalProgram));
 
     let selectedFeeId = nextPending?._id || null;
+    let currentView = 'all';
+
+    window.switchStudentFeeView = function switchStudentFeeView(view) {
+      currentView = view;
+      byId('studentFeesCard').style.display = view === 'all' ? '' : 'none';
+      byId('studentInstCard').style.display = view === 'installments' ? '' : 'none';
+      const allTab = byId('viewAllTab');
+      const instTab = byId('viewInstTab');
+      if (allTab) allTab.className = view === 'all' ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-secondary';
+      if (instTab) instTab.className = view === 'installments' ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-secondary';
+      if (view === 'installments') renderInstallments();
+    };
+
+    function renderInstallments() {
+      const allInst = [];
+      installmentFees.forEach((fee) => {
+        (fee.installments || []).forEach((inst) => {
+          allInst.push({ ...inst, feeId: fee._id, feeType: fee.feeType, semester: fee.semester });
+        });
+      });
+      if (!allInst.length) { renderEmptyTable('studentInstBody', 8, 'No installments configured for your fees', 'fa-list-ol'); return; }
+      setHTML('studentInstBody', allInst.map((inst, i) => {
+        const pending = Math.max(Number(inst.amount || 0) - Number(inst.paidAmount || 0), 0);
+        return `
+        <tr>
+          <td style="color:#94A3B8;font-size:12px">${i + 1}</td>
+          <td><span class="badge badge-gray">${escapeHTML(inst.feeType || '-')}</span></td>
+          <td style="font-weight:700">#${inst.installmentNumber}</td>
+          <td style="font-weight:700">${formatMoney(inst.amount)}${inst.paidAmount ? `<div style="font-size:10px;color:#10B981">Paid: ${formatMoney(inst.paidAmount)}</div>` : ''}</td>
+          <td style="font-size:12px;color:#64748B">${formatDate(inst.dueDate)}</td>
+          <td>${inst.lateFee ? `<span style="color:#EF4444;font-weight:600">${formatMoney(inst.lateFee)}</span>` : '-'}</td>
+          <td><span class="badge ${inst.status === 'paid' ? 'badge-success' : inst.status === 'overdue' ? 'badge-danger' : 'badge-warning'}">${escapeHTML(inst.status)}</span></td>
+          <td>${inst.status !== 'paid' && pending > 0 ? `<button class="btn btn-xs btn-danger" onclick="payStudentInstallment('${inst.feeId}','${inst._id}')"><i class="fas fa-credit-card"></i> Pay</button>` : ''}</td>
+        </tr>`;
+      }).join(''));
+    }
+
+    window.payStudentInstallment = async function payStudentInstallment(feeId, installmentId) {
+      try {
+        await ensureRazorpayCheckout();
+        if (!window.Razorpay) { window.showToast?.('Payment gateway failed to load', 'error'); return; }
+        const orderRes = await window.api.request(`/fees/${feeId}/installments/${installmentId}/create-order`, { method: 'POST' });
+        if (!orderRes?.order || !orderRes.key) { window.showToast?.('Failed to create order', 'error'); return; }
+        const user = window.api?.getUser?.() || {};
+        const rzp = new window.Razorpay({
+          key: orderRes.key, amount: orderRes.order.amount, currency: orderRes.order.currency || 'INR',
+          name: 'Vishva ERP', description: `Installment Payment`,
+          order_id: orderRes.order.id,
+          handler: async (response) => {
+            try {
+              await window.api.request('/fees/verify-payment', { method: 'POST', body: JSON.stringify({ razorpayOrderId: response.razorpay_order_id, razorpayPaymentId: response.razorpay_payment_id, razorpaySignature: response.razorpay_signature, feeId }) });
+            } catch {}
+            window.showToast?.('Installment payment verified', 'success');
+            await initStudentFeesPage();
+          },
+          prefill: { name: user.name || '', email: user.email || '' },
+          theme: { color: '#0EA5E9' },
+          modal: { ondismiss: () => window.showToast?.('Payment cancelled', 'info') },
+        });
+        rzp.on('payment.failed', (resp) => window.showToast?.('Payment failed: ' + (resp.error?.description || 'Unknown'), 'error'));
+        rzp.open();
+      } catch (error) { window.showToast?.(error.message || 'Could not initiate payment', 'error'); }
+    };
 
     function getSelectedFee() {
       return fees.find((item) => String(item._id) === String(selectedFeeId)) || nextPending;
@@ -1011,18 +1079,25 @@
       window.openModal?.('payNowModal');
     };
 
-    const banner = document.querySelector('.erp-content > div[style*="linear-gradient(135deg,#EF4444"]');
+    const banner = byId('studentOutstandingBanner');
     if (banner) {
-      setHTML(banner, nextPending ? `
-        <div>
-          <div style="font-size:13px;font-weight:600;color:#FCA5A5;margin-bottom:4px">Outstanding Due</div>
-          <div style="font-size:28px;font-weight:900">${formatMoney(getFeePendingAmount(nextPending))}</div>
-          <div style="font-size:13px;color:#FCA5A5">${String(nextPending.feeType || '').toUpperCase()}${nextPending.semester ? ` • Semester ${nextPending.semester}` : ''} • Deadline: ${formatDate(nextPending.dueDate)}</div>
-        </div>
-        <div style="display:flex;gap:10px">
-          <button class="btn" style="background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.4)" onclick="openStudentFeeModal('${nextPending._id}')"><i class="fas fa-credit-card"></i> Pay Now</button>
-        </div>
-      ` : '<div style="font-weight:700">No outstanding dues</div>');
+      if (nextPending) {
+        banner.style.display = 'flex';
+        setHTML(banner, `
+          <div>
+            <div style="font-size:13px;font-weight:600;color:#FCA5A5;margin-bottom:4px">Outstanding Due</div>
+            <div style="font-size:28px;font-weight:900">${formatMoney(getFeePendingAmount(nextPending))}</div>
+            <div style="font-size:13px;color:#FCA5A5">${String(nextPending.feeType || '').toUpperCase()}${nextPending.semester ? ` • Semester ${nextPending.semester}` : ''} • Deadline: ${formatDate(nextPending.dueDate)}</div>
+          </div>
+          <div style="display:flex;gap:10px">
+            <button class="btn" style="background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.4)" onclick="openStudentFeeModal('${nextPending._id}')"><i class="fas fa-credit-card"></i> Pay Now</button>
+          </div>
+        `);
+      } else {
+        banner.style.display = 'flex';
+        banner.style.background = 'linear-gradient(135deg,#10B981,#059669)';
+        setHTML(banner, '<div style="font-weight:700;font-size:16px"><i class="fas fa-check-circle" style="margin-right:8px"></i>All fees paid! You\'re up to date.</div>');
+      }
     }
 
     setHTML('feeHistory', fees.map((fee, index) => {
@@ -1031,23 +1106,22 @@
       const isPaid = fee.status === 'paid';
       let actionHtml = '';
       if (isPaid && fee.receiptNo) {
-        actionHtml = `<button class="btn btn-xs btn-secondary" onclick="downloadStudentReceipt('${fee._id}')" title="Download receipt"><i class="fas fa-download"></i> Receipt</button>`;
+        actionHtml = `<button class="btn btn-xs btn-secondary" onclick="downloadStudentReceipt('${fee._id}')" title="Download receipt"><i class="fas fa-download"></i></button>`;
       } else if (pending > 0) {
-        actionHtml = `<button class="btn btn-xs btn-danger" onclick="openStudentFeeModal('${fee._id}')"><i class="fas fa-credit-card"></i> ${isPartial ? 'Pay Balance' : 'Pay Now'}</button>`;
+        actionHtml = `<button class="btn btn-xs btn-danger" onclick="openStudentFeeModal('${fee._id}')"><i class="fas fa-credit-card"></i></button>`;
       }
       return `
         <tr>
           <td style="color:#94A3B8;font-size:12px">${index + 1}</td>
           <td style="font-weight:600">${String(fee.feeType || '').toUpperCase()} Fee${fee.semester ? ` - Sem ${fee.semester}` : ''}</td>
-          <td style="font-weight:700">${formatMoney(fee.amount)}</td>
-          <td style="font-size:12px;color:#64748B">${isPartial ? `<span style="color:#F59E0B">Paid ${formatMoney(fee.paidAmount || 0)}</span>` : fee.paymentMethod || '-'}</td>
-          <td style="font-size:12px;color:#64748B">${formatDate(fee.paidDate || fee.dueDate)}</td>
+          <td style="font-weight:700">${formatMoney(fee.amount)}${fee.discountAmount ? `<div style="font-size:10px;color:#8B5CF6">-${formatMoney(fee.discountAmount)} disc</div>` : ''}</td>
+          <td style="font-size:12px;color:#64748B">${formatDate(fee.dueDate)}</td>
           <td>${fee.receiptNo ? `<code style="font-size:11px;background:#F1F5F9;padding:2px 6px;border-radius:4px">${fee.receiptNo}</code>` : '-'}</td>
-          <td>${isPaid ? `<span class="badge badge-success">Paid</span>` : isPartial ? `<span class="badge badge-warning">Partial</span>` : new Date(fee.dueDate) < new Date() ? `<span class="badge badge-danger">Overdue</span>` : `<span class="badge badge-gray">Pending</span>`}</td>
+          <td>${isPaid ? `<span class="badge badge-success">Paid</span>` : isPartial ? `<span class="badge badge-warning">Partial</span>` : fee.status === 'waived' ? `<span class="badge badge-info">Waived</span>` : new Date(fee.dueDate) < new Date() ? `<span class="badge badge-danger">Overdue</span>` : `<span class="badge badge-gray">Pending</span>`}</td>
           <td style="white-space:nowrap">${actionHtml}</td>
         </tr>
       `;
-    }).join('') || '<tr><td colspan="8"><div class="empty-state"><div class="empty-state-title">No fee records found</div></div></td></tr>');
+    }).join('') || '<tr><td colspan="7"><div class="empty-state"><div class="empty-state-title">No fee records found</div></div></td></tr>');
 
     window.downloadStudentReceipt = async function downloadStudentReceipt(feeId) {
       window.showToast('Generating receipt...', 'info');
@@ -1465,11 +1539,82 @@
 
   async function initParentFeesPage() {
     await ensureRealtime();
-    const res = await window.api.request('/fees', { silent: true });
-    const fees = res.fees || [];
+    const [feeRes, instRes] = await Promise.all([
+      window.api.request('/fees', { silent: true }),
+      window.api.request('/fees/installments', { silent: true }).catch(() => ({ fees: [] })),
+    ]);
+    const fees = feeRes.fees || [];
+    const installmentFees = instRes.fees || [];
     const pending = fees.filter((item) => item.status !== 'paid').sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
     const outstanding = pending.reduce((sum, item) => sum + getFeePendingAmount(item), 0);
     let selectedFeeId = pending[0]?._id || null;
+    let currentView = 'overview';
+
+    window.switchParentFeeView = function switchParentFeeView(view) {
+      currentView = view;
+      const overviewCard = document.querySelectorAll('.erp-content .grid.col-2')[0];
+      const histCard = document.querySelectorAll('.erp-content .grid.col-2')[1];
+      const instCard = byId('parentInstCard');
+      if (overviewCard) overviewCard.style.display = view === 'overview' ? '' : 'none';
+      if (histCard) histCard.style.display = view === 'overview' ? '' : 'none';
+      if (instCard) instCard.style.display = view === 'installments' ? '' : 'none';
+      const ovTab = byId('parentViewOverview');
+      const instTab = byId('parentViewInstallments');
+      if (ovTab) ovTab.className = view === 'overview' ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-secondary';
+      if (instTab) instTab.className = view === 'installments' ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-secondary';
+      if (view === 'installments') renderParentInstallments();
+    };
+
+    function renderParentInstallments() {
+      const allInst = [];
+      installmentFees.forEach((fee) => {
+        (fee.installments || []).forEach((inst) => {
+          allInst.push({ ...inst, feeId: fee._id, feeType: fee.feeType, semester: fee.semester });
+        });
+      });
+      if (!allInst.length) { setHTML('parentInstBody', '<tr><td colspan="8"><div class="empty-state"><div class="empty-state-title">No installments configured</div></div></td></tr>'); return; }
+      setHTML('parentInstBody', allInst.map((inst, i) => {
+        const pending = Math.max(Number(inst.amount || 0) - Number(inst.paidAmount || 0), 0);
+        return `
+        <tr>
+          <td style="color:#94A3B8;font-size:12px">${i + 1}</td>
+          <td><span class="badge badge-gray">${escapeHTML(inst.feeType || '-')}</span></td>
+          <td style="font-weight:700">#${inst.installmentNumber}</td>
+          <td style="font-weight:700">${formatMoney(inst.amount)}${inst.paidAmount ? `<div style="font-size:10px;color:#10B981">Paid: ${formatMoney(inst.paidAmount)}</div>` : ''}</td>
+          <td style="font-size:12px;color:#64748B">${formatDate(inst.dueDate)}</td>
+          <td>${inst.lateFee ? `<span style="color:#EF4444;font-weight:600">${formatMoney(inst.lateFee)}</span>` : '-'}</td>
+          <td><span class="badge ${inst.status === 'paid' ? 'badge-success' : inst.status === 'overdue' ? 'badge-danger' : 'badge-warning'}">${escapeHTML(inst.status)}</span></td>
+          <td>${inst.status !== 'paid' && pending > 0 ? `<button class="btn btn-xs btn-primary" onclick="payParentInstallment('${inst.feeId}','${inst._id}')"><i class="fas fa-credit-card"></i></button>` : ''}</td>
+        </tr>`;
+      }).join(''));
+    }
+
+    window.payParentInstallment = async function payParentInstallment(feeId, installmentId) {
+      try {
+        await ensureRazorpayCheckout();
+        if (!window.Razorpay) { window.showToast?.('Payment gateway failed to load', 'error'); return; }
+        const orderRes = await window.api.request(`/fees/${feeId}/installments/${installmentId}/create-order`, { method: 'POST' });
+        if (!orderRes?.order || !orderRes.key) { window.showToast?.('Failed to create order', 'error'); return; }
+        const user = window.api?.getUser?.() || {};
+        const rzp = new window.Razorpay({
+          key: orderRes.key, amount: orderRes.order.amount, currency: orderRes.order.currency || 'INR',
+          name: 'Vishva ERP', description: `Installment Payment`,
+          order_id: orderRes.order.id,
+          handler: async (response) => {
+            try {
+              await window.api.request('/fees/verify-payment', { method: 'POST', body: JSON.stringify({ razorpayOrderId: response.razorpay_order_id, razorpayPaymentId: response.razorpay_payment_id, razorpaySignature: response.razorpay_signature, feeId }) });
+            } catch {}
+            window.showToast?.('Installment payment verified', 'success');
+            await initParentFeesPage();
+          },
+          prefill: { name: user.name || '', email: user.email || '' },
+          theme: { color: '#10B981' },
+          modal: { ondismiss: () => window.showToast?.('Payment cancelled', 'info') },
+        });
+        rzp.on('payment.failed', (resp) => window.showToast?.('Payment failed: ' + (resp.error?.description || 'Unknown'), 'error'));
+        rzp.open();
+      } catch (error) { window.showToast?.(error.message || 'Could not initiate payment', 'error'); }
+    };
 
     function getSelectedFee() {
       return fees.find((item) => String(item._id) === String(selectedFeeId)) || pending[0] || null;
@@ -1526,28 +1671,28 @@
     const breakdownTable = document.querySelectorAll('.erp-table tbody')[0];
     if (breakdownTable) {
       setHTML(breakdownTable, fees.map((fee) => {
-        const pending = getFeePendingAmount(fee);
-        return `<tr><td style="font-weight:600">${String(fee.feeType || '').toUpperCase()}${fee.semester ? ` - Sem ${fee.semester}` : ''}</td><td style="text-align:right">${formatMoney(fee.amount)}</td><td style="text-align:right;font-size:12px;color:${fee.status === 'paid' ? '#059669' : '#EF4444'}">${fee.status === 'paid' ? 'Paid' : formatMoney(pending) + ' due'}</td></tr>`;
+        const pendingAmt = getFeePendingAmount(fee);
+        return `<tr><td style="font-weight:600">${String(fee.feeType || '').toUpperCase()}${fee.semester ? ` - Sem ${fee.semester}` : ''}</td><td style="text-align:right">${formatMoney(fee.amount)}</td><td style="text-align:right;font-size:12px;color:${fee.status === 'paid' ? '#059669' : '#EF4444'}">${fee.status === 'paid' ? 'Paid' : formatMoney(pendingAmt) + ' due'}</td></tr>`;
       }).join('') + `<tr style="background:#F8FAFC"><td style="font-weight:800">Total Payable</td><td style="text-align:right;font-weight:800;color:#0F172A;font-size:16px">${formatMoney(fees.reduce((sum, fee) => sum + Number(fee.amount || 0), 0))}</td><td style="text-align:right;font-weight:700;color:#EF4444">${outstanding > 0 ? formatMoney(outstanding) + ' pending' : 'All cleared'}</td></tr>`);
     }
 
     const historyBody = document.querySelectorAll('.erp-table tbody')[1];
     if (historyBody) {
       setHTML(historyBody, fees.map((fee) => {
-        const pending = getFeePendingAmount(fee);
+        const pendingAmt = getFeePendingAmount(fee);
         const isPartial = fee.status === 'partial';
         let action = '-';
         if (fee.status === 'paid' && fee.receiptNo) {
           action = `<button class="btn btn-xs btn-secondary" onclick="downloadParentReceipt('${fee._id}')" title="Download receipt"><i class="fas fa-download"></i></button>`;
-        } else if (pending > 0) {
+        } else if (pendingAmt > 0) {
           action = `<button class="btn btn-xs btn-primary" onclick="openParentFeeModal('${fee._id}')"><i class="fas fa-credit-card"></i> ${isPartial ? 'Pay Balance' : 'Pay'}</button>`;
         }
         return `
           <tr>
             <td>${formatDate(fee.paidDate || fee.dueDate)}</td>
             <td>${String(fee.feeType || '').toUpperCase()}${fee.semester ? ` Sem ${fee.semester}` : ''}</td>
-            <td>${formatMoney(fee.amount)}</td>
-            <td>${isPartial ? `<span class="badge badge-warning">Partial</span>` : statusBadge(fee.status)}</td>
+            <td>${formatMoney(fee.amount)}${fee.discountAmount ? `<div style="font-size:10px;color:#8B5CF6">-${formatMoney(fee.discountAmount)} disc</div>` : ''}</td>
+            <td>${isPartial ? `<span class="badge badge-warning">Partial</span>` : fee.status === 'waived' ? `<span class="badge badge-info">Waived</span>` : statusBadge(fee.status)}</td>
             <td>${action}</td>
           </tr>
         `;
