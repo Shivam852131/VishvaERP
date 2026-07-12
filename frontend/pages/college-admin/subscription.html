@@ -796,19 +796,30 @@
   window.filterPayments=function(){paymentPage=1;renderPayments()};
 
   // ===== PAYMENT =====
-  window.subscribePlan=function(planId){
+  let paymentInProgress = false;
+
+  window.subscribePlan = function(planId){
     const plan=getPlans().find(p=>p.id===planId);
-    if(!plan)return;
+    if(!plan || paymentInProgress) return;
     initiatePayment(planId,billingCycle);
   };
+
+  function showSubPaymentStatus(msg, type) {
+    const colors = { processing: { bg:'#EFF6FF', border:'#BFDBFE', color:'#1E40AF', icon:'fa-spinner fa-spin' }, success: { bg:'#F0FDF4', border:'#BBF7D0', color:'#065F46', icon:'fa-circle-check' }, error: { bg:'#FEF2F2', border:'#FECACA', color:'#991B1B', icon:'fa-circle-xmark' } };
+    const c = colors[type] || colors.processing;
+    showToast(msg, type === 'error' ? 'error' : type === 'success' ? 'success' : 'info');
+  }
 
   async function initiatePayment(planId,cycle){
     const plan=getPlans().find(p=>p.id===planId);
     const user=window.api.getUser();
     if(!window.Razorpay){showToast('Payment gateway is not available right now','error');return;}
+    paymentInProgress = true;
+    showSubPaymentStatus('Creating payment order...','processing');
     try{
       const orderRes=await window.api.request('/subscriptions/create-order',{method:'POST',body:JSON.stringify({plan:planId,billingCycle:cycle})});
-      if(!orderRes||!orderRes.order||!orderRes.key){showToast('Failed to create payment order','error');return;}
+      if(!orderRes||!orderRes.order||!orderRes.key){showSubPaymentStatus('Failed to create payment order','error');paymentInProgress=false;return;}
+      showSubPaymentStatus('Opening Razorpay checkout...','processing');
       const options={
         key:orderRes.key,amount:orderRes.order.amount,currency:orderRes.order.currency||'INR',
         name:'Vishva ERP',description:plan.name+' Subscription ('+cycle.charAt(0).toUpperCase()+cycle.slice(1)+')',
@@ -816,19 +827,35 @@
         image:'/icons/icon.svg',
         notes:{subscriptionId:orderRes.subscriptionId,plan:planId,billingCycle:cycle},
         handler:async function(response){
+          showSubPaymentStatus('Verifying payment...','processing');
           try{
             await window.api.request('/subscriptions/verify',{method:'POST',body:JSON.stringify({razorpayOrderId:response.razorpay_order_id,razorpayPaymentId:response.razorpay_payment_id,razorpaySignature:response.razorpay_signature,subscriptionId:orderRes.subscriptionId})}).catch(()=>pollSubscriptionActivation(orderRes.subscriptionId,response.razorpay_payment_id,7));
-            showToast('Payment successful! Subscription activated.','success');loadAll();
-          }catch(e){showToast(e.message||'Payment received but verification failed.','warning');}
+            showSubPaymentStatus('Payment successful! Subscription activated.','success');
+            paymentInProgress = false;
+            setTimeout(()=>loadAll(), 1200);
+          }catch(e){
+            showSubPaymentStatus(e.message||'Payment received but verification failed. Retrying...','error');
+            try {
+              await pollSubscriptionActivation(orderRes.subscriptionId, response.razorpay_payment_id, 5);
+              showSubPaymentStatus('Subscription activated after retry!','success');
+              setTimeout(()=>loadAll(), 1200);
+            } catch(e2) {
+              showSubPaymentStatus('Payment pending. Contact support if not resolved in 5 minutes.','error');
+            }
+            paymentInProgress = false;
+          }
         },
         prefill:{name:user?.name||'',email:user?.email||'',contact:user?.phone||''},
         theme:{color:plan.color||'#4F46E5'},
-        modal:{confirm_close:true,ondismiss:function(){showToast('Payment window closed.','info')}}
+        modal:{confirm_close:true,ondismiss:function(){showSubPaymentStatus('Payment cancelled.','error');paymentInProgress=false;}}
       };
       const rzp=new window.Razorpay(options);
-      rzp.on('payment.failed',function(r){showToast('Payment failed: '+(r.error?.description||'Unknown error'),'error')});
+      rzp.on('payment.failed',function(r){
+        showSubPaymentStatus('Payment failed: '+(r.error?.description||'Unknown error')+'. You can retry.','error');
+        paymentInProgress = false;
+      });
       rzp.open();
-    }catch(e){showToast('Could not initiate payment','error');}
+    }catch(e){showSubPaymentStatus('Could not initiate payment: '+e.message,'error');paymentInProgress=false;}
   }
 
   window.downloadReceipt=function(pid){showToast('Downloading receipt...','info');window.open('/api/subscriptions/receipts/'+pid,'_blank')};
