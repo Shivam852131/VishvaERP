@@ -2613,6 +2613,77 @@
       await loadFees();
     };
 
+    window.initiateAdminCollect = async function initiateAdminCollect() {
+      const select = byId('collectFeeSelect');
+      const feeId = select?.value;
+      if (!feeId) { window.showToast?.('Select a fee record first', 'error'); return; }
+      const fee = fees.find((item) => String(item._id) === String(feeId));
+      if (!fee) { window.showToast?.('Fee record not found', 'error'); return; }
+
+      const statusId = 'collectOnlineStatus';
+      try {
+        if (window.PaymentGateway) {
+          await window.PaymentGateway.startCheckout({
+            fee,
+            statusContainerId: statusId,
+            accentColor: '#4F46E5',
+            title: `Fee for ${fee.studentId?.name || 'Student'}`,
+            onPending: async () => {
+              window.PaymentGateway.showStatus(statusId, 'Payment received. Confirming with server...', 'processing');
+            },
+            onSuccess: async () => {
+              window.PaymentGateway.showStatus(statusId, 'Payment verified and recorded!', 'success');
+              window.showToast?.('Fee payment collected successfully', 'success');
+              setTimeout(async () => { window.closeModal?.('collectOnlineModal'); await loadFees(); }, 1500);
+            },
+            onFailure: async (error) => {
+              window.PaymentGateway.showStatus(statusId, error.message || 'Payment failed', 'error');
+            },
+          });
+        } else {
+          await payExistingFeeOnline(feeId);
+        }
+      } catch (error) {
+        if (window.PaymentGateway) window.PaymentGateway.showStatus(statusId, error.message || 'Could not initiate payment', 'error');
+        else window.showToast?.(error.message || 'Could not initiate payment', 'error');
+      }
+    };
+
+    function populateCollectSelect() {
+      const select = byId('collectFeeSelect');
+      const preview = byId('collectFeePreview');
+      const btn = byId('collectPayBtn');
+      if (!select) return;
+      const pending = fees.filter((item) => item.status !== 'paid').sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+      select.innerHTML = pending.length
+        ? '<option value="">Choose a fee record...</option>' + pending.map((item) => `<option value="${item._id}">${item.studentId?.name || 'Unknown'} — ${item.feeType || 'Fee'} — ₹${Number(item.amount).toLocaleString('en-IN')} (${item.status})</option>`).join('')
+        : '<option value="">No pending fee records</option>';
+
+      select.onchange = function () {
+        const fee = fees.find((item) => String(item._id) === String(select.value));
+        if (!fee || !preview) { if (preview) preview.style.display = 'none'; if (btn) btn.disabled = true; return; }
+        const pending = Math.max(Number(fee.amount || 0) - Number(fee.paidAmount || 0), 0);
+        const el = (id) => document.getElementById(id);
+        if (el('collectStudentName')) el('collectStudentName').textContent = fee.studentId?.name || '-';
+        if (el('collectFeeType')) el('collectFeeType').textContent = fee.feeType || '-';
+        if (el('collectTotalAmount')) el('collectTotalAmount').textContent = `₹${Number(fee.amount || 0).toLocaleString('en-IN')}`;
+        if (el('collectPendingAmount')) el('collectPendingAmount').textContent = `₹${pending.toLocaleString('en-IN')}`;
+        preview.style.display = 'block';
+        btn.disabled = false;
+      };
+      select.onchange();
+    }
+
+    const collectModal = byId('collectOnlineModal');
+    if (collectModal) {
+      const observer = new MutationObserver(() => {
+        if (collectModal.style.display !== 'none' && collectModal.classList.contains('active')) {
+          populateCollectSelect();
+        }
+      });
+      observer.observe(collectModal, { attributes: true, attributeFilter: ['class', 'style'] });
+    }
+
     if (searchInput) searchInput.oninput = renderFees;
     if (statusFilter) statusFilter.onchange = renderFees;
     if (exportBtn) exportBtn.onclick = function exportFees() { downloadCsv('fees.csv', [['Student', 'Roll', 'Amount', 'Type', 'Due Date', 'Status'], ...fees.map((item) => [item.studentId?.name, item.studentId?.rollNo, item.amount, item.feeType, formatDate(item.dueDate), item.status])]); };

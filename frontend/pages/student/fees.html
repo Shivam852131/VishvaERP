@@ -39,7 +39,7 @@
         <div class="topbar-breadcrumb">Student / <span>Fees</span></div>
       </div>
       <div class="topbar-right">
-        <button class="btn btn-primary" onclick="window.open('https://rzp.io/rzp/g6V47S1Q','_blank')"><i class="fas fa-credit-card"></i> Pay Now</button>
+        <button class="btn btn-primary" onclick="openStudentFeeModal()"><i class="fas fa-credit-card"></i> Pay Now</button>
         <div class="topbar-avatar" id="topbar-avatar">S</div>
       </div>
     </header>
@@ -58,7 +58,7 @@
           <div style="font-size:13px;color:#FCA5A5">Deadline: April 15, 2026 • Tuition Fee Sem IV</div>
         </div>
         <div style="display:flex;gap:10px">
-          <button class="btn" style="background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.4)" onclick="window.open('https://rzp.io/rzp/g6V47S1Q','_blank')"><i class="fas fa-credit-card"></i> Pay Now</button>
+          <button class="btn" style="background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.4)" onclick="openStudentFeeModal()"><i class="fas fa-credit-card"></i> Pay Now</button>
           <button class="btn" style="background:rgba(255,255,255,0.1);color:white;border:1px solid rgba(255,255,255,0.2)" onclick="showToast('Payment reminder sent to parent','info')"><i class="fas fa-paper-plane"></i> Notify Parent</button>
         </div>
       </div>
@@ -86,30 +86,76 @@
 
 <!-- PAY NOW MODAL -->
 <div class="modal-backdrop" id="payNowModal">
-  <div class="modal">
-    <div class="modal-header"><div class="modal-title"><i class="fas fa-lock" style="color:#059669;margin-right:8px"></i>Secure Payment via Razorpay</div><button class="modal-close" onclick="closeModal('payNowModal')"><i class="fas fa-times"></i></button></div>
-    <div class="modal-body" style="text-align:center">
-      <div style="background:linear-gradient(135deg,#F0FDF4,#ECFDF5);border-radius:16px;padding:24px;margin-bottom:20px;border:1px solid #BBF7D0">
-        <div style="font-size:12px;font-weight:700;color:#065F46;margin-bottom:4px;text-transform:uppercase">Outstanding Amount</div>
-        <div style="font-size:32px;font-weight:900;color:#059669">₹55,000</div>
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <div class="modal-title"><i class="fas fa-shield-halved" style="color:#059669;margin-right:8px"></i><span id="studentFeePaymentTitle">Secure Payment</span></div>
+      <button class="modal-close" onclick="closeModal('payNowModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body" style="padding:20px 24px">
+      <!-- Step Indicator -->
+      <div id="studentPaymentSteps"></div>
+
+      <!-- Fee Summary -->
+      <div id="studentFeePaymentSummary" style="background:linear-gradient(135deg,#F0FDF4,#ECFDF5);border-radius:14px;padding:20px;margin-bottom:16px;border:1px solid #BBF7D0">
+        <div style="font-size:11px;font-weight:700;color:#065F46;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px">Outstanding Amount</div>
+        <div style="font-size:28px;font-weight:900;color:#059669">₹55,000</div>
         <div style="font-size:12px;color:#64748B;margin-top:4px">Tuition Fee IV — Due by Apr 15, 2026</div>
       </div>
-      <div style="padding:14px 16px;border-radius:12px;background:#F8FAFC;border:1px solid #E2E8F0;color:#475569;margin-bottom:16px">
-        <div style="font-size:13px;font-weight:700;color:#0F172A;margin-bottom:6px"><i class="fas fa-shield-halved" style="color:#0284C7;margin-right:6px"></i>Real-time secure checkout</div>
-        <div style="font-size:12px;line-height:1.6">UPI, cards, net banking, and wallets are supported via Razorpay.</div>
+
+      <!-- Amount Input -->
+      <div class="form-group">
+        <label class="form-label" style="font-weight:700;color:#1E293B">Amount to Pay</label>
+        <div style="position:relative">
+          <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:16px;font-weight:700;color:#64748B">₹</span>
+          <input class="form-control" type="number" value="55000" id="payAmount" style="padding-left:30px;font-size:18px;font-weight:700;border:2px solid #E2E8F0;border-radius:10px;height:48px">
+        </div>
+        <div style="font-size:11px;color:#64748B;margin-top:4px" id="payAmountHint">Enter amount (full or partial payment)</div>
       </div>
-      <a href="https://rzp.io/rzp/g6V47S1Q" target="_blank" style="display:inline-flex;align-items:center;gap:10px;padding:16px 32px;background:linear-gradient(135deg,#059669,#10B981);color:white;border-radius:12px;font-size:16px;font-weight:700;text-decoration:none;box-shadow:0 4px 14px rgba(16,185,129,0.3);transition:all 0.2s" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 6px 20px rgba(16,185,129,0.4)'" onmouseout="this.style.transform='none';this.style.boxShadow='0 4px 14px rgba(16,185,129,0.3)'">
-        <i class="fas fa-credit-card"></i> Pay ₹55,000 Securely
-      </a>
-      <div style="margin-top:12px;font-size:11px;color:#94A3B8">You will be redirected to Razorpay's secure payment page</div>
+
+      <!-- Payment Methods -->
+      <div class="form-group">
+        <label class="form-label" style="font-weight:700;color:#1E293B">Payment Method</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <label style="display:flex;align-items:center;gap:8px;padding:12px;border:2px solid #4F46E5;border-radius:10px;background:#EDE9FE;cursor:pointer;transition:all 0.15s"><input type="radio" name="payMode" value="UPI" checked style="accent-color:#4F46E5"> <span style="font-size:13px;font-weight:600;color:#1E293B">UPI</span></label>
+          <label style="display:flex;align-items:center;gap:8px;padding:12px;border:2px solid #E2E8F0;border-radius:10px;background:white;cursor:pointer;transition:all 0.15s" onmouseover="this.style.borderColor='#93C5FD'" onmouseout="this.style.borderColor='#E2E8F0'"><input type="radio" name="payMode" value="Net Banking" style="accent-color:#4F46E5"> <span style="font-size:13px;font-weight:600;color:#1E293B">Net Banking</span></label>
+          <label style="display:flex;align-items:center;gap:8px;padding:12px;border:2px solid #E2E8F0;border-radius:10px;background:white;cursor:pointer;transition:all 0.15s" onmouseover="this.style.borderColor='#93C5FD'" onmouseout="this.style.borderColor='#E2E8F0'"><input type="radio" name="payMode" value="Debit Card" style="accent-color:#4F46E5"> <span style="font-size:13px;font-weight:600;color:#1E293B">Debit Card</span></label>
+          <label style="display:flex;align-items:center;gap:8px;padding:12px;border:2px solid #E2E8F0;border-radius:10px;background:white;cursor:pointer;transition:all 0.15s" onmouseover="this.style.borderColor='#93C5FD'" onmouseout="this.style.borderColor='#E2E8F0'"><input type="radio" name="payMode" value="Credit Card" style="accent-color:#4F46E5"> <span style="font-size:13px;font-weight:600;color:#1E293B">Credit Card</span></label>
+        </div>
+      </div>
+
+      <!-- Security Info -->
+      <div style="padding:12px 14px;border-radius:10px;background:#F8FAFC;border:1px solid #E2E8F0;color:#475569;margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:8px"><i class="fas fa-shield-halved" style="color:#0284C7;font-size:14px"></i><span style="font-size:12px;font-weight:600;color:#0F172A">256-bit SSL encrypted • PCI DSS compliant</span></div>
+        <div style="font-size:11px;color:#94A3B8;margin-top:4px;padding-left:22px">Powered by Razorpay • UPI, cards, net banking, wallets</div>
+      </div>
+
+      <!-- Payment Status -->
+      <div id="studentPaymentStatus" style="display:none;padding:12px 16px;border-radius:10px;margin-bottom:12px"></div>
+
+      <!-- Retry Button (hidden by default) -->
+      <div id="studentRetrySection" style="display:none;text-align:center;margin-bottom:12px">
+        <button class="btn btn-primary" style="background:#EF4444;border-color:#EF4444" onclick="retryStudentPayment()"><i class="fas fa-redo"></i> Retry Payment</button>
+      </div>
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="closeModal('payNowModal')">Close</button>
+    <div class="modal-footer" style="padding:16px 24px;border-top:1px solid #F1F5F9">
+      <button class="btn btn-secondary" onclick="closeModal('payNowModal')" style="flex:1">Cancel</button>
+      <button class="btn btn-success" id="studentFeePayButton" onclick="processPayment()" style="flex:2;background:linear-gradient(135deg,#059669,#10B981);border:none;padding:12px 24px;font-weight:700">
+        <i class="fas fa-lock"></i> Pay Securely
+      </button>
     </div>
   </div>
 </div>
 
+<!-- RECEIPT MODAL -->
+<div class="modal-backdrop" id="receiptModal">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-header"><div class="modal-title"><i class="fas fa-file-invoice" style="color:#059669;margin-right:8px"></i>Payment Receipt</div><button class="modal-close" onclick="closeModal('receiptModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body" style="padding:24px"></div>
+  </div>
+</div>
+
 <script src="../../js/shared.js"></script>
+<script src="../../live/payment-gateway.js"></script>
 <script src="../../live/live-pages.js"></script>
 </body>
 </html>
