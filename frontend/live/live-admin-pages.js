@@ -3114,6 +3114,181 @@
     await loadStructures();
   }
 
+  async function initCollegeAdminFeeAnalyticsPage() {
+    const yearSelect = byId('analyticsYear');
+    const deptSelect = byId('analyticsDept');
+    const refreshBtn = byId('refreshAnalytics');
+    let charts = {};
+
+    function destroyCharts() {
+      Object.values(charts).forEach((c) => { if (c && typeof c.destroy === 'function') c.destroy(); });
+      charts = {};
+    }
+
+    function fmtCurrency(val) {
+      if (val == null) return '₹0';
+      if (val >= 100000) return '₹' + (val / 100000).toFixed(1) + 'L';
+      if (val >= 1000) return '₹' + (val / 1000).toFixed(1) + 'K';
+      return '₹' + Number(val).toLocaleString('en-IN');
+    }
+
+    async function loadAnalytics() {
+      destroyCharts();
+      const params = new URLSearchParams();
+      if (yearSelect && yearSelect.value) params.set('academicYear', yearSelect.value);
+      if (deptSelect && deptSelect.value) params.set('department', deptSelect.value);
+      const qs = params.toString() ? '?' + params.toString() : '';
+
+      let data;
+      try {
+        data = await window.api.request('/fees/analytics' + qs, { silent: true });
+      } catch (e) {
+        showToast('Failed to load analytics', 'error');
+        return;
+      }
+      const a = data.analytics;
+      if (!a) return;
+
+      byId('aTotalBilled').textContent = fmtCurrency(a.totalAmount);
+      byId('aCollected').textContent = fmtCurrency(a.collectedAmount);
+      byId('aPending').textContent = fmtCurrency(a.pendingAmount);
+      byId('aOverdue').textContent = fmtCurrency(a.overdueAmount);
+      byId('aCollectionRate').textContent = a.collectionRate + '%';
+      byId('aLateFees').textContent = fmtCurrency(a.totalLateFees);
+
+      const months = Object.keys(a.byMonth).sort();
+      const collectedData = months.map((m) => a.byMonth[m].collected || 0);
+      const pendingData = months.map((m) => a.byMonth[m].pending || 0);
+      const monthLabels = months.map((m) => {
+        const [y, mo] = m.split('-');
+        return new Date(y, mo - 1).toLocaleString('en', { month: 'short', year: '2-digit' });
+      });
+
+      charts.monthly = new Chart(byId('monthlyChart'), {
+        type: 'bar',
+        data: {
+          labels: monthLabels.length ? monthLabels : ['No Data'],
+          datasets: [
+            { label: 'Collected', data: collectedData.length ? collectedData : [0], backgroundColor: '#10B981', borderRadius: 6 },
+            { label: 'Pending', data: pendingData.length ? pendingData : [0], backgroundColor: '#F59E0B', borderRadius: 6 },
+          ],
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { position: 'top' } },
+          scales: { x: { stacked: true }, y: { stacked: true, beginAtZero: true } },
+        },
+      });
+
+      const typeLabels = Object.keys(a.byType);
+      const typeData = typeLabels.map((t) => a.byType[t]);
+      const typeColors = ['#4F46E5', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#0EA5E9', '#EC4899'];
+
+      charts.feeType = new Chart(byId('feeTypeChart'), {
+        type: 'doughnut',
+        data: {
+          labels: typeLabels.length ? typeLabels : ['No Data'],
+          datasets: [{ data: typeData.length ? typeData : [1], backgroundColor: typeColors.slice(0, typeLabels.length || 1) }],
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { position: 'right' } },
+        },
+      });
+
+      const deptLabels = Object.keys(a.byDepartment);
+      const deptData = deptLabels.map((d) => a.byDepartment[d]);
+
+      charts.dept = new Chart(byId('deptChart'), {
+        type: 'bar',
+        data: {
+          labels: deptLabels.length ? deptLabels : ['No Data'],
+          datasets: [{ label: 'Amount', data: deptData.length ? deptData : [0], backgroundColor: '#4F46E5', borderRadius: 6 }],
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          indexAxis: 'y',
+          plugins: { legend: { display: false } },
+          scales: { x: { beginAtZero: true } },
+        },
+      });
+
+      const inst = a.installmentStats || { total: 0, paid: 0, pending: 0, overdue: 0 };
+      charts.installment = new Chart(byId('installmentChart'), {
+        type: 'doughnut',
+        data: {
+          labels: ['Paid', 'Pending', 'Overdue'],
+          datasets: [{ data: [inst.paid, inst.pending, inst.overdue], backgroundColor: ['#10B981', '#F59E0B', '#EF4444'] }],
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { position: 'right' } },
+        },
+      });
+
+      const total = a.totalFees || 1;
+      const statusRows = [
+        { label: 'Paid', count: a.paidCount, amount: a.collectedAmount, color: '#10B981' },
+        { label: 'Partial', count: a.partialCount, amount: 0, color: '#0EA5E9' },
+        { label: 'Pending', count: a.pendingCount, amount: a.pendingAmount, color: '#F59E0B' },
+        { label: 'Overdue', count: a.overdueCount, amount: a.overdueAmount, color: '#EF4444' },
+        { label: 'Waived', count: a.waivedCount, amount: 0, color: '#8B5CF6' },
+      ];
+      const statusTbody = byId('statusTableBody');
+      if (statusTbody) {
+        statusTbody.innerHTML = statusRows.map((r) => `<tr>
+          <td><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${r.color};margin-right:8px"></span>${r.label}</td>
+          <td>${r.count}</td>
+          <td>${fmtCurrency(r.amount)}</td>
+          <td>${Math.round((r.count / total) * 100)}%</td>
+        </tr>`).join('');
+      }
+
+      const discountRows = [
+        { label: 'Total Discounts', value: fmtCurrency(a.totalDiscounts) },
+        { label: 'Total Late Fees', value: fmtCurrency(a.totalLateFees) },
+        { label: 'Net Collections', value: fmtCurrency(a.collectedAmount - a.totalLateFees + a.totalDiscounts) },
+      ];
+      const discTbody = byId('discountTableBody');
+      if (discTbody) {
+        discTbody.innerHTML = discountRows.map((r) => `<tr><td style="font-weight:600">${r.label}</td><td>${r.value}</td></tr>`).join('');
+      }
+    }
+
+    async function loadFilters() {
+      try {
+        const [summary, structures] = await Promise.all([
+          window.api.request('/fees/summary', { silent: true }),
+          window.api.request('/fees/structures', { silent: true }),
+        ]);
+        const years = new Set();
+        const depts = new Set();
+        if (summary.summary) {
+          years.add('2026');
+          years.add('2025');
+        }
+        (structures.structures || []).forEach((s) => {
+          if (s.academicYear) years.add(s.academicYear);
+          if (s.department) depts.add(s.department);
+        });
+        if (yearSelect) {
+          yearSelect.innerHTML = '<option value="">All Years</option>';
+          [...years].sort().forEach((y) => { yearSelect.innerHTML += `<option value="${y}">${y}</option>`; });
+        }
+        if (deptSelect) {
+          deptSelect.innerHTML = '<option value="">All Departments</option>';
+          [...depts].sort().forEach((d) => { deptSelect.innerHTML += `<option value="${d}">${d}</option>`; });
+        }
+      } catch (e) { /* ignore */ }
+    }
+
+    if (yearSelect) yearSelect.addEventListener('change', loadAnalytics);
+    if (deptSelect) deptSelect.addEventListener('change', loadAnalytics);
+    if (refreshBtn) refreshBtn.addEventListener('click', loadAnalytics);
+
+    await Promise.all([loadFilters(), loadAnalytics()]);
+  }
+
   async function initCollegeAdminNoticesPage() {
     const searchInput = cloneById('noticeSearch');
     const targetSelect = byId('nTarget');
@@ -4782,6 +4957,7 @@
     if (path.endsWith('/pages/college-admin/students.html')) return initCollegeAdminStudentsPage();
     if (path.endsWith('/pages/college-admin/faculty.html')) return initCollegeAdminFacultyPage();
     if (path.endsWith('/pages/college-admin/fee-structures.html')) return initCollegeAdminFeeStructuresPage();
+    if (path.endsWith('/pages/college-admin/fee-analytics.html')) return initCollegeAdminFeeAnalyticsPage();
     if (path.endsWith('/pages/college-admin/fees.html')) return initCollegeAdminFeesPage();
     if (path.endsWith('/pages/college-admin/notices.html')) return initCollegeAdminNoticesPage();
     if (path.endsWith('/pages/college-admin/hr.html')) return initCollegeAdminHrPage();

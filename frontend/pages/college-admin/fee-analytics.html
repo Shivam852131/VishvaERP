@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Fee Analytics — College Admin | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="../../css/custom.css">
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-college" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" id="sidebar-avatar">A</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Admin</div><div class="sidebar-user-role">College Administrator</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <div class="nav-section-label">Academics</div>
+      <a href="students.html" class="nav-link"><i class="nav-link-icon fas fa-user-graduate"></i> Students</a>
+      <a href="faculty.html" class="nav-link"><i class="nav-link-icon fas fa-chalkboard-teacher"></i> Faculty</a>
+      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-open"></i> Courses & Exams</a>
+      <a href="notices.html" class="nav-link"><i class="nav-link-icon fas fa-bullhorn"></i> Notice Board</a>
+      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-check"></i> Attendance</a>
+      <div class="nav-section-label">Finance & HR</div>
+      <a href="fee-structures.html" class="nav-link"><i class="nav-link-icon fas fa-layer-group"></i> Fee Structures</a>
+      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-file-invoice-dollar"></i> Fee Management</a>
+      <a href="fee-analytics.html" class="nav-link active"><i class="nav-link-icon fas fa-chart-bar"></i> Fee Analytics</a>
+      <a href="hr.html" class="nav-link"><i class="nav-link-icon fas fa-user-md"></i> HR & Leave</a>
+      <a href="subscription.html" class="nav-link"><i class="nav-link-icon fas fa-credit-card"></i> Subscription</a>
+      <div class="nav-section-label">Facilities</div>
+      <a href="logistics.html" class="nav-link"><i class="nav-link-icon fas fa-bus"></i> Logistics & Hostel</a>
+      <div class="nav-section-label">Tools</div>
+      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Hub</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">College Admin / <span>Fee Analytics</span></div>
+      </div>
+      <div class="topbar-right">
+        <select id="analyticsYear" class="erp-select" style="min-width:120px;padding:8px 12px;border-radius:8px;border:1px solid #E2E8F0;font-size:13px">
+          <option value="">All Years</option>
+        </select>
+        <select id="analyticsDept" class="erp-select" style="min-width:120px;padding:8px 12px;border-radius:8px;border:1px solid #E2E8F0;font-size:13px">
+          <option value="">All Departments</option>
+        </select>
+        <button class="btn btn-secondary" id="refreshAnalytics"><i class="fas fa-sync-alt"></i> Refresh</button>
+        <div class="topbar-avatar" id="topbar-avatar">A</div>
+      </div>
+    </header>
+
+    <div class="erp-content">
+      <div class="page-header">
+        <h1 class="page-title">📊 Fee Analytics</h1>
+        <p class="page-subtitle">Collection rates, department breakdown, installment performance, and trends.</p>
+      </div>
+
+      <!-- STATS ROW -->
+      <div class="stats-grid" style="grid-template-columns:repeat(6,1fr)">
+        <div class="stat-card"><div class="stat-card-accent" style="background:#4F46E5"></div><div class="stat-icon" style="background:#EDE9FE;color:#5B21B6"><i class="fas fa-indian-rupee-sign"></i></div><div class="stat-label">Total Billed</div><div class="stat-value" id="aTotalBilled">—</div></div>
+        <div class="stat-card"><div class="stat-card-accent" style="background:#10B981"></div><div class="stat-icon" style="background:#D1FAE5;color:#065F46"><i class="fas fa-check-circle"></i></div><div class="stat-label">Collected</div><div class="stat-value" id="aCollected">—</div></div>
+        <div class="stat-card"><div class="stat-card-accent" style="background:#F59E0B"></div><div class="stat-icon" style="background:#FEF3C7;color:#92400E"><i class="fas fa-clock"></i></div><div class="stat-label">Pending</div><div class="stat-value" id="aPending">—</div></div>
+        <div class="stat-card"><div class="stat-card-accent" style="background:#EF4444"></div><div class="stat-icon" style="background:#FEE2E2;color:#991B1B"><i class="fas fa-exclamation-triangle"></i></div><div class="stat-label">Overdue</div><div class="stat-value" id="aOverdue">—</div></div>
+        <div class="stat-card"><div class="stat-card-accent" style="background:#8B5CF6"></div><div class="stat-icon" style="background:#EDE9FE;color:#5B21B6"><i class="fas fa-percent"></i></div><div class="stat-label">Collection Rate</div><div class="stat-value" id="aCollectionRate">—</div></div>
+        <div class="stat-card"><div class="stat-card-accent" style="background:#0EA5E9"></div><div class="stat-icon" style="background:#E0F2FE;color:#075985"><i class="fas fa-badge-dollar"></i></div><div class="stat-label">Late Fees</div><div class="stat-value" id="aLateFees">—</div></div>
+      </div>
+
+      <!-- CHARTS ROW 1 -->
+      <div class="grid col-2 mb-6">
+        <div class="card">
+          <div class="card-header"><div class="card-title"><i class="fas fa-chart-line" style="color:#4F46E5;margin-right:8px"></i>Monthly Collection Trend</div></div>
+          <div class="card-body"><div class="chart-container" style="height:280px"><canvas id="monthlyChart"></canvas></div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title"><i class="fas fa-chart-pie" style="color:#10B981;margin-right:8px"></i>Fee Type Breakdown</div></div>
+          <div class="card-body"><div class="chart-container" style="height:280px"><canvas id="feeTypeChart"></canvas></div></div>
+        </div>
+      </div>
+
+      <!-- CHARTS ROW 2 -->
+      <div class="grid col-2 mb-6">
+        <div class="card">
+          <div class="card-header"><div class="card-title"><i class="fas fa-building" style="color:#F59E0B;margin-right:8px"></i>Department Breakdown</div></div>
+          <div class="card-body"><div class="chart-container" style="height:280px"><canvas id="deptChart"></canvas></div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title"><i class="fas fa-layer-group" style="color:#8B5CF6;margin-right:8px"></i>Installment Performance</div></div>
+          <div class="card-body"><div class="chart-container" style="height:280px"><canvas id="installmentChart"></canvas></div></div>
+        </div>
+      </div>
+
+      <!-- SUMMARY TABLES -->
+      <div class="grid col-2 mb-6">
+        <div class="card">
+          <div class="card-header"><div class="card-title"><i class="fas fa-table" style="color:#4F46E5;margin-right:8px"></i>Status Summary</div></div>
+          <div class="card-body" style="padding:0">
+            <table class="erp-table">
+              <thead><tr><th>Status</th><th>Count</th><th>Amount</th><th>%</th></tr></thead>
+              <tbody id="statusTableBody">
+                <tr><td colspan="4" style="text-align:center;padding:20px;color:#94A3B8">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title"><i class="fas fa-table" style="color:#10B981;margin-right:8px"></i>Discount & Scholarship Summary</div></div>
+          <div class="card-body" style="padding:0">
+            <table class="erp-table">
+              <thead><tr><th>Metric</th><th>Value</th></tr></thead>
+              <tbody id="discountTableBody">
+                <tr><td colspan="2" style="text-align:center;padding:20px;color:#94A3B8">Loading...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script src="../../live/live-admin-pages.js"></script>
+</body>
+</html>
