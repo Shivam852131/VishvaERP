@@ -46,9 +46,9 @@ const app = express();
 const server = http.createServer(app);
 const allowedOrigins = (process.env.FRONTEND_URL || '')
   .split(',')
-  .map((origin) => origin.trim())
+  .map((origin) => origin.trim().replace(/\/+$/, ''))
   .filter(Boolean);
-const renderExternalUrl = (process.env.RENDER_EXTERNAL_URL || '').trim();
+const renderExternalUrl = (process.env.RENDER_EXTERNAL_URL || '').trim().replace(/\/+$/, '');
 const configuredOrigins = Array.from(new Set([
   ...allowedOrigins,
   ...(renderExternalUrl ? [renderExternalUrl] : []),
