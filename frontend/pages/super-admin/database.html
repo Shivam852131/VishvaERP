@@ -113,9 +113,9 @@
               <div class="card-title" id="browserTitle"><i class="fas fa-table" style="color:#4F46E5;margin-right:6px"></i>Select a collection</div>
               <span class="badge-collection" id="docCount" style="display:none">0 docs</span>
             </div>
-            <div style="display:flex;gap:8px;align-items:center">
-              <div class="search-bar" style="width:200px"><i class="fas fa-search"></i><input type="text" id="docSearch" placeholder="Search documents..." oninput="searchDocs()"></div>
-              <select class="form-control" style="width:140px;padding:7px 10px;font-size:13px" id="viewMode" onchange="toggleView()">
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+              <div class="search-bar" style="flex:1;min-width:140px"><i class="fas fa-search"></i><input type="text" id="docSearch" placeholder="Search documents..." oninput="searchDocs()"></div>
+              <select class="form-control" id="viewMode" onchange="toggleView()">
                 <option value="table">Table View</option>
                 <option value="json">JSON View</option>
               </select>

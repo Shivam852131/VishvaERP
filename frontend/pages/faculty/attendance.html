@@ -62,7 +62,7 @@
       <!-- Select Class -->
       <div class="card mb-6">
         <div class="card-body" style="display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap">
-          <div class="form-group" style="flex:1;min-width:160px;margin-bottom:0">
+          <div class="form-group" style="flex:1;min-width:0;margin-bottom:0">
             <label class="form-label">Select Subject</label>
             <select class="form-control" id="subjectSelect" onchange="loadStudents()">
               <option value="dsa">Data Structures (CS401)</option>
@@ -70,14 +70,14 @@
               <option value="os">Operating Systems (CS403)</option>
             </select>
           </div>
-          <div class="form-group" style="flex:1;min-width:160px;margin-bottom:0">
+          <div class="form-group" style="flex:1;min-width:0;margin-bottom:0">
             <label class="form-label">Select Batch</label>
             <select class="form-control" id="batchSelect">
               <option>B.Tech CS Sem 4</option>
               <option>B.Tech CS Sem 6</option>
             </select>
           </div>
-          <div class="form-group" style="flex:1;min-width:160px;margin-bottom:0">
+          <div class="form-group" style="flex:1;min-width:0;margin-bottom:0">
             <label class="form-label">Date</label>
             <input type="date" class="form-control" id="attDate" value="">
           </div>
@@ -125,7 +125,7 @@
       <div style="display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
         <button class="btn btn-success btn-sm" onclick="markAll('present')"><i class="fas fa-check-double"></i> Mark All Present</button>
         <button class="btn btn-secondary btn-sm" onclick="markAll('absent')"><i class="fas fa-times"></i> Mark All Absent</button>
-        <div class="search-bar" style="width:220px"><i class="fas fa-search"></i><input type="text" id="studentSearch" placeholder="Search student..." oninput="filterStudents()"></div>
+        <div class="search-bar" style="flex:1;min-width:160px"><i class="fas fa-search"></i><input type="text" id="studentSearch" placeholder="Search student..." oninput="filterStudents()"></div>
         <span style="margin-left:auto;font-size:13px;color:#64748B">Present: <strong id="presentCount">0</strong> / <strong id="totalCount">0</strong></span>
         <button class="btn btn-primary" onclick="submitAttendance()"><i class="fas fa-save"></i> Submit Attendance</button>
       </div>

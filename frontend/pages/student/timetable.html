@@ -81,17 +81,18 @@
           <div class="card-title"><i class="fas fa-calendar-week" style="color:#0284C7;margin-right:8px"></i>Weekly Grid</div>
           <span class="badge badge-info">Live from ERP</span>
         </div>
-        <div class="table-wrap">
-          <table class="erp-table table-bordered text-center" style="min-width:1000px">
+        <div class="table-wrap swipeable">
+          <div class="swipe-hint"></div>
+          <table class="erp-table table-bordered text-center timetable-grid" data-enhanced="true">
             <thead>
               <tr>
-                <th style="width:110px;background:#FAFAFA">Time</th>
-                <th>Monday</th>
-                <th>Tuesday</th>
-                <th>Wednesday</th>
-                <th>Thursday</th>
-                <th>Friday</th>
-                <th>Saturday</th>
+                <th style="background:#FAFAFA">Time</th>
+                <th>Mon</th>
+                <th>Tue</th>
+                <th>Wed</th>
+                <th>Thu</th>
+                <th>Fri</th>
+                <th>Sat</th>
               </tr>
             </thead>
             <tbody id="timetableBody"></tbody>

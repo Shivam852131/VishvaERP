@@ -62,10 +62,10 @@
       <!-- Filter bar -->
       <div class="card mb-4">
         <div class="card-body" style="padding:12px 20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-          <div class="search-bar" style="flex:1;min-width:200px"><i class="fas fa-search"></i><input type="text" placeholder="Search by name, roll no, email..." id="studentSearch"></div>
-          <select class="form-control" style="width:160px" id="branchFilter"><option value="">All Branches</option><option>B.Tech CS</option><option>B.Tech EC</option><option>B.Tech ME</option><option>MBA</option><option>MCA</option></select>
-          <select class="form-control" style="width:140px" id="semFilter"><option value="">All Sems</option><option>Sem 1</option><option>Sem 2</option><option>Sem 3</option><option>Sem 4</option><option>Sem 5</option><option>Sem 6</option></select>
-          <select class="form-control" style="width:140px" id="feeFilter"><option value="">Fee Status</option><option value="paid">Paid</option><option value="pending">Pending</option><option value="overdue">Overdue</option></select>
+          <div class="search-bar" style="flex:1;min-width:0"><i class="fas fa-search"></i><input type="text" placeholder="Search by name, roll no, email..." id="studentSearch"></div>
+          <select class="form-control" id="branchFilter"><option value="">All Branches</option><option>B.Tech CS</option><option>B.Tech EC</option><option>B.Tech ME</option><option>MBA</option><option>MCA</option></select>
+          <select class="form-control" id="semFilter"><option value="">All Sems</option><option>Sem 1</option><option>Sem 2</option><option>Sem 3</option><option>Sem 4</option><option>Sem 5</option><option>Sem 6</option></select>
+          <select class="form-control" id="feeFilter"><option value="">Fee Status</option><option value="paid">Paid</option><option value="pending">Pending</option><option value="overdue">Overdue</option></select>
           <button class="btn btn-secondary btn-sm"><i class="fas fa-times"></i> Clear</button>
           <button class="btn btn-secondary btn-sm" id="exportBtn"><i class="fas fa-download"></i> Export</button>
         </div>

@@ -53,8 +53,8 @@
       <!-- Filters -->
       <div class="card mb-4">
         <div class="card-body" style="padding:14px 20px;display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end">
-          <div class="search-bar" style="width:260px"><i class="fas fa-search"></i><input type="text" id="logSearch" placeholder="Search by user or email..." oninput="filterLogs()"></div>
-          <div class="form-group" style="margin:0;min-width:140px">
+          <div class="search-bar" style="flex:1;min-width:160px"><i class="fas fa-search"></i><input type="text" id="logSearch" placeholder="Search by user or email..." oninput="filterLogs()"></div>
+          <div class="form-group" style="margin:0;flex:0 0 auto">
             <label class="form-label" style="font-size:11px">Role</label>
             <select class="form-control" style="padding:7px 10px;font-size:13px" id="roleFilter" onchange="filterLogs()">
               <option value="">All Roles</option>
@@ -65,7 +65,7 @@
               <option value="parent">Parent</option>
             </select>
           </div>
-          <div class="form-group" style="margin:0;min-width:140px">
+          <div class="form-group" style="margin:0;flex:0 0 auto">
             <label class="form-label" style="font-size:11px">Action</label>
             <select class="form-control" style="padding:7px 10px;font-size:13px" id="actionFilter" onchange="filterLogs()">
               <option value="">All Actions</option>
@@ -75,7 +75,7 @@
               <option value="Delete">Delete</option>
             </select>
           </div>
-          <div class="form-group" style="margin:0;min-width:140px">
+          <div class="form-group" style="margin:0;flex:0 0 auto">
             <label class="form-label" style="font-size:11px">Status</label>
             <select class="form-control" style="padding:7px 10px;font-size:13px" id="statusFilter" onchange="filterLogs()">
               <option value="">All</option>

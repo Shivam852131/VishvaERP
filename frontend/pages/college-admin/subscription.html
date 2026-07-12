@@ -51,8 +51,6 @@
     .empty-state i{font-size:40px;margin-bottom:12px;display:block}
     .btn-active-indicator{position:relative;padding-right:16px}
     .btn-active-indicator::after{content:'';position:absolute;top:4px;right:4px;width:6px;height:6px;border-radius:50%;background:#10B981}
-    @media(max-width:768px){.sub-hero{padding:20px}.countdown-num{font-size:24px}}
-    @media(max-width:640px){.erp-content{padding:16px!important}}
   </style>
 </head>
 <body>
@@ -249,8 +247,8 @@
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
           <h3 style="font-size:16px;font-weight:700"><i class="fas fa-file-invoice" style="color:#4F46E5;margin-right:8px"></i>Invoices & Receipts</h3>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <input class="form-control" id="invoiceSearch" placeholder="Search invoices..." style="width:220px" oninput="renderInvoices()">
-            <select class="form-control" id="invoiceStatusFilter" style="width:140px" onchange="renderInvoices()">
+            <input class="form-control" id="invoiceSearch" placeholder="Search invoices..." oninput="renderInvoices()">
+            <select class="form-control" id="invoiceStatusFilter" onchange="renderInvoices()">
               <option value="">All Status</option>
               <option value="paid">Paid</option>
               <option value="failed">Failed</option>
@@ -268,8 +266,8 @@
           <div style="padding:20px 24px;border-bottom:1px solid #F1F5F9;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
             <h3 style="font-size:16px;font-weight:700"><i class="fas fa-clock-rotate-left" style="color:#10B981;margin-right:8px"></i>Complete Billing History</h3>
             <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <input class="form-control" id="paymentSearch" placeholder="Search payments..." style="width:220px" oninput="filterPayments()">
-              <select class="form-control" id="paymentStatusFilter" style="width:140px" onchange="filterPayments()">
+              <input class="form-control" id="paymentSearch" placeholder="Search payments..." oninput="filterPayments()">
+              <select class="form-control" id="paymentStatusFilter" onchange="filterPayments()">
                 <option value="">All Status</option>
                 <option value="success">Paid</option>
                 <option value="failed">Failed</option>

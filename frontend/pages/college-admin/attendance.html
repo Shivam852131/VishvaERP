@@ -221,7 +221,7 @@
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
           <h3 style="font-size:16px;font-weight:700"><i class="fas fa-chart-bar" style="color:#8B5CF6;margin-right:8px"></i>Attendance Analytics</h3>
           <div style="display:flex;gap:8px">
-            <select class="form-control" id="analyticsPeriod" style="width:140px" onchange="loadAnalytics()">
+            <select class="form-control" id="analyticsPeriod" onchange="loadAnalytics()">
               <option value="7">Last 7 Days</option>
               <option value="30" selected>Last 30 Days</option>
               <option value="90">Last 90 Days</option>
@@ -261,8 +261,8 @@
       <div id="tab-students" style="display:none">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap">
           <h3 style="font-size:16px;font-weight:700"><i class="fas fa-user-graduate" style="color:#4F46E5;margin-right:8px"></i>Student Attendance Report</h3>
-          <input class="form-control" id="studentSearch" placeholder="Search by name or roll number..." style="width:260px" oninput="filterStudentReport()">
-          <select class="form-control" id="subjectFilter" style="width:180px" onchange="filterStudentReport()">
+          <input class="form-control" id="studentSearch" placeholder="Search by name or roll number..." oninput="filterStudentReport()">
+          <select class="form-control" id="subjectFilter" onchange="filterStudentReport()">
             <option value="">All Subjects</option>
           </select>
         </div>

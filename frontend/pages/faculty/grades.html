@@ -50,7 +50,7 @@
       <!-- Select course -->
       <div class="card mb-4">
         <div class="card-body" style="padding:14px 20px;display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap">
-          <div class="form-group" style="flex:1;min-width:180px;margin:0">
+          <div class="form-group" style="flex:1;min-width:0;margin:0">
             <label class="form-label">Subject</label>
             <select class="form-control" id="gradeSubject" onchange="loadMarks()">
               <option value="dsa">Data Structures (CS401)</option>
@@ -58,7 +58,7 @@
               <option value="os">Operating Systems (CS403)</option>
             </select>
           </div>
-          <div class="form-group" style="flex:1;min-width:180px;margin:0">
+          <div class="form-group" style="flex:1;min-width:0;margin:0">
             <label class="form-label">Exam Type</label>
             <select class="form-control" id="examType" onchange="loadMarks()">
               <option value="mid1">Mid-Semester 1</option>
@@ -67,7 +67,7 @@
               <option value="end">End-Semester</option>
             </select>
           </div>
-          <div class="form-group" style="min-width:120px;margin:0">
+          <div class="form-group" style="min-width:0;margin:0">
             <label class="form-label">Max Marks</label>
             <input class="form-control" type="number" id="maxMarks" value="50">
           </div>
@@ -86,8 +86,8 @@
       <div class="card">
         <div class="card-header">
           <div class="card-title">Enter Marks</div>
-          <div style="display:flex;gap:8px">
-            <div class="search-bar" style="width:200px"><i class="fas fa-search"></i><input type="text" placeholder="Search student..." id="gradeSearch" oninput="filterGrades()"></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <div class="search-bar" style="flex:1;min-width:160px"><i class="fas fa-search"></i><input type="text" placeholder="Search student..." id="gradeSearch" oninput="filterGrades()"></div>
             <button class="btn btn-success btn-sm" id="saveAllBtn" onclick="saveAllGrades()"><i class="fas fa-save"></i> Save All</button>
           </div>
         </div>

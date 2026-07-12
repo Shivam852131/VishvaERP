@@ -73,16 +73,16 @@
           <div class="card-header">
             <div class="card-title">Question Bank</div>
             <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-              <div class="search-bar" style="width:180px"><i class="fas fa-search"></i><input type="text" placeholder="Search questions..." id="qSearch" oninput="debounceLoadQuestions()"></div>
-              <select class="form-control" style="width:140px" id="qSubjectFilter" onchange="loadQuestions()"><option value="">All Subjects</option></select>
-              <select class="form-control" style="width:130px" id="qDifficultyFilter" onchange="loadQuestions()">
+              <div class="search-bar" style="flex:1;min-width:160px"><i class="fas fa-search"></i><input type="text" placeholder="Search questions..." id="qSearch" oninput="debounceLoadQuestions()"></div>
+              <select class="form-control" id="qSubjectFilter" onchange="loadQuestions()"><option value="">All Subjects</option></select>
+              <select class="form-control" id="qDifficultyFilter" onchange="loadQuestions()">
                 <option value="">All Difficulty</option>
                 <option value="easy">Easy</option>
                 <option value="medium">Medium</option>
                 <option value="hard">Hard</option>
                 <option value="very_hard">Very Hard</option>
               </select>
-              <select class="form-control" style="width:140px" id="qTypeFilter" onchange="loadQuestions()">
+              <select class="form-control" id="qTypeFilter" onchange="loadQuestions()">
                 <option value="">All Types</option>
                 <option value="mcq">MCQ</option>
                 <option value="short_answer">Short Answer</option>
