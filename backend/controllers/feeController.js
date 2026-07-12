@@ -690,6 +690,48 @@ const getFeeSummary = asyncHandler(async (req, res) => {
   res.json({ success: true, summary: { total, paid, pending, partial, overdue, totalAmount, collected, pendingAmt, collectionRate: totalAmount > 0 ? Math.round((collected / totalAmount) * 100) : 0 } });
 });
 
+// ═══════════════════════════════════════════
+// ASSIGNABLE STUDENTS
+// ═══════════════════════════════════════════
+
+const getAssignableStudents = asyncHandler(async (req, res) => {
+  const { department, semester, structureId, search } = req.query;
+  const query = { collegeId: req.user.collegeId, role: 'student', isActive: true };
+  if (department) query.department = department;
+  if (semester) query.semester = parseInt(semester);
+  if (search) {
+    query.$or = [
+      { name: { $regex: search, $options: 'i' } },
+      { rollNo: { $regex: search, $options: 'i' } },
+      { email: { $regex: search, $options: 'i' } },
+    ];
+  }
+
+  const students = await User.find(query).select('name rollNo email department semester phone').sort({ name: 1 }).limit(500);
+
+  let assignedSet = new Set();
+  if (structureId) {
+    const academicYear = req.query.academicYear;
+    const existingQuery = { collegeId: req.user.collegeId, feeStructureId: structureId };
+    if (academicYear) existingQuery.academicYear = academicYear;
+    const existingFees = await Fee.find(existingQuery).select('studentId');
+    assignedSet = new Set(existingFees.map((f) => String(f.studentId)));
+  }
+
+  const result = students.map((s) => ({
+    _id: s._id,
+    name: s.name,
+    rollNo: s.rollNo,
+    email: s.email,
+    department: s.department,
+    semester: s.semester,
+    phone: s.phone,
+    alreadyAssigned: assignedSet.has(String(s._id)),
+  }));
+
+  res.json({ success: true, students: result, total: result.length });
+});
+
 module.exports = {
   createFeeStructure, getFeeStructures, updateFeeStructure, deleteFeeStructure,
   assignFeeStructure,
@@ -698,4 +740,5 @@ module.exports = {
   getInstallments, updateInstallment, createInstallmentOrder,
   applyLateFees, waiveFee, applyDiscount,
   getFeeAnalytics, getFeeSummary,
+  getAssignableStudents,
 };

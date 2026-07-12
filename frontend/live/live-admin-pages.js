@@ -2842,6 +2842,141 @@
     if (exportBtn) exportBtn.onclick = function exportFees() { downloadCsv('fees.csv', [['Student', 'Roll', 'Amount', 'Type', 'Due Date', 'Status'], ...fees.map((item) => [item.studentId?.name, item.studentId?.rollNo, item.amount, item.feeType, formatDate(item.dueDate), item.status])]); };
     if (reminderBtn) reminderBtn.onclick = function remindPending() { window.showToast?.(`${fees.filter((item) => item.status !== 'paid').length} pending fee reminders queued`, 'info'); };
 
+    let feeAssignStructures = [];
+    let feeAssignAllStudents = [];
+    let feeAssignSelectedIds = [];
+
+    window.loadFeesAssignData = async function loadFeesAssignData() {
+      feeAssignSelectedIds = [];
+      const structSelect = byId('assignFeeStructureSelect');
+      const listEl = byId('assignFeeStudentList');
+      const tagsEl = byId('assignFeeSelectedTags');
+      if (structSelect) structSelect.innerHTML = '<option value="">Loading structures...</option>';
+      if (listEl) listEl.innerHTML = '<div style="padding:16px;text-align:center;color:#94A3B8">Select a structure first</div>';
+      if (tagsEl) tagsEl.innerHTML = '';
+      byId('assignFeeStructurePreview').style.display = 'none';
+      setText('assignFeeStudentCount', '0');
+      const btn = byId('assignFeeSubmitBtn');
+      if (btn) btn.disabled = true;
+
+      try {
+        const res = await window.api.request('/fees/structures', { silent: true });
+        feeAssignStructures = (res.structures || []).filter((s) => s.status === 'active');
+        if (structSelect) {
+          structSelect.innerHTML = feeAssignStructures.length
+            ? '<option value="">Choose a fee structure...</option>' + feeAssignStructures.map((s) => `<option value="${s._id}">${escapeHTML(s.name)} — ${formatMoney(s.totalAmount)} (${escapeHTML(s.department || 'All')})</option>`).join('')
+            : '<option value="">No active structures found</option>';
+          structSelect.onchange = async function () {
+            const s = feeAssignStructures.find((x) => x._id === this.value);
+            const preview = byId('assignFeeStructurePreview');
+            if (!s) { if (preview) preview.style.display = 'none'; return; }
+            if (preview) { preview.style.display = ''; setText('assignFeePreviewAmount', formatMoney(s.totalAmount)); setText('assignFeePreviewInstallments', s.installmentEnabled ? `${s.installmentCount} × ${s.installmentFrequency}` : 'Full payment'); }
+            feeAssignSelectedIds = [];
+            await loadFeesAssignStudents(s._id);
+          };
+        }
+      } catch (e) {
+        if (structSelect) structSelect.innerHTML = '<option value="">Failed to load structures</option>';
+      }
+    };
+
+    async function loadFeesAssignStudents(structureId) {
+      const listEl = byId('assignFeeStudentList');
+      if (listEl) listEl.innerHTML = '<div style="padding:16px;text-align:center;color:#94A3B8"><i class="fas fa-spinner fa-spin"></i> Loading students...</div>';
+      try {
+        const res = await window.api.request(`/fees/assignable-students?structureId=${structureId}`, { silent: true });
+        feeAssignAllStudents = res.students || [];
+        renderFeeAssignStudents(feeAssignAllStudents);
+      } catch (e) {
+        if (listEl) listEl.innerHTML = '<div style="padding:16px;text-align:center;color:#EF4444">Failed to load students</div>';
+      }
+    }
+
+    function renderFeeAssignStudents(students) {
+      const listEl = byId('assignFeeStudentList');
+      if (!listEl) return;
+      if (!students.length) { listEl.innerHTML = '<div style="padding:16px;text-align:center;color:#94A3B8">No students found</div>'; return; }
+      listEl.innerHTML = students.map((s) => {
+        const selected = feeAssignSelectedIds.includes(s._id);
+        const alreadyAssigned = s.alreadyAssigned;
+        return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid #F1F5F9;cursor:pointer;${selected ? 'background:#F0FDF4' : alreadyAssigned ? 'background:#F8FAFC;opacity:0.6' : ''}" onclick="toggleFeeAssignStudent('${s._id}')">
+          <input type="checkbox" ${selected ? 'checked' : ''} ${alreadyAssigned ? 'disabled' : ''} style="accent-color:#10B981;width:16px;height:16px">
+          <div style="flex:1;min-width:0"><div style="font-weight:600;font-size:13px;color:#1E293B">${escapeHTML(s.name)}</div><div style="font-size:11px;color:#94A3B8">${escapeHTML(s.rollNo || '-')} · ${escapeHTML(s.department || '-')} · Sem ${s.semester || '-'}</div></div>
+          ${alreadyAssigned ? '<span class="badge badge-success" style="font-size:10px">Assigned</span>' : selected ? '<span class="badge badge-info" style="font-size:10px">Selected</span>' : ''}
+        </div>`;
+      }).join('');
+      renderFeeAssignTags();
+    }
+
+    function renderFeeAssignTags() {
+      const tagsEl = byId('assignFeeSelectedTags');
+      if (!tagsEl) return;
+      tagsEl.innerHTML = feeAssignSelectedIds.map((id) => {
+        const s = feeAssignAllStudents.find((x) => x._id === id);
+        if (!s) return '';
+        return `<span style="display:inline-flex;align-items:center;gap:4px;background:#DBEAFE;color:#1E40AF;padding:3px 8px;border-radius:12px;font-size:11px;font-weight:600">${escapeHTML(s.name)} <button onclick="event.stopPropagation();toggleFeeAssignStudent('${s._id}')" style="background:none;border:none;color:#1E40AF;cursor:pointer;padding:0;font-size:14px;line-height:1">&times;</button></span>`;
+      }).join('');
+      setText('assignFeeStudentCount', `${feeAssignSelectedIds.length} selected`);
+      const btn = byId('assignFeeSubmitBtn');
+      if (btn) btn.disabled = feeAssignSelectedIds.length === 0;
+    }
+
+    window.toggleFeeAssignStudent = function toggleFeeAssignStudent(studentId) {
+      const idx = feeAssignSelectedIds.indexOf(studentId);
+      if (idx >= 0) feeAssignSelectedIds.splice(idx, 1);
+      else feeAssignSelectedIds.push(studentId);
+      renderFeeAssignStudents(feeAssignAllStudents);
+    };
+
+    window.selectAllFeeVisibleStudents = function selectAllFeeVisibleStudents() {
+      feeAssignAllStudents.forEach((s) => {
+        if (!s.alreadyAssigned && !feeAssignSelectedIds.includes(s._id)) feeAssignSelectedIds.push(s._id);
+      });
+      renderFeeAssignStudents(feeAssignAllStudents);
+    };
+
+    window.clearFeeSelectedStudents = function clearFeeSelectedStudents() {
+      feeAssignSelectedIds = [];
+      renderFeeAssignStudents(feeAssignAllStudents);
+    };
+
+    byId('assignFeeStudentSearch')?.addEventListener('input', debounce(function () {
+      const query = this.value.toLowerCase().trim();
+      const dropdownEl = byId('assignFeeStudentDropdown');
+      if (!query || !dropdownEl) { if (dropdownEl) dropdownEl.style.display = 'none'; return; }
+      const filtered = feeAssignAllStudents.filter((s) => !s.alreadyAssigned && [s.name, s.rollNo, s.email].join(' ').toLowerCase().includes(query));
+      if (!filtered.length) { dropdownEl.style.display = 'none'; return; }
+      dropdownEl.style.display = 'block';
+      dropdownEl.innerHTML = filtered.slice(0, 20).map((s) => {
+        const selected = feeAssignSelectedIds.includes(s._id);
+        return `<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;border-bottom:1px solid #F8FAFC;${selected ? 'background:#F0FDF4' : ''}" onmousedown="toggleFeeAssignStudent('${s._id}');document.getElementById('assignFeeStudentDropdown').style.display='none';document.getElementById('assignFeeStudentSearch').value=''">
+          <div style="flex:1"><span style="font-weight:600;font-size:13px">${escapeHTML(s.name)}</span> <span style="font-size:11px;color:#94A3B8">${escapeHTML(s.rollNo || '')}</span></div>
+          ${selected ? '<i class="fas fa-check" style="color:#10B981;font-size:12px"></i>' : ''}
+        </div>`;
+      }).join('');
+    }, 200));
+
+    window.executeAssignFeeFromFees = async function executeAssignFeeFromFees() {
+      const structureId = byId('assignFeeStructureSelect')?.value;
+      if (!structureId) { window.showToast?.('Select a fee structure', 'error'); return; }
+      if (!feeAssignSelectedIds.length) { window.showToast?.('Select at least one student', 'error'); return; }
+      const btn = byId('assignFeeSubmitBtn');
+      setLoading(btn, true);
+      try {
+        const payload = {
+          structureId,
+          studentIds: feeAssignSelectedIds,
+          dueDate: byId('assignFeeDueDate')?.value || undefined,
+        };
+        const res = await window.api.request('/fees/structures/assign', { method: 'POST', body: JSON.stringify(payload) });
+        closeModal('assignFeeFromFeesModal');
+        window.showToast?.(`Fee assigned to ${res.count || 0} students`, 'success');
+        await loadFees();
+      } finally {
+        setLoading(btn, false);
+      }
+    };
+
     window.__erpAdminPageRefresh = loadFees;
     await loadFees();
   }
@@ -3040,23 +3175,135 @@
       byId('assignScholarshipGroup').style.display = 'none';
       byId('assignDiscountReason').value = '';
       byId('executeAssignBtn').disabled = false;
+      assignSelectedStudentIds = [];
+      assignAllStudents = [];
+      assignMode = 'individual';
+      setAssignMode('individual');
       const preview = byId('assignPreview');
       if (preview) {
         preview.style.display = '';
         setText('assignPreviewName', s.name);
         setText('assignPreviewAmount', formatMoney(s.totalAmount));
         setText('assignPreviewFinal', formatMoney(s.totalAmount));
+        setText('assignPreviewCount', '0');
       }
+      loadAssignableStudents(id);
       openModal('assignStructureModal');
     };
 
-    byId('assignDiscountType')?.addEventListener('change', function () {
-      const val = this.value;
-      byId('assignDiscountValue').disabled = val === 'none';
-      byId('assignScholarshipGroup').style.display = val === 'scholarship' ? '' : 'none';
-      updateAssignPreview();
-    });
-    byId('assignDiscountValue')?.addEventListener('input', updateAssignPreview);
+    let assignSelectedStudentIds = [];
+    let assignAllStudents = [];
+    let assignMode = 'individual';
+
+    window.setAssignMode = function setAssignMode(mode) {
+      assignMode = mode;
+      const indBtn = byId('assignModeIndividual');
+      const bulkBtn = byId('assignModeBulk');
+      const indSection = byId('assignIndividualSection');
+      const bulkSection = byId('assignBulkSection');
+      if (mode === 'individual') {
+        if (indBtn) { indBtn.className = 'btn btn-sm btn-primary'; indBtn.style.background = 'linear-gradient(135deg,#10B981,#059669)'; indBtn.style.border = 'none'; }
+        if (bulkBtn) { bulkBtn.className = 'btn btn-sm btn-secondary'; bulkBtn.style.background = ''; bulkBtn.style.border = ''; }
+        if (indSection) indSection.style.display = '';
+        if (bulkSection) bulkSection.style.display = 'none';
+      } else {
+        if (bulkBtn) { bulkBtn.className = 'btn btn-sm btn-primary'; bulkBtn.style.background = 'linear-gradient(135deg,#10B981,#059669)'; bulkBtn.style.border = 'none'; }
+        if (indBtn) { indBtn.className = 'btn btn-sm btn-secondary'; indBtn.style.background = ''; indBtn.style.border = ''; }
+        if (bulkSection) bulkSection.style.display = '';
+        if (indSection) indSection.style.display = 'none';
+      }
+      updateAssignPreviewCount();
+    };
+
+    async function loadAssignableStudents(structureId) {
+      const listEl = byId('assignStudentList');
+      const dropdownEl = byId('assignStudentDropdown');
+      if (listEl) listEl.innerHTML = '<div style="padding:16px;text-align:center;color:#94A3B8"><i class="fas fa-spinner fa-spin"></i> Loading students...</div>';
+      if (dropdownEl) dropdownEl.innerHTML = '';
+      try {
+        const res = await window.api.request(`/fees/assignable-students?structureId=${structureId}`, { silent: true });
+        assignAllStudents = res.students || [];
+        renderAssignableStudents(assignAllStudents);
+      } catch (e) {
+        if (listEl) listEl.innerHTML = '<div style="padding:16px;text-align:center;color:#EF4444">Failed to load students</div>';
+      }
+    }
+
+    function renderAssignableStudents(students) {
+      const listEl = byId('assignStudentList');
+      if (!listEl) return;
+      if (!students.length) {
+        listEl.innerHTML = '<div style="padding:16px;text-align:center;color:#94A3B8">No students found</div>';
+        return;
+      }
+      listEl.innerHTML = students.map((s) => {
+        const selected = assignSelectedStudentIds.includes(s._id);
+        const alreadyAssigned = s.alreadyAssigned;
+        return `<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid #F1F5F9;cursor:pointer;${selected ? 'background:#F0FDF4' : alreadyAssigned ? 'background:#F8FAFC;opacity:0.6' : ''}" onclick="toggleAssignStudent('${s._id}')" data-student-id="${s._id}">
+          <input type="checkbox" ${selected ? 'checked' : ''} ${alreadyAssigned ? 'disabled' : ''} style="accent-color:#10B981;width:16px;height:16px">
+          <div style="flex:1;min-width:0">
+            <div style="font-weight:600;font-size:13px;color:#1E293B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHTML(s.name)}</div>
+            <div style="font-size:11px;color:#94A3B8">${escapeHTML(s.rollNo || '-')} · ${escapeHTML(s.department || '-')} · Sem ${s.semester || '-'}</div>
+          </div>
+          ${alreadyAssigned ? '<span class="badge badge-success" style="font-size:10px">Assigned</span>' : selected ? '<span class="badge badge-info" style="font-size:10px">Selected</span>' : ''}
+        </div>`;
+      }).join('');
+    }
+
+    function renderStudentDropdown(students) {
+      const dropdownEl = byId('assignStudentDropdown');
+      if (!dropdownEl) return;
+      if (!students.length) { dropdownEl.style.display = 'none'; return; }
+      dropdownEl.style.display = 'block';
+      dropdownEl.innerHTML = students.slice(0, 20).map((s) => {
+        const selected = assignSelectedStudentIds.includes(s._id);
+        return `<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;cursor:pointer;border-bottom:1px solid #F8FAFC;${selected ? 'background:#F0FDF4' : ''}" onmousedown="toggleAssignStudent('${s._id}');document.getElementById('assignStudentDropdown').style.display='none';document.getElementById('assignStudentSearch').value=''">
+          <div style="flex:1"><span style="font-weight:600;font-size:13px">${escapeHTML(s.name)}</span> <span style="font-size:11px;color:#94A3B8">${escapeHTML(s.rollNo || '')}</span></div>
+          ${selected ? '<i class="fas fa-check" style="color:#10B981;font-size:12px"></i>' : ''}
+        </div>`;
+      }).join('');
+    }
+
+    window.toggleAssignStudent = function toggleAssignStudent(studentId) {
+      const idx = assignSelectedStudentIds.indexOf(studentId);
+      if (idx >= 0) assignSelectedStudentIds.splice(idx, 1);
+      else assignSelectedStudentIds.push(studentId);
+      renderAssignableStudents(assignAllStudents);
+      updateAssignPreviewCount();
+    };
+
+    window.selectAllVisibleStudents = function selectAllVisibleStudents() {
+      assignAllStudents.forEach((s) => {
+        if (!s.alreadyAssigned && !assignSelectedStudentIds.includes(s._id)) assignSelectedStudentIds.push(s._id);
+      });
+      renderAssignableStudents(assignAllStudents);
+      updateAssignPreviewCount();
+    };
+
+    window.clearSelectedStudents = function clearSelectedStudents() {
+      assignSelectedStudentIds = [];
+      renderAssignableStudents(assignAllStudents);
+      updateAssignPreviewCount();
+    };
+
+    function updateAssignPreviewCount() {
+      setText('assignPreviewCount', String(assignSelectedStudentIds.length));
+      const btn = byId('executeAssignBtn');
+      if (btn) {
+        if (assignMode === 'individual') btn.disabled = assignSelectedStudentIds.length === 0;
+        else btn.disabled = false;
+      }
+    }
+
+    byId('assignStudentSearch')?.addEventListener('input', debounce(function () {
+      const query = this.value.toLowerCase().trim();
+      if (!query) { renderAssignableStudents(assignAllStudents); byId('assignStudentDropdown').style.display = 'none'; return; }
+      const filtered = assignAllStudents.filter((s) => {
+        if (s.alreadyAssigned) return false;
+        return [s.name, s.rollNo, s.email].join(' ').toLowerCase().includes(query);
+      });
+      renderStudentDropdown(filtered);
+    }, 200));
 
     function updateAssignPreview() {
       const id = byId('assignStructureId').value;
@@ -3071,6 +3318,14 @@
       setText('assignPreviewFinal', formatMoney(final));
     }
 
+    byId('assignDiscountType')?.addEventListener('change', function () {
+      const val = this.value;
+      byId('assignDiscountValue').disabled = val === 'none';
+      byId('assignScholarshipGroup').style.display = val === 'scholarship' ? '' : 'none';
+      updateAssignPreview();
+    });
+    byId('assignDiscountValue')?.addEventListener('input', updateAssignPreview);
+
     window.executeAssign = async function executeAssign() {
       const id = byId('assignStructureId').value;
       if (!id) return;
@@ -3079,14 +3334,19 @@
       try {
         const payload = {
           structureId: id,
-          department: byId('assignDept').value.trim(),
-          semester: byId('assignSem').value || undefined,
           dueDate: byId('assignDueDate').value || undefined,
           discountType: byId('assignDiscountType').value,
           discountValue: Number(byId('assignDiscountValue').value || 0),
           discountReason: byId('assignDiscountReason').value.trim(),
           scholarshipName: byId('assignDiscountType').value === 'scholarship' ? byId('assignScholarshipName')?.value.trim() : undefined,
         };
+        if (assignMode === 'individual') {
+          if (!assignSelectedStudentIds.length) { window.showToast?.('Select at least one student', 'error'); return; }
+          payload.studentIds = assignSelectedStudentIds;
+        } else {
+          payload.department = byId('assignDept').value.trim();
+          payload.semester = byId('assignSem').value || undefined;
+        }
         const res = await window.api.request('/fees/structures/assign', { method: 'POST', body: JSON.stringify(payload) });
         closeModal('assignStructureModal');
         window.showToast?.(`Assigned to ${res.count || 0} students`, 'success');

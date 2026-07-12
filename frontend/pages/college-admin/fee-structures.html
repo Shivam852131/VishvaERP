@@ -66,9 +66,9 @@
       <div class="card">
         <div class="card-header">
           <div class="card-title">Fee Structures</div>
-          <div style="display:flex;gap:10px;align-items:center">
-            <div class="search-bar" style="width:220px"><i class="fas fa-search"></i><input type="text" placeholder="Search structures..." id="structureSearch"></div>
-            <select class="form-control" style="width:130px" id="statusFilter"><option value="">All Status</option><option value="active">Active</option><option value="draft">Draft</option><option value="archived">Archived</option></select>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+            <div class="search-bar" style="flex:1;min-width:160px"><i class="fas fa-search"></i><input type="text" placeholder="Search structures..." id="structureSearch"></div>
+            <select class="form-control" id="statusFilter"><option value="">All Status</option><option value="active">Active</option><option value="draft">Draft</option><option value="archived">Archived</option></select>
           </div>
         </div>
         <div class="table-wrap">
@@ -143,20 +143,50 @@
 
 <!-- ASSIGN STRUCTURE MODAL -->
 <div class="modal-backdrop" id="assignStructureModal">
-  <div class="modal" style="max-width:560px">
+  <div class="modal" style="max-width:640px">
     <div class="modal-header">
       <div class="modal-title"><i class="fas fa-user-plus" style="color:#10B981;margin-right:8px"></i>Assign Fee Structure</div>
       <button class="modal-close" onclick="closeModal('assignStructureModal')"><i class="fas fa-times"></i></button>
     </div>
-    <div class="modal-body" style="padding:20px 24px">
+    <div class="modal-body" style="padding:20px 24px;max-height:65vh;overflow-y:auto">
       <input type="hidden" id="assignStructureId">
       <div style="padding:12px 14px;border-radius:10px;background:#EEF2FF;border:1px solid #C7D2FE;margin-bottom:16px">
-        <div style="font-size:12px;font-weight:600;color:#4338CA"><i class="fas fa-info-circle" style="margin-right:6px"></i>Bulk assign this fee structure to students by department or individual selection.</div>
+        <div style="font-size:12px;font-weight:600;color:#4338CA"><i class="fas fa-info-circle" style="margin-right:6px"></i>Choose students below or use department/semester filters for bulk assignment.</div>
       </div>
-      <div class="form-grid-2">
-        <div class="form-group"><label class="form-label" style="font-weight:700">Department</label><input class="form-control" id="assignDept" placeholder="e.g. Computer Science"></div>
-        <div class="form-group"><label class="form-label" style="font-weight:700">Semester</label><select class="form-control" id="assignSem"><option value="">All</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></div>
+
+      <!-- ASSIGN MODE TOGGLE -->
+      <div style="display:flex;gap:8px;margin-bottom:16px">
+        <button class="btn btn-sm btn-primary" id="assignModeIndividual" onclick="setAssignMode('individual')" style="background:linear-gradient(135deg,#10B981,#059669);border:none"><i class="fas fa-user-check"></i> Select Students</button>
+        <button class="btn btn-sm btn-secondary" id="assignModeBulk" onclick="setAssignMode('bulk')"><i class="fas fa-users"></i> Bulk by Department</button>
       </div>
+
+      <!-- INDIVIDUAL STUDENT SELECTOR -->
+      <div id="assignIndividualSection">
+        <div class="form-group">
+          <label class="form-label" style="font-weight:700">Search & Select Students</label>
+          <div style="position:relative">
+            <input class="form-control" id="assignStudentSearch" placeholder="Type name, roll no, or email..." style="border:2px solid #E2E8F0;border-radius:8px;height:40px;padding-left:32px">
+            <i class="fas fa-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#94A3B8;font-size:12px"></i>
+          </div>
+          <div id="assignStudentDropdown" style="display:none;max-height:200px;overflow-y:auto;border:1px solid #E2E8F0;border-radius:8px;margin-top:4px;background:#fff"></div>
+        </div>
+        <div id="assignSelectedStudents" style="display:flex;flex-wrap:wrap;gap:6px;min-height:24px;margin-bottom:8px"></div>
+        <div style="display:flex;gap:8px;margin-bottom:12px">
+          <button class="btn btn-xs btn-secondary" onclick="selectAllVisibleStudents()"><i class="fas fa-check-double"></i> Select All Visible</button>
+          <button class="btn btn-xs btn-secondary" onclick="clearSelectedStudents()"><i class="fas fa-times"></i> Clear All</button>
+          <span id="assignStudentCount" style="font-size:12px;color:#64748B;align-self:center"></span>
+        </div>
+        <div id="assignStudentList" style="max-height:180px;overflow-y:auto;border:1px solid #E2E8F0;border-radius:8px"></div>
+      </div>
+
+      <!-- BULK DEPT/SEM FILTER -->
+      <div id="assignBulkSection" style="display:none">
+        <div class="form-grid-2">
+          <div class="form-group"><label class="form-label" style="font-weight:700">Department</label><input class="form-control" id="assignDept" placeholder="e.g. Computer Science"></div>
+          <div class="form-group"><label class="form-label" style="font-weight:700">Semester</label><select class="form-control" id="assignSem"><option value="">All</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></div>
+        </div>
+      </div>
+
       <div class="form-group"><label class="form-label">Due Date</label><input class="form-control" type="date" id="assignDueDate"></div>
       <div class="form-grid-2">
         <div class="form-group"><label class="form-label">Discount Type</label><select class="form-control" id="assignDiscountType"><option value="none">No Discount</option><option value="percentage">Percentage</option><option value="fixed">Fixed Amount</option><option value="scholarship">Scholarship</option></select></div>
@@ -167,6 +197,7 @@
       <div id="assignPreview" style="display:none;margin-top:12px;padding:14px;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:10px">
         <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:12px;color:#64748B">Structure</span><span id="assignPreviewName" style="font-size:13px;font-weight:600">-</span></div>
         <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:12px;color:#64748B">Total Amount</span><span id="assignPreviewAmount" style="font-size:13px;font-weight:600">-</span></div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:12px;color:#64748B">Students Selected</span><span id="assignPreviewCount" style="font-size:13px;font-weight:700;color:#4F46E5">0</span></div>
         <div style="display:flex;justify-content:space-between"><span style="font-size:12px;color:#64748B">After Discount</span><span id="assignPreviewFinal" style="font-size:14px;font-weight:800;color:#059669">-</span></div>
       </div>
     </div>

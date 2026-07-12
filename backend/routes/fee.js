@@ -10,6 +10,7 @@ const {
   getInstallments, updateInstallment, createInstallmentOrder,
   applyLateFees, waiveFee, applyDiscount,
   getFeeAnalytics, getFeeSummary,
+  getAssignableStudents,
 } = require('../controllers/feeController');
 
 const router = express.Router();
@@ -36,6 +37,7 @@ router.get('/summary', getFeeSummary);
 router.get('/analytics', authorize('collegeAdmin', 'superadmin'), getFeeAnalytics);
 
 router.post('/bulk', authorize('collegeAdmin'), createBulkFees);
+router.get('/assignable-students', authorize('collegeAdmin'), getAssignableStudents);
 router.get('/installments', getInstallments);
 
 router.post('/late-fees/apply', authorize('collegeAdmin'), applyLateFees);

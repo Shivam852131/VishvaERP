@@ -45,6 +45,7 @@
       </div>
       <div class="topbar-right">
         <button class="btn btn-secondary" id="sendReminderBtn"><i class="fas fa-bell"></i> Send Reminders</button>
+        <button class="btn btn-primary" onclick="openModal('assignFeeFromFeesModal');loadFeesAssignData()"><i class="fas fa-user-plus"></i> Assign Fee</button>
         <button class="btn btn-primary" onclick="openModal('collectOnlineModal')"><i class="fas fa-credit-card"></i> Collect Online</button>
         <button class="btn btn-secondary" onclick="openModal('recordFeeModal')"><i class="fas fa-plus"></i> Record Payment</button>
         <button class="btn btn-secondary" onclick="applyLateFees()"><i class="fas fa-clock"></i> Apply Late Fees</button>
@@ -88,9 +89,9 @@
       <div class="card" id="feesCard">
         <div class="card-header">
           <div class="card-title">Fee Records</div>
-          <div style="display:flex;gap:10px;align-items:center">
-            <div class="search-bar" style="width:220px"><i class="fas fa-search"></i><input type="text" placeholder="Search student..." id="feeSearch"></div>
-            <select class="form-control" style="width:140px" id="feeStatusFilter"><option value="">All Status</option><option value="paid">Paid</option><option value="pending">Pending</option><option value="overdue">Overdue</option></select>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+            <div class="search-bar" style="flex:1;min-width:160px"><i class="fas fa-search"></i><input type="text" placeholder="Search student..." id="feeSearch"></div>
+            <select class="form-control" id="feeStatusFilter"><option value="">All Status</option><option value="paid">Paid</option><option value="pending">Pending</option><option value="overdue">Overdue</option></select>
             <button class="btn btn-secondary btn-sm" id="exportFeesBtn"><i class="fas fa-download"></i> CSV</button>
           </div>
         </div>
@@ -230,6 +231,51 @@
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('waiveModal')">Cancel</button>
       <button class="btn btn-danger" onclick="executeWaive()"><i class="fas fa-ban"></i> Waive Fee</button>
+    </div>
+  </div>
+</div>
+
+<!-- ASSIGN FEE FROM FEES PAGE MODAL -->
+<div class="modal-backdrop" id="assignFeeFromFeesModal">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-header">
+      <div class="modal-title"><i class="fas fa-user-plus" style="color:#10B981;margin-right:8px"></i>Assign Fee to Students</div>
+      <button class="modal-close" onclick="closeModal('assignFeeFromFeesModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body" style="padding:20px 24px;max-height:65vh;overflow-y:auto">
+      <div style="padding:12px 14px;border-radius:10px;background:#EEF2FF;border:1px solid #C7D2FE;margin-bottom:16px">
+        <div style="font-size:12px;font-weight:600;color:#4338CA"><i class="fas fa-info-circle" style="margin-right:6px"></i>Select a fee structure and assign it to specific students.</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" style="font-weight:700">Fee Structure *</label>
+        <select class="form-control" id="assignFeeStructureSelect" style="border:2px solid #E2E8F0;border-radius:8px;height:44px">
+          <option value="">Loading structures...</option>
+        </select>
+      </div>
+      <div id="assignFeeStructurePreview" style="display:none;padding:12px;background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;margin-bottom:12px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:12px;color:#64748B">Total Amount</span><span id="assignFeePreviewAmount" style="font-weight:700">-</span></div>
+        <div style="display:flex;justify-content:space-between"><span style="font-size:12px;color:#64748B">Installments</span><span id="assignFeePreviewInstallments" style="font-weight:600">-</span></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" style="font-weight:700">Search & Select Students</label>
+        <div style="position:relative">
+          <input class="form-control" id="assignFeeStudentSearch" placeholder="Type name, roll no, or email..." style="border:2px solid #E2E8F0;border-radius:8px;height:40px;padding-left:32px">
+          <i class="fas fa-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);color:#94A3B8;font-size:12px"></i>
+        </div>
+        <div id="assignFeeStudentDropdown" style="display:none;max-height:200px;overflow-y:auto;border:1px solid #E2E8F0;border-radius:8px;margin-top:4px;background:#fff"></div>
+      </div>
+      <div id="assignFeeSelectedTags" style="display:flex;flex-wrap:wrap;gap:6px;min-height:24px;margin-bottom:8px"></div>
+      <div style="display:flex;gap:8px;margin-bottom:12px">
+        <button class="btn btn-xs btn-secondary" onclick="selectAllFeeVisibleStudents()"><i class="fas fa-check-double"></i> Select All Visible</button>
+        <button class="btn btn-xs btn-secondary" onclick="clearFeeSelectedStudents()"><i class="fas fa-times"></i> Clear All</button>
+        <span id="assignFeeStudentCount" style="font-size:12px;color:#64748B;align-self:center"></span>
+      </div>
+      <div id="assignFeeStudentList" style="max-height:160px;overflow-y:auto;border:1px solid #E2E8F0;border-radius:8px"></div>
+      <div class="form-group" style="margin-top:12px"><label class="form-label">Due Date</label><input class="form-control" type="date" id="assignFeeDueDate"></div>
+    </div>
+    <div class="modal-footer" style="padding:16px 24px;border-top:1px solid #F1F5F9">
+      <button class="btn btn-secondary" onclick="closeModal('assignFeeFromFeesModal')" style="flex:1">Cancel</button>
+      <button class="btn btn-primary" id="assignFeeSubmitBtn" onclick="executeAssignFeeFromFees()" style="flex:2;background:linear-gradient(135deg,#10B981,#059669);border:none;padding:12px 24px;font-weight:700" disabled><i class="fas fa-check"></i> Assign Fee</button>
     </div>
   </div>
 </div>
