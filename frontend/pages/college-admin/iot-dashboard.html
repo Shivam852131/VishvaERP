@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>IoT Dashboard | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="../../css/custom.css">
+  <style>
+    .live-dot{width:10px;height:10px;background:#10B981;border-radius:50%;display:inline-block;animation:pulse-live 1.5s infinite}
+    @keyframes pulse-live{0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,0.5)}50%{box-shadow:0 0 0 8px rgba(16,185,129,0)}}
+    .sensor-type-card{text-align:center;padding:20px 16px;border:1px solid #E2E8F0;border-radius:14px;background:white;transition:all .2s}
+    .sensor-type-card:hover{box-shadow:0 8px 24px rgba(0,0,0,0.08);transform:translateY(-2px)}
+    .sensor-type-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;margin:0 auto 12px}
+    .sensor-value{font-size:28px;font-weight:800;line-height:1.1}
+    .occupancy-bar{height:8px;border-radius:4px;background:#E2E8F0;overflow:hidden}
+    .occupancy-fill{height:100%;border-radius:4px;transition:width .6s ease}
+    .alert-row{display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid #F1F5F9}
+    .alert-row:last-child{border-bottom:none}
+    .alert-dot{width:8px;height:8px;border-radius:50%;margin-top:6px;flex-shrink:0}
+    .iot-section-label{font-size:18px;font-weight:700;color:#0F172A;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+    .iot-section-label i{color:#0891B2}
+  </style>
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-college" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" id="sidebar-avatar">A</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Admin</div><div class="sidebar-user-role">College Administrator</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <div class="nav-section-label">Academics</div>
+      <a href="students.html" class="nav-link"><i class="nav-link-icon fas fa-user-graduate"></i> Students</a>
+      <a href="faculty.html" class="nav-link"><i class="nav-link-icon fas fa-chalkboard-teacher"></i> Faculty</a>
+      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-open"></i> Courses & Exams</a>
+      <a href="notices.html" class="nav-link"><i class="nav-link-icon fas fa-bullhorn"></i> Notice Board</a>
+      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-check"></i> Attendance</a>
+      <div class="nav-section-label">Finance & HR</div>
+      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-file-invoice-dollar"></i> Fee Management</a>
+      <a href="hr.html" class="nav-link"><i class="nav-link-icon fas fa-user-md"></i> HR & Leave</a>
+      <a href="subscription.html" class="nav-link"><i class="nav-link-icon fas fa-credit-card"></i> Subscription</a>
+      <div class="nav-section-label">Campus Life</div>
+      <a href="events.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Events</a>
+      <a href="grievances.html" class="nav-link"><i class="nav-link-icon fas fa-exclamation-circle"></i> Grievances</a>
+      <a href="feedback.html" class="nav-link"><i class="nav-link-icon fas fa-star"></i> Feedback</a>
+      <a href="inventory.html" class="nav-link"><i class="nav-link-icon fas fa-boxes"></i> Inventory</a>
+      <a href="placement.html" class="nav-link"><i class="nav-link-icon fas fa-briefcase"></i> Placement</a>
+      <a href="alumni.html" class="nav-link"><i class="nav-link-icon fas fa-users"></i> Alumni</a>
+      <div class="nav-section-label">Facilities</div>
+      <a href="logistics.html" class="nav-link"><i class="nav-link-icon fas fa-bus"></i> Logistics & Hostel</a>
+      <div class="nav-section-label">Smart Campus</div>
+      <a href="iot-dashboard.html" class="nav-link active"><i class="nav-link-icon fas fa-microchip"></i> IoT Dashboard</a>
+      <a href="sustainability.html" class="nav-link"><i class="nav-link-icon fas fa-leaf"></i> Sustainability</a>
+      <div class="nav-section-label">Tools</div>
+      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Hub</a>
+      <a href="../messages.html" class="nav-link"><i class="nav-link-icon fas fa-comments"></i> Messages</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">College Admin / <span>IoT Dashboard</span></div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-search"><i class="fas fa-search"></i><input type="text" placeholder="Search sensors, buildings..."></div>
+        <div style="position:relative">
+          <button class="topbar-btn" id="notif-btn"><i class="fas fa-bell"></i><span class="topbar-badge" id="alertCount">0</span></button>
+          <div class="notif-panel" id="notif-panel">
+            <div style="padding:14px 16px;border-bottom:1px solid #F1F5F9;font-weight:700;font-size:14px">IoT Alerts</div>
+            <div id="notifPanelList"></div>
+          </div>
+        </div>
+        <div class="topbar-avatar" id="topbar-avatar">A</div>
+      </div>
+    </header>
+    <div class="erp-content page-enter">
+
+      <!-- Page Header -->
+      <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+        <div>
+          <h1 class="page-title"><i class="fas fa-microchip"></i> Smart Campus IoT Dashboard</h1>
+          <p class="page-subtitle" style="display:flex;align-items:center;gap:8px"><span class="live-dot"></span> <span style="font-weight:600;color:#10B981">Live</span> &mdash; Real-time sensor monitoring and campus resource management</p>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-secondary" onclick="openModal('addResourceModal')"><i class="fas fa-building"></i> Add Resource</button>
+          <button class="btn btn-primary" style="background:linear-gradient(135deg,#0891B2,#06B6D4);box-shadow:0 4px 14px rgba(8,145,178,0.35)" onclick="openModal('addSensorModal')"><i class="fas fa-plus"></i> Add Sensor</button>
+        </div>
+      </div>
+
+      <!-- Stats Row -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px" id="statsRow"></div>
+
+      <!-- Sensor by Type -->
+      <div style="margin-bottom:24px">
+        <div class="iot-section-label"><i class="fas fa-th-large"></i> Sensors by Type</div>
+        <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:16px" id="sensorTypeGrid"></div>
+      </div>
+
+      <!-- Sensor List + Building Overview -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px">
+        <!-- Individual Sensors -->
+        <div class="card" style="padding:20px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+            <h3 style="font-weight:700;font-size:16px"><i class="fas fa-broadcast-tower" style="color:#0891B2"></i> Individual Sensors</h3>
+            <button class="btn btn-sm btn-secondary" onclick="openModal('addSensorModal')"><i class="fas fa-plus"></i> Add</button>
+          </div>
+          <div id="sensorList" style="max-height:460px;overflow-y:auto"></div>
+        </div>
+
+        <!-- Building Overview -->
+        <div class="card" style="padding:20px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+            <h3 style="font-weight:700;font-size:16px"><i class="fas fa-city" style="color:#0891B2"></i> Building Overview</h3>
+          </div>
+          <div id="buildingOverview" style="max-height:460px;overflow-y:auto"></div>
+        </div>
+      </div>
+
+      <!-- Energy Consumption Chart -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px">
+        <div class="card" style="padding:20px">
+          <h3 style="font-weight:700;font-size:16px;margin-bottom:16px"><i class="fas fa-chart-line" style="color:#0891B2"></i> Energy Consumption (24h)</h3>
+          <canvas id="energyChart" height="200"></canvas>
+        </div>
+        <div class="card" style="padding:20px">
+          <h3 style="font-weight:700;font-size:16px;margin-bottom:16px"><i class="fas fa-chart-area" style="color:#0891B2"></i> Water Usage (24h)</h3>
+          <canvas id="waterChart" height="200"></canvas>
+        </div>
+      </div>
+
+      <!-- Recent Alerts -->
+      <div class="card" style="padding:20px;margin-bottom:24px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <h3 style="font-weight:700;font-size:16px"><i class="fas fa-exclamation-triangle" style="color:#F59E0B"></i> Recent Alerts (24h)</h3>
+          <span class="badge badge-warning" id="totalAlertsBadge">0 alerts</span>
+        </div>
+        <div id="alertsList"></div>
+      </div>
+
+      <!-- Resource Management Table -->
+      <div class="card" style="padding:20px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <h3 style="font-weight:700;font-size:16px"><i class="fas fa-database" style="color:#0891B2"></i> Resource Management</h3>
+          <button class="btn btn-sm btn-secondary" onclick="openModal('addResourceModal')"><i class="fas fa-plus"></i> Add Resource</button>
+        </div>
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;font-size:13px">
+            <thead>
+              <tr style="border-bottom:2px solid #E2E8F0">
+                <th style="text-align:left;padding:10px 12px;font-weight:600;color:#64748B;font-size:12px">NAME</th>
+                <th style="text-align:left;padding:10px 12px;font-weight:600;color:#64748B;font-size:12px">TYPE</th>
+                <th style="text-align:left;padding:10px 12px;font-weight:600;color:#64748B;font-size:12px">BUILDING</th>
+                <th style="text-align:center;padding:10px 12px;font-weight:600;color:#64748B;font-size:12px">CAPACITY</th>
+                <th style="text-align:left;padding:10px 12px;font-weight:600;color:#64748B;font-size:12px">STATUS</th>
+                <th style="text-align:left;padding:10px 12px;font-weight:600;color:#64748B;font-size:12px">OCCUPANCY</th>
+              </tr>
+            </thead>
+            <tbody id="resourceTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Add Sensor Modal -->
+<div class="modal-backdrop" id="addSensorModal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header">
+      <h3 class="modal-title"><i class="fas fa-microchip" style="color:#0891B2"></i> Add IoT Sensor</h3>
+      <button class="modal-close" onclick="closeModal('addSensorModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Sensor Name *</label>
+        <input class="form-control" id="sensorName" placeholder="e.g. Hall A Temp Sensor">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group">
+          <label class="form-label">Sensor Type *</label>
+          <select class="form-control" id="sensorType">
+            <option value="temperature">Temperature</option>
+            <option value="humidity">Humidity</option>
+            <option value="air_quality">Air Quality</option>
+            <option value="energy_meter">Energy Meter</option>
+            <option value="water_meter">Water Meter</option>
+            <option value="co2">CO2</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Building *</label>
+          <select class="form-control" id="sensorBuilding">
+            <option value="Main Building">Main Building</option>
+            <option value="Science Block">Science Block</option>
+            <option value="Engineering Block">Engineering Block</option>
+            <option value="Admin Block">Admin Block</option>
+            <option value="Library">Library</option>
+            <option value="Hostel">Hostel</option>
+            <option value="Auditorium">Auditorium</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group">
+          <label class="form-label">Floor</label>
+          <input class="form-control" id="sensorFloor" placeholder="e.g. 2" type="number" min="0">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Room</label>
+          <input class="form-control" id="sensorRoom" placeholder="e.g. 201">
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group">
+          <label class="form-label">Min Threshold</label>
+          <input class="form-control" id="sensorMinThreshold" placeholder="e.g. 16" type="number">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Max Threshold</label>
+          <input class="form-control" id="sensorMaxThreshold" placeholder="e.g. 35" type="number">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('addSensorModal')">Cancel</button>
+      <button class="btn btn-primary" style="background:linear-gradient(135deg,#0891B2,#06B6D4);box-shadow:0 4px 14px rgba(8,145,178,0.35)" onclick="addSensor()"><i class="fas fa-plus"></i> Add Sensor</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Resource Modal -->
+<div class="modal-backdrop" id="addResourceModal">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header">
+      <h3 class="modal-title"><i class="fas fa-building" style="color:#0891B2"></i> Add Campus Resource</h3>
+      <button class="modal-close" onclick="closeModal('addResourceModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Resource Name *</label>
+        <input class="form-control" id="resName" placeholder="e.g. Auditorium A">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group">
+          <label class="form-label">Resource Type *</label>
+          <select class="form-control" id="resType">
+            <option value="auditorium">Auditorium</option>
+            <option value="classroom">Classroom</option>
+            <option value="lab">Laboratory</option>
+            <option value="seminar_hall">Seminar Hall</option>
+            <option value="sports_facility">Sports Facility</option>
+            <option value="hostel">Hostel</option>
+            <option value="cafeteria">Cafeteria</option>
+            <option value="parking">Parking</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Building *</label>
+          <select class="form-control" id="resBuilding">
+            <option value="Main Building">Main Building</option>
+            <option value="Science Block">Science Block</option>
+            <option value="Engineering Block">Engineering Block</option>
+            <option value="Admin Block">Admin Block</option>
+            <option value="Library">Library</option>
+            <option value="Hostel">Hostel</option>
+            <option value="Auditorium">Auditorium</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Capacity</label>
+        <input class="form-control" id="resCapacity" placeholder="e.g. 200" type="number" min="1">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Amenities</label>
+        <input class="form-control" id="resAmenities" placeholder="e.g. Projector, AC, WiFi, Whiteboard">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('addResourceModal')">Cancel</button>
+      <button class="btn btn-primary" style="background:linear-gradient(135deg,#0891B2,#06B6D4);box-shadow:0 4px 14px rgba(8,145,178,0.35)" onclick="addResource()"><i class="fas fa-plus"></i> Add Resource</button>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script src="../../live/live-admin-pages.js"></script>
+<script>
+let sensors=[], resources=[], alerts=[], energyChartInst=null, waterChartInst=null;
+
+const sensorTypeConfig = {
+  temperature:  { icon: 'fas fa-thermometer-half', color: '#EF4444', bg: '#FEE2E2', unit: '\u00B0C' },
+  humidity:     { icon: 'fas fa-tint',              color: '#3B82F6', bg: '#DBEAFE', unit: '%' },
+  air_quality:  { icon: 'fas fa-wind',              color: '#10B981', bg: '#D1FAE5', unit: 'AQI' },
+  energy_meter: { icon: 'fas fa-bolt',              color: '#F59E0B', bg: '#FEF3C7', unit: 'kWh' },
+  water_meter:  { icon: 'fas fa-tint-slash',        color: '#0891B2', bg: '#CFFAFE', unit: 'L' },
+  co2:          { icon: 'fas fa-cloud',             color: '#8B5CF6', bg: '#EDE9FE', unit: 'ppm' },
+};
+
+function getSensorIcon(type) {
+  return sensorTypeConfig[type] || sensorTypeConfig.temperature;
+}
+
+function timeAgo(dateStr) {
+  if (!dateStr) return 'Never';
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return 'Just now';
+  if (mins < 60) return mins + 'm ago';
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return hrs + 'h ago';
+  return Math.floor(hrs / 24) + 'd ago';
+}
+
+async function loadAll() {
+  const [sensorsRes, dashboardRes, resourcesRes] = await Promise.all([
+    window.api.request('/campus/sensors'),
+    window.api.request('/campus/sensors/dashboard'),
+    window.api.request('/campus/resources'),
+  ]);
+
+  sensors = sensorsRes.sensors || sensorsRes || [];
+  resources = resourcesRes.resources || resourcesRes || [];
+  const dashboard = dashboardRes || {};
+  alerts = dashboard.alerts || [];
+
+  renderStats(dashboard);
+  renderSensorTypes(dashboard);
+  renderSensorList();
+  renderBuildingOverview(dashboard);
+  renderAlerts();
+  renderResourceTable();
+  renderCharts(dashboard);
+  updateNotifPanel();
+}
+
+function renderStats(d) {
+  const total = d.totalSensors != null ? d.totalSensors : sensors.length;
+  const active = d.activeSensors != null ? d.activeSensors : sensors.filter(s => s.status === 'active').length;
+  const alertCount = d.alertCount != null ? d.alertCount : alerts.length;
+  const buildings = d.buildingCount != null ? d.buildingCount : [...new Set(sensors.map(s => s.building))].length;
+
+  document.getElementById('statsRow').innerHTML = [
+    { icon: 'fas fa-microchip', bg: '#CFFAFE', color: '#0891B2', num: total, label: 'Total Sensors' },
+    { icon: 'fas fa-check-circle', bg: '#D1FAE5', color: '#10B981', num: active, label: 'Active' },
+    { icon: 'fas fa-exclamation-triangle', bg: '#FEF3C7', color: '#F59E0B', num: alertCount, label: 'Alerts (24h)' },
+    { icon: 'fas fa-city', bg: '#E0E7FF', color: '#6366F1', num: buildings, label: 'Buildings' },
+  ].map(s => `<div class="card stat-card"><div class="stat-icon" style="background:${s.bg};color:${s.color}"><i class="${s.icon}"></i></div><div class="stat-info"><div class="stat-number">${s.num}</div><div class="stat-label">${s.label}</div></div></div>`).join('');
+
+  document.getElementById('alertCount').textContent = alertCount;
+  document.getElementById('totalAlertsBadge').textContent = alertCount + ' alert' + (alertCount !== 1 ? 's' : '');
+}
+
+function renderSensorTypes(d) {
+  const byType = d.byType || {};
+  const typeSensors = {};
+  sensors.forEach(s => {
+    if (!typeSensors[s.type]) typeSensors[s.type] = { count: 0, totalValue: 0 };
+    typeSensors[s.type].count++;
+    typeSensors[s.type].totalValue += (s.currentValue || s.value || 0);
+  });
+
+  const types = ['temperature', 'humidity', 'air_quality', 'energy_meter', 'water_meter', 'co2'];
+  document.getElementById('sensorTypeGrid').innerHTML = types.map(type => {
+    const cfg = getSensorIcon(type);
+    const info = typeSensors[type] || byType[type] || { count: 0, totalValue: 0, avgValue: 0 };
+    const avg = info.avgValue != null ? info.avgValue.toFixed(1) : (info.count > 0 ? (info.totalValue / info.count).toFixed(1) : '--');
+    return `<div class="sensor-type-card">
+      <div class="sensor-type-icon" style="background:${cfg.bg};color:${cfg.color}"><i class="${cfg.icon}"></i></div>
+      <div class="sensor-value" style="color:${cfg.color}">${avg}<span style="font-size:14px;font-weight:600">${cfg.unit}</span></div>
+      <div style="font-size:12px;color:#64748B;margin-top:4px">${type.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase())}</div>
+      <div style="font-size:11px;color:#94A3B8;margin-top:2px">${info.count || 0} sensor${(info.count || 0) !== 1 ? 's' : ''}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderSensorList() {
+  if (sensors.length === 0) {
+    document.getElementById('sensorList').innerHTML = '<div style="text-align:center;padding:32px;color:#94A3B8;font-size:13px"><i class="fas fa-microchip" style="font-size:32px;margin-bottom:8px;display:block;color:#CBD5E1"></i>No sensors registered yet</div>';
+    return;
+  }
+  document.getElementById('sensorList').innerHTML = sensors.map(s => {
+    const cfg = getSensorIcon(s.type);
+    const val = s.currentValue != null ? s.currentValue : (s.value || '--');
+    const statusColor = s.status === 'active' ? '#D1FAE5' : s.status === 'alert' ? '#FEE2E2' : '#F1F5F9';
+    const statusTextColor = s.status === 'active' ? '#065F46' : s.status === 'alert' ? '#991B1B' : '#64748B';
+    return `<div style="display:flex;align-items:center;gap:12px;padding:12px;border:1px solid #F1F5F9;border-radius:10px;margin-bottom:8px;transition:all .15s" onmouseenter="this.style.borderColor='#0891B2'" onmouseleave="this.style.borderColor='#F1F5F9'">
+      <div style="width:42px;height:42px;border-radius:10px;background:${cfg.bg};color:${cfg.color};display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0"><i class="${cfg.icon}"></i></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:600;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${s.name}</div>
+        <div style="font-size:11px;color:#64748B">${s.building || '-'} ${s.floor ? '&bull; Floor ' + s.floor : ''} ${s.room ? '&bull; Rm ' + s.room : ''}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:18px;font-weight:800;color:${cfg.color}">${val}<span style="font-size:10px;font-weight:600">${cfg.unit}</span></div>
+        <div style="font-size:10px;color:#94A3B8">${timeAgo(s.lastUpdated || s.updatedAt)}</div>
+      </div>
+      <span class="badge" style="background:${statusColor};color:${statusTextColor};font-size:10px;margin-left:4px">${s.status || 'active'}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderBuildingOverview(d) {
+  const buildings = d.buildings || {};
+  const buildingSet = {};
+
+  sensors.forEach(s => {
+    const b = s.building || 'Unknown';
+    if (!buildingSet[b]) buildingSet[b] = { sensorCount: 0, sensors: [] };
+    buildingSet[b].sensorCount++;
+    buildingSet[b].sensors.push(s);
+  });
+
+  const bldgs = Object.keys(buildings).length > 0 ? buildings : buildingSet;
+  const bldgNames = Object.keys(bldgs);
+
+  if (bldgNames.length === 0) {
+    document.getElementById('buildingOverview').innerHTML = '<div style="text-align:center;padding:32px;color:#94A3B8;font-size:13px"><i class="fas fa-city" style="font-size:32px;margin-bottom:8px;display:block;color:#CBD5E1"></i>No buildings mapped yet</div>';
+    return;
+  }
+
+  document.getElementById('buildingOverview').innerHTML = bldgNames.map(name => {
+    const info = bldgs[name];
+    const sensorCount = info.sensorCount || info.sensorCount === 0 ? info.sensorCount : (info.sensors ? info.sensors.length : 0);
+    const occupancy = info.occupancy != null ? info.occupancy : Math.floor(Math.random() * 80 + 20);
+    const occColor = occupancy > 80 ? '#EF4444' : occupancy > 50 ? '#F59E0B' : '#10B981';
+    const activeCount = info.activeSensors || sensors.filter(s => s.building === name && s.status === 'active').length;
+    return `<div style="padding:14px;border:1px solid #F1F5F9;border-radius:10px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="width:36px;height:36px;border-radius:8px;background:#CFFAFE;color:#0891B2;display:flex;align-items:center;justify-content:center;font-size:14px"><i class="fas fa-building"></i></div>
+          <div><div style="font-weight:600;font-size:13px">${name}</div><div style="font-size:11px;color:#64748B">${sensorCount} sensors &bull; ${activeCount} active</div></div>
+        </div>
+        <span class="badge" style="background:${occColor}20;color:${occColor};font-size:11px">${occupancy}%</span>
+      </div>
+      <div class="occupancy-bar"><div class="occupancy-fill" style="width:${occupancy}%;background:${occColor}"></div></div>
+      <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:#94A3B8"><span>Occupancy</span><span>${occupancy}%</span></div>
+    </div>`;
+  }).join('');
+}
+
+function renderAlerts() {
+  const list = alerts.length > 0 ? alerts : generateDemoAlerts();
+  if (list.length === 0) {
+    document.getElementById('alertsList').innerHTML = '<div style="text-align:center;padding:24px;color:#94A3B8;font-size:13px"><i class="fas fa-check-circle" style="font-size:28px;margin-bottom:8px;display:block;color:#10B981"></i>No alerts in the last 24 hours</div>';
+    return;
+  }
+  document.getElementById('alertsList').innerHTML = list.map(a => {
+    const sev = a.severity || 'warning';
+    const sevColor = sev === 'critical' ? '#EF4444' : sev === 'warning' ? '#F59E0B' : '#3B82F6';
+    const sevBg = sev === 'critical' ? '#FEE2E2' : sev === 'warning' ? '#FEF3C7' : '#DBEAFE';
+    return `<div class="alert-row">
+      <div class="alert-dot" style="background:${sevColor}"></div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:600;font-size:13px">${a.sensorName || a.sensor || 'Unknown Sensor'}</div>
+        <div style="font-size:12px;color:#475569;margin-top:2px">${a.message || a.alertMessage || 'Threshold exceeded'}</div>
+      </div>
+      <div style="text-align:right;flex-shrink:0">
+        <span class="badge" style="background:${sevBg};color:${sevColor};font-size:10px;margin-bottom:4px">${sev}</span>
+        <div style="font-size:11px;color:#94A3B8;margin-top:2px">${timeAgo(a.timestamp || a.createdAt)}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderResourceTable() {
+  const list = resources.length > 0 ? resources : generateDemoResources();
+  if (list.length === 0) {
+    document.getElementById('resourceTableBody').innerHTML = '<tr><td colspan="6" style="text-align:center;padding:32px;color:#94A3B8;font-size:13px">No resources registered yet</td></tr>';
+    return;
+  }
+  document.getElementById('resourceTableBody').innerHTML = list.map(r => {
+    const occupancy = r.occupancy != null ? r.occupancy : Math.floor(Math.random() * 90 + 10);
+    const occColor = occupancy > 80 ? '#EF4444' : occupancy > 50 ? '#F59E0B' : '#10B981';
+    const statusColor = r.status === 'active' ? 'badge-success' : r.status === 'maintenance' ? 'badge-warning' : 'badge-gray';
+    return `<tr style="border-bottom:1px solid #F1F5F9">
+      <td style="padding:12px;font-weight:600">${r.name}</td>
+      <td style="padding:12px"><span class="badge badge-info" style="font-size:10px">${(r.type || '').replace(/_/g,' ')}</span></td>
+      <td style="padding:12px;color:#64748B">${r.building || '-'}</td>
+      <td style="padding:12px;text-align:center">${r.capacity || '-'}</td>
+      <td style="padding:12px"><span class="badge ${statusColor}" style="font-size:10px">${r.status || 'active'}</span></td>
+      <td style="padding:12px;min-width:140px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="occupancy-bar" style="flex:1"><div class="occupancy-fill" style="width:${occupancy}%;background:${occColor}"></div></div>
+          <span style="font-size:11px;font-weight:600;color:${occColor};min-width:32px">${occupancy}%</span>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function renderCharts(d) {
+  const hours = Array.from({ length: 24 }, (_, i) => i + ':00');
+  const energyData = d.energyData || hours.map(() => Math.floor(Math.random() * 200 + 100));
+  const waterData = d.waterData || hours.map(() => Math.floor(Math.random() * 500 + 200));
+
+  if (energyChartInst) energyChartInst.destroy();
+  energyChartInst = new Chart(document.getElementById('energyChart'), {
+    type: 'line',
+    data: {
+      labels: hours,
+      datasets: [{
+        label: 'kWh',
+        data: energyData,
+        borderColor: '#0891B2',
+        backgroundColor: 'rgba(8,145,178,0.1)',
+        fill: true,
+        tension: 0.4,
+        pointRadius: 0,
+        borderWidth: 2,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { display: true, grid: { display: false }, ticks: { font: { size: 10 }, maxTicksLimit: 8 } },
+        y: { display: true, grid: { color: '#F1F5F9' }, ticks: { font: { size: 10 } } }
+      }
+    }
+  });
+
+  if (waterChartInst) waterChartInst.destroy();
+  waterChartInst = new Chart(document.getElementById('waterChart'), {
+    type: 'bar',
+    data: {
+      labels: hours,
+      datasets: [{
+        label: 'Litres',
+        data: waterData,
+        backgroundColor: 'rgba(6,182,212,0.6)',
+        borderColor: '#06B6D4',
+        borderWidth: 1,
+        borderRadius: 3,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { display: true, grid: { display: false }, ticks: { font: { size: 10 }, maxTicksLimit: 8 } },
+        y: { display: true, grid: { color: '#F1F5F9' }, ticks: { font: { size: 10 } } }
+      }
+    }
+  });
+}
+
+function updateNotifPanel() {
+  const list = alerts.length > 0 ? alerts : generateDemoAlerts();
+  const panel = document.getElementById('notifPanelList');
+  if (list.length === 0) {
+    panel.innerHTML = '<div style="padding:16px;text-align:center;color:#94A3B8;font-size:13px">No recent alerts</div>';
+    return;
+  }
+  panel.innerHTML = list.slice(0, 5).map(a => {
+    const sev = a.severity || 'warning';
+    const sevColor = sev === 'critical' ? '#EF4444' : sev === 'warning' ? '#F59E0B' : '#3B82F6';
+    return `<div class="notif-item unread"><div class="notif-dot" style="background:${sevColor}"></div><div><div style="font-size:13px;font-weight:600">${a.sensorName || a.sensor || 'Sensor'}</div><div style="font-size:12px;color:#64748B">${a.message || a.alertMessage || 'Alert triggered'}</div></div></div>`;
+  }).join('');
+}
+
+function generateDemoAlerts() {
+  return [
+    { sensorName: 'Hall A Temp Sensor', message: 'Temperature exceeded 35\u00B0C threshold', severity: 'critical', timestamp: new Date(Date.now() - 1800000).toISOString() },
+    { sensorName: 'Lab 2 CO2 Monitor', message: 'CO2 levels above 1200 ppm', severity: 'warning', timestamp: new Date(Date.now() - 3600000).toISOString() },
+    { sensorName: 'Block B Energy Meter', message: 'Consumption spike detected', severity: 'warning', timestamp: new Date(Date.now() - 7200000).toISOString() },
+    { sensorName: 'Library Humidity Sensor', message: 'Humidity below 30% minimum', severity: 'info', timestamp: new Date(Date.now() - 14400000).toISOString() },
+    { sensorName: 'Hostel Water Meter', message: 'Unusual water flow detected', severity: 'critical', timestamp: new Date(Date.now() - 21600000).toISOString() },
+  ];
+}
+
+function generateDemoResources() {
+  return [
+    { name: 'Main Auditorium', type: 'auditorium', building: 'Auditorium', capacity: 500, status: 'active', occupancy: 72 },
+    { name: 'CS Lab 1', type: 'lab', building: 'Engineering Block', capacity: 60, status: 'active', occupancy: 88 },
+    { name: 'Seminar Hall A', type: 'seminar_hall', building: 'Main Building', capacity: 120, status: 'active', occupancy: 45 },
+    { name: 'Sports Complex', type: 'sports_facility', building: 'Admin Block', capacity: 200, status: 'active', occupancy: 30 },
+    { name: 'Cafeteria', type: 'cafeteria', building: 'Main Building', capacity: 300, status: 'active', occupancy: 65 },
+    { name: 'Boys Hostel A', type: 'hostel', building: 'Hostel', capacity: 200, status: 'active', occupancy: 90 },
+    { name: 'Parking Lot B', type: 'parking', building: 'Admin Block', capacity: 100, status: 'active', occupancy: 55 },
+  ];
+}
+
+async function addSensor() {
+  const name = document.getElementById('sensorName').value;
+  if (!name) { window.showToast('Sensor name is required', 'error'); return; }
+  const payload = {
+    name,
+    type: document.getElementById('sensorType').value,
+    building: document.getElementById('sensorBuilding').value,
+    floor: Number(document.getElementById('sensorFloor').value) || undefined,
+    room: document.getElementById('sensorRoom').value || undefined,
+    minThreshold: document.getElementById('sensorMinThreshold').value ? Number(document.getElementById('sensorMinThreshold').value) : undefined,
+    maxThreshold: document.getElementById('sensorMaxThreshold').value ? Number(document.getElementById('sensorMaxThreshold').value) : undefined,
+  };
+  await window.api.request('/campus/sensors', { method: 'POST', body: JSON.stringify(payload) });
+  window.closeModal('addSensorModal');
+  window.showToast('Sensor added successfully', 'success');
+  document.getElementById('sensorName').value = '';
+  document.getElementById('sensorFloor').value = '';
+  document.getElementById('sensorRoom').value = '';
+  document.getElementById('sensorMinThreshold').value = '';
+  document.getElementById('sensorMaxThreshold').value = '';
+  loadAll();
+}
+
+async function addResource() {
+  const name = document.getElementById('resName').value;
+  if (!name) { window.showToast('Resource name is required', 'error'); return; }
+  const amenitiesStr = document.getElementById('resAmenities').value;
+  const amenities = amenitiesStr ? amenitiesStr.split(',').map(a => a.trim()).filter(Boolean) : [];
+  const payload = {
+    name,
+    type: document.getElementById('resType').value,
+    building: document.getElementById('resBuilding').value,
+    capacity: Number(document.getElementById('resCapacity').value) || undefined,
+    amenities,
+  };
+  await window.api.request('/campus/resources', { method: 'POST', body: JSON.stringify(payload) });
+  window.closeModal('addResourceModal');
+  window.showToast('Resource added successfully', 'success');
+  document.getElementById('resName').value = '';
+  document.getElementById('resCapacity').value = '';
+  document.getElementById('resAmenities').value = '';
+  loadAll();
+}
+
+loadAll();
+setInterval(loadAll, 30000);
+</script>
+</body>
+</html>

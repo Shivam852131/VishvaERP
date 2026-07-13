@@ -1,0 +1,1091 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Skills Profile | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../css/custom.css">
+  <style>
+    .profile-ring { width: 180px; height: 180px; position: relative; }
+    .profile-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+    .profile-ring-bg { fill: none; stroke: #E2E8F0; stroke-width: 10; }
+    .profile-ring-fill { fill: none; stroke-width: 10; stroke-linecap: round; transition: stroke-dashoffset 1.2s cubic-bezier(0.4,0,0.2,1); }
+    .profile-ring-center {
+      position: absolute; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+    }
+    .profile-ring-score { font-size: 36px; font-weight: 800; line-height: 1; }
+    .profile-ring-label { font-size: 11px; color: #64748B; margin-top: 4px; font-weight: 600; }
+
+    .skill-card {
+      border: 1px solid #E2E8F0; border-radius: 14px; padding: 16px 18px;
+      background: white; transition: all 0.2s ease; position: relative;
+    }
+    .skill-card:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.06); border-color: #C7D2FE; }
+
+    .level-badge {
+      font-size: 10px; padding: 2px 8px; border-radius: 999px;
+      font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .level-beginner     { background: #DBEAFE; color: #1E40AF; }
+    .level-intermediate { background: #FEF3C7; color: #92400E; }
+    .level-advanced     { background: #D1FAE5; color: #065F46; }
+    .level-expert       { background: #EDE9FE; color: #5B21B6; }
+
+    .cat-badge {
+      font-size: 10px; padding: 2px 8px; border-radius: 999px;
+      font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .cat-technical { background: #EEF2FF; color: #4338CA; }
+    .cat-soft      { background: #FDF2F8; color: #BE185D; }
+    .cat-domain    { background: #F0FDFA; color: #065F46; }
+    .cat-tool      { background: #FFFBEB; color: #92400E; }
+    .cat-language   { background: #F0F9FF; color: #0369A1; }
+    .cat-other     { background: #F1F5F9; color: #475569; }
+
+    .category-label {
+      font-size: 11px; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.1em; color: #64748B; margin-bottom: 10px; margin-top: 20px;
+    }
+    .category-label:first-child { margin-top: 0; }
+
+    .tag-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 12px; border-radius: 999px; font-size: 12.5px;
+      font-weight: 600; background: #EEF2FF; color: #4338CA;
+      border: 1px solid #C7D2FE; margin: 3px;
+    }
+    .tag-chip .tag-remove {
+      cursor: pointer; width: 16px; height: 16px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; background: rgba(67,56,202,0.15); color: #4338CA;
+      transition: background 0.15s;
+    }
+    .tag-chip .tag-remove:hover { background: rgba(239,68,68,0.2); color: #EF4444; }
+
+    .cert-card, .project-card {
+      border: 1px solid #E2E8F0; border-radius: 14px; padding: 18px 20px;
+      background: white; transition: all 0.2s ease;
+    }
+    .cert-card:hover, .project-card:hover {
+      box-shadow: 0 6px 20px rgba(0,0,0,0.06); border-color: #DDD6FE;
+    }
+
+    .goal-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 16px; border-radius: 12px; border: 1px solid #E2E8F0;
+      background: white; transition: all 0.2s ease;
+    }
+    .goal-item:hover { border-color: #C7D2FE; }
+
+    .quick-link {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 14px; border-radius: 10px; font-size: 13px;
+      font-weight: 600; color: var(--text-secondary);
+      text-decoration: none; transition: all 0.2s;
+    }
+    .quick-link:hover { background: #F5F3FF; color: #6D28D9; }
+    .quick-link i { width: 20px; text-align: center; }
+
+    .inline-form {
+      display: none; padding: 20px; border-radius: 14px;
+      border: 2px dashed #C7D2FE; background: #FAFAFE; margin-bottom: 16px;
+    }
+    .inline-form.show { display: block; }
+
+    .empty-state-sm { padding: 32px 16px; text-align: center; }
+    .empty-state-sm .empty-state-icon { font-size: 32px; margin-bottom: 8px; color: var(--text-muted); }
+    .empty-state-sm .empty-state-desc { font-size: 13px; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-student" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)" id="sidebar-avatar">S</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Student</div><div class="sidebar-user-role" id="sidebar-user-role">B.Tech CS &bull; Sem 4</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <div class="nav-section-label">Academics</div>
+      <a href="live-class.html" class="nav-link"><i class="nav-link-icon fas fa-video"></i> Live Classes</a>
+      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-reader"></i> My Courses</a>
+      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Attendance</a>
+      <a href="results.html" class="nav-link"><i class="nav-link-icon fas fa-poll"></i> Results</a>
+      <a href="assignments.html" class="nav-link"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
+      <a href="timetable.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-week"></i> Timetable</a>
+      <a href="notes.html" class="nav-link"><i class="nav-link-icon fas fa-sticky-note"></i> Notes</a>
+      <div class="nav-section-label">Career Center</div>
+      <a href="career.html" class="nav-link"><i class="nav-link-icon fas fa-rocket"></i> Career Dashboard</a>
+      <a href="skills.html" class="nav-link active"><i class="nav-link-icon fas fa-code"></i> Skills Profile</a>
+      <a href="mentorship.html" class="nav-link"><i class="nav-link-icon fas fa-handshake"></i> Mentorship</a>
+      <a href="placements.html" class="nav-link"><i class="nav-link-icon fas fa-briefcase"></i> Placements</a>
+      <div class="nav-section-label">Finance</div>
+      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-receipt"></i> Fees</a>
+      <div class="nav-section-label">Tools</div>
+      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-brain"></i> AI Services</a>
+      <a href="../messages.html" class="nav-link"><i class="nav-link-icon fas fa-comment-dots"></i> Chat</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">Student / Career / <span>Skills Profile</span></div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-search" onclick="openCommandPalette()" style="cursor:pointer; margin-right: 10px;">
+          <i class="fas fa-search"></i>
+          <span style="font-size:13px;color:var(--text-muted)">Search...</span>
+        </div>
+        <div style="position:relative">
+          <button class="topbar-btn" id="notif-btn"><i class="fas fa-bell"></i><span class="topbar-badge">2</span></button>
+          <div class="notif-panel" id="notif-panel">
+            <div style="padding:14px 16px;border-bottom:1px solid #F1F5F9;font-weight:700;font-size:14px">Notifications</div>
+            <div class="notif-item unread"><div class="notif-dot"></div><div><div style="font-size:13px;font-weight:600">Placement Drive</div><div style="font-size:12px;color:#64748B">TCS hiring next week &mdash; apply now</div></div></div>
+            <div class="notif-item unread"><div class="notif-dot"></div><div><div style="font-size:13px;font-weight:600">New Skill Badge</div><div style="font-size:12px;color:#64748B">You earned the React.js Advanced badge</div></div></div>
+          </div>
+        </div>
+        <div class="topbar-avatar" id="topbar-avatar">S</div>
+      </div>
+    </header>
+
+    <div class="erp-content page-enter">
+
+      <!-- PAGE HEADER -->
+      <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+        <div style="display:flex;align-items:center;gap:14px">
+          <a href="career.html" class="btn btn-secondary" style="text-decoration:none"><i class="fas fa-arrow-left"></i></a>
+          <div>
+            <h1 class="page-title">Skills Profile</h1>
+            <p class="page-subtitle">Build and manage your professional profile to boost career readiness.</p>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-secondary" id="btnReset" onclick="resetForm()"><i class="fas fa-rotate-left"></i> Reset</button>
+          <button class="btn btn-primary" id="btnSave" onclick="saveProfile()"><i class="fas fa-check"></i> Save Profile</button>
+        </div>
+      </div>
+
+      <!-- LOADING SKELETON -->
+      <div id="skillsSkeleton">
+        <div class="grid col-3 mb-6">
+          <div style="grid-column:span 2">
+            <div class="card"><div class="card-body" style="padding:24px"><div class="skeleton skeleton-text" style="width:50%;height:28px;margin-bottom:16px"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text" style="width:70%"></div><div class="skeleton skeleton-text" style="width:60%"></div></div></div>
+          </div>
+          <div>
+            <div class="card"><div class="card-body" style="padding:24px;display:flex;justify-content:center"><div class="skeleton" style="width:160px;height:160px;border-radius:50%"></div></div></div>
+          </div>
+        </div>
+        <div class="card mb-6"><div class="card-body" style="padding:24px"><div class="skeleton skeleton-text" style="width:30%;height:20px;margin-bottom:16px"></div><div style="display:flex;gap:10px;flex-wrap:wrap"><div class="skeleton" style="width:120px;height:36px;border-radius:999px"></div><div class="skeleton" style="width:140px;height:36px;border-radius:999px"></div><div class="skeleton" style="width:100px;height:36px;border-radius:999px"></div></div></div></div>
+      </div>
+
+      <!-- MAIN CONTENT (hidden until data loads) -->
+      <div id="skillsContent" style="display:none">
+
+        <!-- ========== SECTION 1: PROFILE CARD (2-col) ========== -->
+        <div class="grid col-3 mb-6" style="grid-template-columns:2fr 1fr">
+
+          <!-- LEFT: Form Fields -->
+          <div class="card">
+            <div class="card-header"><div class="card-title"><i class="fas fa-user-pen" style="color:#7C3AED;margin-right:8px"></i>Personal Information</div></div>
+            <div class="card-body">
+              <div class="form-group">
+                <label style="font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:6px;display:block">Headline</label>
+                <input type="text" class="form-control" id="headline" placeholder="e.g. Full-Stack Developer & Open Source Enthusiast" maxlength="120">
+              </div>
+              <div class="form-group">
+                <label style="font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:6px;display:block">Bio</label>
+                <textarea class="form-control" id="bio" placeholder="Tell recruiters what drives you, what you have built, and what you are looking for..." rows="4" maxlength="500"></textarea>
+                <div style="font-size:11px;color:var(--text-muted);margin-top:4px;text-align:right"><span id="bioCount">0</span>/500</div>
+              </div>
+              <div class="form-group">
+                <label style="font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:6px;display:block">Desired Role</label>
+                <input type="text" class="form-control" id="desiredRole" placeholder="e.g. Software Development Engineer, Data Analyst">
+              </div>
+              <div class="form-group">
+                <label style="font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:6px;display:block">Preferred Locations</label>
+                <input type="text" class="form-control" id="preferredLocations" placeholder="e.g. Bangalore, Hyderabad, Remote (comma separated)">
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                <div class="form-group">
+                  <label style="font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:6px;display:block"><i class="fab fa-linkedin" style="color:#0077B5;margin-right:4px"></i>LinkedIn URL</label>
+                  <input type="url" class="form-control" id="linkedinUrl" placeholder="https://linkedin.com/in/you">
+                </div>
+                <div class="form-group">
+                  <label style="font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:6px;display:block"><i class="fab fa-github" style="color:#181717;margin-right:4px"></i>GitHub URL</label>
+                  <input type="url" class="form-control" id="githubUrl" placeholder="https://github.com/you">
+                </div>
+                <div class="form-group">
+                  <label style="font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:6px;display:block"><i class="fas fa-globe" style="color:#7C3AED;margin-right:4px"></i>Portfolio URL</label>
+                  <input type="url" class="form-control" id="portfolioUrl" placeholder="https://yoursite.com">
+                </div>
+                <div class="form-group">
+                  <label style="font-size:13px;font-weight:600;color:var(--text-primary);margin-bottom:6px;display:block"><i class="fas fa-file-arrow-down" style="color:#059669;margin-right:4px"></i>Resume URL</label>
+                  <input type="url" class="form-control" id="resumeUrl" placeholder="https://drive.google.com/...">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT: Profile Ring + Quick Links -->
+          <div style="display:flex;flex-direction:column;gap:20px">
+            <div class="card">
+              <div class="card-header"><div class="card-title"><i class="fas fa-bullseye" style="color:#7C3AED;margin-right:8px"></i>Profile Completeness</div></div>
+              <div class="card-body" style="display:flex;flex-direction:column;align-items:center;padding:28px 20px">
+                <div class="profile-ring">
+                  <svg viewBox="0 0 180 180">
+                    <circle class="profile-ring-bg" cx="90" cy="90" r="78"></circle>
+                    <circle class="profile-ring-fill" id="profileRingFill" cx="90" cy="90" r="78" stroke="url(#profRingGrad)" stroke-dasharray="490.09" stroke-dashoffset="490.09"></circle>
+                    <defs>
+                      <linearGradient id="profRingGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#7C3AED"/>
+                        <stop offset="100%" stop-color="#8B5CF6"/>
+                      </linearGradient>
+                    </defs>
+                  </svg>
+                  <div class="profile-ring-center">
+                    <div class="profile-ring-score" id="profilePercent" style="background:linear-gradient(135deg,#7C3AED,#8B5CF6);-webkit-background-clip:text;-webkit-text-fill-color:transparent">0%</div>
+                    <div class="profile-ring-label">Complete</div>
+                  </div>
+                </div>
+                <div style="margin-top:20px;width:100%" id="completionChecklist"></div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header"><div class="card-title"><i class="fas fa-link" style="color:#4F46E5;margin-right:8px"></i>Quick Links</div></div>
+              <div class="card-body" style="padding:10px 16px;display:flex;flex-direction:column;gap:2px">
+                <a href="career.html" class="quick-link"><i class="fas fa-chart-line" style="color:#7C3AED"></i> Career Dashboard</a>
+                <a href="placements.html" class="quick-link"><i class="fas fa-briefcase" style="color:#059669"></i> Browse Placements</a>
+                <a href="mentorship.html" class="quick-link"><i class="fas fa-handshake" style="color:#0284C7"></i> Find a Mentor</a>
+                <a href="../ai-tools.html" class="quick-link"><i class="fas fa-brain" style="color:#D97706"></i> AI Career Coach</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========== SECTION 2: SKILLS ========== -->
+        <div class="card mb-6">
+          <div class="card-header">
+            <div class="card-title"><i class="fas fa-code" style="color:#7C3AED;margin-right:8px"></i>Skills</div>
+            <span class="badge badge-purple" id="skillCountBadge">0 skills</span>
+          </div>
+          <div class="card-body">
+
+            <!-- Add Skill Button -->
+            <div style="margin-bottom:16px">
+              <button class="btn btn-primary btn-sm" id="addSkillBtn" onclick="toggleSkillForm()"><i class="fas fa-plus"></i> Add Skill</button>
+            </div>
+
+            <!-- Inline Add Skill Form -->
+            <div class="inline-form" id="skillForm">
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:12px;align-items:end">
+                <div class="form-group" style="margin-bottom:0">
+                  <label style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:4px;display:block">Skill Name</label>
+                  <input type="text" class="form-control" id="skillName" placeholder="e.g. React.js">
+                </div>
+                <div class="form-group" style="margin-bottom:0">
+                  <label style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:4px;display:block">Category</label>
+                  <select class="form-control" id="skillCategory">
+                    <option value="technical">Technical</option>
+                    <option value="soft">Soft Skills</option>
+                    <option value="domain">Domain</option>
+                    <option value="tool">Tool</option>
+                    <option value="language">Language</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+                <div class="form-group" style="margin-bottom:0">
+                  <label style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:4px;display:block">Level</label>
+                  <select class="form-control" id="skillLevel">
+                    <option value="beginner">Beginner</option>
+                    <option value="intermediate">Intermediate</option>
+                    <option value="advanced" selected>Advanced</option>
+                    <option value="expert">Expert</option>
+                  </select>
+                </div>
+                <div class="form-group" style="margin-bottom:0">
+                  <label style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:4px;display:block">Years of Exp.</label>
+                  <input type="number" class="form-control" id="skillYears" min="0" max="20" step="0.5" value="1" placeholder="0-20">
+                </div>
+                <div style="display:flex;gap:6px;padding-bottom:2px">
+                  <button class="btn btn-primary btn-sm" onclick="addSkill()" title="Add Skill"><i class="fas fa-check"></i></button>
+                  <button class="btn btn-secondary btn-sm" onclick="toggleSkillForm()" title="Cancel"><i class="fas fa-times"></i></button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Skills List (grouped by category) -->
+            <div id="skillsListContainer">
+              <div class="empty-state-sm" id="skillsEmpty">
+                <div class="empty-state-icon"><i class="fas fa-code"></i></div>
+                <div class="empty-state-desc">No skills added yet. Click "Add Skill" to get started.</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ========== SECTION 3: INTERESTS ========== -->
+        <div class="card mb-6">
+          <div class="card-header">
+            <div class="card-title"><i class="fas fa-heart" style="color:#EC4899;margin-right:8px"></i>Interests</div>
+            <span class="badge badge-purple" id="interestCountBadge">0</span>
+          </div>
+          <div class="card-body">
+            <div style="display:flex;gap:8px;margin-bottom:14px">
+              <input type="text" class="form-control" id="interestInput" placeholder="Type an interest and press Enter or click Add" style="flex:1" onkeydown="if(event.key==='Enter'){event.preventDefault();addInterest()}">
+              <button class="btn btn-primary btn-sm" onclick="addInterest()"><i class="fas fa-plus"></i> Add</button>
+            </div>
+            <div id="interestsContainer" style="display:flex;flex-wrap:wrap;gap:4px">
+              <div class="empty-state-sm" id="interestsEmpty" style="width:100%">
+                <div class="empty-state-desc">No interests added yet.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========== SECTION 4: CAREER GOALS ========== -->
+        <div class="card mb-6">
+          <div class="card-header">
+            <div class="card-title"><i class="fas fa-flag" style="color:#F59E0B;margin-right:8px"></i>Career Goals</div>
+            <span class="badge badge-warning" id="goalCountBadge">0</span>
+          </div>
+          <div class="card-body">
+            <div style="display:flex;gap:8px;margin-bottom:14px">
+              <input type="text" class="form-control" id="goalInput" placeholder="e.g. Get an SDE-2 role at a product company by Dec 2026" style="flex:1" onkeydown="if(event.key==='Enter'){event.preventDefault();addGoal()}">
+              <button class="btn btn-primary btn-sm" onclick="addGoal()"><i class="fas fa-plus"></i> Add</button>
+            </div>
+            <div id="goalsContainer" style="display:flex;flex-direction:column;gap:8px">
+              <div class="empty-state-sm" id="goalsEmpty">
+                <div class="empty-state-desc">No career goals set yet.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========== SECTION 5: CERTIFICATIONS ========== -->
+        <div class="card mb-6">
+          <div class="card-header">
+            <div class="card-title"><i class="fas fa-award" style="color:#8B5CF6;margin-right:8px"></i>Certifications</div>
+            <span class="badge badge-purple" id="certCountBadge">0</span>
+          </div>
+          <div class="card-body">
+
+            <div style="margin-bottom:16px">
+              <button class="btn btn-primary btn-sm" id="addCertBtn" onclick="toggleCertForm()"><i class="fas fa-plus"></i> Add Certification</button>
+            </div>
+
+            <div class="inline-form" id="certForm">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <div class="form-group">
+                  <label style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:4px;display:block">Certification Name *</label>
+                  <input type="text" class="form-control" id="certName" placeholder="e.g. AWS Certified Solutions Architect">
+                </div>
+                <div class="form-group">
+                  <label style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:4px;display:block">Issuer *</label>
+                  <input type="text" class="form-control" id="certIssuer" placeholder="e.g. Amazon Web Services">
+                </div>
+                <div class="form-group">
+                  <label style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:4px;display:block">Issue Date</label>
+                  <input type="date" class="form-control" id="certIssueDate">
+                </div>
+                <div class="form-group">
+                  <label style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:4px;display:block">Expiry Date</label>
+                  <input type="date" class="form-control" id="certExpiryDate">
+                </div>
+                <div class="form-group">
+                  <label style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:4px;display:block">Credential ID</label>
+                  <input type="text" class="form-control" id="certCredentialId" placeholder="e.g. ABC123DEF456">
+                </div>
+                <div class="form-group">
+                  <label style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:4px;display:block">Credential URL</label>
+                  <input type="url" class="form-control" id="certCredentialUrl" placeholder="https://...">
+                </div>
+              </div>
+              <div style="display:flex;gap:8px;margin-top:6px">
+                <button class="btn btn-primary btn-sm" onclick="addCertification()"><i class="fas fa-check"></i> Save Certification</button>
+                <button class="btn btn-secondary btn-sm" onclick="toggleCertForm()"><i class="fas fa-times"></i> Cancel</button>
+              </div>
+            </div>
+
+            <div id="certsListContainer">
+              <div class="empty-state-sm" id="certsEmpty">
+                <div class="empty-state-icon"><i class="fas fa-award"></i></div>
+                <div class="empty-state-desc">No certifications added yet.</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ========== SECTION 6: PROJECTS ========== -->
+        <div class="card mb-6">
+          <div class="card-header">
+            <div class="card-title"><i class="fas fa-folder-open" style="color:#0EA5E9;margin-right:8px"></i>Projects</div>
+            <span class="badge badge-info" id="projectCountBadge">0</span>
+          </div>
+          <div class="card-body">
+
+            <div style="margin-bottom:16px">
+              <button class="btn btn-primary btn-sm" id="addProjectBtn" onclick="toggleProjectForm()"><i class="fas fa-plus"></i> Add Project</button>
+            </div>
+
+            <div class="inline-form" id="projectForm">
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <div class="form-group">
+                  <label style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:4px;display:block">Project Title *</label>
+                  <input type="text" class="form-control" id="projectTitle" placeholder="e.g. E-Commerce Platform">
+                </div>
+                <div class="form-group">
+                  <label style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:4px;display:block">Technologies</label>
+                  <input type="text" class="form-control" id="projectTech" placeholder="e.g. React, Node.js, MongoDB (comma separated)">
+                </div>
+                <div class="form-group" style="grid-column:span 2">
+                  <label style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:4px;display:block">Description</label>
+                  <textarea class="form-control" id="projectDesc" placeholder="Describe your project, your role, and impact..." rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                  <label style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:4px;display:block">Live URL</label>
+                  <input type="url" class="form-control" id="projectUrl" placeholder="https://...">
+                </div>
+                <div class="form-group">
+                  <label style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:4px;display:block">GitHub URL</label>
+                  <input type="url" class="form-control" id="projectGithub" placeholder="https://github.com/...">
+                </div>
+                <div class="form-group">
+                  <label style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:4px;display:block">Start Date</label>
+                  <input type="date" class="form-control" id="projectStart">
+                </div>
+                <div class="form-group">
+                  <label style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:4px;display:block">End Date</label>
+                  <input type="date" class="form-control" id="projectEnd">
+                  <label style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:12px;color:var(--text-secondary);cursor:pointer">
+                    <input type="checkbox" id="projectOngoing" style="accent-color:#7C3AED"> Ongoing
+                  </label>
+                </div>
+              </div>
+              <div style="display:flex;gap:8px;margin-top:6px">
+                <button class="btn btn-primary btn-sm" onclick="addProject()"><i class="fas fa-check"></i> Save Project</button>
+                <button class="btn btn-secondary btn-sm" onclick="toggleProjectForm()"><i class="fas fa-times"></i> Cancel</button>
+              </div>
+            </div>
+
+            <div id="projectsListContainer">
+              <div class="empty-state-sm" id="projectsEmpty">
+                <div class="empty-state-icon"><i class="fas fa-folder-open"></i></div>
+                <div class="empty-state-desc">No projects added yet.</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ========== SAVE BUTTON (BOTTOM) ========== -->
+        <div style="display:flex;justify-content:center;padding:20px 0 40px">
+          <button class="btn btn-primary" style="padding:14px 48px;font-size:15px;border-radius:12px" onclick="saveProfile()" id="saveBottomBtn"><i class="fas fa-check-circle"></i> Save Profile</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script src="../../live/live-pages.js"></script>
+<script>
+(function(){
+  var user = guardCurrentPage();
+  if (!user) return;
+
+  var skeleton = document.getElementById('skillsSkeleton');
+  var content  = document.getElementById('skillsContent');
+
+  var CIRCUMFERENCE = 2 * Math.PI * 78;
+  var ringFill = document.getElementById('profileRingFill');
+
+  var CAT_BADGE_MAP = {
+    technical: 'cat-technical',
+    soft: 'cat-soft',
+    domain: 'cat-domain',
+    tool: 'cat-tool',
+    language: 'cat-language',
+    other: 'cat-other'
+  };
+
+  var CATEGORY_LABELS = {
+    technical: 'Technical',
+    soft: 'Soft Skills',
+    domain: 'Domain Knowledge',
+    tool: 'Tools',
+    language: 'Languages',
+    other: 'Other'
+  };
+
+  var state = {
+    headline: '',
+    bio: '',
+    desiredRole: '',
+    preferredLocations: '',
+    linkedinUrl: '',
+    githubUrl: '',
+    portfolioUrl: '',
+    resumeUrl: '',
+    skills: [],
+    interests: [],
+    goals: [],
+    certifications: [],
+    projects: []
+  };
+
+  function $(id) { return document.getElementById(id); }
+
+  function toggleSkillForm() {
+    var f = $('skillForm');
+    f.classList.toggle('show');
+    if (f.classList.contains('show')) $('skillName').focus();
+  }
+
+  function toggleCertForm() {
+    var f = $('certForm');
+    f.classList.toggle('show');
+    if (f.classList.contains('show')) $('certName').focus();
+  }
+
+  function toggleProjectForm() {
+    var f = $('projectForm');
+    f.classList.toggle('show');
+    if (f.classList.contains('show')) $('projectTitle').focus();
+  }
+
+  /* ---- SKILLS ---- */
+  function addSkill() {
+    var name = ($('skillName').value || '').trim();
+    if (!name) { $('skillName').focus(); return; }
+    state.skills.push({
+      name: name,
+      category: $('skillCategory').value,
+      level: $('skillLevel').value,
+      years: parseFloat($('skillYears').value) || 0
+    });
+    $('skillName').value = '';
+    $('skillYears').value = '1';
+    renderSkills();
+    updateCompletion();
+  }
+
+  function removeSkill(idx) {
+    state.skills.splice(idx, 1);
+    renderSkills();
+    updateCompletion();
+  }
+
+  function renderSkills() {
+    var container = $('skillsListContainer');
+    var badge = $('skillCountBadge');
+    if (state.skills.length === 0) {
+      container.innerHTML = '<div class="empty-state-sm" id="skillsEmpty"><div class="empty-state-icon"><i class="fas fa-code"></i></div><div class="empty-state-desc">No skills added yet. Click "Add Skill" to get started.</div></div>';
+      if (badge) badge.textContent = '0 skills';
+      return;
+    }
+    if (badge) badge.textContent = state.skills.length + ' skill' + (state.skills.length !== 1 ? 's' : '');
+
+    var grouped = {};
+    state.skills.forEach(function(s, i) {
+      var cat = s.category || 'other';
+      if (!grouped[cat]) grouped[cat] = [];
+      grouped[cat].push({ data: s, idx: i });
+    });
+
+    var order = ['technical', 'soft', 'domain', 'tool', 'language', 'other'];
+    var html = '';
+    order.forEach(function(cat) {
+      if (!grouped[cat]) return;
+      var label = CATEGORY_LABELS[cat] || cat;
+      html += '<div class="category-label">' + label + '</div>';
+      html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:10px;margin-bottom:4px">';
+      grouped[cat].forEach(function(item) {
+        var s = item.data;
+        var lc = 'level-' + (s.level || 'beginner');
+        html += '<div class="skill-card">';
+        html += '<div style="display:flex;align-items:start;justify-content:space-between;gap:8px">';
+        html += '<div style="flex:1;min-width:0">';
+        html += '<div style="font-size:14px;font-weight:700;color:var(--text-primary);margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escHtml(s.name) + '</div>';
+        html += '<div style="display:flex;flex-wrap:wrap;gap:4px;align-items:center">';
+        html += '<span class="cat-badge ' + (CAT_BADGE_MAP[cat] || 'cat-other') + '">' + (CATEGORY_LABELS[cat] || cat) + '</span>';
+        html += '<span class="level-badge ' + lc + '">' + (s.level || 'beginner') + '</span>';
+        if (s.years) html += '<span style="font-size:11px;color:var(--text-muted);font-weight:600">' + s.years + ' yr' + (s.years !== 1 ? 's' : '') + '</span>';
+        html += '</div></div>';
+        html += '<button class="btn btn-secondary btn-sm" onclick="removeSkill(' + item.idx + ')" style="flex-shrink:0;padding:4px 8px;color:#EF4444;border-color:#FECDD3" title="Remove"><i class="fas fa-trash-can" style="font-size:11px"></i></button>';
+        html += '</div></div>';
+      });
+      html += '</div>';
+    });
+    container.innerHTML = html;
+  }
+
+  window.removeSkill = removeSkill;
+
+  /* ---- INTERESTS ---- */
+  function addInterest() {
+    var input = $('interestInput');
+    var val = (input.value || '').trim();
+    if (!val) { input.focus(); return; }
+    state.interests.push(val);
+    input.value = '';
+    renderInterests();
+    updateCompletion();
+  }
+
+  function removeInterest(idx) {
+    state.interests.splice(idx, 1);
+    renderInterests();
+    updateCompletion();
+  }
+
+  function renderInterests() {
+    var container = $('interestsContainer');
+    var badge = $('interestCountBadge');
+    if (state.interests.length === 0) {
+      container.innerHTML = '<div class="empty-state-sm" id="interestsEmpty" style="width:100%"><div class="empty-state-desc">No interests added yet.</div></div>';
+      if (badge) badge.textContent = '0';
+      return;
+    }
+    if (badge) badge.textContent = state.interests.length;
+    var html = '';
+    state.interests.forEach(function(t, i) {
+      html += '<span class="tag-chip">' + escHtml(t);
+      html += '<span class="tag-remove" onclick="removeInterest(' + i + ')"><i class="fas fa-xmark"></i></span>';
+      html += '</span>';
+    });
+    container.innerHTML = html;
+  }
+
+  window.removeInterest = removeInterest;
+
+  /* ---- CAREER GOALS ---- */
+  function addGoal() {
+    var input = $('goalInput');
+    var val = (input.value || '').trim();
+    if (!val) { input.focus(); return; }
+    state.goals.push(val);
+    input.value = '';
+    renderGoals();
+    updateCompletion();
+  }
+
+  function removeGoal(idx) {
+    state.goals.splice(idx, 1);
+    renderGoals();
+    updateCompletion();
+  }
+
+  function renderGoals() {
+    var container = $('goalsContainer');
+    var badge = $('goalCountBadge');
+    if (state.goals.length === 0) {
+      container.innerHTML = '<div class="empty-state-sm" id="goalsEmpty"><div class="empty-state-desc">No career goals set yet.</div></div>';
+      if (badge) badge.textContent = '0';
+      return;
+    }
+    if (badge) badge.textContent = state.goals.length;
+    var html = '';
+    state.goals.forEach(function(g, i) {
+      html += '<div class="goal-item">';
+      html += '<i class="fas fa-flag" style="color:#F59E0B;font-size:14px;flex-shrink:0"></i>';
+      html += '<span style="flex:1;font-size:13px;font-weight:500;color:var(--text-primary)">' + escHtml(g) + '</span>';
+      html += '<button class="btn btn-secondary btn-sm" onclick="removeGoal(' + i + ')" style="padding:4px 8px;color:#EF4444;border-color:#FECDD3;flex-shrink:0" title="Remove"><i class="fas fa-trash-can" style="font-size:11px"></i></button>';
+      html += '</div>';
+    });
+    container.innerHTML = html;
+  }
+
+  window.removeGoal = removeGoal;
+
+  /* ---- CERTIFICATIONS ---- */
+  function addCertification() {
+    var name = ($('certName').value || '').trim();
+    var issuer = ($('certIssuer').value || '').trim();
+    if (!name || !issuer) {
+      if (!name) $('certName').focus();
+      else $('certIssuer').focus();
+      return;
+    }
+    state.certifications.push({
+      name: name,
+      issuer: issuer,
+      issueDate: $('certIssueDate').value || '',
+      expiryDate: $('certExpiryDate').value || '',
+      credentialId: ($('certCredentialId').value || '').trim(),
+      credentialUrl: ($('certCredentialUrl').value || '').trim()
+    });
+    $('certName').value = '';
+    $('certIssuer').value = '';
+    $('certIssueDate').value = '';
+    $('certExpiryDate').value = '';
+    $('certCredentialId').value = '';
+    $('certCredentialUrl').value = '';
+    toggleCertForm();
+    renderCertifications();
+    updateCompletion();
+  }
+
+  function removeCertification(idx) {
+    state.certifications.splice(idx, 1);
+    renderCertifications();
+    updateCompletion();
+  }
+
+  function renderCertifications() {
+    var container = $('certsListContainer');
+    var badge = $('certCountBadge');
+    if (state.certifications.length === 0) {
+      container.innerHTML = '<div class="empty-state-sm" id="certsEmpty"><div class="empty-state-icon"><i class="fas fa-award"></i></div><div class="empty-state-desc">No certifications added yet.</div></div>';
+      if (badge) badge.textContent = '0';
+      return;
+    }
+    if (badge) badge.textContent = state.certifications.length;
+    var html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px">';
+    state.certifications.forEach(function(c, i) {
+      html += '<div class="cert-card">';
+      html += '<div style="display:flex;align-items:start;justify-content:space-between;gap:10px;margin-bottom:8px">';
+      html += '<div style="flex:1;min-width:0">';
+      html += '<div style="font-size:14px;font-weight:700;color:var(--text-primary);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escHtml(c.name) + '</div>';
+      html += '<div style="font-size:12px;color:var(--text-secondary);font-weight:600">' + escHtml(c.issuer) + '</div>';
+      html += '</div>';
+      html += '<button class="btn btn-secondary btn-sm" onclick="removeCertification(' + i + ')" style="padding:4px 8px;color:#EF4444;border-color:#FECDD3;flex-shrink:0" title="Remove"><i class="fas fa-trash-can" style="font-size:11px"></i></button>';
+      html += '</div>';
+      html += '<div style="display:flex;flex-wrap:wrap;gap:8px;font-size:11px;color:var(--text-muted)">';
+      if (c.issueDate) html += '<span><i class="fas fa-calendar-check" style="margin-right:3px"></i>' + formatDate(c.issueDate) + '</span>';
+      if (c.expiryDate) html += '<span><i class="fas fa-calendar-xmark" style="margin-right:3px;color:#EF4444"></i>' + formatDate(c.expiryDate) + '</span>';
+      if (c.credentialId) html += '<span><i class="fas fa-fingerprint" style="margin-right:3px"></i>' + escHtml(c.credentialId) + '</span>';
+      html += '</div>';
+      if (c.credentialUrl) {
+        html += '<a href="' + escAttr(c.credentialUrl) + '" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:4px;margin-top:8px;font-size:12px;font-weight:600;color:#7C3AED;text-decoration:none"><i class="fas fa-arrow-up-right-from-square" style="font-size:10px"></i> View Credential</a>';
+      }
+      html += '</div>';
+    });
+    html += '</div>';
+    container.innerHTML = html;
+  }
+
+  window.removeCertification = removeCertification;
+
+  /* ---- PROJECTS ---- */
+  function addProject() {
+    var title = ($('projectTitle').value || '').trim();
+    if (!title) { $('projectTitle').focus(); return; }
+    state.projects.push({
+      title: title,
+      description: ($('projectDesc').value || '').trim(),
+      technologies: ($('projectTech').value || '').trim(),
+      url: ($('projectUrl').value || '').trim(),
+      githubUrl: ($('projectGithub').value || '').trim(),
+      startDate: $('projectStart').value || '',
+      endDate: $('projectOngoing').checked ? '' : ($('projectEnd').value || ''),
+      ongoing: $('projectOngoing').checked
+    });
+    $('projectTitle').value = '';
+    $('projectDesc').value = '';
+    $('projectTech').value = '';
+    $('projectUrl').value = '';
+    $('projectGithub').value = '';
+    $('projectStart').value = '';
+    $('projectEnd').value = '';
+    $('projectOngoing').checked = false;
+    toggleProjectForm();
+    renderProjects();
+    updateCompletion();
+  }
+
+  function removeProject(idx) {
+    state.projects.splice(idx, 1);
+    renderProjects();
+    updateCompletion();
+  }
+
+  function renderProjects() {
+    var container = $('projectsListContainer');
+    var badge = $('projectCountBadge');
+    if (state.projects.length === 0) {
+      container.innerHTML = '<div class="empty-state-sm" id="projectsEmpty"><div class="empty-state-icon"><i class="fas fa-folder-open"></i></div><div class="empty-state-desc">No projects added yet.</div></div>';
+      if (badge) badge.textContent = '0';
+      return;
+    }
+    if (badge) badge.textContent = state.projects.length;
+    var html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:14px">';
+    state.projects.forEach(function(p, i) {
+      html += '<div class="project-card">';
+      html += '<div style="display:flex;align-items:start;justify-content:space-between;gap:10px;margin-bottom:6px">';
+      html += '<div style="flex:1;min-width:0">';
+      html += '<div style="font-size:14px;font-weight:700;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + escHtml(p.title) + '</div>';
+      html += '</div>';
+      html += '<button class="btn btn-secondary btn-sm" onclick="removeProject(' + i + ')" style="padding:4px 8px;color:#EF4444;border-color:#FECDD3;flex-shrink:0" title="Remove"><i class="fas fa-trash-can" style="font-size:11px"></i></button>';
+      html += '</div>';
+      if (p.description) {
+        html += '<p style="font-size:12.5px;color:var(--text-secondary);margin:6px 0 10px;line-height:1.5;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden">' + escHtml(p.description) + '</p>';
+      }
+      if (p.technologies) {
+        var techs = p.technologies.split(',').map(function(t){ return t.trim(); }).filter(Boolean);
+        html += '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px">';
+        techs.forEach(function(t) {
+          html += '<span style="display:inline-block;padding:2px 8px;background:#EEF2FF;color:#4338CA;border-radius:6px;font-size:11px;font-weight:600">' + escHtml(t) + '</span>';
+        });
+        html += '</div>';
+      }
+      html += '<div style="display:flex;flex-wrap:wrap;gap:10px;font-size:11px;color:var(--text-muted);align-items:center">';
+      if (p.startDate) html += '<span><i class="fas fa-calendar" style="margin-right:3px"></i>' + formatDate(p.startDate);
+      if (p.endDate) html += ' &mdash; ' + formatDate(p.endDate);
+      if (p.ongoing) html += ' <span class="badge badge-success" style="margin-left:4px;padding:1px 6px;font-size:10px">Ongoing</span>';
+      if (p.startDate || p.endDate || p.ongoing) html += '</span>';
+      html += '</div>';
+      html += '<div style="display:flex;gap:10px;margin-top:10px">';
+      if (p.url) html += '<a href="' + escAttr(p.url) + '" target="_blank" rel="noopener" style="font-size:12px;font-weight:600;color:#7C3AED;text-decoration:none"><i class="fas fa-arrow-up-right-from-square" style="margin-right:3px;font-size:10px"></i>Live Demo</a>';
+      if (p.githubUrl) html += '<a href="' + escAttr(p.githubUrl) + '" target="_blank" rel="noopener" style="font-size:12px;font-weight:600;color:var(--text-secondary);text-decoration:none"><i class="fab fa-github" style="margin-right:3px"></i>GitHub</a>';
+      html += '</div></div>';
+    });
+    html += '</div>';
+    container.innerHTML = html;
+  }
+
+  window.removeProject = removeProject;
+
+  /* ---- COMPLETION ---- */
+  function updateCompletion() {
+    var checks = {
+      headline: !!state.headline,
+      bio: state.bio.length >= 20,
+      desiredRole: !!state.desiredRole,
+      skills: state.skills.length > 0,
+      interests: state.interests.length >= 2,
+      goals: state.goals.length > 0,
+      certifications: state.certifications.length > 0,
+      projects: state.projects.length > 0,
+      linkedin: !!state.linkedinUrl,
+      github: !!state.githubUrl
+    };
+    var keys = Object.keys(checks);
+    var done = keys.filter(function(k){ return checks[k]; }).length;
+    var pct = Math.round((done / keys.length) * 100);
+
+    var offset = CIRCUMFERENCE - (pct / 100) * CIRCUMFERENCE;
+    setTimeout(function() {
+      ringFill.style.strokeDashoffset = offset;
+    }, 100);
+    $('profilePercent').textContent = pct + '%';
+
+    var labels = {
+      headline: 'Headline set',
+      bio: 'Bio written (20+ chars)',
+      desiredRole: 'Desired role added',
+      skills: 'At least 1 skill',
+      interests: '2+ interests added',
+      goals: 'Career goal set',
+      certifications: 'Certification added',
+      projects: 'Project added',
+      linkedin: 'LinkedIn connected',
+      github: 'GitHub connected'
+    };
+    var cl = $('completionChecklist');
+    var html = '';
+    keys.forEach(function(k) {
+      var done = checks[k];
+      html += '<div style="display:flex;align-items:center;gap:8px;padding:5px 0;font-size:12.5px">';
+      html += '<i class="fas ' + (done ? 'fa-circle-check' : 'fa-circle') + '" style="font-size:' + (done ? '16px' : '10px') + ';color:' + (done ? '#10B981' : '#CBD5E1') + ';flex-shrink:0"></i>';
+      html += '<span style="color:' + (done ? 'var(--text-primary)' : 'var(--text-muted)') + ';font-weight:' + (done ? '600' : '500') + '">' + labels[k] + '</span>';
+      html += '</div>';
+    });
+    cl.innerHTML = html;
+  }
+
+  /* ---- READ FORM VALUES ---- */
+  function syncStateFromForm() {
+    state.headline = ($('headline').value || '').trim();
+    state.bio = ($('bio').value || '').trim();
+    state.desiredRole = ($('desiredRole').value || '').trim();
+    state.preferredLocations = ($('preferredLocations').value || '').trim();
+    state.linkedinUrl = ($('linkedinUrl').value || '').trim();
+    state.githubUrl = ($('githubUrl').value || '').trim();
+    state.portfolioUrl = ($('portfolioUrl').value || '').trim();
+    state.resumeUrl = ($('resumeUrl').value || '').trim();
+  }
+
+  /* ---- FILL FORM FROM STATE ---- */
+  function fillForm() {
+    $('headline').value = state.headline || '';
+    $('bio').value = state.bio || '';
+    $('desiredRole').value = state.desiredRole || '';
+    $('preferredLocations').value = state.preferredLocations || '';
+    $('linkedinUrl').value = state.linkedinUrl || '';
+    $('githubUrl').value = state.githubUrl || '';
+    $('portfolioUrl').value = state.portfolioUrl || '';
+    $('resumeUrl').value = state.resumeUrl || '';
+    $('bioCount').textContent = (state.bio || '').length;
+  }
+
+  /* ---- SAVE ---- */
+  window.saveProfile = async function() {
+    syncStateFromForm();
+    var btn = $('btnSave');
+    var btnBottom = $('saveBottomBtn');
+    btn.disabled = true;
+    btnBottom.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    btnBottom.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    try {
+      await api.request('/career/profile', {
+        method: 'PUT',
+        body: {
+          headline: state.headline,
+          bio: state.bio,
+          desiredRole: state.desiredRole,
+          preferredLocations: state.preferredLocations,
+          linkedinUrl: state.linkedinUrl,
+          githubUrl: state.githubUrl,
+          portfolioUrl: state.portfolioUrl,
+          resumeUrl: state.resumeUrl,
+          skills: state.skills,
+          interests: state.interests,
+          goals: state.goals,
+          certifications: state.certifications,
+          projects: state.projects
+        }
+      });
+      btn.innerHTML = '<i class="fas fa-check"></i> Saved!';
+      btnBottom.innerHTML = '<i class="fas fa-check-circle"></i> Saved!';
+      btn.style.background = 'linear-gradient(135deg,#059669,#10B981)';
+      btnBottom.style.background = 'linear-gradient(135deg,#059669,#10B981)';
+      setTimeout(function() {
+        btn.innerHTML = '<i class="fas fa-check"></i> Save Profile';
+        btnBottom.innerHTML = '<i class="fas fa-check-circle"></i> Save Profile';
+        btn.style.background = '';
+        btnBottom.style.background = '';
+      }, 2000);
+    } catch (err) {
+      btn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error';
+      btnBottom.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Error';
+      btn.style.background = 'linear-gradient(135deg,#DC2626,#EF4444)';
+      btnBottom.style.background = 'linear-gradient(135deg,#DC2626,#EF4444)';
+      setTimeout(function() {
+        btn.innerHTML = '<i class="fas fa-check"></i> Save Profile';
+        btnBottom.innerHTML = '<i class="fas fa-check-circle"></i> Save Profile';
+        btn.style.background = '';
+        btnBottom.style.background = '';
+      }, 2500);
+    }
+    btn.disabled = false;
+    btnBottom.disabled = false;
+  };
+
+  /* ---- RESET ---- */
+  window.resetForm = function() {
+    if (!confirm('Reset all unsaved changes? This will reload the profile from server.')) return;
+    loadProfile();
+  };
+
+  /* ---- UTILITIES ---- */
+  function escHtml(s) {
+    var d = document.createElement('div');
+    d.appendChild(document.createTextNode(s));
+    return d.innerHTML;
+  }
+
+  function escAttr(s) {
+    return (s || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function formatDate(d) {
+    if (!d) return '';
+    var parts = d.split('-');
+    if (parts.length !== 3) return d;
+    var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return months[parseInt(parts[1],10)-1] + ' ' + parseInt(parts[2],10) + ', ' + parts[0];
+  }
+
+  /* ---- BIO COUNTER ---- */
+  $('bio').addEventListener('input', function() {
+    $('bioCount').textContent = this.value.length;
+    syncStateFromForm();
+    updateCompletion();
+  });
+
+  /* ---- ONGOING CHECKBOX TOGGLE ---- */
+  $('projectOngoing').addEventListener('change', function() {
+    $('projectEnd').disabled = this.checked;
+    if (this.checked) $('projectEnd').value = '';
+  });
+
+  /* ---- LOAD PROFILE ---- */
+  async function loadProfile() {
+    try {
+      var res = await api.request('/career/profile', { silent: true });
+      var p = res.data || res.profile || res;
+
+      if (p) {
+        state.headline = p.headline || '';
+        state.bio = p.bio || '';
+        state.desiredRole = p.desiredRole || p.desired_role || '';
+        state.preferredLocations = p.preferredLocations || p.preferred_locations || '';
+        state.linkedinUrl = p.linkedinUrl || p.linkedin_url || '';
+        state.githubUrl = p.githubUrl || p.github_url || '';
+        state.portfolioUrl = p.portfolioUrl || p.portfolio_url || '';
+        state.resumeUrl = p.resumeUrl || p.resume_url || '';
+        state.skills = (p.skills || []).map(function(s) {
+          return {
+            name: s.name || s.skill || '',
+            category: (s.category || 'other').toLowerCase(),
+            level: (s.level || 'beginner').toLowerCase(),
+            years: parseFloat(s.years || s.yearsOfExperience || s.experience) || 0
+          };
+        });
+        state.interests = p.interests || [];
+        state.goals = p.goals || p.careerGoals || [];
+        state.certifications = (p.certifications || []).map(function(c) {
+          return {
+            name: c.name || c.title || '',
+            issuer: c.issuer || c.organization || '',
+            issueDate: c.issueDate || c.issue_date || '',
+            expiryDate: c.expiryDate || c.expiry_date || '',
+            credentialId: c.credentialId || c.credential_id || '',
+            credentialUrl: c.credentialUrl || c.credential_url || c.url || ''
+          };
+        });
+        state.projects = (p.projects || []).map(function(pr) {
+          return {
+            title: pr.title || pr.name || '',
+            description: pr.description || '',
+            technologies: typeof pr.technologies === 'string' ? pr.technologies : (pr.technologies || []).join(', '),
+            url: pr.url || pr.liveUrl || '',
+            githubUrl: pr.githubUrl || pr.github_url || '',
+            startDate: pr.startDate || pr.start_date || '',
+            endDate: pr.endDate || pr.end_date || '',
+            ongoing: !!pr.ongoing
+          };
+        });
+      }
+
+      fillForm();
+      renderSkills();
+      renderInterests();
+      renderGoals();
+      renderCertifications();
+      renderProjects();
+      updateCompletion();
+
+      skeleton.style.display = 'none';
+      content.style.display = 'block';
+
+    } catch (err) {
+      skeleton.style.display = 'none';
+      content.style.display = 'block';
+    }
+  }
+
+  loadProfile();
+})();
+</script>
+</body>
+</html>

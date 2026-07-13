@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Placements & Internships | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../css/custom.css">
+  <style>
+    .placement-header {
+      background: linear-gradient(135deg, #059669 0%, #10B981 50%, #34D399 100%);
+      border-radius: 16px;
+      padding: 28px 32px;
+      color: white;
+      margin-bottom: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+    .placement-header::before {
+      content: '';
+      position: absolute;
+      top: -40px; right: -40px;
+      width: 180px; height: 180px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 50%;
+    }
+    .placement-header::after {
+      content: '';
+      position: absolute;
+      bottom: -60px; left: 40%;
+      width: 250px; height: 250px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 50%;
+    }
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: white;
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    .filter-bar .search-wrap {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 200px;
+    }
+    .filter-bar .search-wrap i { color: var(--text-muted); }
+    .filter-bar .search-wrap input {
+      border: none; outline: none; font-size: 13.5px;
+      color: var(--text-primary); flex: 1; font-family: inherit;
+    }
+    .filter-bar select {
+      border: 1.5px solid var(--card-border);
+      border-radius: 8px; padding: 8px 12px;
+      font-size: 13px; color: var(--text-primary);
+      background: white; cursor: pointer; outline: none;
+      font-family: inherit;
+    }
+    .filter-bar select:focus {
+      border-color: #059669;
+      box-shadow: 0 0 0 3px rgba(5,150,105,0.12);
+    }
+    .job-card {
+      background: white;
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 22px;
+      box-shadow: var(--card-shadow);
+      transition: all 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    .job-card:hover {
+      box-shadow: 0 12px 32px rgba(0,0,0,0.1);
+      transform: translateY(-3px);
+      border-color: #10B981;
+    }
+    .job-card .company-avatar {
+      width: 48px; height: 48px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; font-weight: 800;
+      color: white; flex-shrink: 0;
+    }
+    .skill-tag {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 100px;
+      font-size: 11px;
+      font-weight: 600;
+      background: #ECFDF5;
+      color: #065F46;
+      border: 1px solid #A7F3D0;
+    }
+    .timeline-steps {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      padding: 14px 0 0;
+    }
+    .timeline-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      flex: 1;
+      position: relative;
+    }
+    .timeline-step::before {
+      content: '';
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      right: -50%;
+      height: 2px;
+      background: #E2E8F0;
+      z-index: 0;
+    }
+    .timeline-step:last-child::before { display: none; }
+    .timeline-step .step-dot {
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; color: white;
+      background: #CBD5E1;
+      position: relative;
+      z-index: 1;
+      margin-bottom: 6px;
+    }
+    .timeline-step.completed .step-dot { background: #10B981; }
+    .timeline-step.completed::before { background: #10B981; }
+    .timeline-step.active .step-dot {
+      background: #059669;
+      box-shadow: 0 0 0 4px rgba(5,150,105,0.2);
+    }
+    .timeline-step.active::before { background: linear-gradient(to right, #059669, #E2E8F0); }
+    .timeline-step.rejected .step-dot { background: #EF4444; }
+    .timeline-step .step-label {
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-align: center;
+    }
+    .timeline-step.completed .step-label,
+    .timeline-step.active .step-label { color: var(--text-primary); }
+    .timeline-step.rejected .step-label { color: #EF4444; }
+    .application-card {
+      background: white;
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: var(--card-shadow);
+      transition: all 0.2s ease;
+    }
+    .application-card:hover {
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+    }
+    .upload-zone {
+      border: 2px dashed #D1D5DB;
+      border-radius: 12px;
+      padding: 32px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      background: #FAFBFC;
+    }
+    .upload-zone:hover {
+      border-color: #10B981;
+      background: #ECFDF5;
+    }
+    .upload-zone.dragover {
+      border-color: #059669;
+      background: #D1FAE5;
+    }
+    .tabs-wrapper {
+      display: flex;
+      gap: 4px;
+      background: var(--bg);
+      padding: 4px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+    }
+    .tabs-wrapper .tab-item {
+      flex: 1;
+      padding: 9px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      background: none;
+      color: var(--text-secondary);
+      transition: all 0.15s;
+      text-align: center;
+    }
+    .tabs-wrapper .tab-item.active {
+      background: white;
+      color: #059669;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    .count-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 20px;
+      height: 20px;
+      padding: 0 6px;
+      border-radius: 10px;
+      font-size: 10px;
+      font-weight: 700;
+      background: rgba(255,255,255,0.25);
+      color: white;
+    }
+  </style>
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-student" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)" id="sidebar-avatar">S</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Student</div><div class="sidebar-user-role" id="sidebar-user-role">B.Tech CS &bull; Sem 4</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <div class="nav-section-label">Academics</div>
+      <a href="live-class.html" class="nav-link"><i class="nav-link-icon fas fa-video"></i> Live Classes</a>
+      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-reader"></i> My Courses</a>
+      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Attendance</a>
+      <a href="results.html" class="nav-link"><i class="nav-link-icon fas fa-poll"></i> Results</a>
+      <a href="assignments.html" class="nav-link"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
+      <a href="timetable.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-week"></i> Timetable</a>
+      <a href="notes.html" class="nav-link"><i class="nav-link-icon fas fa-sticky-note"></i> Notes</a>
+      <div class="nav-section-label">Career Center</div>
+      <a href="career.html" class="nav-link"><i class="nav-link-icon fas fa-compass"></i> Career Dashboard</a>
+      <a href="skills.html" class="nav-link"><i class="nav-link-icon fas fa-cogs"></i> Skills Profile</a>
+      <a href="mentorship.html" class="nav-link"><i class="nav-link-icon fas fa-user-tie"></i> Mentorship</a>
+      <a href="placements.html" class="nav-link active"><i class="nav-link-icon fas fa-briefcase"></i> Placements</a>
+      <div class="nav-section-label">Finance</div>
+      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-receipt"></i> Fees</a>
+      <div class="nav-section-label">Tools</div>
+      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-brain"></i> AI Services</a>
+      <a href="../messages.html" class="nav-link"><i class="nav-link-icon fas fa-comment-dots"></i> Chat</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">Student / <span>Placements</span></div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-search" onclick="openCommandPalette()" style="cursor:pointer; margin-right: 10px;">
+          <i class="fas fa-search"></i>
+          <span style="font-size:13px;color:var(--text-muted)">Search...</span>
+        </div>
+        <div style="position:relative">
+          <button class="topbar-btn" id="notif-btn"><i class="fas fa-bell"></i><span class="topbar-badge">2</span></button>
+          <div class="notif-panel" id="notif-panel">
+            <div style="padding:14px 16px;border-bottom:1px solid #F1F5F9;font-weight:700;font-size:14px">Notifications</div>
+            <div class="notif-item unread"><div class="notif-dot"></div><div><div style="font-size:13px;font-weight:600">New Placement Drive</div><div style="font-size:12px;color:#64748B">TCS hiring for 2026 batch</div></div></div>
+            <div class="notif-item unread"><div class="notif-dot"></div><div><div style="font-size:13px;font-weight:600">Application Update</div><div style="font-size:12px;color:#64748B">You've been shortlisted at Infosys</div></div></div>
+          </div>
+        </div>
+        <div class="topbar-avatar" id="topbar-avatar">S</div>
+      </div>
+    </header>
+
+    <div class="erp-content page-enter">
+
+      <!-- PAGE HEADER -->
+      <div class="placement-header">
+        <div style="position:relative;z-index:1">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+            <div style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:20px"><i class="fas fa-briefcase"></i></div>
+            <div>
+              <h1 style="font-size:24px;font-weight:800;line-height:1.2">Placement &amp; Internship Portal</h1>
+              <p style="font-size:14px;opacity:0.9;margin-top:2px">Discover opportunities, apply for positions, and track your applications</p>
+            </div>
+          </div>
+          <div style="display:flex;gap:16px;margin-top:16px;flex-wrap:wrap">
+            <div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.15);padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600">
+              <i class="fas fa-calendar-alt"></i> Placement Season 2026
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.15);padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600">
+              <i class="fas fa-check-circle"></i> Eligibility: Verified
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.15);padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600">
+              <i class="fas fa-users"></i> Drive Coordinator: Prof. Mehta
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STATS -->
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)" id="statsGrid">
+        <div class="stat-card">
+          <div class="stat-card-accent" style="background:#059669"></div>
+          <div class="stat-icon" style="background:#ECFDF5;color:#059669"><i class="fas fa-briefcase"></i></div>
+          <div class="stat-label">Active Jobs</div>
+          <div class="stat-value" style="color:#059669" id="statActiveJobs">12</div>
+          <div class="stat-change up"><i class="fas fa-arrow-up"></i> 4 new this week</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-accent" style="background:#3B82F6"></div>
+          <div class="stat-icon" style="background:#EFF6FF;color:#1D4ED8"><i class="fas fa-code"></i></div>
+          <div class="stat-label">Internships</div>
+          <div class="stat-value" style="color:#1D4ED8" id="statInternships">8</div>
+          <div class="stat-change up"><i class="fas fa-arrow-up"></i> 3 remote options</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-accent" style="background:#F59E0B"></div>
+          <div class="stat-icon" style="background:#FEF3C7;color:#D97706"><i class="fas fa-paper-plane"></i></div>
+          <div class="stat-label">My Applications</div>
+          <div class="stat-value" style="color:#D97706" id="statApplications">5</div>
+          <div class="stat-change neutral"><i class="fas fa-clock"></i> 2 awaiting review</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-card-accent" style="background:#8B5CF6"></div>
+          <div class="stat-icon" style="background:#EDE9FE;color:#7C3AED"><i class="fas fa-handshake"></i></div>
+          <div class="stat-label">Interviews</div>
+          <div class="stat-value" style="color:#7C3AED" id="statInterviews">2</div>
+          <div class="stat-change up"><i class="fas fa-calendar"></i> Next: July 18</div>
+        </div>
+      </div>
+
+      <!-- MAIN TABS -->
+      <div class="tabs-wrapper" id="mainTabs">
+        <button class="tab-item active" onclick="switchMainTab('jobs')">
+          <i class="fas fa-search"></i> Available Positions
+        </button>
+        <button class="tab-item" onclick="switchMainTab('applications')">
+          <i class="fas fa-paper-plane"></i> My Applications
+        </button>
+      </div>
+
+      <!-- ============ JOBS TAB ============ -->
+      <div id="tabJobs">
+
+        <!-- FILTER BAR -->
+        <div class="filter-bar">
+          <select id="filterType" onchange="filterJobs()">
+            <option value="all">All Types</option>
+            <option value="full-time">Full-time</option>
+            <option value="internship">Internship</option>
+            <option value="part-time">Part-time</option>
+          </select>
+          <div class="search-wrap">
+            <i class="fas fa-search"></i>
+            <input type="text" id="filterSearch" placeholder="Search jobs by title, company, or skills..." oninput="filterJobs()">
+          </div>
+          <select id="filterSort" onchange="filterJobs()">
+            <option value="deadline">Sort by Deadline</option>
+            <option value="salary-high">Salary: High to Low</option>
+            <option value="salary-low">Salary: Low to High</option>
+            <option value="newest">Newest First</option>
+            <option value="applicants">Most Applied</option>
+          </select>
+        </div>
+
+        <!-- JOB LISTINGS -->
+        <div class="grid col-2 mb-6" id="jobsGrid" style="gap:20px">
+          <!-- Jobs rendered by JS -->
+        </div>
+
+        <!-- EMPTY STATE -->
+        <div id="emptyJobs" class="empty-state" style="display:none">
+          <div class="empty-state-icon"><i class="fas fa-search"></i></div>
+          <div class="empty-state-title">No positions found</div>
+          <div class="empty-state-desc">Try adjusting your filters or check back later for new opportunities.</div>
+        </div>
+
+        <!-- LOADING -->
+        <div id="jobsLoading" style="text-align:center;padding:48px 24px">
+          <div class="stat-icon" style="background:#ECFDF5;color:#059669;width:56px;height:56px;border-radius:50%;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-size:22px;animation:pulse 1.5s infinite"><i class="fas fa-briefcase"></i></div>
+          <div style="font-size:14px;font-weight:600;color:var(--text-secondary)">Loading opportunities...</div>
+        </div>
+      </div>
+
+      <!-- ============ APPLICATIONS TAB ============ -->
+      <div id="tabApplications" style="display:none">
+
+        <!-- APPLICATION STATS ROW -->
+        <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:10px;background:white;border:1px solid var(--card-border);border-radius:10px;padding:12px 18px;box-shadow:var(--card-shadow)">
+            <div style="width:36px;height:36px;border-radius:8px;background:#FEF3C7;color:#D97706;display:flex;align-items:center;justify-content:center;font-size:14px"><i class="fas fa-hourglass-half"></i></div>
+            <div><div style="font-size:11px;color:var(--text-muted)">Pending</div><div style="font-weight:700;font-size:16px" id="appPending">3</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;background:white;border:1px solid var(--card-border);border-radius:10px;padding:12px 18px;box-shadow:var(--card-shadow)">
+            <div style="width:36px;height:36px;border-radius:8px;background:#DBEAFE;color:#1D4ED8;display:flex;align-items:center;justify-content:center;font-size:14px"><i class="fas fa-check-circle"></i></div>
+            <div><div style="font-size:11px;color:var(--text-muted)">Shortlisted</div><div style="font-weight:700;font-size:16px" id="appShortlisted">1</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;background:white;border:1px solid var(--card-border);border-radius:10px;padding:12px 18px;box-shadow:var(--card-shadow)">
+            <div style="width:36px;height:36px;border-radius:8px;background:#EDE9FE;color:#7C3AED;display:flex;align-items:center;justify-content:center;font-size:14px"><i class="fas fa-calendar-check"></i></div>
+            <div><div style="font-size:11px;color:var(--text-muted)">Interviews</div><div style="font-weight:700;font-size:16px" id="appInterviews">1</div></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;background:white;border:1px solid var(--card-border);border-radius:10px;padding:12px 18px;box-shadow:var(--card-shadow)">
+            <div style="width:36px;height:36px;border-radius:8px;background:#D1FAE5;color:#059669;display:flex;align-items:center;justify-content:center;font-size:14px"><i class="fas fa-trophy"></i></div>
+            <div><div style="font-size:11px;color:var(--text-muted)">Selected</div><div style="font-weight:700;font-size:16px" id="appSelected">0</div></div>
+          </div>
+        </div>
+
+        <!-- APPLICATIONS LIST -->
+        <div id="applicationsList" style="display:flex;flex-direction:column;gap:16px">
+          <!-- Rendered by JS -->
+        </div>
+
+        <!-- EMPTY STATE -->
+        <div id="emptyApplications" class="empty-state" style="display:none">
+          <div class="empty-state-icon"><i class="fas fa-paper-plane"></i></div>
+          <div class="empty-state-title">No applications yet</div>
+          <div class="empty-state-desc">Browse available positions and start applying to kickstart your career.</div>
+          <button class="btn btn-primary" style="margin-top:16px" onclick="switchMainTab('jobs')"><i class="fas fa-search"></i> Browse Positions</button>
+        </div>
+
+        <!-- LOADING -->
+        <div id="appsLoading" style="text-align:center;padding:48px 24px;display:none">
+          <div class="stat-icon" style="background:#EDE9FE;color:#7C3AED;width:56px;height:56px;border-radius:50%;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-size:22px;animation:pulse 1.5s infinite"><i class="fas fa-paper-plane"></i></div>
+          <div style="font-size:14px;font-weight:600;color:var(--text-secondary)">Loading your applications...</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- APPLY MODAL -->
+<div class="modal-backdrop" id="applyModal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header">
+      <div>
+        <h3 class="modal-title">Apply for Position</h3>
+        <div style="font-size:12px;color:var(--text-secondary);margin-top:2px" id="applyJobTitle">Software Engineer at TCS</div>
+      </div>
+      <button class="modal-close" onclick="closeModal('applyModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Cover Letter</label>
+        <textarea class="form-control" id="coverLetter" rows="5" placeholder="Tell the recruiter why you're a great fit for this role..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Resume / Documents</label>
+        <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()" ondragover="event.preventDefault();this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="handleFileDrop(event)">
+          <input type="file" id="fileInput" accept=".pdf,.doc,.docx" style="display:none" onchange="handleFileSelect(event)">
+          <i class="fas fa-cloud-upload-alt" style="font-size:32px;color:#10B981;margin-bottom:12px;display:block"></i>
+          <div style="font-size:14px;font-weight:600;color:var(--text-primary);margin-bottom:4px">Drop your resume here or <span style="color:#059669;text-decoration:underline">browse</span></div>
+          <div style="font-size:12px;color:var(--text-muted)">PDF, DOC or DOCX (Max 5MB)</div>
+          <div id="fileName" style="margin-top:12px;display:none">
+            <span style="display:inline-flex;align-items:center;gap:6px;background:#ECFDF5;color:#065F46;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:600">
+              <i class="fas fa-file-alt"></i> <span id="fileNameText"></span>
+              <button onclick="event.stopPropagation();removeFile()" style="background:none;border:none;color:#991B1B;cursor:pointer;font-size:12px;margin-left:4px"><i class="fas fa-times"></i></button>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('applyModal')">Cancel</button>
+      <button class="btn btn-success" id="submitApplyBtn" onclick="submitApplication()">
+        <i class="fas fa-paper-plane"></i> Submit Application
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.1); opacity: 0.7; }
+  }
+</style>
+
+<script src="../../js/shared.js"></script>
+<script src="../../live/live-pages.js"></script>
+<script>
+(function() {
+  const user = guardCurrentPage();
+  if (!user) return;
+
+  const avatarEl = document.getElementById('sidebar-avatar');
+  const userNameEl = document.getElementById('sidebar-user-name');
+  const topbarAvatarEl = document.getElementById('topbar-avatar');
+  if (avatarEl) avatarEl.textContent = (user.name || 'Student').charAt(0).toUpperCase();
+  if (userNameEl) userNameEl.textContent = user.name || 'Student';
+  if (topbarAvatarEl) topbarAvatarEl.textContent = (user.name || 'Student').charAt(0).toUpperCase();
+
+  let allJobs = [];
+  let allApplications = [];
+  let currentApplyJob = null;
+
+  const COLORS = [
+    'linear-gradient(135deg,#059669,#10B981)',
+    'linear-gradient(135deg,#0284C7,#0EA5E9)',
+    'linear-gradient(135deg,#7C3AED,#8B5CF6)',
+    'linear-gradient(135deg,#D97706,#F59E0B)',
+    'linear-gradient(135deg,#DC2626,#EF4444)',
+    'linear-gradient(135deg,#0891B2,#06B6D4)',
+    'linear-gradient(135deg,#4F46E5,#6366F1)',
+    'linear-gradient(135deg,#BE185D,#EC4899)'
+  ];
+
+  function getCompanyColor(name) {
+    let hash = 0;
+    for (let i = 0; i < (name || '').length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    return COLORS[Math.abs(hash) % COLORS.length];
+  }
+
+  function formatSalary(min, max) {
+    if (!min && !max) return 'Not disclosed';
+    if (min && max) return '\u20B9' + (min / 100000).toFixed(1) + 'L - ' + '\u20B9' + (max / 100000).toFixed(1) + 'L';
+    if (min) return 'From \u20B9' + (min / 100000).toFixed(1) + 'L';
+    return 'Up to \u20B9' + (max / 100000).toFixed(1) + 'L';
+  }
+
+  function getTypeBadge(type) {
+    const map = {
+      'full-time': '<span class="badge badge-success"><i class="fas fa-briefcase" style="font-size:10px"></i> Full-time</span>',
+      'internship': '<span class="badge badge-info"><i class="fas fa-code" style="font-size:10px"></i> Internship</span>',
+      'part-time': '<span class="badge badge-warning"><i class="fas fa-clock" style="font-size:10px"></i> Part-time</span>'
+    };
+    return map[type] || '<span class="badge badge-gray">' + type + '</span>';
+  }
+
+  function getDaysLeft(dateStr) {
+    if (!dateStr) return null;
+    const diff = Math.ceil((new Date(dateStr) - new Date()) / (1000 * 60 * 60 * 24));
+    return diff;
+  }
+
+  function renderJobCards(jobs) {
+    const grid = document.getElementById('jobsGrid');
+    const empty = document.getElementById('emptyJobs');
+    const loading = document.getElementById('jobsLoading');
+    loading.style.display = 'none';
+
+    if (!jobs || jobs.length === 0) {
+      grid.innerHTML = '';
+      grid.style.display = 'none';
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+    grid.style.display = '';
+
+    grid.innerHTML = jobs.map(function(job, idx) {
+      var daysLeft = getDaysLeft(job.deadline);
+      var deadlineText = '';
+      var deadlineStyle = '';
+      if (daysLeft !== null) {
+        if (daysLeft < 0) {
+          deadlineText = 'Deadline passed';
+          deadlineStyle = 'color:#94A3B8;';
+        } else if (daysLeft <= 3) {
+          deadlineText = daysLeft + ' day' + (daysLeft !== 1 ? 's' : '') + ' left';
+          deadlineStyle = 'color:#EF4444;font-weight:700;';
+        } else {
+          deadlineText = daysLeft + ' days left';
+          deadlineStyle = 'color:#059669;font-weight:600;';
+        }
+      }
+
+      var skillsHtml = '';
+      if (job.skills && job.skills.length > 0) {
+        var displaySkills = job.skills.slice(0, 4);
+        skillsHtml = displaySkills.map(function(s) {
+          return '<span class="skill-tag">' + s + '</span>';
+        }).join(' ');
+        if (job.skills.length > 4) {
+          skillsHtml += '<span style="font-size:11px;color:var(--text-muted);margin-left:4px">+' + (job.skills.length - 4) + ' more</span>';
+        }
+      }
+
+      var hasApplied = allApplications.some(function(a) { return a.jobId === job._id || a.jobId === job.id; });
+
+      return '<div class="job-card" style="animation:fadeInUp ' + (0.3 + idx * 0.05) + 's ease forwards;opacity:0">' +
+        '<div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:14px">' +
+          '<div class="company-avatar" style="background:' + getCompanyColor(job.company) + '">' + (job.company || 'C').charAt(0).toUpperCase() + '</div>' +
+          '<div style="flex:1;min-width:0">' +
+            '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">' +
+              '<h3 style="font-size:15px;font-weight:700;color:var(--text-primary);margin:0">' + (job.title || 'Untitled Position') + '</h3>' +
+              getTypeBadge(job.type) +
+            '</div>' +
+            '<div style="font-size:13px;color:var(--text-secondary);margin-top:2px">' + (job.company || 'Company') + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:14px">' +
+          '<div style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text-secondary)"><i class="fas fa-map-marker-alt" style="color:#94A3B8"></i> ' + (job.location || 'Remote') + '</div>' +
+          '<div style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text-secondary)"><i class="fas fa-money-bill-wave" style="color:#10B981"></i> ' + formatSalary(job.salaryMin, job.salaryMax) + '</div>' +
+          '<div style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--text-secondary)"><i class="fas fa-users" style="color:#8B5CF6"></i> ' + (job.applicantCount || job.applicants || 0) + ' applicants</div>' +
+        '</div>' +
+        '<div style="margin-bottom:14px;display:flex;flex-wrap:wrap;gap:6px">' + skillsHtml + '</div>' +
+        '<div style="display:flex;align-items:center;justify-content:space-between;padding-top:14px;border-top:1px solid #F1F5F9">' +
+          '<div style="font-size:11px;' + deadlineStyle + '"><i class="fas fa-calendar-alt" style="margin-right:4px"></i>' + (deadlineText || 'No deadline') + '</div>' +
+          (hasApplied
+            ? '<button class="btn btn-sm" disabled style="background:#F1F5F9;color:#64748B;border:1px solid #E2E8F0"><i class="fas fa-check"></i> Applied</button>'
+            : '<button class="btn btn-sm btn-success" onclick="openApplyModal(\'' + (job._id || job.id) + '\')"><i class="fas fa-paper-plane"></i> Apply Now</button>'
+          ) +
+        '</div>' +
+      '</div>';
+    }).join('');
+  }
+
+  function renderApplications(applications) {
+    var list = document.getElementById('applicationsList');
+    var empty = document.getElementById('emptyApplications');
+    var loading = document.getElementById('appsLoading');
+    loading.style.display = 'none';
+
+    if (!applications || applications.length === 0) {
+      list.innerHTML = '';
+      list.style.display = 'none';
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+    list.style.display = '';
+
+    var statusCounts = { pending: 0, shortlisted: 0, interview: 0, selected: 0 };
+    applications.forEach(function(app) {
+      var s = (app.status || 'pending').toLowerCase();
+      if (s === 'shortlisted') statusCounts.shortlisted++;
+      else if (s === 'interview' || s === 'interview scheduled') statusCounts.interview++;
+      else if (s === 'selected' || s === 'offered') statusCounts.selected++;
+      else if (s === 'rejected') {}
+      else statusCounts.pending++;
+    });
+    document.getElementById('appPending').textContent = statusCounts.pending;
+    document.getElementById('appShortlisted').textContent = statusCounts.shortlisted;
+    document.getElementById('appInterviews').textContent = statusCounts.interview;
+    document.getElementById('appSelected').textContent = statusCounts.selected;
+
+    var stepNames = ['Applied', 'Shortlisted', 'Interview', 'Selected'];
+
+    list.innerHTML = applications.map(function(app, idx) {
+      var status = (app.status || 'pending').toLowerCase();
+      var currentIdx = 0;
+      var isRejected = status === 'rejected';
+      if (status === 'shortlisted') currentIdx = 1;
+      else if (status === 'interview' || status === 'interview scheduled') currentIdx = 2;
+      else if (status === 'selected' || status === 'offered') currentIdx = 3;
+
+      var statusBadge = '';
+      if (status === 'selected' || status === 'offered') statusBadge = '<span class="badge badge-success"><i class="fas fa-check-circle"></i> Selected</span>';
+      else if (status === 'rejected') statusBadge = '<span class="badge badge-danger"><i class="fas fa-times-circle"></i> Rejected</span>';
+      else if (status === 'interview' || status === 'interview scheduled') statusBadge = '<span class="badge badge-purple"><i class="fas fa-calendar-check"></i> Interview</span>';
+      else if (status === 'shortlisted') statusBadge = '<span class="badge badge-info"><i class="fas fa-star"></i> Shortlisted</span>';
+      else statusBadge = '<span class="badge badge-warning"><i class="fas fa-hourglass-half"></i> Applied</span>';
+
+      var stepsHtml = stepNames.map(function(name, i) {
+        var cls = '';
+        if (isRejected && i > currentIdx) cls = 'rejected';
+        else if (i < currentIdx) cls = 'completed';
+        else if (i === currentIdx) cls = isRejected ? 'rejected' : 'active';
+        var icon = '<i class="fas fa-check"></i>';
+        if (cls === 'active') icon = '<i class="fas fa-circle" style="font-size:8px"></i>';
+        else if (cls === 'rejected') icon = '<i class="fas fa-times"></i>';
+        return '<div class="timeline-step ' + cls + '">' +
+          '<div class="step-dot">' + icon + '</div>' +
+          '<div class="step-label">' + name + '</div>' +
+        '</div>';
+      }).join('');
+
+      var appliedDate = app.appliedAt || app.createdAt;
+      var dateStr = appliedDate ? new Date(appliedDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }) : 'N/A';
+
+      return '<div class="application-card" style="animation:fadeInUp ' + (0.3 + idx * 0.06) + 's ease forwards;opacity:0">' +
+        '<div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:8px">' +
+          '<div class="company-avatar" style="background:' + getCompanyColor(app.company) + ';width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:white;flex-shrink:0">' + (app.company || 'C').charAt(0).toUpperCase() + '</div>' +
+          '<div style="flex:1;min-width:0">' +
+            '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">' +
+              '<h4 style="font-size:14px;font-weight:700;color:var(--text-primary);margin:0">' + (app.jobTitle || app.title || 'Position') + '</h4>' +
+              statusBadge +
+            '</div>' +
+            '<div style="font-size:12px;color:var(--text-secondary);margin-top:2px">' + (app.company || 'Company') + ' &bull; ' + (app.location || 'N/A') + '</div>' +
+          '</div>' +
+          '<div style="text-align:right;flex-shrink:0">' +
+            '<div style="font-size:11px;color:var(--text-muted)">Applied</div>' +
+            '<div style="font-size:12px;font-weight:600;color:var(--text-primary)">' + dateStr + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="timeline-steps">' + stepsHtml + '</div>' +
+        (app.feedback ? '<div style="margin-top:12px;padding:10px 14px;background:#F8FAFC;border-radius:8px;border-left:3px solid ' + (isRejected ? '#EF4444' : '#059669') + '"><div style="font-size:11px;font-weight:600;color:' + (isRejected ? '#991B1B' : '#065F46') + ';margin-bottom:2px"><i class="fas fa-comment-dots" style="margin-right:4px"></i>Feedback</div><div style="font-size:12px;color:var(--text-secondary)">' + app.feedback + '</div></div>' : '') +
+      '</div>';
+    }).join('');
+  }
+
+  window.filterJobs = function() {
+    var typeVal = document.getElementById('filterType').value;
+    var searchVal = (document.getElementById('filterSearch').value || '').toLowerCase();
+    var sortVal = document.getElementById('filterSort').value;
+
+    var filtered = allJobs.filter(function(job) {
+      if (typeVal !== 'all' && job.type !== typeVal) return false;
+      if (searchVal) {
+        var haystack = ((job.title || '') + ' ' + (job.company || '') + ' ' + ((job.skills || []).join(' '))).toLowerCase();
+        if (haystack.indexOf(searchVal) === -1) return false;
+      }
+      return true;
+    });
+
+    if (sortVal === 'deadline') {
+      filtered.sort(function(a, b) {
+        var da = a.deadline ? new Date(a.deadline).getTime() : Infinity;
+        var db = b.deadline ? new Date(b.deadline).getTime() : Infinity;
+        return da - db;
+      });
+    } else if (sortVal === 'salary-high') {
+      filtered.sort(function(a, b) { return (b.salaryMax || 0) - (a.salaryMax || 0); });
+    } else if (sortVal === 'salary-low') {
+      filtered.sort(function(a, b) { return (a.salaryMin || 0) - (b.salaryMin || 0); });
+    } else if (sortVal === 'newest') {
+      filtered.sort(function(a, b) {
+        return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+      });
+    } else if (sortVal === 'applicants') {
+      filtered.sort(function(a, b) { return (b.applicantCount || b.applicants || 0) - (a.applicantCount || a.applicants || 0); });
+    }
+
+    renderJobCards(filtered);
+  };
+
+  window.switchMainTab = function(tab) {
+    var tabs = document.querySelectorAll('#mainTabs .tab-item');
+    tabs.forEach(function(t) { t.classList.remove('active'); });
+
+    if (tab === 'jobs') {
+      tabs[0].classList.add('active');
+      document.getElementById('tabJobs').style.display = '';
+      document.getElementById('tabApplications').style.display = 'none';
+    } else {
+      tabs[1].classList.add('active');
+      document.getElementById('tabJobs').style.display = 'none';
+      document.getElementById('tabApplications').style.display = '';
+    }
+  };
+
+  window.openApplyModal = function(jobId) {
+    var job = allJobs.find(function(j) { return (j._id || j.id) === jobId; });
+    if (!job) return;
+    currentApplyJob = job;
+    document.getElementById('applyJobTitle').textContent = (job.title || 'Position') + ' at ' + (job.company || 'Company');
+    document.getElementById('coverLetter').value = '';
+    document.getElementById('fileName').style.display = 'none';
+    document.getElementById('fileNameText').textContent = '';
+    document.getElementById('fileInput').value = '';
+    document.getElementById('submitApplyBtn').disabled = false;
+    document.getElementById('submitApplyBtn').innerHTML = '<i class="fas fa-paper-plane"></i> Submit Application';
+    openModal('applyModal');
+  };
+
+  window.handleFileSelect = function(event) {
+    var file = event.target.files[0];
+    if (file) {
+      document.getElementById('fileNameText').textContent = file.name;
+      document.getElementById('fileName').style.display = 'block';
+    }
+  };
+
+  window.handleFileDrop = function(event) {
+    event.preventDefault();
+    event.currentTarget.classList.remove('dragover');
+    var file = event.dataTransfer.files[0];
+    if (file) {
+      document.getElementById('fileNameText').textContent = file.name;
+      document.getElementById('fileName').style.display = 'block';
+      var dt = new DataTransfer();
+      dt.items.add(file);
+      document.getElementById('fileInput').files = dt.files;
+    }
+  };
+
+  window.removeFile = function() {
+    document.getElementById('fileInput').value = '';
+    document.getElementById('fileName').style.display = 'none';
+    document.getElementById('fileNameText').textContent = '';
+  };
+
+  window.submitApplication = async function() {
+    if (!currentApplyJob) return;
+    var coverLetter = document.getElementById('coverLetter').value.trim();
+    if (!coverLetter) {
+      showToast('Please write a cover letter', 'error');
+      return;
+    }
+
+    var btn = document.getElementById('submitApplyBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+
+    try {
+      var formData = new FormData();
+      formData.append('jobId', currentApplyJob._id || currentApplyJob.id);
+      formData.append('coverLetter', coverLetter);
+
+      var fileInput = document.getElementById('fileInput');
+      if (fileInput.files && fileInput.files[0]) {
+        formData.append('resume', fileInput.files[0]);
+      }
+
+      var token = api.getToken() || localStorage.getItem('token');
+      var res = await fetch(API_URL + '/placements/applications', {
+        method: 'POST',
+        headers: { 'Authorization': 'Bearer ' + token },
+        body: formData
+      });
+
+      if (res.ok) {
+        var data = await res.json();
+        allApplications.unshift(data.data || data);
+        var newApp = data.data || data;
+        if (!allApplications.some(function(a) { return (a._id || a.id) === (newApp._id || newApp.id); })) {
+          allApplications.unshift(newApp);
+        }
+        renderApplications(allApplications);
+        renderJobCards(allJobs);
+        closeModal('applyModal');
+        showToast('Application submitted successfully!', 'success');
+      } else {
+        var errData = await res.json().catch(function() { return {}; });
+        showToast(errData.message || 'Failed to submit application', 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Application';
+      }
+    } catch (e) {
+      showToast('Network error. Please try again.', 'error');
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Application';
+    }
+  };
+
+  async function loadPageData() {
+    document.getElementById('jobsLoading').style.display = '';
+    document.getElementById('appsLoading').style.display = 'none';
+
+    try {
+      var statsRes = await api.request('/placements/stats', { silent: true });
+      if (statsRes && statsRes.data) {
+        var s = statsRes.data;
+        if (s.activeJobs !== undefined) document.getElementById('statActiveJobs').textContent = s.activeJobs;
+        if (s.internships !== undefined) document.getElementById('statInternships').textContent = s.internships;
+        if (s.myApplications !== undefined) document.getElementById('statApplications').textContent = s.myApplications;
+        if (s.interviews !== undefined) document.getElementById('statInterviews').textContent = s.interviews;
+      }
+    } catch (e) { /* stats are non-critical */ }
+
+    try {
+      var jobsRes = await api.request('/placements/jobs', { silent: true });
+      allJobs = (jobsRes && jobsRes.data) ? jobsRes.data : (Array.isArray(jobsRes) ? jobsRes : []);
+      filterJobs();
+    } catch (e) {
+      allJobs = [];
+      renderJobCards([]);
+      loadFallbackJobs();
+    }
+
+    document.getElementById('appsLoading').style.display = 'none';
+    document.getElementById('tabJobs').style.display = '';
+    document.getElementById('tabApplications').style.display = 'none';
+
+    try {
+      var appsRes = await api.request('/placements/applications', { silent: true });
+      allApplications = (appsRes && appsRes.data) ? appsRes.data : (Array.isArray(appsRes) ? appsRes : []);
+      renderApplications(allApplications);
+      document.getElementById('statApplications').textContent = allApplications.length;
+    } catch (e) {
+      allApplications = [];
+      renderApplications([]);
+      loadFallbackApplications();
+    }
+  }
+
+  function loadFallbackJobs() {
+    allJobs = [
+      {
+        _id: 'fb1', title: 'Software Engineer', company: 'Tata Consultancy Services',
+        type: 'full-time', location: 'Bangalore, India', salaryMin: 450000, salaryMax: 700000,
+        skills: ['Java', 'Spring Boot', 'SQL', 'REST APIs', 'Microservices'],
+        deadline: '2026-08-15', applicantCount: 124, createdAt: '2026-07-01'
+      },
+      {
+        _id: 'fb2', title: 'Data Science Intern', company: 'Infosys',
+        type: 'internship', location: 'Hyderabad, India', salaryMin: 250000, salaryMax: 400000,
+        skills: ['Python', 'Pandas', 'Machine Learning', 'TensorFlow'],
+        deadline: '2026-07-30', applicantCount: 87, createdAt: '2026-07-05'
+      },
+      {
+        _id: 'fb3', title: 'Full Stack Developer', company: 'Wipro',
+        type: 'full-time', location: 'Pune, India', salaryMin: 500000, salaryMax: 850000,
+        skills: ['React', 'Node.js', 'MongoDB', 'TypeScript', 'Docker'],
+        deadline: '2026-08-20', applicantCount: 56, createdAt: '2026-07-02'
+      },
+      {
+        _id: 'fb4', title: 'Frontend Intern', company: 'Zoho Corporation',
+        type: 'internship', location: 'Chennai, India', salaryMin: 200000, salaryMax: 350000,
+        skills: ['JavaScript', 'React', 'CSS', 'HTML'],
+        deadline: '2026-08-05', applicantCount: 93, createdAt: '2026-07-08'
+      },
+      {
+        _id: 'fb5', title: 'Cloud Engineer', company: 'Amazon Web Services',
+        type: 'full-time', location: 'Remote, India', salaryMin: 800000, salaryMax: 1400000,
+        skills: ['AWS', 'Linux', 'Python', 'Terraform', 'Docker', 'Kubernetes'],
+        deadline: '2026-09-01', applicantCount: 210, createdAt: '2026-06-28'
+      },
+      {
+        _id: 'fb6', title: 'QA Intern', company: 'Freshworks',
+        type: 'internship', location: 'Chennai, India', salaryMin: 180000, salaryMax: 300000,
+        skills: ['Selenium', 'Java', 'JIRA', 'Manual Testing'],
+        deadline: '2026-07-25', applicantCount: 42, createdAt: '2026-07-10'
+      },
+      {
+        _id: 'fb7', title: 'UI/UX Designer', company: 'Razorpay',
+        type: 'full-time', location: 'Bangalore, India', salaryMin: 600000, salaryMax: 1000000,
+        skills: ['Figma', 'Adobe XD', 'Prototyping', 'User Research'],
+        deadline: '2026-08-10', applicantCount: 68, createdAt: '2026-07-03'
+      },
+      {
+        _id: 'fb8', title: 'DevOps Intern', company: 'Atlassian',
+        type: 'internship', location: 'Remote, India', salaryMin: 300000, salaryMax: 500000,
+        skills: ['Docker', 'Kubernetes', 'Jenkins', 'Git', 'Linux'],
+        deadline: '2026-08-25', applicantCount: 74, createdAt: '2026-07-06'
+      },
+      {
+        _id: 'fb9', title: 'Backend Developer (Part-time)', company: 'Razorpay',
+        type: 'part-time', location: 'Remote, India', salaryMin: 15000, salaryMax: 30000,
+        skills: ['Go', 'PostgreSQL', 'gRPC', 'Redis'],
+        deadline: '2026-08-30', applicantCount: 31, createdAt: '2026-07-09'
+      }
+    ];
+    filterJobs();
+    document.getElementById('statActiveJobs').textContent = allJobs.length;
+  }
+
+  function loadFallbackApplications() {
+    allApplications = [
+      {
+        _id: 'fa1', jobId: 'fb2', jobTitle: 'Data Science Intern', company: 'Infosys',
+        location: 'Hyderabad', status: 'shortlisted', appliedAt: '2026-07-06',
+        feedback: 'Strong resume. Technical round scheduled for July 18.'
+      },
+      {
+        _id: 'fa2', jobId: 'fb1', jobTitle: 'Software Engineer', company: 'Tata Consultancy Services',
+        location: 'Bangalore', status: 'pending', appliedAt: '2026-07-08'
+      },
+      {
+        _id: 'fa3', jobId: 'fb3', jobTitle: 'Full Stack Developer', company: 'Wipro',
+        location: 'Pune', status: 'interview', appliedAt: '2026-07-03',
+        feedback: 'Online assessment cleared. Interview on July 22 at 2:00 PM.'
+      },
+      {
+        _id: 'fa4', jobId: 'fb5', jobTitle: 'Cloud Engineer', company: 'Amazon Web Services',
+        location: 'Remote', status: 'pending', appliedAt: '2026-07-10'
+      },
+      {
+        _id: 'fa5', jobId: 'fb4', jobTitle: 'Frontend Intern', company: 'Zoho Corporation',
+        location: 'Chennai', status: 'rejected', appliedAt: '2026-07-02',
+        feedback: 'We found candidates with more relevant project experience.'
+      }
+    ];
+    renderApplications(allApplications);
+    document.getElementById('statApplications').textContent = allApplications.length;
+  }
+
+  loadPageData();
+})();
+</script>
+</body>
+</html>

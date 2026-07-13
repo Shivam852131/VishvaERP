@@ -13,6 +13,8 @@ const dirs = {
   notices: path.join(UPLOAD_DIR, 'notices'),
   messages: path.join(UPLOAD_DIR, 'messages'),
   library: path.join(UPLOAD_DIR, 'library'),
+  notes: path.join(UPLOAD_DIR, 'notes'),
+  resumes: path.join(UPLOAD_DIR, 'resumes'),
   temp: path.join(UPLOAD_DIR, 'temp'),
 };
 

@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Sustainability Dashboard | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="../../css/custom.css">
+  <style>
+    .green-stat-card{text-align:center;padding:20px 16px;border:1px solid #E2E8F0;border-radius:14px;background:white;transition:all .2s}
+    .green-stat-card:hover{box-shadow:0 8px 24px rgba(0,0,0,0.08);transform:translateY(-2px)}
+    .green-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;margin:0 auto 12px}
+    .green-value{font-size:28px;font-weight:800;line-height:1.1}
+    .type-card{text-align:center;padding:20px 16px;border:1px solid #E2E8F0;border-radius:14px;background:white;transition:all .2s}
+    .type-card:hover{box-shadow:0 8px 24px rgba(0,0,0,0.08);transform:translateY(-2px)}
+    .type-icon{width:48px;height:48px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;margin:0 auto 12px}
+    .type-value{font-size:24px;font-weight:800;line-height:1.1}
+    .trend-up{color:#EF4444}
+    .trend-down{color:#10B981}
+    .goal-progress-bar{height:10px;border-radius:5px;background:#E2E8F0;overflow:hidden}
+    .goal-progress-fill{height:100%;border-radius:5px;transition:width .6s ease}
+    .milestone-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #F1F5F9;font-size:13px}
+    .milestone-row:last-child{border-bottom:none}
+    .section-label{font-size:18px;font-weight:700;color:#0F172A;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+    .section-label i{color:#059669}
+  </style>
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-college" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" id="sidebar-avatar">A</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Admin</div><div class="sidebar-user-role">College Administrator</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <div class="nav-section-label">Academics</div>
+      <a href="students.html" class="nav-link"><i class="nav-link-icon fas fa-user-graduate"></i> Students</a>
+      <a href="faculty.html" class="nav-link"><i class="nav-link-icon fas fa-chalkboard-teacher"></i> Faculty</a>
+      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-open"></i> Courses & Exams</a>
+      <a href="notices.html" class="nav-link"><i class="nav-link-icon fas fa-bullhorn"></i> Notice Board</a>
+      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-check"></i> Attendance</a>
+      <div class="nav-section-label">Finance & HR</div>
+      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-file-invoice-dollar"></i> Fee Management</a>
+      <a href="hr.html" class="nav-link"><i class="nav-link-icon fas fa-user-md"></i> HR & Leave</a>
+      <a href="subscription.html" class="nav-link"><i class="nav-link-icon fas fa-credit-card"></i> Subscription</a>
+      <div class="nav-section-label">Campus Life</div>
+      <a href="events.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Events</a>
+      <a href="grievances.html" class="nav-link"><i class="nav-link-icon fas fa-exclamation-circle"></i> Grievances</a>
+      <a href="feedback.html" class="nav-link"><i class="nav-link-icon fas fa-star"></i> Feedback</a>
+      <a href="inventory.html" class="nav-link"><i class="nav-link-icon fas fa-boxes"></i> Inventory</a>
+      <a href="placement.html" class="nav-link"><i class="nav-link-icon fas fa-briefcase"></i> Placement</a>
+      <a href="alumni.html" class="nav-link"><i class="nav-link-icon fas fa-users"></i> Alumni</a>
+      <div class="nav-section-label">Facilities</div>
+      <a href="logistics.html" class="nav-link"><i class="nav-link-icon fas fa-bus"></i> Logistics & Hostel</a>
+      <div class="nav-section-label">Smart Campus</div>
+      <a href="iot-dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-microchip"></i> IoT Dashboard</a>
+      <a href="sustainability.html" class="nav-link active"><i class="nav-link-icon fas fa-leaf"></i> Sustainability</a>
+      <div class="nav-section-label">Tools</div>
+      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Hub</a>
+      <a href="../messages.html" class="nav-link"><i class="nav-link-icon fas fa-comments"></i> Messages</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">College Admin / <span>Sustainability</span></div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-search"><i class="fas fa-search"></i><input type="text" placeholder="Search goals, buildings..."></div>
+        <div style="position:relative">
+          <button class="topbar-btn" id="notif-btn"><i class="fas fa-bell"></i><span class="topbar-badge" id="alertCount">0</span></button>
+          <div class="notif-panel" id="notif-panel">
+            <div style="padding:14px 16px;border-bottom:1px solid #F1F5F9;font-weight:700;font-size:14px">Sustainability Alerts</div>
+            <div id="notifPanelList"></div>
+          </div>
+        </div>
+        <div class="topbar-avatar" id="topbar-avatar">A</div>
+      </div>
+    </header>
+    <div class="erp-content page-enter">
+
+      <!-- Page Header -->
+      <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+        <div>
+          <h1 class="page-title"><i class="fas fa-leaf" style="color:#059669"></i> Sustainability & Energy Dashboard</h1>
+          <p class="page-subtitle">Monitor campus energy consumption, water usage, waste management and sustainability goals</p>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-secondary" onclick="openModal('energyLogModal')"><i class="fas fa-edit"></i> Log Entry</button>
+          <button class="btn btn-primary" style="background:linear-gradient(135deg,#047857,#10B981);box-shadow:0 4px 14px rgba(16,185,129,0.35)" onclick="openModal('addGoalModal')"><i class="fas fa-plus"></i> Add Goal</button>
+        </div>
+      </div>
+
+      <!-- Stats Row -->
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px" id="statsRow"></div>
+
+      <!-- Consumption by Type -->
+      <div style="margin-bottom:24px">
+        <div class="section-label"><i class="fas fa-th-large"></i> Consumption by Type</div>
+        <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:16px" id="consumptionTypeGrid"></div>
+      </div>
+
+      <!-- Daily Trend Chart -->
+      <div style="margin-bottom:24px">
+        <div class="card" style="padding:20px">
+          <h3 style="font-weight:700;font-size:16px;margin-bottom:16px"><i class="fas fa-chart-line" style="color:#059669"></i> Daily Trend (30 Days)</h3>
+          <canvas id="dailyTrendChart" height="140"></canvas>
+        </div>
+      </div>
+
+      <!-- Building Consumption Table -->
+      <div style="margin-bottom:24px">
+        <div class="card" style="padding:20px">
+          <h3 style="font-weight:700;font-size:16px;margin-bottom:16px"><i class="fas fa-city" style="color:#059669"></i> Building Consumption</h3>
+          <div style="overflow-x:auto">
+            <table style="width:100%;border-collapse:collapse;font-size:13px">
+              <thead>
+                <tr style="border-bottom:2px solid #E2E8F0">
+                  <th style="text-align:left;padding:10px 12px;font-weight:600;color:#64748B;font-size:12px">BUILDING</th>
+                  <th style="text-align:right;padding:10px 12px;font-weight:600;color:#64748B;font-size:12px">ELECTRICITY (kWh)</th>
+                  <th style="text-align:right;padding:10px 12px;font-weight:600;color:#64748B;font-size:12px">WATER (L)</th>
+                  <th style="text-align:right;padding:10px 12px;font-weight:600;color:#64748B;font-size:12px">GAS (m\u00B3)</th>
+                  <th style="text-align:right;padding:10px 12px;font-weight:600;color:#64748B;font-size:12px">WASTE (kg)</th>
+                  <th style="text-align:right;padding:10px 12px;font-weight:600;color:#64748B;font-size:12px">SOLAR (kWh)</th>
+                  <th style="text-align:right;padding:10px 12px;font-weight:600;color:#64748B;font-size:12px">TOTAL COST</th>
+                </tr>
+              </thead>
+              <tbody id="buildingTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sustainability Goals -->
+      <div style="margin-bottom:24px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <div class="section-label" style="margin-bottom:0"><i class="fas fa-bullseye"></i> Sustainability Goals</div>
+          <button class="btn btn-primary btn-sm" style="background:linear-gradient(135deg,#047857,#10B981);box-shadow:0 4px 14px rgba(16,185,129,0.35)" onclick="openModal('addGoalModal')"><i class="fas fa-plus"></i> Add Goal</button>
+        </div>
+        <div id="goalsContainer" style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Add Goal Modal -->
+<div class="modal-backdrop" id="addGoalModal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header">
+      <h3 class="modal-title"><i class="fas fa-bullseye" style="color:#059669"></i> Add Sustainability Goal</h3>
+      <button class="modal-close" onclick="closeModal('addGoalModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Goal Title *</label>
+        <input class="form-control" id="goalTitle" placeholder="e.g. Reduce electricity usage by 20%">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <input class="form-control" id="goalDescription" placeholder="e.g. Achieve 20% reduction in electricity consumption across all campus buildings">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group">
+          <label class="form-label">Goal Type *</label>
+          <select class="form-control" id="goalType">
+            <option value="electricity">Electricity Reduction</option>
+            <option value="water">Water Conservation</option>
+            <option value="waste">Waste Reduction</option>
+            <option value="recycling">Recycling Rate</option>
+            <option value="solar">Solar Energy Increase</option>
+            <option value="carbon">Carbon Footprint</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Target Value *</label>
+          <input class="form-control" id="goalTarget" placeholder="e.g. 20" type="number" min="0">
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group">
+          <label class="form-label">Unit *</label>
+          <input class="form-control" id="goalUnit" placeholder="e.g. %, kWh, L">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-control" id="goalStatus">
+            <option value="on_track">On Track</option>
+            <option value="behind">Behind</option>
+            <option value="achieved">Achieved</option>
+            <option value="missed">Missed</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group">
+          <label class="form-label">Start Date *</label>
+          <input class="form-control" id="goalStartDate" type="date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">End Date *</label>
+          <input class="form-control" id="goalEndDate" type="date">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('addGoalModal')">Cancel</button>
+      <button class="btn btn-primary" style="background:linear-gradient(135deg,#047857,#10B981);box-shadow:0 4px 14px rgba(16,185,129,0.35)" onclick="addGoal()"><i class="fas fa-plus"></i> Add Goal</button>
+    </div>
+  </div>
+</div>
+
+<!-- Energy Log Entry Modal -->
+<div class="modal-backdrop" id="energyLogModal">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header">
+      <h3 class="modal-title"><i class="fas fa-edit" style="color:#059669"></i> Log Energy Reading</h3>
+      <button class="modal-close" onclick="closeModal('energyLogModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group">
+          <label class="form-label">Reading Type *</label>
+          <select class="form-control" id="logType">
+            <option value="electricity">Electricity</option>
+            <option value="water">Water</option>
+            <option value="gas">Gas</option>
+            <option value="waste">Waste</option>
+            <option value="solar">Solar</option>
+            <option value="recycling">Recycling</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Building *</label>
+          <select class="form-control" id="logBuilding">
+            <option value="Main Building">Main Building</option>
+            <option value="Science Block">Science Block</option>
+            <option value="Engineering Block">Engineering Block</option>
+            <option value="Admin Block">Admin Block</option>
+            <option value="Library">Library</option>
+            <option value="Hostel">Hostel</option>
+            <option value="Auditorium">Auditorium</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group">
+          <label class="form-label">Reading Value *</label>
+          <input class="form-control" id="logReading" placeholder="e.g. 1250" type="number" min="0" step="any">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Unit *</label>
+          <input class="form-control" id="logUnit" placeholder="e.g. kWh, L, m\u00B3, kg">
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group">
+          <label class="form-label">Cost (INR)</label>
+          <input class="form-control" id="logCost" placeholder="e.g. 8500" type="number" min="0" step="any">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Source</label>
+          <select class="form-control" id="logSource">
+            <option value="manual">Manual Entry</option>
+            <option value="smart_meter">Smart Meter</option>
+            <option value="iot_sensor">IoT Sensor</option>
+            <option value="utility_bill">Utility Bill</option>
+          </select>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group">
+          <label class="form-label">Date *</label>
+          <input class="form-control" id="logDate" type="date">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Period *</label>
+          <select class="form-control" id="logPeriod">
+            <option value="morning">Morning (6AM-12PM)</option>
+            <option value="afternoon">Afternoon (12PM-6PM)</option>
+            <option value="evening">Evening (6PM-12AM)</option>
+            <option value="night">Night (12AM-6AM)</option>
+            <option value="full_day">Full Day</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('energyLogModal')">Cancel</button>
+      <button class="btn btn-primary" style="background:linear-gradient(135deg,#047857,#10B981);box-shadow:0 4px 14px rgba(16,185,129,0.35)" onclick="submitLogEntry()"><i class="fas fa-save"></i> Save Reading</button>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script src="../../live/live-admin-pages.js"></script>
+<script>
+(function(){
+  guardCurrentPage();
+
+  let dashboard = {};
+  let goals = [];
+  let dailyTrendChartInst = null;
+
+  const typeConfig = {
+    electricity: { icon: 'fas fa-bolt', color: '#F59E0B', bg: '#FEF3C7', unit: 'kWh' },
+    water:       { icon: 'fas fa-tint', color: '#3B82F6', bg: '#DBEAFE', unit: 'L' },
+    gas:         { icon: 'fas fa-fire', color: '#EF4444', bg: '#FEE2E2', unit: 'm\u00B3' },
+    waste:       { icon: 'fas fa-trash', color: '#8B5CF6', bg: '#EDE9FE', unit: 'kg' },
+    solar:       { icon: 'fas fa-sun', color: '#F59E0B', bg: '#FEF3C7', unit: 'kWh' },
+    recycling:   { icon: 'fas fa-recycle', color: '#10B981', bg: '#D1FAE5', unit: 'kg' },
+  };
+
+  const statusConfig = {
+    on_track:  { label: 'On Track', color: '#10B981', bg: '#D1FAE5' },
+    behind:    { label: 'Behind', color: '#F59E0B', bg: '#FEF3C7' },
+    achieved:  { label: 'Achieved', color: '#3B82F6', bg: '#DBEAFE' },
+    missed:    { label: 'Missed', color: '#EF4444', bg: '#FEE2E2' },
+  };
+
+  async function loadAll() {
+    try {
+      const [dashRes, goalsRes] = await Promise.all([
+        window.api.request('/energy/dashboard'),
+        window.api.request('/energy/goals'),
+      ]);
+      dashboard = dashRes || {};
+      goals = goalsRes.goals || goalsRes || [];
+    } catch (e) {
+      dashboard = generateDemoDashboard();
+      goals = generateDemoGoals();
+    }
+    renderStats();
+    renderConsumptionTypes();
+    renderBuildingTable();
+    renderGoals();
+    renderDailyTrendChart();
+    renderNotifications();
+  }
+
+  function renderStats() {
+    const s = dashboard.stats || {};
+    const cards = [
+      { icon: 'fas fa-rupee-sign', bg: '#D1FAE5', color: '#047857', num: formatCurrency(s.totalEnergyCost30d || 485200), label: 'Total Energy Cost (30d)' },
+      { icon: 'fas fa-bolt', bg: '#FEF3C7', color: '#F59E0B', num: formatNumber(s.electricityUsage || 124500), label: 'Electricity Usage (kWh)' },
+      { icon: 'fas fa-tint', bg: '#DBEAFE', color: '#3B82F6', num: formatNumber(s.waterUsage || 892000), label: 'Water Usage (L)' },
+      { icon: 'fas fa-recycle', bg: '#D1FAE5', color: '#10B981', num: (s.recyclingRate || 68) + '%', label: 'Recycling Rate' },
+    ];
+    document.getElementById('statsRow').innerHTML = cards.map(c => `<div class="green-stat-card"><div class="green-icon" style="background:${c.bg};color:${c.color}"><i class="${c.icon}"></i></div><div class="green-value" style="color:${c.color}">${c.num}</div><div style="font-size:12px;color:#64748B;margin-top:4px">${c.label}</div></div>`).join('');
+  }
+
+  function renderConsumptionTypes() {
+    const consumption = dashboard.consumption || {};
+    const types = ['electricity', 'water', 'gas', 'waste', 'solar', 'recycling'];
+    document.getElementById('consumptionTypeGrid').innerHTML = types.map(type => {
+      const cfg = typeConfig[type];
+      const data = consumption[type] || { total: 0, cost: 0, trend: 0 };
+      const trendVal = data.trend || 0;
+      const trendIcon = trendVal > 0 ? 'fa-arrow-up' : trendVal < 0 ? 'fa-arrow-down' : 'fa-minus';
+      const trendClass = trendVal > 0 ? 'trend-up' : trendVal < 0 ? 'trend-down' : 'text-gray-400';
+      return `<div class="type-card">
+        <div class="type-icon" style="background:${cfg.bg};color:${cfg.color}"><i class="${cfg.icon}"></i></div>
+        <div class="type-value" style="color:${cfg.color}">${formatNumber(data.total)}<span style="font-size:12px;font-weight:600;color:#64748B"> ${cfg.unit}</span></div>
+        <div style="font-size:12px;color:#64748B;margin-top:2px">${formatCurrency(data.cost)}</div>
+        <div style="font-size:11px;margin-top:6px;display:flex;align-items:center;justify-content:center;gap:4px" class="${trendClass}"><i class="fas ${trendIcon}" style="font-size:10px"></i> ${Math.abs(trendVal)}% vs prev</div>
+      </div>`;
+    }).join('');
+  }
+
+  function renderBuildingTable() {
+    const buildings = dashboard.buildings || generateDemoBuildings();
+    if (!buildings || buildings.length === 0) {
+      document.getElementById('buildingTableBody').innerHTML = '<tr><td colspan="7" style="text-align:center;padding:32px;color:#94A3B8;font-size:13px">No building consumption data available</td></tr>';
+      return;
+    }
+    document.getElementById('buildingTableBody').innerHTML = buildings.map(b => `<tr style="border-bottom:1px solid #F1F5F9">
+      <td style="padding:12px;font-weight:600"><i class="fas fa-building" style="color:#059669;margin-right:8px"></i>${b.name}</td>
+      <td style="padding:12px;text-align:right">${formatNumber(b.electricity || 0)}</td>
+      <td style="padding:12px;text-align:right">${formatNumber(b.water || 0)}</td>
+      <td style="padding:12px;text-align:right">${formatNumber(b.gas || 0)}</td>
+      <td style="padding:12px;text-align:right">${formatNumber(b.waste || 0)}</td>
+      <td style="padding:12px;text-align:right;color:#F59E0B;font-weight:600">${formatNumber(b.solar || 0)}</td>
+      <td style="padding:12px;text-align:right;font-weight:700;color:#047857">${formatCurrency(b.totalCost || 0)}</td>
+    </tr>`).join('');
+  }
+
+  function renderGoals() {
+    if (!goals || goals.length === 0) {
+      document.getElementById('goalsContainer').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#94A3B8;font-size:13px;background:white;border-radius:14px;border:1px dashed #E2E8F0"><i class="fas fa-bullseye" style="font-size:32px;margin-bottom:8px;display:block;color:#CBD5E1"></i>No sustainability goals defined yet<br><button class="btn btn-primary btn-sm" style="margin-top:12px;background:linear-gradient(135deg,#047857,#10B981)" onclick="openModal(\'addGoalModal\')"><i class="fas fa-plus"></i> Create First Goal</button></div>';
+      return;
+    }
+    document.getElementById('goalsContainer').innerHTML = goals.map(g => {
+      const pct = g.target ? Math.min(100, Math.round((g.current / g.target) * 100)) : 0;
+      const status = statusConfig[g.status] || statusConfig.on_track;
+      const milestones = g.milestones || [];
+      return `<div class="card" style="padding:20px">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px">
+          <div>
+            <h4 style="font-weight:700;font-size:15px;margin-bottom:4px">${g.title}</h4>
+            <p style="font-size:12px;color:#64748B;margin:0">${g.description || ''}</p>
+          </div>
+          <span class="badge" style="background:${status.bg};color:${status.color};font-size:11px;white-space:nowrap">${status.label}</span>
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <span style="font-size:12px;color:#475569;font-weight:600">${formatNumber(g.current || 0)} / ${formatNumber(g.target || 0)} ${g.unit || ''}</span>
+          <span style="font-size:12px;font-weight:700;color:${pct >= 75 ? '#10B981' : pct >= 40 ? '#F59E0B' : '#EF4444'}">${pct}%</span>
+        </div>
+        <div class="goal-progress-bar" style="margin-bottom:12px"><div class="goal-progress-fill" style="width:${pct}%;background:linear-gradient(90deg,${status.color},${status.color}CC)"></div></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div style="font-size:11px;color:#94A3B8"><i class="fas fa-tag" style="margin-right:4px"></i>${(g.type || 'general').replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase())}</div>
+          <div style="font-size:11px;color:#94A3B8"><i class="fas fa-calendar" style="margin-right:4px"></i>${g.endDate ? new Date(g.endDate).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}) : 'N/A'}</div>
+        </div>
+        ${milestones.length > 0 ? `<div style="margin-top:8px;border-top:1px solid #F1F5F9;padding-top:10px">
+          <div style="font-size:12px;font-weight:600;color:#475569;margin-bottom:6px"><i class="fas fa-list-check" style="margin-right:4px;color:#059669"></i>Milestones</div>
+          ${milestones.map(m => `<div class="milestone-row">
+            <input type="checkbox" ${m.done ? 'checked' : ''} onchange="toggleMilestone('${g._id || g.id}',${m.index || 0})" style="accent-color:#10B981;cursor:pointer">
+            <span style="${m.done ? 'text-decoration:line-through;color:#94A3B8' : 'color:#334155'}">${m.text}</span>
+          </div>`).join('')}
+        </div>` : ''}
+      </div>`;
+    }).join('');
+  }
+
+  function renderDailyTrendChart() {
+    const labels = [];
+    const now = new Date();
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      labels.push(d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' }));
+    }
+    const trend = dashboard.dailyTrend || {};
+    const datasets = [
+      { label: 'Electricity (kWh)', data: trend.electricity || labels.map(() => Math.floor(Math.random() * 5000 + 3000)), borderColor: '#F59E0B', backgroundColor: 'rgba(245,158,11,0.08)', fill: true, tension: 0.4, pointRadius: 0, borderWidth: 2 },
+      { label: 'Water (L)', data: trend.water ? trend.water.map(v => v / 100) : labels.map(() => Math.floor(Math.random() * 2000 + 1500)), borderColor: '#3B82F6', backgroundColor: 'rgba(59,130,246,0.08)', fill: true, tension: 0.4, pointRadius: 0, borderWidth: 2 },
+      { label: 'Gas (m\u00B3)', data: trend.gas || labels.map(() => Math.floor(Math.random() * 200 + 100)), borderColor: '#EF4444', backgroundColor: 'rgba(239,68,68,0.08)', fill: true, tension: 0.4, pointRadius: 0, borderWidth: 2 },
+      { label: 'Solar (kWh)', data: trend.solar || labels.map(() => Math.floor(Math.random() * 1000 + 500)), borderColor: '#10B981', backgroundColor: 'rgba(16,185,129,0.08)', fill: true, tension: 0.4, pointRadius: 0, borderWidth: 2 },
+    ];
+    if (dailyTrendChartInst) dailyTrendChartInst.destroy();
+    dailyTrendChartInst = new Chart(document.getElementById('dailyTrendChart'), {
+      type: 'line',
+      data: { labels, datasets },
+      options: {
+        responsive: true,
+        interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { position: 'top', labels: { usePointStyle: true, pointStyle: 'circle', padding: 16, font: { size: 11 } } } },
+        scales: {
+          x: { grid: { display: false }, ticks: { font: { size: 10 }, maxTicksLimit: 10 } },
+          y: { grid: { color: '#F1F5F9' }, ticks: { font: { size: 10 } } }
+        }
+      }
+    });
+  }
+
+  function renderNotifications() {
+    const alerts = dashboard.alerts || [];
+    const panel = document.getElementById('notifPanelList');
+    document.getElementById('alertCount').textContent = alerts.length;
+    if (alerts.length === 0) {
+      panel.innerHTML = '<div style="padding:16px;text-align:center;color:#94A3B8;font-size:13px">No sustainability alerts</div>';
+      return;
+    }
+    panel.innerHTML = alerts.slice(0, 5).map(a => {
+      const sev = a.severity || 'info';
+      const sevColor = sev === 'critical' ? '#EF4444' : sev === 'warning' ? '#F59E0B' : '#3B82F6';
+      return `<div class="notif-item unread"><div class="notif-dot" style="background:${sevColor}"></div><div><div style="font-size:13px;font-weight:600">${a.title || 'Sustainability Alert'}</div><div style="font-size:12px;color:#64748B">${a.message || 'Threshold exceeded'}</div></div></div>`;
+    }).join('');
+  }
+
+  async function toggleMilestone(goalId, index) {
+    try {
+      await window.api.request('/energy/goals/' + goalId + '/milestone/' + index, { method: 'PATCH' });
+    } catch (e) { /* demo mode */ }
+    goals.forEach(g => {
+      if ((g._id || g.id) === goalId && g.milestones && g.milestones[index]) {
+        g.milestones[index].done = !g.milestones[index].done;
+      }
+    });
+    renderGoals();
+  }
+  window.toggleMilestone = toggleMilestone;
+
+  async function addGoal() {
+    const title = document.getElementById('goalTitle').value;
+    const target = document.getElementById('goalTarget').value;
+    const startDate = document.getElementById('goalStartDate').value;
+    const endDate = document.getElementById('goalEndDate').value;
+    const unit = document.getElementById('goalUnit').value;
+    if (!title || !target || !startDate || !endDate || !unit) {
+      if (window.showToast) window.showToast('Please fill all required fields', 'error');
+      return;
+    }
+    const payload = {
+      title,
+      description: document.getElementById('goalDescription').value,
+      type: document.getElementById('goalType').value,
+      target: Number(target),
+      unit,
+      status: document.getElementById('goalStatus').value,
+      startDate,
+      endDate,
+      current: 0,
+      milestones: [],
+    };
+    try {
+      await window.api.request('/energy/goals', { method: 'POST', body: JSON.stringify(payload) });
+    } catch (e) { /* demo mode */ }
+    goals.push(payload);
+    closeModal('addGoalModal');
+    if (window.showToast) window.showToast('Goal added successfully', 'success');
+    document.getElementById('goalTitle').value = '';
+    document.getElementById('goalDescription').value = '';
+    document.getElementById('goalTarget').value = '';
+    document.getElementById('goalUnit').value = '';
+    document.getElementById('goalStartDate').value = '';
+    document.getElementById('goalEndDate').value = '';
+    renderGoals();
+  }
+  window.addGoal = addGoal;
+
+  async function submitLogEntry() {
+    const reading = document.getElementById('logReading').value;
+    const date = document.getElementById('logDate').value;
+    if (!reading || !date) {
+      if (window.showToast) window.showToast('Please fill all required fields', 'error');
+      return;
+    }
+    const payload = {
+      type: document.getElementById('logType').value,
+      building: document.getElementById('logBuilding').value,
+      reading: Number(reading),
+      unit: document.getElementById('logUnit').value,
+      cost: Number(document.getElementById('logCost').value) || 0,
+      source: document.getElementById('logSource').value,
+      date,
+      period: document.getElementById('logPeriod').value,
+    };
+    try {
+      await window.api.request('/energy/logs', { method: 'POST', body: JSON.stringify(payload) });
+    } catch (e) { /* demo mode */ }
+    closeModal('energyLogModal');
+    if (window.showToast) window.showToast('Reading logged successfully', 'success');
+    document.getElementById('logReading').value = '';
+    document.getElementById('logCost').value = '';
+    document.getElementById('logUnit').value = '';
+    loadAll();
+  }
+  window.submitLogEntry = submitLogEntry;
+
+  function formatNumber(n) {
+    if (n == null || isNaN(n)) return '0';
+    return Number(n).toLocaleString('en-IN');
+  }
+
+  function formatCurrency(n) {
+    if (n == null || isNaN(n)) return '\u20B90';
+    return '\u20B9' + Number(n).toLocaleString('en-IN');
+  }
+
+  function generateDemoDashboard() {
+    return {
+      stats: { totalEnergyCost30d: 485200, electricityUsage: 124500, waterUsage: 892000, recyclingRate: 68 },
+      consumption: {
+        electricity: { total: 124500, cost: 295200, trend: -3.2 },
+        water:       { total: 892000, cost: 106400, trend: 5.1 },
+        gas:         { total: 4200, cost: 52800, trend: -1.8 },
+        waste:       { total: 8600, cost: 18500, trend: -8.5 },
+        solar:       { total: 18200, cost: 0, trend: 12.4 },
+        recycling:   { total: 5850, cost: 0, trend: 6.2 },
+      },
+      buildings: generateDemoBuildings(),
+      dailyTrend: generateDemoDailyTrend(),
+      alerts: [
+        { title: 'High Electricity Usage', message: 'Engineering Block exceeded 25,000 kWh this month', severity: 'warning' },
+        { title: 'Water Leak Detected', message: 'Unusual flow in Hostel Block C plumbing', severity: 'critical' },
+        { title: 'Solar Panel Efficiency', message: 'Panel cluster B operating at 78% efficiency', severity: 'info' },
+      ],
+    };
+  }
+
+  function generateDemoBuildings() {
+    return [
+      { name: 'Main Building', electricity: 28500, water: 195000, gas: 1200, waste: 1800, solar: 4200, totalCost: 78500 },
+      { name: 'Science Block', electricity: 35200, water: 210000, gas: 980, waste: 2100, solar: 5600, totalCost: 98400 },
+      { name: 'Engineering Block', electricity: 31800, water: 175000, gas: 850, waste: 2400, solar: 4800, totalCost: 86200 },
+      { name: 'Admin Block', electricity: 12400, water: 85000, gas: 420, waste: 650, solar: 1200, totalCost: 34100 },
+      { name: 'Library', electricity: 8900, water: 62000, gas: 280, waste: 480, solar: 1500, totalCost: 25600 },
+      { name: 'Hostel', electricity: 5800, water: 120000, gas: 320, waste: 950, solar: 600, totalCost: 18400 },
+      { name: 'Auditorium', electricity: 1900, water: 45000, gas: 150, waste: 220, solar: 300, totalCost: 15200 },
+    ];
+  }
+
+  function generateDemoDailyTrend() {
+    const electricity = [], water = [], gas = [], solar = [];
+    for (let i = 0; i < 30; i++) {
+      electricity.push(Math.floor(Math.random() * 5000 + 3000));
+      water.push(Math.floor(Math.random() * 2000 + 1500));
+      gas.push(Math.floor(Math.random() * 200 + 100));
+      solar.push(Math.floor(Math.random() * 1000 + 500));
+    }
+    return { electricity, water, gas, solar };
+  }
+
+  function generateDemoGoals() {
+    return [
+      { id: 'g1', title: 'Reduce Electricity by 20%', description: 'Achieve 20% reduction in electricity consumption across all campus buildings by end of fiscal year', type: 'electricity', target: 20, current: 14, unit: '%', status: 'on_track', startDate: '2025-04-01', endDate: '2026-03-31', milestones: [{ index: 0, text: 'Install smart meters in all buildings', done: true }, { index: 1, text: 'LED lighting replacement 75%', done: true }, { index: 2, text: 'HVAC optimization Phase 1', done: false }, { index: 3, text: 'Achieve 20% reduction target', done: false }] },
+      { id: 'g2', title: 'Water Conservation 15%', description: 'Reduce campus water consumption by implementing rainwater harvesting and leak detection', type: 'water', target: 15, current: 8, unit: '%', status: 'behind', startDate: '2025-04-01', endDate: '2026-03-31', milestones: [{ index: 0, text: 'Install water meters in all blocks', done: true }, { index: 1, text: 'Rainwater harvesting setup', done: false }, { index: 2, text: 'Leak detection system deployment', done: false }] },
+      { id: 'g3', title: 'Zero Waste Campus', description: 'Achieve zero waste to landfill by maximizing recycling and composting programs', type: 'waste', target: 100, current: 68, unit: '% recycled', status: 'on_track', startDate: '2024-06-01', endDate: '2026-12-31', milestones: [{ index: 0, text: 'Set up recycling stations campus-wide', done: true }, { index: 1, text: 'Launch composting program', done: true }, { index: 2, text: 'Ban single-use plastics', done: true }, { index: 3, text: 'Achieve 80% recycling rate', done: false }] },
+      { id: 'g4', title: 'Solar Energy 30%', description: 'Generate 30% of total campus electricity from solar panels', type: 'solar', target: 30, current: 12, unit: '%', status: 'on_track', startDate: '2025-01-01', endDate: '2027-12-31', milestones: [{ index: 0, text: 'Phase 1 rooftop panels (500 kW)', done: true }, { index: 1, text: 'Phase 2 parking canopy panels (800 kW)', done: false }, { index: 2, text: 'Phase 3 ground mount (1.2 MW)', done: false }] },
+    ];
+  }
+
+  loadAll();
+})();
+</script>
+</body>
+</html>

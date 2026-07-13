@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Career Dashboard | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../css/custom.css">
+  <style>
+    .career-ring {
+      width: 220px; height: 220px; position: relative;
+    }
+    .career-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+    .career-ring-bg { fill: none; stroke: #E2E8F0; stroke-width: 12; }
+    .career-ring-fill { fill: none; stroke-width: 12; stroke-linecap: round; transition: stroke-dashoffset 1.2s cubic-bezier(0.4,0,0.2,1); }
+    .career-ring-center {
+      position: absolute; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+    }
+    .career-ring-score { font-size: 42px; font-weight: 800; line-height: 1; }
+    .career-ring-label { font-size: 12px; color: #64748B; margin-top: 4px; font-weight: 600; }
+    .skill-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 6px 14px; border-radius: 999px; font-size: 12.5px;
+      font-weight: 600; border: 1px solid transparent;
+    }
+    .skill-chip-indigo { background: #EEF2FF; color: #4338CA; border-color: #C7D2FE; }
+    .skill-chip-purple { background: #F5F3FF; color: #6D28D9; border-color: #DDD6FE; }
+    .skill-chip-pink   { background: #FDF2F8; color: #BE185D; border-color: #FBCFE8; }
+    .skill-chip-teal   { background: #F0FDFA; color: #0F766E; border-color: #99F6E4; }
+    .skill-chip-amber  { background: #FFFBEB; color: #92400E; border-color: #FDE68A; }
+    .skill-chip-sky    { background: #F0F9FF; color: #0369A1; border-color: #BAE6FD; }
+    .skill-chip-rose   { background: #FFF1F2; color: #BE123C; border-color: #FECDD3; }
+    .skill-chip-emerald{ background: #ECFDF5; color: #065F46; border-color: #A7F3D0; }
+    .level-badge {
+      font-size: 10px; padding: 1px 7px; border-radius: 999px;
+      font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .level-beginner     { background: #DBEAFE; color: #1E40AF; }
+    .level-intermediate { background: #FEF3C7; color: #92400E; }
+    .level-advanced     { background: #D1FAE5; color: #065F46; }
+    .level-expert       { background: #EDE9FE; color: #5B21B6; }
+    .gap-bar-track {
+      height: 10px; background: #F1F5F9; border-radius: 999px; overflow: hidden;
+    }
+    .gap-bar-fill {
+      height: 100%; border-radius: 999px; transition: width 0.8s cubic-bezier(0.4,0,0.2,1);
+    }
+    .checklist-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 0; font-size: 13.5px; font-weight: 500;
+    }
+    .checklist-check { color: #10B981; font-size: 16px; }
+    .checklist-cross { color: #EF4444; font-size: 16px; }
+    .job-card {
+      border: 1px solid #E2E8F0; border-radius: 16px; padding: 22px;
+      background: white; transition: all 0.3s ease; position: relative; overflow: hidden;
+    }
+    .job-card:hover {
+      box-shadow: 0 12px 40px rgba(0,0,0,0.08);
+      transform: translateY(-3px); border-color: #C7D2FE;
+    }
+    .match-badge {
+      position: absolute; top: 16px; right: 16px;
+      padding: 5px 12px; border-radius: 999px; font-size: 12px; font-weight: 800;
+    }
+    .match-high   { background: #D1FAE5; color: #065F46; }
+    .match-medium { background: #FEF3C7; color: #92400E; }
+    .match-low    { background: #FEE2E2; color: #991B1B; }
+    .empty-state-sm { padding: 32px 16px; }
+    .category-label {
+      font-size: 11px; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.1em; color: #64748B; margin-bottom: 10px; margin-top: 18px;
+    }
+    .category-label:first-child { margin-top: 0; }
+  </style>
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-student" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)" id="sidebar-avatar">S</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Student</div><div class="sidebar-user-role" id="sidebar-user-role">B.Tech CS &bull; Sem 4</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <div class="nav-section-label">Academics</div>
+      <a href="live-class.html" class="nav-link"><i class="nav-link-icon fas fa-video"></i> Live Classes</a>
+      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-reader"></i> My Courses</a>
+      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Attendance</a>
+      <a href="results.html" class="nav-link"><i class="nav-link-icon fas fa-poll"></i> Results</a>
+      <a href="assignments.html" class="nav-link"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
+      <a href="timetable.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-week"></i> Timetable</a>
+      <a href="notes.html" class="nav-link"><i class="nav-link-icon fas fa-sticky-note"></i> Notes</a>
+      <div class="nav-section-label">Career Center</div>
+      <a href="career.html" class="nav-link active"><i class="nav-link-icon fas fa-rocket"></i> Career Dashboard</a>
+      <a href="skills.html" class="nav-link"><i class="nav-link-icon fas fa-code"></i> Skills Profile</a>
+      <a href="mentorship.html" class="nav-link"><i class="nav-link-icon fas fa-handshake"></i> Mentorship</a>
+      <a href="placements.html" class="nav-link"><i class="nav-link-icon fas fa-briefcase"></i> Placements</a>
+      <div class="nav-section-label">Finance</div>
+      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-receipt"></i> Fees</a>
+      <div class="nav-section-label">Tools</div>
+      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-brain"></i> AI Services</a>
+      <a href="../messages.html" class="nav-link"><i class="nav-link-icon fas fa-comment-dots"></i> Chat</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">Student / <span>Career Dashboard</span></div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-search" onclick="openCommandPalette()" style="cursor:pointer; margin-right: 10px;">
+          <i class="fas fa-search"></i>
+          <span style="font-size:13px;color:var(--text-muted)">Search...</span>
+        </div>
+        <div style="position:relative">
+          <button class="topbar-btn" id="notif-btn"><i class="fas fa-bell"></i><span class="topbar-badge">2</span></button>
+          <div class="notif-panel" id="notif-panel">
+            <div style="padding:14px 16px;border-bottom:1px solid #F1F5F9;font-weight:700;font-size:14px">Notifications</div>
+            <div class="notif-item unread"><div class="notif-dot"></div><div><div style="font-size:13px;font-weight:600">Placement Drive</div><div style="font-size:12px;color:#64748B">TCS hiring next week &mdash; apply now</div></div></div>
+            <div class="notif-item unread"><div class="notif-dot"></div><div><div style="font-size:13px;font-weight:600">New Skill Badge</div><div style="font-size:12px;color:#64748B">You earned the React.js Advanced badge</div></div></div>
+          </div>
+        </div>
+        <div class="topbar-avatar" id="topbar-avatar">S</div>
+      </div>
+    </header>
+
+    <div class="erp-content page-enter">
+      <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+        <div>
+          <h1 class="page-title" id="careerTitle">Career &amp; Skill Development</h1>
+          <p class="page-subtitle" id="careerSubtitle">Predictive insights and personalized recommendations to boost your career readiness.</p>
+        </div>
+        <a href="skills.html" class="btn btn-primary"><i class="fas fa-user-pen"></i> Edit Skills Profile</a>
+      </div>
+
+      <!-- LOADING SKELETON -->
+      <div id="careerSkeleton">
+        <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
+          <div class="stat-card"><div class="skeleton" style="height:48px;width:48px;border-radius:10px;margin-bottom:14px"></div><div class="skeleton skeleton-text" style="width:60%"></div><div class="skeleton skeleton-text" style="width:40%;height:28px"></div></div>
+          <div class="stat-card"><div class="skeleton" style="height:48px;width:48px;border-radius:10px;margin-bottom:14px"></div><div class="skeleton skeleton-text" style="width:60%"></div><div class="skeleton skeleton-text" style="width:40%;height:28px"></div></div>
+          <div class="stat-card"><div class="skeleton" style="height:48px;width:48px;border-radius:10px;margin-bottom:14px"></div><div class="skeleton skeleton-text" style="width:60%"></div><div class="skeleton skeleton-text" style="width:40%;height:28px"></div></div>
+          <div class="stat-card"><div class="skeleton" style="height:48px;width:48px;border-radius:10px;margin-bottom:14px"></div><div class="skeleton skeleton-text" style="width:60%"></div><div class="skeleton skeleton-text" style="width:40%;height:28px"></div></div>
+        </div>
+        <div class="grid col-2 mb-6" style="margin-top:24px">
+          <div class="card"><div class="card-body" style="padding:24px;display:flex;justify-content:center"><div class="skeleton" style="width:200px;height:200px;border-radius:50%"></div></div></div>
+          <div class="card"><div class="card-header"><div class="card-title">Loading...</div></div><div class="card-body"><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text"></div></div></div>
+        </div>
+      </div>
+
+      <!-- MAIN CONTENT (hidden until data loads) -->
+      <div id="careerContent" style="display:none">
+
+        <!-- STATS GRID -->
+        <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)" id="statsGrid">
+          <div class="stat-card"><div class="stat-card-accent" style="background:#4F46E5"></div><div class="stat-icon" style="background:#EEF2FF;color:#4338CA"><i class="fas fa-code"></i></div><div class="stat-label">Skills</div><div class="stat-value" style="color:#4338CA" id="statSkills">0</div><div class="stat-change neutral"><i class="fas fa-layer-group"></i> Across categories</div></div>
+          <div class="stat-card"><div class="stat-card-accent" style="background:#7C3AED"></div><div class="stat-icon" style="background:#F5F3FF;color:#6D28D9"><i class="fas fa-award"></i></div><div class="stat-label">Certifications</div><div class="stat-value" style="color:#6D28D9" id="statCerts">0</div><div class="stat-change up"><i class="fas fa-arrow-up"></i> Verified</div></div>
+          <div class="stat-card"><div class="stat-card-accent" style="background:#0EA5E9"></div><div class="stat-icon" style="background:#F0F9FF;color:#0369A1"><i class="fas fa-folder-open"></i></div><div class="stat-label">Projects</div><div class="stat-value" style="color:#0369A1" id="statProjects">0</div><div class="stat-change neutral"><i class="fas fa-folder"></i> In portfolio</div></div>
+          <div class="stat-card" style="background:linear-gradient(135deg,#EEF2FF,#F5F3FF);border-color:#C7D2FE"><div class="stat-icon" style="background:rgba(255,255,255,0.7);color:#5B21B6"><i class="fas fa-eye"></i></div><div class="stat-label">Profile Views</div><div class="stat-value" style="color:#5B21B6" id="statViews">0</div><div class="stat-change up"><i class="fas fa-arrow-up"></i> Last 30 days</div></div>
+        </div>
+
+        <!-- READINESS SCORE + CHECKLIST -->
+        <div class="grid col-2 mb-6">
+          <div class="card">
+            <div class="card-header"><div class="card-title"><i class="fas fa-bullseye" style="color:#7C3AED;margin-right:8px"></i>Career Readiness Score</div></div>
+            <div class="card-body" style="display:flex;flex-direction:column;align-items:center;padding:32px 22px">
+              <div class="career-ring" id="readinessRing">
+                <svg viewBox="0 0 220 220">
+                  <circle class="career-ring-bg" cx="110" cy="110" r="96"></circle>
+                  <circle class="career-ring-fill" id="ringFill" cx="110" cy="110" r="96" stroke="url(#ringGrad)" stroke-dasharray="603.19" stroke-dashoffset="603.19"></circle>
+                  <defs>
+                    <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stop-color="#4F46E5"/>
+                      <stop offset="50%" stop-color="#7C3AED"/>
+                      <stop offset="100%" stop-color="#8B5CF6"/>
+                    </linearGradient>
+                  </defs>
+                </svg>
+                <div class="career-ring-center">
+                  <div class="career-ring-score" id="readinessScore" style="background:linear-gradient(135deg,#4F46E5,#8B5CF6);-webkit-background-clip:text;-webkit-text-fill-color:transparent">--</div>
+                  <div class="career-ring-label">out of 100</div>
+                </div>
+              </div>
+              <div style="margin-top:24px;width:100%;max-width:320px" id="checklistContainer">
+                <!-- Populated by JS -->
+              </div>
+            </div>
+          </div>
+
+          <!-- SKILL TAGS BY CATEGORY -->
+          <div class="card">
+            <div class="card-header"><div class="card-title"><i class="fas fa-tags" style="color:#4F46E5;margin-right:8px"></i>Skills by Category</div><span class="badge badge-purple" id="totalSkillsBadge">0 skills</span></div>
+            <div class="card-body" style="padding:16px 22px;max-height:520px;overflow-y:auto" id="skillTagsContainer">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+
+        <!-- SKILL GAP ANALYSIS + RECOMMENDED JOBS -->
+        <div class="grid col-2 mb-6">
+          <div class="card">
+            <div class="card-header"><div class="card-title"><i class="fas fa-chart-bar" style="color:#EF4444;margin-right:8px"></i>Skill Gap Analysis</div><span class="badge badge-danger" id="gapCount">0 gaps</span></div>
+            <div class="card-body" style="padding:14px 22px" id="gapContainer">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <div class="card" style="grid-column:span 1">
+            <div class="card-header"><div class="card-title"><i class="fas fa-briefcase" style="color:#059669;margin-right:8px"></i>Recommended Jobs</div><span class="badge badge-success" id="jobCount">0 jobs</span></div>
+            <div class="card-body" style="padding:14px 22px;max-height:540px;overflow-y:auto" id="jobsContainer">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EMPTY STATE (shown if no profile) -->
+      <div id="careerEmpty" style="display:none">
+        <div class="card">
+          <div class="empty-state">
+            <div class="empty-state-icon" style="color:#8B5CF6"><i class="fas fa-rocket"></i></div>
+            <div class="empty-state-title">No Career Profile Found</div>
+            <div class="empty-state-desc" style="margin-bottom:20px">Complete your skills profile to unlock personalized career insights, skill gap analysis, and job recommendations.</div>
+            <a href="skills.html" class="btn btn-primary btn-lg"><i class="fas fa-user-pen"></i> Create Skills Profile</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script src="../../live/live-pages.js"></script>
+<script>
+(function(){
+  const user = guardCurrentPage();
+  if (!user) return;
+
+  const skeleton = document.getElementById('careerSkeleton');
+  const content  = document.getElementById('careerContent');
+  const empty    = document.getElementById('careerEmpty');
+
+  const CIRCUMFERENCE = 2 * Math.PI * 96;
+  const ringFill = document.getElementById('ringFill');
+
+  const CATEGORY_COLORS = {
+    'Programming':     { chip: 'skill-chip-indigo',    accent: '#4F46E5' },
+    'Frontend':        { chip: 'skill-chip-purple',    accent: '#7C3AED' },
+    'Backend':         { chip: 'skill-chip-teal',      accent: '#0F766E' },
+    'Database':        { chip: 'skill-chip-amber',     accent: '#D97706' },
+    'DevOps':          { chip: 'skill-chip-sky',       accent: '#0369A1' },
+    'Design':          { chip: 'skill-chip-pink',      accent: '#BE185D' },
+    'Data Science':    { chip: 'skill-chip-rose',      accent: '#BE123C' },
+    'Mobile':          { chip: 'skill-chip-emerald',   accent: '#065F46' },
+    'Cloud':           { chip: 'skill-chip-sky',       accent: '#0369A1' },
+    'Tools':           { chip: 'skill-chip-amber',     accent: '#92400E' },
+    'Soft Skills':     { chip: 'skill-chip-pink',      accent: '#BE185D' },
+    'AI/ML':           { chip: 'skill-chip-rose',      accent: '#BE123C' },
+    'Security':        { chip: 'skill-chip-teal',      accent: '#0F766E' },
+    'Other':           { chip: 'skill-chip-indigo',    accent: '#4F46E5' }
+  };
+
+  const GAP_COLORS = ['#EF4444','#F97316','#F59E0B','#EAB308','#D946EF','#EC4899'];
+
+  function getCatColor(cat) {
+    return CATEGORY_COLORS[cat] || CATEGORY_COLORS['Other'];
+  }
+
+  function animateValue(el, target) {
+    if (!el) return;
+    const duration = 900;
+    const start = performance.now();
+    function step(now) {
+      const p = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.round(target * eased);
+      if (p < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  function setReadinessRing(score) {
+    const pct = Math.max(0, Math.min(100, score));
+    const offset = CIRCUMFERENCE - (pct / 100) * CIRCUMFERENCE;
+    setTimeout(function() {
+      ringFill.style.strokeDashoffset = offset;
+    }, 100);
+    document.getElementById('readinessScore').textContent = pct;
+  }
+
+  function renderChecklist(checklist) {
+    const el = document.getElementById('checklistContainer');
+    if (!el) return;
+    const items = [
+      { key: 'resume',      label: 'Resume Updated',      icon: 'fa-file-lines' },
+      { key: 'projects',    label: 'Projects Added',      icon: 'fa-folder-open' },
+      { key: 'certs',       label: 'Certifications',      icon: 'fa-award' },
+      { key: 'skills',      label: 'Skills Documented',   icon: 'fa-code' },
+      { key: 'linkedin',    label: 'LinkedIn Connected',  icon: 'fa-linkedin' },
+      { key: 'github',      label: 'GitHub Portfolio',     icon: 'fa-github' }
+    ];
+    if (!checklist || typeof checklist !== 'object') {
+      el.innerHTML = items.map(function(it) {
+        return '<div class="checklist-item"><i class="fas fa-circle checklist-cross" style="font-size:10px"></i><span>' + it.label + '</span></div>';
+      }).join('');
+      return;
+    }
+    el.innerHTML = items.map(function(it) {
+      const done = !!checklist[it.key];
+      if (done) {
+        return '<div class="checklist-item"><i class="fas fa-circle-check checklist-check"></i><span style="color:var(--text-primary)">' + it.label + '</span></div>';
+      }
+      return '<div class="checklist-item"><i class="fas fa-circle checklist-cross" style="font-size:10px"></i><span style="color:var(--text-secondary)">' + it.label + '</span></div>';
+    }).join('');
+  }
+
+  function renderSkillTags(skills) {
+    const container = document.getElementById('skillTagsContainer');
+    const badge = document.getElementById('totalSkillsBadge');
+    if (!skills || !skills.length) {
+      container.innerHTML = '<div class="empty-state empty-state-sm"><div class="empty-state-icon" style="font-size:32px"><i class="fas fa-code"></i></div><div class="empty-state-desc">No skills added yet.</div></div>';
+      if (badge) badge.textContent = '0 skills';
+      return;
+    }
+    if (badge) badge.textContent = skills.length + ' skills';
+
+    const grouped = {};
+    skills.forEach(function(s) {
+      const cat = s.category || 'Other';
+      if (!grouped[cat]) grouped[cat] = [];
+      grouped[cat].push(s);
+    });
+
+    let html = '';
+    Object.keys(grouped).forEach(function(cat) {
+      const catInfo = getCatColor(cat);
+      html += '<div class="category-label">' + cat + '</div>';
+      html += '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:4px">';
+      grouped[cat].forEach(function(s) {
+        const level = (s.level || 'Beginner').toLowerCase();
+        const levelClass = 'level-' + level;
+        html += '<span class="skill-chip ' + catInfo.chip + '">' + (s.name || s.skill || 'Unknown');
+        if (level) html += ' <span class="level-badge ' + levelClass + '">' + level + '</span>';
+        html += '</span>';
+      });
+      html += '</div>';
+    });
+    container.innerHTML = html;
+  }
+
+  function renderGapAnalysis(gaps) {
+    const container = document.getElementById('gapContainer');
+    const countBadge = document.getElementById('gapCount');
+    if (!gaps || !gaps.length) {
+      container.innerHTML = '<div class="empty-state empty-state-sm"><div class="empty-state-icon" style="font-size:32px;color:#10B981"><i class="fas fa-check-circle"></i></div><div class="empty-state-desc">No skill gaps identified! You are well-aligned with market demand.</div></div>';
+      if (countBadge) countBadge.textContent = '0 gaps';
+      return;
+    }
+    if (countBadge) countBadge.textContent = gaps.length + ' gaps';
+    let html = '';
+    gaps.forEach(function(g, i) {
+      const pct = Math.min(100, Math.max(0, g.demand || g.score || 50));
+      const color = GAP_COLORS[i % GAP_COLORS.length];
+      const skillName = g.name || g.skill || 'Unknown Skill';
+      const currentLevel = g.currentLevel || g.level || 'None';
+      html += '<div style="margin-bottom:16px">';
+      html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">';
+      html += '<span style="font-size:13px;font-weight:600;color:var(--text-primary)">' + skillName + '</span>';
+      html += '<span style="font-size:11px;color:var(--text-secondary);font-weight:600">Demand: ' + pct + '%</span>';
+      html += '</div>';
+      html += '<div class="gap-bar-track"><div class="gap-bar-fill" style="width:' + pct + '%;background:linear-gradient(90deg,' + color + ',' + color + 'BB)"></div></div>';
+      html += '<div style="font-size:11px;color:var(--text-muted);margin-top:4px">Your level: <strong>' + currentLevel + '</strong></div>';
+      html += '</div>';
+    });
+    container.innerHTML = html;
+  }
+
+  function renderJobs(jobs) {
+    const container = document.getElementById('jobsContainer');
+    const countBadge = document.getElementById('jobCount');
+    if (!jobs || !jobs.length) {
+      container.innerHTML = '<div class="empty-state empty-state-sm"><div class="empty-state-icon" style="font-size:32px"><i class="fas fa-briefcase"></i></div><div class="empty-state-title">No recommendations yet</div><div class="empty-state-desc">Add more skills to get personalized job recommendations.</div></div>';
+      if (countBadge) countBadge.textContent = '0 jobs';
+      return;
+    }
+    if (countBadge) countBadge.textContent = jobs.length + ' jobs';
+    let html = '';
+    jobs.forEach(function(j) {
+      const match = j.match || j.matchPercentage || 0;
+      let matchClass = 'match-low';
+      if (match >= 75) matchClass = 'match-high';
+      else if (match >= 50) matchClass = 'match-medium';
+
+      const matched = j.matchedSkills || j.skills || [];
+      const skillsHtml = matched.slice(0, 5).map(function(sk) {
+        return '<span style="display:inline-block;padding:2px 8px;background:#EEF2FF;color:#4338CA;border-radius:6px;font-size:11px;font-weight:600;margin:2px 0">' + sk + '</span>';
+      }).join('');
+
+      const salary = j.salary || j.salaryRange || 'Competitive';
+      const title = j.title || j.role || 'Software Engineer';
+      const company = j.company || 'Tech Company';
+      const location = j.location || 'Remote';
+
+      html += '<div class="job-card" style="margin-bottom:14px">';
+      html += '<span class="match-badge ' + matchClass + '">' + match + '% Match</span>';
+      html += '<div style="font-size:16px;font-weight:700;color:var(--text-primary);margin-bottom:2px;padding-right:80px">' + title + '</div>';
+      html += '<div style="font-size:13px;color:var(--text-secondary);margin-bottom:10px"><i class="fas fa-building" style="margin-right:4px"></i>' + company + ' &bull; <i class="fas fa-location-dot" style="margin-right:4px"></i>' + location + '</div>';
+      html += '<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:10px">' + skillsHtml + '</div>';
+      html += '<div style="display:flex;align-items:center;justify-content:space-between">';
+      html += '<span style="font-size:13px;font-weight:700;color:#059669"><i class="fas fa-indian-rupee-sign" style="margin-right:3px"></i>' + salary + '</span>';
+      html += '<a href="placements.html" class="btn btn-sm btn-primary" style="text-decoration:none">Apply</a>';
+      html += '</div>';
+      html += '</div>';
+    });
+    container.innerHTML = html;
+  }
+
+  async function loadCareerData() {
+    try {
+      const [profileRes, insightsRes] = await Promise.all([
+        api.request('/career/profile', { silent: true }),
+        api.request('/career/insights', { silent: true })
+      ]);
+
+      const profile = profileRes.data || profileRes.profile || profileRes;
+      const insights = insightsRes.data || insightsRes.insights || insightsRes;
+
+      if (!profile || (!profile.skills && !profile.name)) {
+        skeleton.style.display = 'none';
+        empty.style.display = 'block';
+        return;
+      }
+
+      const skills       = profile.skills || insights.skills || [];
+      const certifications = profile.certifications || insights.certifications || [];
+      const projects     = profile.projects || insights.projects || [];
+      const views        = profile.profileViews || profile.views || insights.profileViews || 0;
+      const readiness    = insights.readinessScore || profile.readinessScore || 0;
+      const checklist    = insights.checklist || profile.checklist || {};
+      const gaps         = insights.skillGaps || insights.gaps || [];
+      const jobs         = insights.recommendedJobs || insights.jobs || [];
+
+      animateValue(document.getElementById('statSkills'), skills.length);
+      animateValue(document.getElementById('statCerts'), certifications.length);
+      animateValue(document.getElementById('statProjects'), projects.length);
+      animateValue(document.getElementById('statViews'), views);
+
+      setReadinessRing(readiness);
+      renderChecklist(checklist);
+      renderSkillTags(skills);
+      renderGapAnalysis(gaps);
+      renderJobs(jobs);
+
+      skeleton.style.display = 'none';
+      content.style.display = 'block';
+
+    } catch (err) {
+      skeleton.style.display = 'none';
+      empty.style.display = 'block';
+    }
+  }
+
+  loadCareerData();
+})();
+</script>
+</body>
+</html>

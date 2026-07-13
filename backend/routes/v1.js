@@ -22,5 +22,10 @@ router.use('/upload', require('./upload'));
 router.use('/reports', require('./reports'));
 router.use('/exam-generator', require('./examGenerator'));
 router.use('/subscriptions', require('./subscription'));
+router.use('/notes', require('../modules/notesRoutes'));
+router.use('/career', require('../modules/careerRoutes'));
+router.use('/mentorship', require('../modules/mentorshipRoutes'));
+router.use('/campus', require('../modules/campusRoutes'));
+router.use('/energy', require('../modules/energyRoutes'));
 
 module.exports = router;
