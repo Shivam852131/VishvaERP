@@ -29,5 +29,6 @@ router.use('/campus', require('../modules/campusRoutes'));
 router.use('/energy', require('../modules/energyRoutes'));
 router.use('/assessments', require('../modules/assessmentRoutes'));
 router.use('/placement-drives', require('../modules/placementDriveRoutes'));
+router.use('/intelligence', require('../modules/intelligenceRoutes'));
 
 module.exports = router;

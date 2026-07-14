@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>AI Intelligence Center | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="../../css/custom.css">
+  <style>
+    .health-ring-wrap{display:flex;align-items:center;justify-content:center;gap:32px;flex-wrap:wrap}
+    .health-ring{position:relative;width:180px;height:180px}
+    .health-ring svg{transform:rotate(-90deg)}
+    .health-ring-text{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center}
+    .health-ring-text .score{font-size:42px;font-weight:800;line-height:1}
+    .health-ring-text .grade{font-size:16px;font-weight:600;margin-top:2px}
+    .health-metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;flex:1;min-width:280px}
+    .hm-item{background:#F8FAFC;border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:10px}
+    .hm-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+    .hm-label{font-size:11px;color:#64748B;text-transform:uppercase;letter-spacing:.5px}
+    .hm-value{font-size:18px;font-weight:700;color:#1E293B}
+    .risk-card{background:#fff;border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px;border:1px solid #F1F5F9;transition:.15s}
+    .risk-card:hover{box-shadow:0 2px 12px rgba(0,0,0,.06)}
+    .risk-avatar{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;flex-shrink:0}
+    .risk-high .risk-avatar{background:#FEE2E2;color:#991B1B}
+    .risk-medium .risk-avatar{background:#FEF3C7;color:#92400E}
+    .risk-low .risk-avatar{background:#D1FAE5;color:#065F46}
+    .risk-bar{height:4px;border-radius:2px;background:#F1F5F9;flex:1;overflow:hidden}
+    .risk-bar-fill{height:100%;border-radius:2px}
+    .risk-high .risk-bar-fill{background:#EF4444}
+    .risk-medium .risk-bar-fill{background:#F59E0B}
+    .risk-low .risk-bar-fill{background:#10B981}
+    .insight-card{background:#fff;border-radius:12px;border:1px solid #F1F5F9;padding:18px 20px}
+    .insight-card .ic-head{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+    .insight-card .ic-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:15px}
+    .query-box{background:linear-gradient(135deg,#4F46E5 0%,#7C3AED 100%);border-radius:16px;padding:28px 32px;color:#fff}
+    .query-input{width:100%;padding:14px 18px;border-radius:12px;border:2px solid rgba(255,255,255,.2);background:rgba(255,255,255,.15);color:#fff;font-size:15px;outline:none;transition:.2s}
+    .query-input::placeholder{color:rgba(255,255,255,.6)}
+    .query-input:focus{border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.2)}
+    .query-response{background:rgba(255,255,255,.1);border-radius:12px;padding:18px 20px;margin-top:14px;font-size:14px;line-height:1.7;white-space:pre-wrap;display:none}
+    .query-response.visible{display:block}
+    .trend-tab{padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;background:transparent;color:#64748B;transition:.15s}
+    .trend-tab.active{background:#4F46E5;color:#fff}
+    .trend-tab:hover:not(.active){background:#F1F5F9}
+    .pred-card{background:#fff;border-radius:12px;border:1px solid #F1F5F9;padding:16px 18px;text-align:center}
+    .pred-value{font-size:28px;font-weight:800;color:#4F46E5}
+    .pred-label{font-size:12px;color:#64748B;margin-top:4px}
+    .pred-conf{font-size:11px;margin-top:6px;padding:3px 8px;border-radius:4px;display:inline-block;font-weight:600}
+    .pred-conf.medium{background:#FEF3C7;color:#92400E}
+    .pred-conf.low{background:#FEE2E2;color:#991B1B}
+    .module-tab{padding:8px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;background:transparent;color:#64748B;transition:.15s;white-space:nowrap}
+    .module-tab.active{background:#4F46E5;color:#fff}
+    .module-tab:hover:not(.active){background:#F1F5F9}
+    @media(max-width:768px){.health-ring{width:140px;height:140px}.health-ring-text .score{font-size:32px}.health-metrics{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-college" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" id="sidebar-avatar">A</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Admin</div><div class="sidebar-user-role">College Administrator</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <div class="nav-section-label">Academics</div>
+      <a href="students.html" class="nav-link"><i class="nav-link-icon fas fa-user-graduate"></i> Students</a>
+      <a href="faculty.html" class="nav-link"><i class="nav-link-icon fas fa-chalkboard-teacher"></i> Faculty</a>
+      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-open"></i> Courses & Exams</a>
+      <a href="notices.html" class="nav-link"><i class="nav-link-icon fas fa-bullhorn"></i> Notice Board</a>
+      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-check"></i> Attendance</a>
+      <div class="nav-section-label">Finance & HR</div>
+      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-file-invoice-dollar"></i> Fee Management</a>
+      <a href="hr.html" class="nav-link"><i class="nav-link-icon fas fa-user-md"></i> HR & Leave</a>
+      <a href="subscription.html" class="nav-link"><i class="nav-link-icon fas fa-credit-card"></i> Subscription</a>
+      <div class="nav-section-label">Campus Life</div>
+      <a href="events.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Events</a>
+      <a href="grievances.html" class="nav-link"><i class="nav-link-icon fas fa-exclamation-circle"></i> Grievances</a>
+      <a href="feedback.html" class="nav-link"><i class="nav-link-icon fas fa-star"></i> Feedback</a>
+      <a href="inventory.html" class="nav-link"><i class="nav-link-icon fas fa-boxes"></i> Inventory</a>
+      <a href="placement.html" class="nav-link"><i class="nav-link-icon fas fa-briefcase"></i> Placement</a>
+      <a href="alumni.html" class="nav-link"><i class="nav-link-icon fas fa-users"></i> Alumni</a>
+      <div class="nav-section-label">Smart Campus</div>
+      <a href="iot-dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-microchip"></i> IoT Dashboard</a>
+      <a href="sustainability.html" class="nav-link"><i class="nav-link-icon fas fa-leaf"></i> Sustainability</a>
+      <a href="ai-intelligence.html" class="nav-link active"><i class="nav-link-icon fas fa-brain"></i> AI Intelligence</a>
+      <div class="nav-section-label">Facilities</div>
+      <a href="logistics.html" class="nav-link"><i class="nav-link-icon fas fa-bus"></i> Logistics & Hostel</a>
+      <div class="nav-section-label">Tools</div>
+      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Hub</a>
+      <a href="../messages.html" class="nav-link"><i class="nav-link-icon fas fa-comments"></i> Messages</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">College Admin / <span>AI Intelligence Center</span></div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-search"><i class="fas fa-search"></i><input type="text" placeholder="Search..."></div>
+        <div style="position:relative">
+          <button class="topbar-btn" id="notif-btn"><i class="fas fa-bell"></i><span class="topbar-badge">0</span></button>
+          <div class="notif-panel" id="notif-panel"><div style="padding:14px 16px;border-bottom:1px solid #F1F5F9;font-weight:700;font-size:14px">Notifications</div></div>
+        </div>
+        <div class="topbar-avatar" id="topbar-avatar">A</div>
+      </div>
+    </header>
+
+    <div class="erp-content page-enter">
+      <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+        <div>
+          <div class="breadcrumb">AI Intelligence Center</div>
+          <h1 class="page-title">Intelligence Center</h1>
+          <p class="page-subtitle">Cross-module analytics, risk detection, and AI-powered campus insights.</p>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-secondary" id="refreshBtn"><i class="fas fa-sync-alt"></i> Refresh</button>
+          <select class="form-control" id="trendPeriod" style="width:auto;padding:8px 12px;font-size:13px">
+            <option value="7d">Last 7 days</option>
+            <option value="30d" selected>Last 30 days</option>
+            <option value="90d">Last 90 days</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- CAMPUS HEALTH SCORE -->
+      <div class="card mb-6">
+        <div class="card-header"><div class="card-title"><i class="fas fa-heartbeat" style="color:#EF4444;margin-right:8px"></i>Campus Health Score</div></div>
+        <div class="card-body">
+          <div class="health-ring-wrap" id="healthSection">
+            <div class="health-ring">
+              <svg width="180" height="180" viewBox="0 0 180 180">
+                <circle cx="90" cy="90" r="78" fill="none" stroke="#F1F5F9" stroke-width="12"/>
+                <circle id="healthArc" cx="90" cy="90" r="78" fill="none" stroke="#4F46E5" stroke-width="12" stroke-linecap="round" stroke-dasharray="490" stroke-dashoffset="490"/>
+              </svg>
+              <div class="health-ring-text">
+                <div class="score" id="healthScore">--</div>
+                <div class="grade" id="healthGrade" style="color:#4F46E5">Loading...</div>
+              </div>
+            </div>
+            <div class="health-metrics" id="healthMetrics">
+              <div class="hm-item"><div class="hm-icon" style="background:#EDE9FE;color:#5B21B6"><i class="fas fa-user-graduate"></i></div><div><div class="hm-label">Students</div><div class="hm-value" id="hmStudents">--</div></div></div>
+              <div class="hm-item"><div class="hm-icon" style="background:#D1FAE5;color:#065F46"><i class="fas fa-chalkboard-teacher"></i></div><div><div class="hm-label">Faculty</div><div class="hm-value" id="hmFaculty">--</div></div></div>
+              <div class="hm-item"><div class="hm-icon" style="background:#DBEAFE;color:#1E40AF"><i class="fas fa-clipboard-check"></i></div><div><div class="hm-label">Attendance Rate</div><div class="hm-value" id="hmAttendance">--</div></div></div>
+              <div class="hm-item"><div class="hm-icon" style="background:#FEF3C7;color:#92400E"><i class="fas fa-chart-line"></i></div><div><div class="hm-label">Selection Rate</div><div class="hm-value" id="hmPlacement">--</div></div></div>
+              <div class="hm-item"><div class="hm-icon" style="background:#FEE2E2;color:#991B1B"><i class="fas fa-exclamation-triangle"></i></div><div><div class="hm-label">Alerts Today</div><div class="hm-value" id="hmAlerts">--</div></div></div>
+              <div class="hm-item"><div class="hm-icon" style="background:#E0E7FF;color:#3730A3"><i class="fas fa-indian-rupee-sign"></i></div><div><div class="hm-label">Fee Collection</div><div class="hm-value" id="hmFeeRate">--</div></div></div>
+              <div class="hm-item"><div class="hm-icon" style="background:#D1FAE5;color:#065F46"><i class="fas fa-microchip"></i></div><div><div class="hm-label">Active Sensors</div><div class="hm-value" id="hmSensors">--</div></div></div>
+              <div class="hm-item"><div class="hm-icon" style="background:#FEF3C7;color:#92400E"><i class="fas fa-bullseye"></i></div><div><div class="hm-label">Readiness Score</div><div class="hm-value" id="hmReadiness">--</div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PREDICTIONS -->
+      <div class="command-section-label">AI Predictions & Forecasts</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px" id="predictionsGrid">
+        <div class="pred-card"><i class="fas fa-briefcase" style="font-size:20px;color:#4F46E5;margin-bottom:8px"></i><div class="pred-value" id="predPlacements">--</div><div class="pred-label">Predicted Placements (Next Month)</div><div class="pred-conf medium" id="predPlacementsConf">--</div></div>
+        <div class="pred-card"><i class="fas fa-indian-rupee-sign" style="font-size:20px;color:#10B981;margin-bottom:8px"></i><div class="pred-value" id="predFee">--</div><div class="pred-label">Predicted Fee Collection</div><div class="pred-conf medium" id="predFeeConf">--</div></div>
+        <div class="pred-card"><i class="fas fa-clipboard-check" style="font-size:20px;color:#F59E0B;margin-bottom:8px"></i><div class="pred-value" id="predAttendance">--</div><div class="pred-label">Predicted Attendance Rate</div><div class="pred-conf medium" id="predAttConf">--</div></div>
+        <div class="pred-card"><i class="fas fa-graduation-cap" style="font-size:20px;color:#8B5CF6;margin-bottom:8px"></i><div class="pred-value" id="predProfile">--</div><div class="pred-label">Profile Completion Rate</div><div class="pred-conf medium" id="predProfConf">--</div></div>
+      </div>
+
+      <!-- AI QUERY -->
+      <div class="query-box mb-6">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+          <div style="width:42px;height:42px;background:rgba(255,255,255,.15);border-radius:10px;display:flex;align-items:center;justify-content:center"><i class="fas fa-robot" style="font-size:20px"></i></div>
+          <div><div style="font-size:16px;font-weight:700">AI Campus Assistant</div><div style="font-size:13px;opacity:.7">Ask anything about your campus data — attendance trends, fee defaults, placement insights...</div></div>
+        </div>
+        <div style="display:flex;gap:10px">
+          <input type="text" class="query-input" id="aiQueryInput" placeholder="e.g. Which department has the lowest attendance this month?">
+          <button class="btn" id="aiQueryBtn" style="background:rgba(255,255,255,.2);color:#fff;border:2px solid rgba(255,255,255,.3);white-space:nowrap;padding:14px 24px"><i class="fas fa-paper-plane"></i> Ask</button>
+        </div>
+        <div class="query-response" id="aiQueryResponse"></div>
+      </div>
+
+      <!-- AT-RISK STUDENTS + MODULE ANALYTICS -->
+      <div class="grid col-2 mb-6">
+        <div class="card">
+          <div class="card-header"><div class="card-title"><i class="fas fa-exclamation-triangle" style="color:#EF4444;margin-right:8px"></i>At-Risk Students</div><span class="badge badge-danger" id="atRiskCount">0</span></div>
+          <div class="card-body" style="max-height:400px;overflow-y:auto;padding:8px">
+            <div id="atRiskList"><div class="empty-state"><div class="empty-state-title">Loading risk analysis...</div></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title"><i class="fas fa-chart-bar" style="color:#4F46E5;margin-right:8px"></i>Module Analytics</div></div>
+          <div style="padding:0 16px;display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid #F1F5F9" id="moduleTabs">
+            <div class="module-tab active" data-m="attendance">Attendance</div>
+            <div class="module-tab" data-m="academics">Academics</div>
+            <div class="module-tab" data-m="finance">Finance</div>
+            <div class="module-tab" data-m="placements">Placements</div>
+            <div class="module-tab" data-m="campus">Campus</div>
+            <div class="module-tab" data-m="skills">Skills</div>
+          </div>
+          <div class="card-body"><div class="chart-container" style="height:320px"><canvas id="moduleChart"></canvas></div></div>
+        </div>
+      </div>
+
+      <!-- TRENDS -->
+      <div class="card mb-6">
+        <div class="card-header"><div class="card-title"><i class="fas fa-chart-line" style="color:#10B981;margin-right:8px"></i>Cross-Module Trends</div></div>
+        <div class="card-body"><div class="chart-container" style="height:300px"><canvas id="trendChart"></canvas></div></div>
+      </div>
+
+      <!-- INSIGHTS GRID -->
+      <div class="command-section-label">Deep Insights</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px" id="insightsGrid">
+        <div class="insight-card">
+          <div class="ic-head"><div class="ic-icon" style="background:#EDE9FE;color:#5B21B6"><i class="fas fa-sensor"></i></div><div><div style="font-size:14px;font-weight:700">Sensor Alerts</div><div style="font-size:12px;color:#64748B">This week</div></div></div>
+          <div id="insightSensors"><div style="color:#94A3B8;font-size:13px">Loading...</div></div>
+        </div>
+        <div class="insight-card">
+          <div class="ic-head"><div class="ic-icon" style="background:#FEF3C7;color:#92400E"><i class="fas fa-bolt"></i></div><div><div style="font-size:14px;font-weight:700">Energy Consumption</div><div style="font-size:12px;color:#64748B">Last 30 days</div></div></div>
+          <div id="insightEnergy"><div style="color:#94A3B8;font-size:13px">Loading...</div></div>
+        </div>
+        <div class="insight-card">
+          <div class="ic-head"><div class="ic-icon" style="background:#D1FAE5;color:#065F46"><i class="fas fa-trophy"></i></div><div><div style="font-size:14px;font-weight:700">Placement Companies</div><div style="font-size:12px;color:#64748B">Top performers</div></div></div>
+          <div id="insightPlacements"><div style="color:#94A3B8;font-size:13px">Loading...</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script>
+(function(){
+  const esc = (function(){ var el = document.createElement('div'); return function(s){ el.textContent = s; return el.innerHTML; }; })();
+  const fmt = n => { if(n===null||n===undefined||n==='--') return '--'; if(n>=100000) return '₹'+(n/100000).toFixed(1)+'L'; if(n>=1000) return '₹'+(n/1000).toFixed(1)+'K'; return '₹'+n.toLocaleString(); };
+  let moduleChart = null, trendChart = null;
+  let cachedHealth = null, cachedAnalytics = null;
+
+  guardCurrentPage('ai-intelligence.html');
+
+  async function loadAll(){
+    await Promise.all([loadHealth(), loadAtRisk(), loadPredictions()]);
+    loadModuleAnalytics('attendance');
+    loadTrends();
+    loadInsights();
+  }
+
+  async function loadHealth(){
+    try {
+      const r = await api.request('/v1/intelligence/health');
+      const h = r.data.health;
+      cachedHealth = h;
+      const m = h.metrics;
+      document.getElementById('healthScore').textContent = h.score;
+      document.getElementById('healthGrade').textContent = 'Grade '+h.grade;
+      const gradeColors = {A:'#10B981',B:'#4F46E5',C:'#F59E0B',D:'#EF4444'};
+      document.getElementById('healthGrade').style.color = gradeColors[h.grade]||'#4F46E5';
+      document.getElementById('healthArc').setAttribute('stroke', gradeColors[h.grade]||'#4F46E5');
+      const pct = h.score/100;
+      document.getElementById('healthArc').style.strokeDashoffset = 490 - (490*pct);
+      document.getElementById('hmStudents').textContent = m.students||0;
+      document.getElementById('hmFaculty').textContent = m.faculty||0;
+      document.getElementById('hmAttendance').textContent = m.attendanceRate+'%';
+      document.getElementById('hmPlacement').textContent = m.selectionRate+'%';
+      document.getElementById('hmAlerts').textContent = m.alertsToday||0;
+      document.getElementById('hmFeeRate').textContent = m.feeCollectionRate+'%';
+      document.getElementById('hmSensors').textContent = m.activeSensors||0;
+      document.getElementById('hmReadiness').textContent = m.readinessScore+'/100';
+      document.getElementById('predProfile').textContent = m.profileCompletion+'%';
+    } catch(e){ console.error('Health:',e); }
+  }
+
+  async function loadAtRisk(){
+    try {
+      const r = await api.request('/v1/intelligence/at-risk');
+      const list = r.data.atRisk || [];
+      const high = list.filter(s=>s.riskLevel==='high');
+      const med = list.filter(s=>s.riskLevel==='medium');
+      document.getElementById('atRiskCount').textContent = high.length + med.filter(m=>m.riskScore>=40).length;
+      if(!list.length){ document.getElementById('atRiskList').innerHTML='<div class="empty-state"><div class="empty-state-icon"><i class="fas fa-check-circle"></i></div><div class="empty-state-title">All Clear</div><div class="empty-state-text">No at-risk students detected.</div></div>'; return; }
+      document.getElementById('atRiskList').innerHTML = list.filter(s=>s.riskScore>0).slice(0,20).map(s=>`
+        <div class="risk-card ${s.riskLevel}" style="margin-bottom:8px">
+          <div class="risk-avatar">${esc((s.student.name||'?')[0])}</div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(s.student.name)}</div>
+            <div style="font-size:11px;color:#64748B">${esc(s.student.rollNo||'')} &middot; ${esc(s.student.department||'')}</div>
+            <div style="font-size:11px;color:#94A3B8;margin-top:2px">${s.riskFactors.slice(0,2).map(f=>esc(f)).join(' &middot; ')}</div>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div class="risk-bar" style="width:60px;margin-bottom:4px"><div class="risk-bar-fill" style="width:${s.riskScore}%"></div></div>
+            <span style="font-size:11px;font-weight:700;color:${s.riskLevel==='high'?'#EF4444':s.riskLevel==='medium'?'#F59E0B':'#10B981'}">${s.riskScore}%</span>
+          </div>
+        </div>
+      `).join('');
+    } catch(e){ console.error('AtRisk:',e); document.getElementById('atRiskList').innerHTML='<div class="empty-state"><div class="empty-state-title">Error loading data</div></div>'; }
+  }
+
+  async function loadPredictions(){
+    try {
+      const r = await api.request('/v1/intelligence/predictions');
+      const p = r.data.predictions;
+      document.getElementById('predPlacements').textContent = p.nextMonthPlacements!==null?p.nextMonthPlacements:'--';
+      document.getElementById('predFee').textContent = p.nextMonthFeeCollection!==null?fmt(p.nextMonthFeeCollection):'--';
+      document.getElementById('predAttendance').textContent = p.nextMonthAttendanceRate!==null?p.nextMonthAttendanceRate+'%':'--';
+      document.getElementById('predPlacementsConf').textContent = 'Confidence: '+p.confidence;
+      document.getElementById('predPlacementsConf').className = 'pred-conf '+p.confidence;
+      document.getElementById('predFeeConf').textContent = 'Based on '+p.basedOnMonths+' months';
+      document.getElementById('predFeeConf').className = 'pred-conf '+p.confidence;
+      document.getElementById('predAttConf').textContent = 'Based on '+p.basedOnMonths+' months';
+      document.getElementById('predAttConf').className = 'pred-conf '+p.confidence;
+    } catch(e){ console.error('Predictions:',e); }
+  }
+
+  async function loadModuleAnalytics(module){
+    try {
+      const r = await api.request('/v1/intelligence/analytics?module='+module);
+      const a = r.data.analytics;
+      cachedAnalytics = {...cachedAnalytics, ...a};
+      renderModuleChart(module, a);
+    } catch(e){ console.error('Analytics:',e); }
+  }
+
+  function renderModuleChart(module, data){
+    const ctx = document.getElementById('moduleChart').getContext('2d');
+    if(moduleChart) moduleChart.destroy();
+    const configs = {
+      attendance: ()=>{
+        const d = data.attendance || {};
+        const daily = d.daily||[];
+        return {type:'line',data:{labels:daily.map(x=>x.date.slice(5)),datasets:[{label:'Daily Attendance %',data:daily.map(x=>x.rate),borderColor:'#4F46E5',backgroundColor:'rgba(79,70,229,.1)',fill:true,tension:.3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,max:100,ticks:{callback:v=>v+'%'}}}}};
+      },
+      academics: ()=>{
+        const depts = (data.academics||{}).byDepartment||[];
+        return {type:'bar',data:{labels:depts.map(d=>d.department),datasets:[{label:'Avg Marks',data:depts.map(d=>d.avgMarks),backgroundColor:'#4F46E5'},{label:'Pass Rate %',data:depts.map(d=>d.passRate),backgroundColor:'#10B981'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}},scales:{y:{beginAtZero:true,max:100}}}};
+      },
+      finance: ()=>{
+        const types = (data.finance||{}).byType||[];
+        return {type:'doughnut',data:{labels:types.map(t=>t.type),datasets:[{data:types.map(t=>t.collected),backgroundColor:['#4F46E5','#10B981','#F59E0B','#EF4444','#8B5CF6']}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}}}};
+      },
+      placements: ()=>{
+        const s = (data.placements||{}).byStatus||{};
+        return {type:'doughnut',data:{labels:Object.keys(s),datasets:[{data:Object.values(s),backgroundColor:['#4F46E5','#10B981','#F59E0B','#EF4444','#8B5CF6','#0EA5E9']}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom'}}}};
+      },
+      campus: ()=>{
+        const byType = (data.campus||{}).energyByType||[];
+        return {type:'bar',data:{labels:byType.map(e=>e.type),datasets:[{label:'Cost (₹)',data:byType.map(e=>e.cost),backgroundColor:['#4F46E5','#10B981','#F59E0B','#EF4444','#8B5CF6']}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{callback:v=>'₹'+v.toLocaleString()}}}}};
+      },
+      skills: ()=>{
+        const top = (data.skills||{}).topSkills||[];
+        return {type:'bar',data:{labels:top.slice(0,10).map(s=>s.name),datasets:[{label:'Students with Skill',data:top.slice(0,10).map(s=>s.count),backgroundColor:'#4F46E5'}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true}}}};
+      },
+    };
+    moduleChart = new Chart(ctx, configs[module]());
+  }
+
+  document.getElementById('moduleTabs').addEventListener('click', function(e){
+    const tab = e.target.closest('.module-tab');
+    if(!tab) return;
+    document.querySelectorAll('.module-tab').forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    loadModuleAnalytics(tab.dataset.m);
+  });
+
+  async function loadTrends(){
+    try {
+      const period = document.getElementById('trendPeriod').value;
+      const r = await api.request('/v1/intelligence/trends?period='+period);
+      const t = r.data.trends;
+      const ctx = document.getElementById('trendChart').getContext('2d');
+      if(trendChart) trendChart.destroy();
+      trendChart = new Chart(ctx, {
+        type:'line',
+        data:{
+          labels: (t.attendance||[]).map(a=>a.date.slice(5)),
+          datasets:[
+            {label:'Attendance %',data:(t.attendance||[]).map(a=>a.rate),borderColor:'#4F46E5',backgroundColor:'rgba(79,70,229,.08)',fill:true,tension:.3,yAxisID:'y'},
+            {label:'Applications',data:(t.applications||[]).map(a=>a.count),borderColor:'#10B981',backgroundColor:'rgba(16,185,129,.08)',fill:true,tension:.3,yAxisID:'y1'},
+            {label:'Sensor Alerts',data:(t.sensors||[]).map(s=>s.alerts),borderColor:'#EF4444',backgroundColor:'rgba(239,68,68,.08)',fill:true,tension:.3,yAxisID:'y1'},
+          ]
+        },
+        options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{position:'bottom'}},scales:{y:{type:'linear',position:'left',beginAtZero:true,max:100,title:{display:true,text:'Attendance %'}},y1:{type:'linear',position:'right',beginAtZero:true,title:{display:true,text:'Count'},grid:{drawOnChartArea:false}}}}
+      });
+    } catch(e){ console.error('Trends:',e); }
+  }
+
+  document.getElementById('trendPeriod').addEventListener('change', loadTrends);
+
+  async function loadInsights(){
+    try {
+      const r = await api.request('/v1/intelligence/analytics?module=campus');
+      const c = r.data.analytics.campus||{};
+      const alerts = c.sensorAlertsByBuilding||[];
+      document.getElementById('insightSensors').innerHTML = alerts.length ? alerts.slice(0,5).map(a=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #F8FAFC;font-size:13px"><span>${esc(a.building)} &middot; ${esc(a.type)}</span><span style="font-weight:600;color:#EF4444">${a.count} alerts</span></div>`).join('') : '<div style="font-size:13px;color:#64748B">No sensor alerts this week</div>';
+
+      const energy = c.energyByType||[];
+      document.getElementById('insightEnergy').innerHTML = energy.length ? energy.map(e=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #F8FAFC;font-size:13px"><span>${esc(e.type)}</span><span style="font-weight:600">${fmt(e.cost)}</span></div>`).join('') : '<div style="font-size:13px;color:#64748B">No energy data</div>';
+
+      const r2 = await api.request('/v1/intelligence/analytics?module=placements');
+      const comps = ((r2.data.analytics.placements||{}).topCompanies||[]).slice(0,5);
+      document.getElementById('insightPlacements').innerHTML = comps.length ? comps.map(c=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #F8FAFC;font-size:13px"><span>${esc(c.name)}</span><span style="font-weight:600;color:#10B981">${c.rate}% (${c.selected}/${c.applications})</span></div>`).join('') : '<div style="font-size:13px;color:#64748B">No placement data</div>';
+    } catch(e){ console.error('Insights:',e); }
+  }
+
+  // AI Query
+  document.getElementById('aiQueryBtn').addEventListener('click', runAIQuery);
+  document.getElementById('aiQueryInput').addEventListener('keydown', function(e){ if(e.key==='Enter') runAIQuery(); });
+
+  async function runAIQuery(){
+    const q = document.getElementById('aiQueryInput').value.trim();
+    if(!q) return;
+    const btn = document.getElementById('aiQueryBtn');
+    const resp = document.getElementById('aiQueryResponse');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Thinking...';
+    btn.disabled = true;
+    resp.className = 'query-response visible';
+    resp.textContent = 'Analyzing your campus data...';
+    try {
+      const r = await api.request('/v1/intelligence/query', { method:'POST', body:JSON.stringify({query:q}), headers:{'Content-Type':'application/json'} });
+      resp.textContent = r.data.response;
+    } catch(e){
+      resp.textContent = 'Error: '+(e.message||'Failed to get AI response. Make sure OPENAI_API_KEY is configured.');
+    }
+    btn.innerHTML = '<i class="fas fa-paper-plane"></i> Ask';
+    btn.disabled = false;
+  }
+
+  document.getElementById('refreshBtn').addEventListener('click', loadAll);
+
+  loadAll();
+})();
+</script>
+</body>
+</html>
