@@ -47,18 +47,56 @@ const recordReading = asyncHandler(async (req, res) => {
   const sensor = await CampusSensor.findOne({ _id: sensorId, collegeId: req.user.collegeId });
   if (!sensor) return res.status(404).json({ success: false, message: 'Sensor not found' });
 
+  const alertDetected = isAlert || (sensor.maxThreshold && value > sensor.maxThreshold) || (sensor.minThreshold && value < sensor.minThreshold);
+
   const reading = await SensorReading.create({
     sensorId,
     collegeId: req.user.collegeId,
     value,
     unit: unit || sensor.unit,
-    isAlert: isAlert || (sensor.maxThreshold && value > sensor.maxThreshold) || (sensor.minThreshold && value < sensor.minThreshold),
+    isAlert: alertDetected,
     alertMessage,
   });
 
   await CampusSensor.findByIdAndUpdate(sensorId, { lastReading: value, lastReadingAt: new Date() });
+
+  const sensorPayload = {
+    sensorId: sensor._id,
+    name: sensor.name,
+    type: sensor.type,
+    building: sensor.building,
+    room: sensor.room,
+    value,
+    unit: reading.unit,
+    isAlert: alertDetected,
+    alertMessage,
+    timestamp: reading.timestamp,
+  };
+
+  if (req.io) {
+    req.io.to(`college:${req.user.collegeId}`).emit('sensor_reading', sensorPayload);
+    if (alertDetected) {
+      req.io.to(`college:${req.user.collegeId}`).emit('sensor_alert', {
+        ...sensorPayload,
+        severity: getAlertSeverity(sensor.type, value, sensor.maxThreshold, sensor.minThreshold),
+        message: alertMessage || `Alert: ${sensor.name} reading ${value}${reading.unit} at ${sensor.building || ''} ${sensor.room || ''}`.trim(),
+      });
+    }
+  }
+
   res.status(201).json({ success: true, reading });
 });
+
+function getAlertSeverity(type, value, max, min) {
+  if (max && value > max * 1.5) return 'critical';
+  if (min && value < min * 0.5) return 'critical';
+  if (max && value > max * 1.2) return 'high';
+  if (type === 'air_quality' && value > 200) return 'critical';
+  if (type === 'air_quality' && value > 150) return 'high';
+  if (type === 'co2' && value > 1000) return 'high';
+  if (type === 'temperature' && (value > 40 || value < 5)) return 'high';
+  return 'medium';
+}
 
 const getSensorReadings = asyncHandler(async (req, res) => {
   const { sensorId, from, to, limit = 100 } = req.query;
@@ -145,6 +183,19 @@ const updateResource = asyncHandler(async (req, res) => {
     { new: true, runValidators: true }
   );
   if (!resource) return res.status(404).json({ success: false, message: 'Resource not found' });
+
+  if (req.io) {
+    req.io.to(`college:${req.user.collegeId}`).emit('resource_update', {
+      resourceId: resource._id,
+      name: resource.name,
+      type: resource.type,
+      building: resource.building,
+      status: resource.status,
+      currentOccupancy: resource.currentOccupancy,
+      capacity: resource.capacity,
+    });
+  }
+
   res.json({ success: true, resource });
 });
 

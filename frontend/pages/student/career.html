@@ -73,6 +73,17 @@
       letter-spacing: 0.1em; color: #64748B; margin-bottom: 10px; margin-top: 18px;
     }
     .category-label:first-child { margin-top: 0; }
+    .learning-path-card { border:1px solid #E2E8F0; border-radius:14px; padding:18px; background:white; transition:all 0.3s; }
+    .learning-path-card:hover { box-shadow:0 8px 24px rgba(0,0,0,0.06); transform:translateY(-2px); }
+    .priority-high { border-left:4px solid #EF4444; }
+    .priority-medium { border-left:4px solid #F59E0B; }
+    .priority-low { border-left:4px solid #10B981; }
+    .ai-rec-card { border:1px solid #E2E8F0; border-radius:14px; padding:20px; background:linear-gradient(135deg,#F8FAFC,#F1F5F9); }
+    .ai-rec-loading { text-align:center; padding:40px; }
+    .ai-rec-loading .spinner { width:40px; height:40px; border:4px solid #E2E8F0; border-top-color:#6366F1; border-radius:999%; animation:spin 0.8s linear infinite; margin:0 auto 12px; }
+    @keyframes spin { to{transform:rotate(360deg)} }
+    .path-item { display:flex; align-items:center; gap:10px; padding:8px 0; font-size:13px; }
+    .path-item-icon { width:28px; height:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:12px; flex-shrink:0; }
   </style>
 </head>
 <body>
@@ -96,6 +107,7 @@
       <a href="skills.html" class="nav-link"><i class="nav-link-icon fas fa-code"></i> Skills Profile</a>
       <a href="mentorship.html" class="nav-link"><i class="nav-link-icon fas fa-handshake"></i> Mentorship</a>
       <a href="placements.html" class="nav-link"><i class="nav-link-icon fas fa-briefcase"></i> Placements</a>
+      <a href="assessments.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-check"></i> Skill Assessments</a>
       <div class="nav-section-label">Finance</div>
       <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-receipt"></i> Fees</a>
       <div class="nav-section-label">Tools</div>
@@ -216,6 +228,27 @@
             </div>
           </div>
         </div>
+
+        <!-- Learning Paths -->
+        <div class="card" style="margin-top:24px" id="learningPathsCard">
+          <div class="card-header"><div class="card-title"><i class="fas fa-route" style="color:#8B5CF6;margin-right:8px"></i>Recommended Learning Paths</div></div>
+          <div class="card-body" id="learningPathsBody">
+            <div style="text-align:center;padding:20px"><div class="spinner" style="width:32px;height:32px;border:3px solid #E2E8F0;border-top-color:#8B5CF6;border-radius:999%;animation:spin 0.8s linear infinite;margin:0 auto"></div></div>
+          </div>
+        </div>
+
+        <!-- AI Career Recommendations -->
+        <div class="card" style="margin-top:24px" id="aiRecCard">
+          <div class="card-header"><div class="card-title"><i class="fas fa-robot" style="color:#6366F1;margin-right:8px"></i>AI Career Recommendations</div><button class="btn btn-primary btn-sm" id="aiRecBtn" onclick="getAIRecs()"><i class="fas fa-sparkles"></i> Get Recommendations</button></div>
+          <div class="card-body" id="aiRecBody">
+            <div class="ai-rec-card" style="text-align:center;padding:40px">
+              <i class="fas fa-robot" style="font-size:40px;color:#C7D2FE;margin-bottom:12px"></i>
+              <h3 style="font-weight:700;font-size:15px;margin-bottom:6px">AI-Powered Career Advice</h3>
+              <p style="color:#64748B;font-size:13px;margin-bottom:16px">Get personalized career recommendations based on your profile, skills, and market trends.</p>
+              <button onclick="getAIRecs()" class="btn btn-primary" style="background:linear-gradient(135deg,#6366F1,#8B5CF6)"><i class="fas fa-magic"></i> Generate Recommendations</button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- EMPTY STATE (shown if no profile) -->
@@ -265,6 +298,8 @@
   };
 
   const GAP_COLORS = ['#EF4444','#F97316','#F59E0B','#EAB308','#D946EF','#EC4899'];
+
+  function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
 
   function getCatColor(cat) {
     return CATEGORY_COLORS[cat] || CATEGORY_COLORS['Other'];
@@ -464,6 +499,113 @@
     }
   }
 
+  // Load Learning Paths
+  async function loadLearningPaths() {
+    try {
+      const res = await api.request('/career/learning-paths');
+      const data = res.data || res;
+      const paths = data.learningPaths || [];
+      const container = document.getElementById('learningPathsBody');
+      if (!container) return;
+      
+      if (!paths.length) {
+        container.innerHTML = '<div style="text-align:center;padding:20px;color:#94A3B8;font-size:13px">Complete your skills profile to get personalized learning paths.</div>';
+        return;
+      }
+      
+      container.innerHTML = paths.map(function(p) {
+        return '<div class="learning-path-card priority-' + p.priority + '" style="margin-bottom:14px">' +
+          '<div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:10px">' +
+            '<div>' +
+              '<h4 style="font-weight:800;font-size:15px;margin-bottom:4px">' + esc(p.title) + '</h4>' +
+              '<p style="font-size:12.5px;color:#64748B;line-height:1.5">' + esc(p.description) + '</p>' +
+            '</div>' +
+            '<div style="text-align:right;flex-shrink:0;margin-left:12px">' +
+              '<div style="font-size:11px;color:#94A3B8">Est. ' + (p.estimatedHours || '?') + 'h</div>' +
+              '<span style="font-size:10px;padding:2px 8px;border-radius:999px;font-weight:700;text-transform:uppercase;background:' + (p.priority==='high'?'#FEE2E2':p.priority==='medium'?'#FEF3C7':'#D1FAE5') + ';color:' + (p.priority==='high'?'#991B1B':p.priority==='medium'?'#92400E':'#065F46') + '">' + p.priority + '</span>' +
+            '</div>' +
+          '</div>' +
+          '<div style="display:flex;flex-direction:column;gap:6px;margin-top:10px">' +
+            (p.items||[]).slice(0,4).map(function(item) {
+              var iconBg = item.type==='assessment'?'#EEF2FF':item.type==='skill'?'#ECFDF5':item.type==='project'?'#FEF3C7':'#F1F5F9';
+              var iconColor = item.type==='assessment'?'#4338CA':item.type==='skill'?'#065F46':item.type==='project'?'#92400E':'#475569';
+              var iconName = item.type==='assessment'?'clipboard-check':item.type==='skill'?'code':item.type==='project'?'folder':'book';
+              var diffBadge = item.difficulty ? '<span style="font-size:10px;padding:1px 6px;border-radius:999px;font-weight:700;background:' + (item.difficulty==='easy'?'#D1FAE5':item.difficulty==='medium'?'#FEF3C7':'#FEE2E2') + ';color:' + (item.difficulty==='easy'?'#065F46':item.difficulty==='medium'?'#92400E':'#991B1B') + '">' + item.difficulty + '</span>' : '';
+              var hours = item.estimatedHours ? ' <span style="color:#94A3B8;font-size:11px">(' + item.estimatedHours + 'h)</span>' : '';
+              return '<div class="path-item">' +
+                '<div class="path-item-icon" style="background:' + iconBg + ';color:' + iconColor + '"><i class="fas fa-' + iconName + '"></i></div>' +
+                '<div style="flex:1"><span style="font-weight:600">' + esc(item.title) + '</span>' + hours + '</div>' +
+                diffBadge +
+              '</div>';
+            }).join('') +
+          '</div>' +
+        '</div>';
+      }).join('');
+    } catch(e) {
+      console.error('Failed to load learning paths', e);
+    }
+  }
+
+  // AI Recommendations
+  window.getAIRecs = async function() {
+    var btn = document.getElementById('aiRecBtn');
+    var body = document.getElementById('aiRecBody');
+    if (!body) return;
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating...';
+    body.innerHTML = '<div class="ai-rec-loading"><div class="spinner"></div><p style="color:#64748B;font-size:13px">AI is analyzing your profile...</p></div>';
+    
+    try {
+      const res = await api.request('/career/ai-recommendations');
+      const data = res.data || res;
+      const recs = data.recommendations || {};
+      
+      if (recs.rawAdvice) {
+        body.innerHTML = '<div class="ai-rec-card"><div style="white-space:pre-wrap;font-size:13.5px;line-height:1.7;color:#334155">' + esc(recs.rawAdvice) + '</div></div>';
+      } else {
+        var html = '<div style="display:flex;flex-direction:column;gap:16px">';
+        
+        if (recs.careerPaths) {
+          html += '<div><h4 style="font-weight:800;font-size:14px;margin-bottom:8px"><i class="fas fa-route" style="color:#6366F1;margin-right:6px"></i>Recommended Career Paths</h4><div style="display:flex;flex-direction:column;gap:6px">' + (Array.isArray(recs.careerPaths)?recs.careerPaths:[]).map(function(p) {
+            return '<div style="padding:10px 14px;background:white;border:1px solid #E2E8F0;border-radius:8px;font-size:13px">' + (typeof p==='object'?'<strong>' + esc(p.title||p.name||'') + '</strong> ' + esc(p.reason||p.description||''):esc(p)) + '</div>';
+          }).join('') + '</div></div>';
+        }
+        
+        if (recs.skillsToLearn) {
+          html += '<div><h4 style="font-weight:800;font-size:14px;margin-bottom:8px"><i class="fas fa-code" style="color:#10B981;margin-right:6px"></i>Skills to Learn Next</h4><div style="display:flex;flex-wrap:wrap;gap:6px">' + (Array.isArray(recs.skillsToLearn)?recs.skillsToLearn:[]).map(function(s) {
+            return '<span style="padding:6px 12px;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:999px;font-size:12px;font-weight:600;color:#065F46">' + (typeof s==='object'?esc(s.name||s.skill||''):esc(s)) + '</span>';
+          }).join('') + '</div></div>';
+        }
+        
+        if (recs.projectIdeas) {
+          html += '<div><h4 style="font-weight:800;font-size:14px;margin-bottom:8px"><i class="fas fa-folder" style="color:#F59E0B;margin-right:6px"></i>Project Ideas</h4><div style="display:flex;flex-direction:column;gap:6px">' + (Array.isArray(recs.projectIdeas)?recs.projectIdeas:[]).map(function(p) {
+            return '<div style="padding:10px 14px;background:white;border:1px solid #E2E8F0;border-radius:8px;font-size:13px"><i class="fas fa-lightbulb" style="color:#F59E0B;margin-right:6px"></i>' + (typeof p==='object'?esc(p.title||p.name||''):esc(p)) + '</div>';
+          }).join('') + '</div></div>';
+        }
+        
+        if (recs.certificationToPursue) {
+          html += '<div><h4 style="font-weight:800;font-size:14px;margin-bottom:8px"><i class="fas fa-certificate" style="color:#8B5CF6;margin-right:6px"></i>Certification Recommendation</h4><div style="padding:10px 14px;background:#F5F3FF;border:1px solid #DDD6FE;border-radius:8px;font-size:13px;font-weight:600;color:#6D28D9">' + (typeof recs.certificationToPursue==='object'?esc(recs.certificationToPursue.title||recs.certificationToPursue.name||''):esc(recs.certificationToPursue)) + '</div></div>';
+        }
+        
+        if (recs.interviewTips) {
+          html += '<div><h4 style="font-weight:800;font-size:14px;margin-bottom:8px"><i class="fas fa-comments" style="color:#0EA5E9;margin-right:6px"></i>Interview Tips</h4><div style="padding:10px 14px;background:#F0F9FF;border:1px solid #BAE6FD;border-radius:8px;font-size:13px;color:#0369A1;line-height:1.6">' + esc(typeof recs.interviewTips==='object'?JSON.stringify(recs.interviewTips):recs.interviewTips) + '</div></div>';
+        }
+        
+        html += '</div>';
+        body.innerHTML = html;
+      }
+      
+      btn.innerHTML = '<i class="fas fa-check"></i> Done';
+      setTimeout(function() { btn.innerHTML = '<i class="fas fa-sparkles"></i> Regenerate'; btn.disabled = false; }, 2000);
+    } catch(e) {
+      body.innerHTML = '<div style="text-align:center;padding:20px;color:#EF4444;font-size:13px">Failed to generate recommendations. Please try again.</div>';
+      btn.innerHTML = '<i class="fas fa-sparkles"></i> Try Again';
+      btn.disabled = false;
+    }
+  };
+
+  loadLearningPaths();
   loadCareerData();
 })();
 </script>

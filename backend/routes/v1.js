@@ -27,5 +27,7 @@ router.use('/career', require('../modules/careerRoutes'));
 router.use('/mentorship', require('../modules/mentorshipRoutes'));
 router.use('/campus', require('../modules/campusRoutes'));
 router.use('/energy', require('../modules/energyRoutes'));
+router.use('/assessments', require('../modules/assessmentRoutes'));
+router.use('/placement-drives', require('../modules/placementDriveRoutes'));
 
 module.exports = router;

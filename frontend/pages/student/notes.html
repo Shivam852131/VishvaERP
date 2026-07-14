@@ -21,8 +21,22 @@
     .note-file-icon.doc { background: #DBEAFE; color: #2563EB; }
     .note-file-icon.img { background: #D1FAE5; color: #059669; }
     .note-file-icon.other { background: #F1F5F9; color: #64748B; }
-    .note-stats { display: flex; gap: 16px; align-items: center; font-size: 12px; color: #94A3B8; }
-    .note-stats span { display: flex; align-items: center; gap: 4px; }
+    .vote-btn { display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:700; cursor:pointer; border:1px solid #E2E8F0; background:white; transition:all 0.2s; }
+    .vote-btn:hover { background:#F8FAFC; }
+    .vote-btn.active-up { background:#EEF2FF; color:#4338CA; border-color:#C7D2FE; }
+    .vote-btn.active-down { background:#FEF2F2; color:#991B1B; border-color:#FECACA; }
+    .bookmark-btn { padding:6px 12px; border-radius:999px; font-size:12px; font-weight:700; cursor:pointer; border:1px solid #E2E8F0; background:white; transition:all 0.2s; }
+    .bookmark-btn.active { background:#FEF3C7; color:#92400E; border-color:#FDE68A; }
+    .rating-stars { display:inline-flex; gap:2px; }
+    .rating-stars .star { cursor:pointer; font-size:18px; color:#E2E8F0; transition:color 0.2s; }
+    .rating-stars .star.filled { color:#F59E0B; }
+    .comment-box { border:1px solid #E2E8F0; border-radius:12px; padding:14px; margin-top:12px; }
+    .comment-item { padding:10px 0; border-bottom:1px solid #F1F5F9; }
+    .comment-item:last-child { border-bottom:none; }
+    .comment-input { width:100%; padding:10px 14px; border:1px solid #E2E8F0; border-radius:8px; font-size:13px; resize:none; outline:none; }
+    .comment-input:focus { border-color:#6366F1; }
+    .note-stats { display:flex; gap:14px; align-items:center; flex-wrap:wrap; }
+    .note-stat { display:inline-flex; align-items:center; gap:4px; font-size:12px; color:#64748B; font-weight:600; }
     .filter-bar { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-bottom: 20px; }
     .filter-bar select, .filter-bar input { padding: 10px 14px; border: 1px solid #E2E8F0; border-radius: 10px; font-size: 13px; background: #fff; color: #334155; outline: none; transition: border-color 0.2s; font-family: inherit; min-width: 0; }
     .filter-bar select:focus, .filter-bar input:focus { border-color: #8B5CF6; box-shadow: 0 0 0 3px rgba(139,92,246,0.1); }
@@ -71,6 +85,7 @@
       <a href="skills.html" class="nav-link"><i class="nav-link-icon fas fa-tools"></i> Skills Profile</a>
       <a href="mentorship.html" class="nav-link"><i class="nav-link-icon fas fa-user-tie"></i> Mentorship</a>
       <a href="placements.html" class="nav-link"><i class="nav-link-icon fas fa-briefcase"></i> Placements</a>
+      <a href="assessments.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-check"></i> Skill Assessments</a>
       <div class="nav-section-label">Finance</div>
       <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-receipt"></i> Fees</a>
       <div class="nav-section-label">Campus Life</div>
@@ -383,10 +398,47 @@
           </div>
           ${n.attachments && n.attachments.length ? `<div class="note-file-list">${filesHtml}</div>` : ''}
           <div class="note-stats">
-            <span><i class="fas fa-download"></i> ${n.downloads || 0} downloads</span>
+            <div class="vote-btn ${n.hasUpvoted ? 'active-up' : ''}" onclick="toggleVote('${n._id}','upvote')">
+              <i class="fas fa-arrow-up"></i> <span>${n.voteScore || 0}</span>
+            </div>
+            <div class="vote-btn ${n.hasDownvoted ? 'active-down' : ''}" onclick="toggleVote('${n._id}','downvote')">
+              <i class="fas fa-arrow-down"></i>
+            </div>
+            <div class="bookmark-btn ${n.hasBookmarked ? 'active' : ''}" onclick="toggleBookmark('${n._id}')">
+              <i class="fas fa-bookmark"></i> ${n.bookmarkCount || 0}
+            </div>
+            <div class="note-stat" style="cursor:pointer" onclick="toggleComments('${n._id}')"><i class="fas fa-comments"></i> Comments</div>
+            <div class="note-stat"><i class="fas fa-comment"></i> ${n.commentCount || 0}</div>
+            <div class="note-stat"><i class="fas fa-download"></i> ${n.downloads || 0}</div>
+            <div class="rating-stars" data-note-id="${n._id}">
+              ${[1,2,3,4,5].map(s => `<span class="star ${s <= (n.avgRating||0) ? 'filled' : ''}" onclick="rateNote('${n._id}',${s})">&#9733;</span>`).join('')}
+              <span style="font-size:11px;color:#94A3B8;margin-left:4px">${n.avgRating || 0}</span>
+            </div>
             ${user && (user.role === 'collegeAdmin' || (uploader._id || uploader.id) === user.id)
-              ? `<span style="margin-left:auto;cursor:pointer;color:#EF4444" onclick="deleteNote('${n._id}')"><i class="fas fa-trash"></i> Delete</span>`
+              ? `<div class="note-stat" style="margin-left:auto;cursor:pointer;color:#EF4444" onclick="deleteNote('${n._id}')"><i class="fas fa-trash"></i> Delete</div>`
               : ''}
+          </div>
+        </div>
+        <div class="comment-box" id="comments-${n._id}" style="display:none">
+          <div style="display:flex;gap:8px;margin-bottom:12px">
+            <input class="comment-input" placeholder="Write a comment..." id="commentInput-${n._id}" onkeydown="if(event.key==='Enter')addComment('${n._id}')">
+            <button onclick="addComment('${n._id}')" style="padding:8px 14px;background:#6366F1;color:white;border:none;border-radius:8px;cursor:pointer;font-size:12px;font-weight:700;white-space:nowrap">Post</button>
+          </div>
+          <div id="commentList-${n._id}">
+            ${(n.comments||[]).map(c => `
+              <div class="comment-item">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+                  <div style="width:24px;height:24px;border-radius:999px;background:#E2E8F0;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700">${esc(c.userId?.name||'U')[0]}</div>
+                  <span style="font-weight:700;font-size:12px">${esc(c.userId?.name||'User')}</span>
+                  <span style="font-size:11px;color:#94A3B8">${timeAgo(c.createdAt)}</span>
+                  ${c.isEdited ? '<span style="font-size:10px;color:#94A3B8">(edited)</span>' : ''}
+                </div>
+                <p style="font-size:13px;color:#475569;margin-left:32px">${esc(c.text)}</p>
+                <div style="margin-left:32px;margin-top:4px;display:flex;gap:10px">
+                  <button class="vote-btn ${c.hasUpvoted?'active-up':''}" onclick="voteComment('${n._id}','${c._id}')" style="padding:2px 8px;font-size:11px"><i class="fas fa-arrow-up"></i> ${c.upvoteCount||0}</button>
+                </div>
+              </div>
+            `).join('')}
           </div>
         </div>`;
       }).join('');
@@ -415,6 +467,55 @@
     if (!str) return '';
     return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
+
+  function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+
+  function timeAgo(date) {
+    if (!date) return '';
+    const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
+    if (seconds < 60) return 'just now';
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return minutes + 'm ago';
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return hours + 'h ago';
+    const days = Math.floor(hours / 24);
+    if (days < 30) return days + 'd ago';
+    const months = Math.floor(days / 30);
+    if (months < 12) return months + 'mo ago';
+    return Math.floor(months / 12) + 'y ago';
+  }
+
+  window.toggleVote = async function(noteId, type) {
+    const res = await api.request('/notes/' + noteId + '/vote', { method: 'POST', body: JSON.stringify({ type }), headers: { 'Content-Type': 'application/json' } });
+    if (res && (res.success || res.voteScore !== undefined)) { loadNotes(currentPage); }
+  };
+
+  window.toggleBookmark = async function(noteId) {
+    const res = await api.request('/notes/' + noteId + '/bookmark', { method: 'POST' });
+    if (res && (res.success || res.hasBookmarked !== undefined)) { loadNotes(currentPage); }
+  };
+
+  window.rateNote = async function(noteId, score) {
+    const res = await api.request('/notes/' + noteId + '/rate', { method: 'POST', body: JSON.stringify({ score }), headers: { 'Content-Type': 'application/json' } });
+    if (res && res.success) { loadNotes(currentPage); }
+  };
+
+  window.toggleComments = function(noteId) {
+    const el = document.getElementById('comments-' + noteId);
+    if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
+  };
+
+  window.addComment = async function(noteId) {
+    const input = document.getElementById('commentInput-' + noteId);
+    if (!input || !input.value.trim()) return;
+    const res = await api.request('/notes/' + noteId + '/comments', { method: 'POST', body: JSON.stringify({ text: input.value.trim() }), headers: { 'Content-Type': 'application/json' } });
+    if (res && res.success) { input.value = ''; loadNotes(currentPage); }
+  };
+
+  window.voteComment = async function(noteId, commentId) {
+    const res = await api.request('/notes/' + noteId + '/comments/vote', { method: 'POST', body: JSON.stringify({ commentId }), headers: { 'Content-Type': 'application/json' } });
+    if (res && res.success) { loadNotes(currentPage); }
+  };
 
   window.loadNotes = loadNotes;
 

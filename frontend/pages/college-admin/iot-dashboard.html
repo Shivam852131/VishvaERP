@@ -21,6 +21,16 @@
     .alert-dot{width:8px;height:8px;border-radius:50%;margin-top:6px;flex-shrink:0}
     .iot-section-label{font-size:18px;font-weight:700;color:#0F172A;margin-bottom:16px;display:flex;align-items:center;gap:8px}
     .iot-section-label i{color:#0891B2}
+    .live-indicator { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; font-size:11px; font-weight:700; background:#ECFDF5; color:#065F46; }
+    .live-dot { width:8px; height:8px; border-radius:999%; background:#10B981; animation:pulse-live 2s infinite; }
+    @keyframes pulse-live { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.3)} }
+    .sensor-flash { animation:sensor-flash-anim 0.5s ease; }
+    @keyframes sensor-flash-anim { 0%{background:#FEF3C7} 100%{background:transparent} }
+    .alert-toast { position:fixed; top:20px; right:20px; z-index:9999; padding:14px 20px; border-radius:12px; background:white; border-left:4px solid; box-shadow:0 8px 32px rgba(0,0,0,0.12); animation:slideIn 0.3s ease; max-width:400px; }
+    .alert-toast.critical { border-color:#EF4444; }
+    .alert-toast.high { border-color:#F59E0B; }
+    .alert-toast.medium { border-color:#0EA5E9; }
+    @keyframes slideIn { from{transform:translateX(100%);opacity:0} to{transform:translateX(0);opacity:1} }
   </style>
 </head>
 <body>
@@ -83,7 +93,7 @@
       <!-- Page Header -->
       <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
         <div>
-          <h1 class="page-title"><i class="fas fa-microchip"></i> Smart Campus IoT Dashboard</h1>
+          <h1 class="page-title"><i class="fas fa-microchip"></i> Smart Campus IoT Dashboard <span class="live-indicator" id="liveIndicator" style="display:none"><span class="live-dot"></span> Live</span></h1>
           <p class="page-subtitle" style="display:flex;align-items:center;gap:8px"><span class="live-dot"></span> <span style="font-weight:600;color:#10B981">Live</span> &mdash; Real-time sensor monitoring and campus resource management</p>
         </div>
         <div style="display:flex;gap:8px">
@@ -289,6 +299,7 @@
   </div>
 </div>
 
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script src="../../js/shared.js"></script>
 <script src="../../live/live-admin-pages.js"></script>
 <script>
@@ -632,6 +643,99 @@ async function addResource() {
 
 loadAll();
 setInterval(loadAll, 30000);
+</script>
+
+<script>
+(function initRealtime() {
+  try {
+    const socket = io(window.location.origin, { transports: ['websocket', 'polling'] });
+    
+    socket.on('connect', () => {
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      const collegeId = user.collegeId;
+      if (collegeId) {
+        socket.emit('join_room', 'college:' + collegeId);
+      }
+      const liveInd = document.getElementById('liveIndicator');
+      if (liveInd) liveInd.style.display = 'inline-flex';
+    });
+    
+    socket.on('disconnect', () => {
+      const liveInd = document.getElementById('liveIndicator');
+      if (liveInd) liveInd.style.display = 'none';
+    });
+    
+    socket.on('sensor_reading', (data) => {
+      const sensorCards = document.querySelectorAll('[data-sensor-id="' + data.sensorId + '"]');
+      sensorCards.forEach(card => {
+        const valueEl = card.querySelector('.sensor-value');
+        if (valueEl) {
+          valueEl.textContent = data.value + ' ' + (data.unit || '');
+          card.classList.add('sensor-flash');
+          setTimeout(() => card.classList.remove('sensor-flash'), 600);
+        }
+        if (data.isAlert) {
+          card.style.borderColor = '#EF4444';
+        }
+      });
+      
+      updateDashboardSummary(data);
+    });
+    
+    socket.on('sensor_alert', (data) => {
+      showAlertToast(data);
+      const alertBadge = document.getElementById('alertCount');
+      if (alertBadge) {
+        const current = parseInt(alertBadge.textContent || '0');
+        alertBadge.textContent = current + 1;
+        alertBadge.style.display = 'flex';
+      }
+    });
+    
+    socket.on('resource_update', (data) => {
+      const resourceCards = document.querySelectorAll('[data-resource-id="' + data.resourceId + '"]');
+      resourceCards.forEach(card => {
+        const occEl = card.querySelector('.resource-occupancy');
+        if (occEl) occEl.textContent = data.currentOccupancy + '/' + data.capacity;
+        card.classList.add('sensor-flash');
+        setTimeout(() => card.classList.remove('sensor-flash'), 600);
+      });
+    });
+    
+  } catch(e) {
+    console.log('Socket.io not available, real-time updates disabled');
+  }
+  
+  function showAlertToast(alert) {
+    const existing = document.querySelector('.alert-toast');
+    if (existing) existing.remove();
+    
+    const toast = document.createElement('div');
+    toast.className = 'alert-toast ' + (alert.severity || 'medium');
+    toast.innerHTML = `
+      <div style="display:flex;align-items:start;gap:10px">
+        <i class="fas fa-${alert.severity==='critical'?'exclamation-triangle':'exclamation-circle'}" style="color:${alert.severity==='critical'?'#EF4444':alert.severity==='high'?'#F59E0B':'#0EA5E9'};font-size:18px;margin-top:2px"></i>
+        <div style="flex:1">
+          <div style="font-weight:700;font-size:13px;margin-bottom:2px">${esc(alert.name || 'Sensor Alert')}</div>
+          <div style="font-size:12px;color:#475569">${esc(alert.message || '')}</div>
+          <div style="font-size:11px;color:#94A3B8;margin-top:4px">${new Date(alert.timestamp).toLocaleTimeString()}</div>
+        </div>
+        <button onclick="this.parentElement.parentElement.remove()" style="background:none;border:none;cursor:pointer;color:#94A3B8;font-size:14px"><i class="fas fa-times"></i></button>
+      </div>
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 8000);
+  }
+  
+  function updateDashboardSummary(data) {
+    const summaryEl = document.querySelector('[data-type="' + data.type + '"] .stat-value');
+    if (summaryEl) {
+      summaryEl.textContent = data.value + ' ' + (data.unit || '');
+    }
+  }
+  
+  function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+})();
 </script>
 </body>
 </html>

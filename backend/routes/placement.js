@@ -2,7 +2,7 @@ const express = require('express');
 const { protect } = require('../middleware/auth');
 const { authorize, sameCollege } = require('../middleware/rbac');
 const { requireSubscription } = require('../middleware/subscription');
-const { createCompany, getCompanies, createJob, getJobs, getJobById, updateJob, applyForJob, getApplications, updateApplication, getPlacementStats } = require('../controllers/placementController');
+const { createCompany, getCompanies, createJob, getJobs, getJobById, updateJob, applyForJob, getApplications, updateApplication, getPlacementStats, getATSScore, bulkUpdateApplications } = require('../controllers/placementController');
 
 const router = express.Router();
 router.use(protect, sameCollege, requireSubscription);
@@ -23,5 +23,7 @@ router.route('/applications')
 
 router.put('/applications/:id', authorize('collegeAdmin', 'superadmin'), updateApplication);
 router.get('/stats', authorize('collegeAdmin', 'superadmin'), getPlacementStats);
+router.get('/jobs/:id/ats', getATSScore);
+router.post('/applications/bulk-update', authorize('collegeAdmin', 'superadmin'), bulkUpdateApplications);
 
 module.exports = router;

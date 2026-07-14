@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Skill Assessments | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../css/custom.css">
+  <style>
+    .assess-card { border:1px solid #E2E8F0; border-radius:16px; padding:22px; background:white; transition:all 0.3s ease; position:relative; overflow:hidden; }
+    .assess-card:hover { box-shadow:0 12px 40px rgba(0,0,0,0.08); transform:translateY(-3px); border-color:#C7D2FE; }
+    .assess-card .assess-badge { position:absolute; top:16px; right:16px; padding:5px 12px; border-radius:999px; font-size:11px; font-weight:800; text-transform:uppercase; }
+    .assess-badge-easy   { background:#D1FAE5; color:#065F46; }
+    .assess-badge-medium { background:#FEF3C7; color:#92400E; }
+    .assess-badge-hard   { background:#FEE2E2; color:#991B1B; }
+    .assess-badge-mixed  { background:#EDE9FE; color:#5B21B6; }
+    .category-chip { display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:999px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; }
+    .cat-technical  { background:#EEF2FF; color:#4338CA; }
+    .cat-aptitude   { background:#FEF3C7; color:#92400E; }
+    .cat-domain     { background:#ECFDF5; color:#065F46; }
+    .cat-soft_skill { background:#FDF2F8; color:#BE185D; }
+    .cat-coding     { background:#F0F9FF; color:#0369A1; }
+    .cat-custom     { background:#F5F3FF; color:#6D28D9; }
+    .timer-ring { width:64px; height:64px; position:relative; }
+    .timer-ring svg { width:100%; height:100%; transform:rotate(-90deg); }
+    .timer-ring-bg { fill:none; stroke:#E2E8F0; stroke-width:6; }
+    .timer-ring-fill { fill:none; stroke-width:6; stroke-linecap:round; transition:stroke-dashoffset 1s linear; }
+    .timer-ring-center { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:800; }
+    .question-card { border:1px solid #E2E8F0; border-radius:16px; padding:28px; background:white; margin-bottom:20px; }
+    .option-btn { display:block; width:100%; text-align:left; padding:14px 18px; border:2px solid #E2E8F0; border-radius:12px; background:white; cursor:pointer; transition:all 0.2s ease; font-size:14px; font-weight:500; }
+    .option-btn:hover { border-color:#C7D2FE; background:#F8FAFC; }
+    .option-btn.selected { border-color:#6366F1; background:#EEF2FF; color:#4338CA; font-weight:700; }
+    .option-btn.correct { border-color:#10B981; background:#ECFDF5; color:#065F46; }
+    .option-btn.incorrect { border-color:#EF4444; background:#FEF2F2; color:#991B1B; }
+    .fill-blank-input { width:100%; padding:12px 16px; border:2px solid #E2E8F0; border-radius:12px; font-size:14px; outline:none; transition:border-color 0.2s; }
+    .fill-blank-input:focus { border-color:#6366F1; }
+    .leaderboard-row { display:flex; align-items:center; gap:14px; padding:14px 18px; border-radius:12px; transition:background 0.2s; }
+    .leaderboard-row:hover { background:#F8FAFC; }
+    .leaderboard-rank { width:36px; height:36px; border-radius:999px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:14px; flex-shrink:0; }
+    .rank-1 { background:linear-gradient(135deg,#F59E0B,#FBBF24); color:white; }
+    .rank-2 { background:linear-gradient(135deg,#94A3B8,#CBD5E1); color:white; }
+    .rank-3 { background:linear-gradient(135deg,#D97706,#F59E0B); color:white; }
+    .rank-n { background:#F1F5F9; color:#475569; }
+    .progress-dots { display:flex; gap:6px; flex-wrap:wrap; }
+    .progress-dot { width:10px; height:10px; border-radius:999px; background:#E2E8F0; cursor:pointer; transition:all 0.2s; }
+    .progress-dot.active { background:#6366F1; transform:scale(1.3); }
+    .progress-dot.answered { background:#10B981; }
+    .progress-dot.flagged { background:#F59E0B; }
+    .result-circle { width:120px; height:120px; border-radius:999px; display:flex; align-items:center; justify-content:center; flex-direction:column; }
+    .result-score { font-size:36px; font-weight:900; line-height:1; }
+    .result-label { font-size:11px; font-weight:600; margin-top:4px; }
+    .result-pass { background:linear-gradient(135deg,#D1FAE5,#A7F3D0); color:#065F46; }
+    .result-fail { background:linear-gradient(135deg,#FEE2E2,#FECACA); color:#991B1B; }
+    .empty-state { padding:60px 20px; text-align:center; }
+    .skeleton { background:linear-gradient(90deg,#F1F5F9 25%,#E2E8F0 50%,#F1F5F9 75%); background-size:200% 100%; animation:shimmer 1.5s infinite; border-radius:8px; }
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+  </style>
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-student" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)" id="sidebar-avatar">S</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Student</div><div class="sidebar-user-role" id="sidebar-user-role">B.Tech CS</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <div class="nav-section-label">Academics</div>
+      <a href="live-class.html" class="nav-link"><i class="nav-link-icon fas fa-video"></i> Live Classes</a>
+      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-reader"></i> My Courses</a>
+      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Attendance</a>
+      <a href="results.html" class="nav-link"><i class="nav-link-icon fas fa-poll"></i> Results</a>
+      <a href="assignments.html" class="nav-link"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
+      <a href="timetable.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-week"></i> Timetable</a>
+      <a href="notes.html" class="nav-link"><i class="nav-link-icon fas fa-sticky-note"></i> Notes</a>
+      <div class="nav-section-label">Career Center</div>
+      <a href="career.html" class="nav-link"><i class="nav-link-icon fas fa-rocket"></i> Career Dashboard</a>
+      <a href="skills.html" class="nav-link"><i class="nav-link-icon fas fa-tools"></i> Skills Profile</a>
+      <a href="mentorship.html" class="nav-link"><i class="nav-link-icon fas fa-user-tie"></i> Mentorship</a>
+      <a href="placements.html" class="nav-link"><i class="nav-link-icon fas fa-briefcase"></i> Placements</a>
+      <a href="assessments.html" class="nav-link active"><i class="nav-link-icon fas fa-clipboard-check"></i> Skill Assessments</a>
+      <div class="nav-section-label">Finance</div>
+      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-receipt"></i> Fees</a>
+      <div class="nav-section-label">Campus Life</div>
+      <a href="../college-admin/events.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Events</a>
+      <a href="../college-admin/grievances.html" class="nav-link"><i class="nav-link-icon fas fa-exclamation-circle"></i> Grievances</a>
+      <a href="../college-admin/feedback.html" class="nav-link"><i class="nav-link-icon fas fa-star"></i> Feedback</a>
+      <div class="nav-section-label">Facilities</div>
+      <a href="library.html" class="nav-link"><i class="nav-link-icon fas fa-book"></i> Library</a>
+      <div class="nav-section-label">Tools</div>
+      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-brain"></i> AI Services</a>
+      <a href="../messages.html" class="nav-link"><i class="nav-link-icon fas fa-comment-dots"></i> Chat</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">Career Center / <span>Skill Assessments</span></div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-search" onclick="openCommandPalette()" style="cursor:pointer;margin-right:10px"><i class="fas fa-search"></i><span style="font-size:13px;color:var(--text-muted)">Search...</span></div>
+        <div style="position:relative">
+          <button class="topbar-btn" id="notif-btn"><i class="fas fa-bell"></i><span class="topbar-badge">0</span></button>
+        </div>
+        <div class="topbar-avatar" id="topbar-avatar">S</div>
+      </div>
+    </header>
+
+    <div class="erp-content page-enter">
+      <!-- TABS: Browse | My Stats | Leaderboard -->
+      <div id="tabView">
+        <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+          <div><h1 class="page-title"><i class="fas fa-clipboard-check" style="color:#6366F1;margin-right:10px"></i>Skill Assessments</h1><p class="page-subtitle">Test your knowledge, earn verified skills, and track your progress.</p></div>
+        </div>
+        <div class="tab-bar" id="mainTabs" style="margin-bottom:24px">
+          <button class="tab-btn active" data-tab="browse"><i class="fas fa-list"></i> Browse Assessments</button>
+          <button class="tab-btn" data-tab="stats"><i class="fas fa-chart-bar"></i> My Stats</button>
+          <button class="tab-btn" data-tab="leaderboard"><i class="fas fa-trophy"></i> Leaderboard</button>
+        </div>
+        <div id="browseTab"></div>
+        <div id="statsTab" style="display:none"></div>
+        <div id="leaderboardTab" style="display:none"></div>
+      </div>
+
+      <!-- QUIZ VIEW (hidden initially) -->
+      <div id="quizView" style="display:none"></div>
+      <!-- RESULTS VIEW (hidden initially) -->
+      <div id="resultsView" style="display:none"></div>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script src="../../live/live-pages.js"></script>
+<script>
+(function(){
+  const API_BASE = (window.API_BASE_URL || '/api') + '/v1';
+  const $ = s => document.querySelector(s);
+  const $$ = s => document.querySelectorAll(s);
+
+  let currentTab = 'browse';
+  let assessmentsData = [];
+  let statsData = null;
+  let leaderboardData = [];
+  let currentQuiz = null;
+  let currentAttempt = null;
+  let currentQuestionIdx = 0;
+  let answers = {};
+  let timerInterval = null;
+  let timeRemaining = 0;
+
+  // Tab switching
+  $$('#mainTabs .tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      $$('#mainTabs .tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const tab = btn.dataset.tab;
+      currentTab = tab;
+      $('#browseTab').style.display = tab === 'browse' ? 'block' : 'none';
+      $('#statsTab').style.display = tab === 'stats' ? 'block' : 'none';
+      $('#leaderboardTab').style.display = tab === 'leaderboard' ? 'block' : 'none';
+      if (tab === 'stats' && !statsData) loadStats();
+      if (tab === 'leaderboard' && !leaderboardData.length) loadLeaderboard();
+    });
+  });
+
+  async function api(path, opts) {
+    try {
+      const res = await api.request(API_BASE + path, opts);
+      return res.data || res;
+    } catch(e) {
+      console.error('API error:', e);
+      return null;
+    }
+  }
+
+  // Load Assessments
+  async function loadAssessments() {
+    const container = $('#browseTab');
+    container.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px">' + Array(3).fill('<div class="assess-card"><div class="skeleton" style="height:20px;width:60%;margin-bottom:12px"></div><div class="skeleton" style="height:14px;width:80%;margin-bottom:8px"></div><div class="skeleton" style="height:14px;width:40%"></div></div>').join('') + '</div>';
+
+    const res = await api('/assessments');
+    if (!res || !res.success) {
+      container.innerHTML = '<div class="empty-state"><i class="fas fa-clipboard-check" style="font-size:48px;color:#CBD5E1;margin-bottom:16px"></i><h3 style="font-weight:700;font-size:16px;margin-bottom:8px">No Assessments Available</h3><p style="color:#64748B;font-size:13px">Check back later for new assessments.</p></div>';
+      return;
+    }
+
+    assessmentsData = res.assessments || [];
+    if (!assessmentsData.length) {
+      container.innerHTML = '<div class="empty-state"><i class="fas fa-clipboard-check" style="font-size:48px;color:#CBD5E1;margin-bottom:16px"></i><h3 style="font-weight:700;font-size:16px;margin-bottom:8px">No Assessments Yet</h3><p style="color:#64748B;font-size:13px">Your college hasn't published any assessments.</p></div>';
+      return;
+    }
+
+    let html = '<div style="display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap">';
+    html += '<select id="filterCategory" style="padding:8px 12px;border:1px solid #E2E8F0;border-radius:8px;font-size:13px;font-weight:600;background:white"><option value="">All Categories</option><option value="technical">Technical</option><option value="aptitude">Aptitude</option><option value="coding">Coding</option><option value="domain">Domain</option><option value="soft_skill">Soft Skills</option></select>';
+    html += '<select id="filterDifficulty" style="padding:8px 12px;border:1px solid #E2E8F0;border-radius:8px;font-size:13px;font-weight:600;background:white"><option value="">All Levels</option><option value="easy">Easy</option><option value="medium">Medium</option><option value="hard">Hard</option></select>';
+    html += '<input type="text" id="filterSearch" placeholder="Search assessments..." style="padding:8px 14px;border:1px solid #E2E8F0;border-radius:8px;font-size:13px;min-width:200px">';
+    html += '</div>';
+    html += '<div id="assessGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px"></div>';
+    container.innerHTML = html;
+
+    renderAssessments(assessmentsData);
+
+    $('#filterCategory').addEventListener('change', applyFilters);
+    $('#filterDifficulty').addEventListener('change', applyFilters);
+    $('#filterSearch').addEventListener('input', applyFilters);
+  }
+
+  function applyFilters() {
+    const cat = $('#filterCategory').value;
+    const diff = $('#filterDifficulty').value;
+    const search = ($('#filterSearch').value || '').toLowerCase();
+    let filtered = assessmentsData;
+    if (cat) filtered = filtered.filter(a => a.category === cat);
+    if (diff) filtered = filtered.filter(a => a.difficulty === diff);
+    if (search) filtered = filtered.filter(a => a.title.toLowerCase().includes(search) || (a.description || '').toLowerCase().includes(search) || (a.skillTags || []).some(t => t.toLowerCase().includes(search)));
+    renderAssessments(filtered);
+  }
+
+  function renderAssessments(list) {
+    const grid = $('#assessGrid');
+    if (!grid) return;
+    grid.innerHTML = list.map(a => {
+      const catClass = 'cat-' + (a.category || 'custom');
+      const diffClass = 'assess-badge-' + (a.difficulty || 'medium');
+      const attempted = (a.myAttempts && a.myAttempts.length > 0);
+      const passed = a.hasPassed;
+      return `<div class="assess-card">
+        <span class="assess-badge ${diffClass}">${a.difficulty || 'medium'}</span>
+        <span class="category-chip ${catClass}" style="margin-bottom:12px">${formatCategory(a.category)}</span>
+        <h3 style="font-weight:800;font-size:16px;margin:8px 0 6px">${esc(a.title)}</h3>
+        <p style="font-size:13px;color:#64748B;margin-bottom:12px;line-height:1.5">${esc(a.description || 'No description')}</p>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px">
+          ${(a.skillTags || []).map(t => `<span style="padding:3px 8px;background:#F1F5F9;border-radius:999px;font-size:11px;font-weight:600;color:#475569">${esc(t)}</span>`).join('')}
+        </div>
+        <div style="display:flex;gap:16px;font-size:12px;color:#64748B;margin-bottom:14px">
+          <span><i class="fas fa-clock" style="margin-right:4px"></i>${a.timeLimit || 30} min</span>
+          <span><i class="fas fa-list-ol" style="margin-right:4px"></i>${(a.questions || []).length || '?'} questions</span>
+          <span><i class="fas fa-star" style="margin-right:4px;color:#F59E0B"></i>${a.totalPoints || '?'} pts</span>
+          <span><i class="fas fa-redo" style="margin-right:4px"></i>${a.maxAttempts || 3} tries</span>
+        </div>
+        ${attempted ? `<div style="padding:8px 12px;background:${passed ? '#ECFDF5' : '#FEF3C7'};border-radius:8px;font-size:12px;font-weight:700;color:${passed ? '#065F46' : '#92400E'};margin-bottom:12px"><i class="fas fa-${passed ? 'check-circle' : 'redo'}" style="margin-right:4px"></i>${passed ? 'Passed' : 'Best: ' + (a.myAttempts[0].percentage || 0) + '%'}</div>` : ''}
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:11px;color:#94A3B8">${a.attemptCount || 0} attempts</span>
+          <button onclick="startQuiz('${a._id}')" class="btn btn-primary btn-sm" style="${passed ? 'background:#10B981' : ''}">${passed ? 'Retake' : attempted ? 'Continue' : 'Start'}</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function formatCategory(cat) {
+    const map = { technical:'Technical', aptitude:'Aptitude', domain:'Domain', soft_skill:'Soft Skills', coding:'Coding', custom:'Custom' };
+    return map[cat] || cat;
+  }
+
+  function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+
+  // Start Quiz
+  window.startQuiz = async function(assessmentId) {
+    const res = await api('/assessments/' + assessmentId);
+    if (!res || !res.success) { showToast('Failed to load assessment', 'error'); return; }
+    if (!res.canAttempt) { showToast('Maximum attempts reached', 'error'); return; }
+
+    currentQuiz = res.assessment;
+
+    // Check for existing in-progress attempt
+    let attemptRes = await api('/assessments/' + assessmentId + '/start', { method: 'POST' });
+    if (!attemptRes || !attemptRes.success) { showToast('Failed to start quiz', 'error'); return; }
+
+    currentAttempt = attemptRes.attempt;
+    timeRemaining = (attemptRes.timeRemaining || currentQuiz.timeLimit) * 60;
+    currentQuestionIdx = 0;
+    answers = {};
+
+    (currentAttempt.answers || []).forEach(a => {
+      if (a.questionId) answers[a.questionId] = a.selectedOption || a.textAnswer || '';
+    });
+
+    $('#tabView').style.display = 'none';
+    $('#quizView').style.display = 'block';
+    $('#resultsView').style.display = 'none';
+
+    startTimer();
+    renderQuizQuestion();
+  };
+
+  function startTimer() {
+    if (timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+      timeRemaining--;
+      if (timeRemaining <= 0) {
+        clearInterval(timerInterval);
+        submitQuiz();
+        return;
+      }
+      updateTimerDisplay();
+    }, 1000);
+    updateTimerDisplay();
+  }
+
+  function updateTimerDisplay() {
+    const mins = Math.floor(timeRemaining / 60);
+    const secs = timeRemaining % 60;
+    const total = (currentQuiz.timeLimit || 30) * 60;
+    const pct = total > 0 ? timeRemaining / total : 0;
+    const circumference = 2 * Math.PI * 26;
+    const offset = circumference * (1 - pct);
+    const color = pct > 0.5 ? '#10B981' : pct > 0.2 ? '#F59E0B' : '#EF4444';
+
+    const timerEl = $('#quizTimer');
+    if (timerEl) {
+      timerEl.innerHTML = `<svg viewBox="0 0 64 64"><circle class="timer-ring-bg" cx="32" cy="32" r="26"/><circle class="timer-ring-fill" cx="32" cy="32" r="26" stroke="${color}" stroke-dasharray="${circumference}" stroke-dashoffset="${offset}"/></svg><div class="timer-ring-center" style="color:${color}">${mins}:${String(secs).padStart(2,'0')}</div>`;
+    }
+  }
+
+  function renderQuizQuestion() {
+    const questions = currentQuiz.questions || [];
+    if (!questions.length) return;
+    const q = questions[currentQuestionIdx];
+    const total = questions.length;
+    const answered = Object.keys(answers).length;
+
+    let html = `<div style="display:flex;align-items:center;gap:16px;margin-bottom:24px;flex-wrap:wrap">
+      <div id="quizTimer" class="timer-ring"></div>
+      <div style="flex:1">
+        <h2 style="font-weight:800;font-size:18px">${esc(currentQuiz.title)}</h2>
+        <p style="font-size:13px;color:#64748B">Question ${currentQuestionIdx + 1} of ${total} &middot; ${answered} answered</p>
+      </div>
+      <button onclick="submitQuiz()" class="btn btn-primary" style="background:#10B981"><i class="fas fa-paper-plane"></i> Submit All</button>
+    </div>`;
+
+    html += '<div class="progress-dots" style="margin-bottom:20px">';
+    questions.forEach((_, i) => {
+      const cls = i === currentQuestionIdx ? 'active' : (answers[questions[i]._id] ? 'answered' : '');
+      html += `<div class="progress-dot ${cls}" onclick="goToQuestion(${i})" title="Q${i+1}"></div>`;
+    });
+    html += '</div>';
+
+    html += `<div class="question-card">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <span style="padding:4px 10px;background:#EEF2FF;color:#4338CA;border-radius:999px;font-size:11px;font-weight:700;text-transform:uppercase">${q.type === 'mcq' ? 'Multiple Choice' : q.type === 'true_false' ? 'True / False' : q.type === 'fill_blank' ? 'Fill in the Blank' : 'Short Answer'}</span>
+        <span style="font-size:11px;color:#94A3B8">${q.points || 1} pt${(q.points||1)>1?'s':''}</span>
+        ${q.skillTag ? `<span style="font-size:11px;padding:3px 8px;background:#F1F5F9;border-radius:999px;color:#475569;font-weight:600">${esc(q.skillTag)}</span>` : ''}
+      </div>
+      <p style="font-weight:700;font-size:16px;margin-bottom:20px;line-height:1.5">${esc(q.text)}</p>`;
+
+    if (q.type === 'mcq') {
+      html += '<div style="display:flex;flex-direction:column;gap:10px">';
+      (q.options || []).forEach((opt, i) => {
+        const sel = answers[q._id] === opt.text;
+        html += `<button class="option-btn ${sel ? 'selected' : ''}" onclick="selectOption('${q._id}','${esc(opt.text).replace(/'/g,"\\'")}')">${String.fromCharCode(65+i)}. ${esc(opt.text)}</button>`;
+      });
+      html += '</div>';
+    } else if (q.type === 'true_false') {
+      ['True','False'].forEach(val => {
+        const sel = answers[q._id] === val;
+        html += `<button class="option-btn ${sel ? 'selected' : ''}" onclick="selectOption('${q._id}','${val}')" style="margin-bottom:10px">${val}</button>`;
+      });
+    } else if (q.type === 'fill_blank') {
+      html += `<input class="fill-blank-input" type="text" placeholder="Type your answer..." value="${esc(answers[q._id] || '')}" oninput="fillAnswer('${q._id}', this.value)">`;
+    } else {
+      html += `<textarea class="fill-blank-input" rows="3" placeholder="Type your answer..." oninput="fillAnswer('${q._id}', this.value)">${esc(answers[q._id] || '')}</textarea>`;
+    }
+
+    html += '</div>';
+
+    html += '<div style="display:flex;justify-content:space-between;margin-top:20px">';
+    html += `<button onclick="goToQuestion(${currentQuestionIdx - 1})" class="btn btn-secondary" ${currentQuestionIdx === 0 ? 'disabled style="opacity:0.5"' : ''}><i class="fas fa-arrow-left"></i> Previous</button>`;
+    if (currentQuestionIdx < total - 1) {
+      html += `<button onclick="goToQuestion(${currentQuestionIdx + 1})" class="btn btn-primary">Next <i class="fas fa-arrow-right"></i></button>`;
+    } else {
+      html += `<button onclick="submitQuiz()" class="btn btn-primary" style="background:#10B981"><i class="fas fa-check-circle"></i> Review & Submit</button>`;
+    }
+    html += '</div>';
+
+    $('#quizView').innerHTML = html;
+    updateTimerDisplay();
+  }
+
+  window.selectOption = function(qId, val) {
+    answers[qId] = val;
+    renderQuizQuestion();
+  };
+
+  window.fillAnswer = function(qId, val) {
+    answers[qId] = val;
+  };
+
+  window.goToQuestion = function(idx) {
+    const total = (currentQuiz.questions || []).length;
+    if (idx < 0 || idx >= total) return;
+    currentQuestionIdx = idx;
+    renderQuizQuestion();
+  };
+
+  async function submitQuiz() {
+    if (timerInterval) clearInterval(timerInterval);
+
+    const payload = Object.entries(answers).map(([qId, val]) => {
+      const isText = ['fill_blank', 'short_answer'].includes((currentQuiz.questions.find(q => q._id === qId) || {}).type);
+      return isText ? { questionId: qId, textAnswer: val } : { questionId: qId, selectedOption: val };
+    });
+
+    const res = await api('/assessments/' + currentQuiz._id + '/submit', {
+      method: 'POST',
+      body: JSON.stringify({ answers: payload }),
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+    if (!res || !res.success) { showToast('Submission failed', 'error'); return; }
+    showResults(res.attempt);
+  }
+
+  function showResults(attempt) {
+    $('#tabView').style.display = 'none';
+    $('#quizView').style.display = 'none';
+    $('#resultsView').style.display = 'block';
+
+    const passed = attempt.passed;
+    const questions = currentQuiz.questions || [];
+
+    let html = `<div style="max-width:700px;margin:0 auto">
+      <div style="text-align:center;margin-bottom:32px">
+        <div class="result-circle ${passed ? 'result-pass' : 'result-fail'}" style="margin:0 auto 16px">
+          <div class="result-score">${attempt.percentage}%</div>
+          <div class="result-label">${passed ? 'PASSED' : 'FAILED'}</div>
+        </div>
+        <h2 style="font-weight:800;font-size:22px;margin-bottom:8px">${passed ? 'Congratulations!' : 'Keep Practicing!'}</h2>
+        <p style="color:#64748B;font-size:14px">${passed ? 'You passed the assessment. Great job!' : `You needed ${currentQuiz.passingScore}% to pass. Review and try again.`}</p>
+        <div style="display:flex;justify-content:center;gap:24px;margin-top:16px;font-size:13px;color:#475569">
+          <span><strong>${attempt.score}</strong> / ${attempt.totalPoints} points</span>
+          <span><strong>${attempt.timeTaken}</strong> min taken</span>
+          <span>${attempt.answers.filter(a => a.isCorrect).length} / ${attempt.answers.length} correct</span>
+        </div>
+      </div>`;
+
+    html += '<div style="margin-bottom:24px">';
+    questions.forEach((q, i) => {
+      const a = (attempt.answers || []).find(x => x.questionId === q._id) || {};
+      const isCorrect = a.isCorrect;
+      html += `<div style="border:1px solid ${isCorrect ? '#D1FAE5' : '#FEE2E2'};border-radius:12px;padding:18px;margin-bottom:12px;background:${isCorrect ? '#ECFDF508' : '#FEF2F208'}">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <i class="fas fa-${isCorrect ? 'check-circle' : 'times-circle'}" style="color:${isCorrect ? '#10B981' : '#EF4444'};font-size:18px"></i>
+          <span style="font-weight:700;font-size:13px">Q${i+1}</span>
+          <span style="font-size:12px;color:#94A3B8">${a.pointsEarned || 0} / ${q.points || 1} pts</span>
+        </div>
+        <p style="font-weight:600;font-size:14px;margin-bottom:8px">${esc(q.text)}</p>
+        <div style="font-size:13px;color:#475569">
+          ${!isCorrect && a.selectedOption ? `<div>Your answer: <span style="color:#EF4444;font-weight:600">${esc(a.selectedOption)}</span></div>` : ''}
+          ${!isCorrect && a.textAnswer ? `<div>Your answer: <span style="color:#EF4444;font-weight:600">${esc(a.textAnswer)}</span></div>` : ''}
+          ${q.type === 'mcq' ? `<div>Correct: <span style="color:#10B981;font-weight:600">${esc((q.options.find(o => o.isCorrect) || {}).text || '')}</span></div>` : ''}
+          ${q.type === 'true_false' ? `<div>Correct: <span style="color:#10B981;font-weight:600">${esc(String(q.correctAnswer))}</span></div>` : ''}
+          ${q.type === 'fill_blank' ? `<div>Correct: <span style="color:#10B981;font-weight:600">${esc(String(q.correctAnswer || ''))}</span></div>` : ''}
+          ${q.explanation ? `<div style="margin-top:6px;padding:8px 12px;background:#F8FAFC;border-radius:8px;font-size:12px;color:#64748B"><i class="fas fa-lightbulb" style="color:#F59E0B;margin-right:4px"></i>${esc(q.explanation)}</div>` : ''}
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+
+    html += '<div style="display:flex;gap:12px;justify-content:center">';
+    html += `<button onclick="backToBrowse()" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Assessments</button>`;
+    if (!passed) html += `<button onclick="startQuiz('${currentQuiz._id}')" class="btn btn-primary"><i class="fas fa-redo"></i> Retake</button>`;
+    html += '</div></div>';
+
+    $('#resultsView').innerHTML = html;
+  }
+
+  window.backToBrowse = function() {
+    $('#tabView').style.display = 'block';
+    $('#quizView').style.display = 'none';
+    $('#resultsView').style.display = 'none';
+    statsData = null;
+    leaderboardData = [];
+    loadAssessments();
+  };
+
+  // Load Stats
+  async function loadStats() {
+    const container = $('#statsTab');
+    container.innerHTML = '<div class="skeleton" style="height:200px;border-radius:16px"></div>';
+    const res = await api('/assessments/stats');
+    if (!res || !res.success) { container.innerHTML = '<div class="empty-state"><p style="color:#64748B">No stats available yet.</p></div>'; return; }
+    statsData = res.stats;
+
+    const s = statsData;
+    let html = `<div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:24px">
+      <div class="stat-card"><div class="stat-card-accent" style="background:#6366F1"></div><div class="stat-icon" style="background:#EEF2FF;color:#4338CA"><i class="fas fa-clipboard-check"></i></div><div class="stat-label">Total Attempts</div><div class="stat-value" style="color:#4338CA">${s.totalAttempts}</div></div>
+      <div class="stat-card"><div class="stat-card-accent" style="background:#10B981"></div><div class="stat-icon" style="background:#ECFDF5;color:#065F46"><i class="fas fa-check-circle"></i></div><div class="stat-label">Passed</div><div class="stat-value" style="color:#065F46">${s.passedAttempts}</div></div>
+      <div class="stat-card"><div class="stat-card-accent" style="background:#F59E0B"></div><div class="stat-icon" style="background:#FEF3C7;color:#92400E"><i class="fas fa-percentage"></i></div><div class="stat-label">Pass Rate</div><div class="stat-value" style="color:#92400E">${s.passRate}%</div></div>
+      <div class="stat-card"><div class="stat-card-accent" style="background:#8B5CF6"></div><div class="stat-icon" style="background:#EDE9FE;color:#5B21B6"><i class="fas fa-star"></i></div><div class="stat-label">Best Score</div><div class="stat-value" style="color:#5B21B6">${s.bestScore}%</div></div>
+    </div>`;
+
+    if (s.categoryStats && Object.keys(s.categoryStats).length) {
+      html += '<div class="card" style="margin-bottom:24px"><div class="card-header"><div class="card-title"><i class="fas fa-chart-pie" style="color:#6366F1;margin-right:8px"></i>Performance by Category</div></div><div class="card-body"><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px">';
+      Object.entries(s.categoryStats).forEach(([cat, data]) => {
+        html += `<div style="padding:16px;border:1px solid #E2E8F0;border-radius:12px">
+          <div style="font-weight:700;font-size:14px;margin-bottom:8px">${formatCategory(cat)}</div>
+          <div style="font-size:12px;color:#64748B">${data.attempts} attempts &middot; ${data.passed} passed</div>
+          <div style="margin-top:8px;height:6px;background:#F1F5F9;border-radius:999px;overflow:hidden"><div style="height:100%;width:${data.avgScore}%;background:${data.avgScore>=60?'#10B981':'#EF4444'};border-radius:999px"></div></div>
+          <div style="font-size:11px;font-weight:700;color:${data.avgScore>=60?'#065F46':'#991B1B'};margin-top:4px">${data.avgScore}% avg</div>
+        </div>`;
+      });
+      html += '</div></div></div>';
+    }
+
+    if (s.recentAttempts && s.recentAttempts.length) {
+      html += '<div class="card"><div class="card-header"><div class="card-title"><i class="fas fa-history" style="color:#0284C7;margin-right:8px"></i>Recent Attempts</div></div><div class="card-body" style="padding:12px">';
+      s.recentAttempts.forEach(a => {
+        const passed = a.passed;
+        html += `<div style="display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:8px;margin-bottom:6px;background:${passed?'#ECFDF508':'#FEF2F208'}">
+          <i class="fas fa-${passed?'check-circle':'times-circle'}" style="color:${passed?'#10B981':'#EF4444'};font-size:18px"></i>
+          <div style="flex:1"><div style="font-weight:700;font-size:13px">${esc((a.assessmentId || {}).title || 'Assessment')}</div><div style="font-size:11px;color:#94A3B8">${new Date(a.completedAt).toLocaleDateString()}</div></div>
+          <div style="font-weight:800;font-size:16px;color:${passed?'#065F46':'#991B1B'}">${a.percentage}%</div>
+        </div>`;
+      });
+      html += '</div></div>';
+    }
+
+    container.innerHTML = html;
+  }
+
+  // Load Leaderboard
+  async function loadLeaderboard() {
+    const container = $('#leaderboardTab');
+    container.innerHTML = '<div class="skeleton" style="height:300px;border-radius:16px"></div>';
+    const res = await api('/assessments/leaderboard');
+    if (!res || !res.success) { container.innerHTML = '<div class="empty-state"><p style="color:#64748B">No leaderboard data yet.</p></div>'; return; }
+    leaderboardData = res.leaderboard || [];
+
+    if (!leaderboardData.length) {
+      container.innerHTML = '<div class="empty-state"><i class="fas fa-trophy" style="font-size:48px;color:#FBBF24;margin-bottom:16px"></i><h3 style="font-weight:700;font-size:16px;margin-bottom:8px">No Rankings Yet</h3><p style="color:#64748B;font-size:13px">Complete assessments to appear here.</p></div>';
+      return;
+    }
+
+    let html = '<div class="card"><div class="card-header"><div class="card-title"><i class="fas fa-trophy" style="color:#F59E0B;margin-right:8px"></i>Leaderboard</div></div><div class="card-body" style="padding:12px">';
+    leaderboardData.forEach((entry, i) => {
+      const rank = i + 1;
+      const rankClass = rank <= 3 ? `rank-${rank}` : 'rank-n';
+      const isMe = entry.studentId === (window.currentUser?._id || '');
+      html += `<div class="leaderboard-row" style="${isMe ? 'background:#EEF2FF;border:1px solid #C7D2FE' : ''}">
+        <div class="leaderboard-rank ${rankClass}">${rank}</div>
+        <div class="sidebar-avatar" style="background:${rank===1?'linear-gradient(135deg,#F59E0B,#FBBF24)':rank===2?'linear-gradient(135deg,#94A3B8,#CBD5E1)':rank===3?'linear-gradient(135deg,#D97706,#F59E0B)':'#E2E8F0'};width:38px;height:38px;font-size:14px;color:white">${(entry.name || 'S')[0]}</div>
+        <div style="flex:1"><div style="font-weight:700;font-size:14px">${esc(entry.name || 'Student')}</div><div style="font-size:11px;color:#94A3B8">${esc(entry.department || '')}</div></div>
+        <div style="text-align:right"><div style="font-weight:800;font-size:18px;color:#4338CA">${entry.bestScore}%</div><div style="font-size:11px;color:#94A3B8">${entry.totalAttempts} attempts &middot; ${entry.bestTime}m</div></div>
+      </div>`;
+    });
+    html += '</div></div>';
+    container.innerHTML = html;
+  }
+
+  // Initial load
+  loadAssessments();
+})();
+</script>
+</body>
+</html>
