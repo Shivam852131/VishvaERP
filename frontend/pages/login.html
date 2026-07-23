@@ -6,6 +6,7 @@
   <title>Login | VishvaERP — Enterprise Academic Platform</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -640,6 +641,7 @@
     ? 'https://vishvaerp.onrender.com'
     : '';
   const API_URL = BACKEND_ORIGIN ? `${BACKEND_ORIGIN}/api` : '/api';
+  const GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com';
 
   let selectedRole = 'superadmin';
   let selectedOtpRole = 'superadmin';
@@ -1016,7 +1018,63 @@
 
   /* ========== SOCIAL LOGIN ========== */
   function socialLogin(provider) {
-    showToast(`${provider.charAt(0).toUpperCase() + provider.slice(1)} login will be available soon.`, 'info');
+    if (provider === 'google') {
+      initiateGoogleLogin();
+    } else {
+      showToast(`${provider.charAt(0).toUpperCase() + provider.slice(1)} login will be available soon.`, 'info');
+    }
+  }
+
+  /* ========== GOOGLE LOGIN ========== */
+  function initiateGoogleLogin() {
+    if (typeof google === 'undefined' || !google.accounts) {
+      showToast('Google Sign-In is loading. Please try again in a moment.', 'info');
+      return;
+    }
+    google.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      callback: handleGoogleCredentialResponse,
+      auto_select: false,
+      cancel_on_tap_outside: true,
+    });
+    google.accounts.id.prompt((notification) => {
+      if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+        showToast('Google Sign-In popup was blocked. Please allow popups.', 'error');
+      }
+    });
+  }
+
+  async function handleGoogleCredentialResponse(response) {
+    try {
+      const res = await fetch(`${API_URL}/auth/google-login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential: response.credential, role: selectedRole }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Google login failed');
+
+      localStorage.setItem('erp_token', data.token);
+      localStorage.setItem('erp_user', JSON.stringify(data.user));
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      if (data.refreshToken) {
+        localStorage.setItem('erp_refresh_token', data.refreshToken);
+        localStorage.setItem('refreshToken', data.refreshToken);
+      }
+
+      showSuccess('Google login successful! Redirecting...');
+      setTimeout(() => {
+        const role = data.user.role;
+        if (role === 'collegeAdmin' && data.subscriptionActive === false) {
+          window.location.href = '/pages/college-admin/subscription.html';
+        } else {
+          window.location.href = roleRedirects[role] || roleRedirects['student'];
+        }
+      }, 1000);
+    } catch (error) {
+      showError(error.message);
+    }
   }
 
   /* ========== SESSION TIMEOUT ========== */

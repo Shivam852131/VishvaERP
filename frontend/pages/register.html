@@ -6,6 +6,7 @@
   <title>Register | VishvaERP — Enterprise Academic Platform</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -622,6 +623,7 @@
     ? 'https://vishvaerp.onrender.com'
     : '';
   const API_URL = BACKEND_ORIGIN ? `${BACKEND_ORIGIN}/api` : '/api';
+  const GOOGLE_CLIENT_ID = 'YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com';
 
   let currentStep = 1;
   let selectedRole = null;
@@ -964,7 +966,56 @@
   }
 
   function socialSignup(provider) {
-    showToast(`${provider.charAt(0).toUpperCase() + provider.slice(1)} signup will be available soon.`, 'info');
+    if (provider === 'google') {
+      initiateGoogleSignup();
+    } else {
+      showToast(`${provider.charAt(0).toUpperCase() + provider.slice(1)} signup will be available soon.`, 'info');
+    }
+  }
+
+  /* ========== GOOGLE SIGNUP ========== */
+  function initiateGoogleSignup() {
+    if (typeof google === 'undefined' || !google.accounts) {
+      showToast('Google Sign-In is loading. Please try again in a moment.', 'info');
+      return;
+    }
+    google.accounts.id.initialize({
+      client_id: GOOGLE_CLIENT_ID,
+      callback: handleGoogleSignupResponse,
+      auto_select: false,
+      cancel_on_tap_outside: true,
+    });
+    google.accounts.id.prompt((notification) => {
+      if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+        showToast('Google Sign-In popup was blocked. Please allow popups.', 'error');
+      }
+    });
+  }
+
+  async function handleGoogleSignupResponse(response) {
+    try {
+      const res = await fetch(`${API_URL}/auth/google-login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential: response.credential, role: selectedRole || 'student' }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Google signup failed');
+
+      localStorage.setItem('erp_token', data.token);
+      localStorage.setItem('erp_user', JSON.stringify(data.user));
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      if (data.refreshToken) {
+        localStorage.setItem('erp_refresh_token', data.refreshToken);
+        localStorage.setItem('refreshToken', data.refreshToken);
+      }
+
+      showToast('Google signup successful!', 'success');
+      goToStep('Success');
+    } catch (error) {
+      showToast(error.message, 'error');
+    }
   }
 
   function showError(msg) {

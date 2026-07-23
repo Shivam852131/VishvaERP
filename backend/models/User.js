@@ -46,6 +46,7 @@ const userSchema = new mongoose.Schema({
   isEmailVerified: { type: Boolean, default: false },
   twoFactorEnabled: { type: Boolean, default: false },
   twoFactorSecret: { type: String },
+  googleId: { type: String, sparse: true },
   resetPasswordToken: { type: String },
   resetPasswordExpire: { type: Date },
 }, { timestamps: true });

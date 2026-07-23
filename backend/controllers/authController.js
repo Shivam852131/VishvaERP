@@ -7,8 +7,10 @@ const { generateToken, generateRefreshToken, verifyRefreshToken, generateResetTo
 const { validationResult } = require('express-validator');
 const { sendPasswordResetEmail, sendWelcomeEmail, sendOTP: sendOTPEmail, sendVerificationOTP: sendVerificationOTPEmail } = require('../services/emailService');
 const { logAudit } = require('../services/auditService');
+const { OAuth2Client } = require('google-auth-library');
 
 const crypto = require('crypto');
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const failedLoginAttempts = new Map();
 const MAX_LOGIN_ATTEMPTS = 5;
@@ -572,6 +574,86 @@ const checkDevice = asyncHandler(async (req, res) => {
   res.json({ success: true, trusted: isTrusted });
 });
 
+// @desc    Login/Register with Google OAuth
+// @route   POST /api/auth/google-login
+// @access  Public
+const googleLogin = asyncHandler(async (req, res) => {
+  const { credential, role } = req.body;
+  if (!credential) {
+    return res.status(400).json({ success: false, message: 'Google credential is required' });
+  }
+
+  let ticket;
+  try {
+    ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+  } catch (err) {
+    return res.status(401).json({ success: false, message: 'Invalid Google credential' });
+  }
+
+  const payload = ticket.getPayload();
+  const { sub: googleId, email, name, picture } = payload;
+
+  if (!email) {
+    return res.status(400).json({ success: false, message: 'Email not available from Google account' });
+  }
+
+  let user = await User.findOne({ email: email.toLowerCase() });
+
+  if (!user) {
+    const userRole = role || 'student';
+    user = await User.create({
+      name: name || email.split('@')[0],
+      email: email.toLowerCase(),
+      password: crypto.randomBytes(32).toString('hex'),
+      role: userRole,
+      avatar: picture || null,
+      isEmailVerified: true,
+      googleId,
+    });
+  } else if (!user.googleId) {
+    user.googleId = googleId;
+    if (picture && !user.avatar) user.avatar = picture;
+    await user.save({ validateBeforeSave: false });
+  }
+
+  if (!user.isActive) {
+    return res.status(401).json({ success: false, message: 'Account has been deactivated' });
+  }
+
+  user.lastLogin = new Date();
+  await user.save({ validateBeforeSave: false });
+
+  logAudit(req, 'google-login', 'user', { resourceId: user._id, description: `Google login: ${user.email}`, metadata: { role: user.role } });
+
+  const token = generateToken({ id: user._id, role: user.role, collegeId: user.collegeId });
+  const refreshToken = generateRefreshToken({ id: user._id, role: user.role, collegeId: user.collegeId });
+
+  let subscriptionActive = null;
+  if (user.role === 'collegeAdmin' && user.collegeId) {
+    subscriptionActive = await hasActiveCollegeAccess(user.collegeId);
+  }
+
+  res.json({
+    success: true,
+    message: 'Google login successful',
+    token,
+    refreshToken,
+    user: {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      collegeId: user.collegeId,
+      avatar: user.avatar,
+      lastLogin: user.lastLogin,
+    },
+    subscriptionActive,
+  });
+});
+
 module.exports = {
   register,
   login,
@@ -586,4 +668,5 @@ module.exports = {
   sendVerificationOTP,
   verifyEmail,
   checkDevice,
+  googleLogin,
 };
