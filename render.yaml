@@ -20,6 +20,8 @@ services:
         value: 7d
       - key: FRONTEND_URL
         value: https://vishvaerp.vercel.app/
+      - key: GOOGLE_CLIENT_ID
+        sync: false
       - key: SUPER_ADMIN_EMAIL
         sync: false
       - key: SUPER_ADMIN_PASSWORD

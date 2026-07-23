@@ -583,6 +583,11 @@ const googleLogin = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: 'Google credential is required' });
   }
 
+  if (!process.env.GOOGLE_CLIENT_ID) {
+    console.error('[Google Auth] GOOGLE_CLIENT_ID env var is not set');
+    return res.status(500).json({ success: false, message: 'Google login is not configured on the server' });
+  }
+
   let ticket;
   try {
     ticket = await googleClient.verifyIdToken({
@@ -590,6 +595,7 @@ const googleLogin = asyncHandler(async (req, res) => {
       audience: process.env.GOOGLE_CLIENT_ID,
     });
   } catch (err) {
+    console.error('[Google Auth] Token verification failed:', err.message);
     return res.status(401).json({ success: false, message: 'Invalid Google credential' });
   }
 

@@ -641,10 +641,9 @@
 <div id="toast-container"></div>
 
 <script>
-  const BACKEND_ORIGIN = window.location.hostname.endsWith('vercel.app')
-    ? 'https://vishvaerp.onrender.com'
-    : '';
-  const API_URL = BACKEND_ORIGIN ? `${BACKEND_ORIGIN}/api` : '/api';
+  const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? '/api'
+    : 'https://vishvaerp.onrender.com/api';
   const GOOGLE_CLIENT_ID = '429796170500-daln01cn92kqh72vq46uumd8p7cgfg7l.apps.googleusercontent.com';
 
   let selectedRole = 'superadmin';
