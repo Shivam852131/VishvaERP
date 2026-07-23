@@ -1,11 +1,14 @@
 const asyncHandler = require('../middleware/asyncHandler');
 const User = require('../models/User');
 const College = require('../models/College');
+const OTP = require('../models/OTP');
 const Subscription = require('../models/Subscription');
 const { generateToken, generateRefreshToken, verifyRefreshToken, generateResetToken } = require('../config/jwt');
 const { validationResult } = require('express-validator');
-const { sendPasswordResetEmail, sendWelcomeEmail } = require('../services/emailService');
+const { sendPasswordResetEmail, sendWelcomeEmail, sendOTP: sendOTPEmail, sendVerificationOTP: sendVerificationOTPEmail } = require('../services/emailService');
 const { logAudit } = require('../services/auditService');
+
+const crypto = require('crypto');
 
 const failedLoginAttempts = new Map();
 const MAX_LOGIN_ATTEMPTS = 5;
@@ -351,4 +354,236 @@ const changePassword = asyncHandler(async (req, res) => {
   res.json({ success: true, message: 'Password changed successfully' });
 });
 
-module.exports = { register, login, refreshToken, forgotPassword, resetPassword, getMe, updateProfile, changePassword };
+// @desc    Send OTP to email
+// @route   POST /api/auth/send-otp
+// @access  Public
+const sendOTPHandler = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({ success: false, message: 'Email is required' });
+  }
+
+  // Generate 6-digit OTP
+  const otpCode = crypto.randomInt(100000, 999999).toString();
+
+  // Delete any existing OTPs for this email
+  await OTP.deleteMany({ email: email.toLowerCase(), verified: false });
+
+  // Store OTP in database (expires in 10 minutes)
+  await OTP.create({
+    email: email.toLowerCase(),
+    otp: otpCode,
+    type: 'login',
+    expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+  });
+
+  // Send OTP via email
+  const result = await sendOTPEmail(email, otpCode);
+  if (result.skipped) {
+    return res.status(200).json({
+      success: true,
+      message: 'OTP generated (email not sent: email service not configured).',
+      otp: process.env.NODE_ENV === 'development' ? otpCode : undefined,
+    });
+  }
+
+  res.json({ success: true, message: 'OTP sent to your email' });
+});
+
+// @desc    Verify OTP and login
+// @route   POST /api/auth/verify-otp-login
+// @access  Public
+const verifyOTPLogin = asyncHandler(async (req, res) => {
+  const { email, otp, role } = req.body;
+
+  if (!email || !otp) {
+    return res.status(400).json({ success: false, message: 'Email and OTP are required' });
+  }
+
+  // Find OTP record
+  const otpRecord = await OTP.findOne({
+    email: email.toLowerCase(),
+    type: 'login',
+    verified: false,
+    expiresAt: { $gt: new Date() },
+  });
+
+  if (!otpRecord) {
+    return res.status(400).json({ success: false, message: 'Invalid or expired OTP' });
+  }
+
+  // Check attempts
+  if (otpRecord.attempts >= 5) {
+    return res.status(429).json({ success: false, message: 'Too many OTP attempts. Please request a new code.' });
+  }
+
+  // Verify OTP
+  if (otpRecord.otp !== otp) {
+    otpRecord.attempts += 1;
+    await otpRecord.save();
+    return res.status(400).json({ success: false, message: 'Invalid OTP' });
+  }
+
+  // Mark OTP as verified
+  otpRecord.verified = true;
+  await otpRecord.save();
+
+  // Find or create user
+  let user = await User.findOne({ email: email.toLowerCase() });
+
+  if (!user) {
+    // Auto-create user with OTP login
+    const userRole = role || 'student';
+    user = await User.create({
+      name: email.split('@')[0],
+      email: email.toLowerCase(),
+      password: crypto.randomBytes(16).toString('hex'),
+      role: userRole,
+    });
+  }
+
+  // Update last login
+  user.lastLogin = new Date();
+  await user.save({ validateBeforeSave: false });
+
+  logAudit(req, 'otp-login', 'user', { resourceId: user._id, description: `OTP login: ${user.email}`, metadata: { role: user.role } });
+
+  const token = generateToken({ id: user._id, role: user.role, collegeId: user.collegeId });
+  const refreshToken = generateRefreshToken({ id: user._id, role: user.role, collegeId: user.collegeId });
+
+  let subscriptionActive = null;
+  if (user.role === 'collegeAdmin' && user.collegeId) {
+    subscriptionActive = await hasActiveCollegeAccess(user.collegeId);
+  }
+
+  res.json({
+    success: true,
+    message: 'Login successful',
+    token,
+    refreshToken,
+    user: {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      collegeId: user.collegeId,
+      avatar: user.avatar,
+      lastLogin: user.lastLogin,
+    },
+    subscriptionActive,
+  });
+});
+
+// @desc    Send verification OTP for registration
+// @route   POST /api/auth/send-verification-otp
+// @access  Public
+const sendVerificationOTP = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  if (!email) {
+    return res.status(400).json({ success: false, message: 'Email is required' });
+  }
+
+  const user = await User.findOne({ email: email.toLowerCase() });
+  if (!user) {
+    return res.status(404).json({ success: false, message: 'No account found with that email' });
+  }
+
+  // Generate 6-digit OTP
+  const otpCode = crypto.randomInt(100000, 999999).toString();
+
+  // Store OTP
+  await OTP.deleteMany({ email: email.toLowerCase(), type: 'registration', verified: false });
+  await OTP.create({
+    email: email.toLowerCase(),
+    otp: otpCode,
+    type: 'registration',
+    expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+  });
+
+  const result = await sendVerificationOTPEmail(email, otpCode, user.name);
+  if (result.skipped) {
+    return res.status(200).json({
+      success: true,
+      message: 'Verification OTP generated (email not sent: email service not configured).',
+      otp: process.env.NODE_ENV === 'development' ? otpCode : undefined,
+    });
+  }
+
+  res.json({ success: true, message: 'Verification code sent to your email' });
+});
+
+// @desc    Verify email with OTP
+// @route   POST /api/auth/verify-email
+// @access  Public
+const verifyEmail = asyncHandler(async (req, res) => {
+  const { email, otp } = req.body;
+
+  if (!email || !otp) {
+    return res.status(400).json({ success: false, message: 'Email and OTP are required' });
+  }
+
+  const otpRecord = await OTP.findOne({
+    email: email.toLowerCase(),
+    type: 'registration',
+    verified: false,
+    expiresAt: { $gt: new Date() },
+  });
+
+  if (!otpRecord) {
+    return res.status(400).json({ success: false, message: 'Invalid or expired verification code' });
+  }
+
+  if (otpRecord.otp !== otp) {
+    otpRecord.attempts += 1;
+    await otpRecord.save();
+    return res.status(400).json({ success: false, message: 'Invalid verification code' });
+  }
+
+  otpRecord.verified = true;
+  await otpRecord.save();
+
+  // Mark user as verified (add field to User model if needed)
+  await User.findOneAndUpdate(
+    { email: email.toLowerCase() },
+    { isEmailVerified: true }
+  );
+
+  res.json({ success: true, message: 'Email verified successfully' });
+});
+
+// @desc    Get device trust status
+// @route   POST /api/auth/check-device
+// @access  Public
+const checkDevice = asyncHandler(async (req, res) => {
+  const { email, deviceFingerprint } = req.body;
+
+  if (!email || !deviceFingerprint) {
+    return res.status(400).json({ success: false, trusted: false });
+  }
+
+  const user = await User.findOne({ email: email.toLowerCase() });
+  if (!user) {
+    return res.status(404).json({ success: false, trusted: false });
+  }
+
+  const trustedDevice = user.trustedDevices?.find(d => d.fingerprint === deviceFingerprint);
+  const isTrusted = trustedDevice && trustedDevice.expiresAt > new Date();
+
+  res.json({ success: true, trusted: isTrusted });
+});
+
+module.exports = {
+  register,
+  login,
+  refreshToken,
+  forgotPassword,
+  resetPassword,
+  getMe,
+  updateProfile,
+  changePassword,
+  sendOTPHandler,
+  verifyOTPLogin,
+  sendVerificationOTP,
+  verifyEmail,
+  checkDevice,
+};

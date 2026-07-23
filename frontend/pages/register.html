@@ -3,117 +3,1004 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Register College - Vishva ERP</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>Register | VishvaERP — Enterprise Academic Platform</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="../css/custom.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: #0F172A;
+      min-height: 100vh;
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      position: relative;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background: radial-gradient(ellipse at 30% 50%, rgba(79,70,229,0.12) 0%, transparent 60%),
+                  radial-gradient(ellipse at 70% 20%, rgba(16,185,129,0.08) 0%, transparent 50%),
+                  radial-gradient(ellipse at 50% 80%, rgba(139,92,246,0.06) 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    /* Particles */
+    #particles-canvas { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+
+    /* Theme toggle */
+    .theme-toggle {
+      position: fixed; top: 20px; right: 20px; z-index: 100;
+      width: 44px; height: 44px; border-radius: 50%;
+      background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
+      color: #A5B4FC; font-size: 18px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      backdrop-filter: blur(10px); transition: all 0.3s;
+    }
+    .theme-toggle:hover { background: rgba(255,255,255,0.2); transform: rotate(20deg); }
+    body.light-mode .theme-toggle { background: rgba(15,23,42,0.05); border-color: rgba(15,23,42,0.1); color: #475569; }
+
+    .register-container {
+      width: 100%; max-width: 580px; position: relative; z-index: 1;
+      animation: fadeInUp 0.6s ease;
+    }
+
+    /* Header */
+    .register-header {
+      text-align: center; margin-bottom: 32px;
+    }
+    .brand-icon {
+      width: 56px; height: 56px; border-radius: 16px;
+      background: linear-gradient(135deg, #4F46E5, #7C3AED);
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 26px; font-weight: 900; color: white;
+      box-shadow: 0 8px 24px rgba(79,70,229,0.35);
+      margin-bottom: 16px; cursor: pointer;
+    }
+    .register-header h1 {
+      font-size: 28px; font-weight: 900; color: white; margin-bottom: 6px;
+    }
+    .register-header p {
+      font-size: 14px; color: #A5B4FC;
+    }
+    body.light-mode .register-header h1 { color: #0F172A; }
+    body.light-mode .register-header p { color: #64748B; }
+
+    /* Step Indicator */
+    .step-indicator {
+      display: flex; align-items: center; justify-content: center;
+      gap: 0; margin-bottom: 32px;
+    }
+    .step-dot {
+      width: 36px; height: 36px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 800;
+      background: rgba(255,255,255,0.08); color: #64748B;
+      border: 2px solid rgba(255,255,255,0.1);
+      transition: all 0.3s; position: relative;
+    }
+    .step-dot.active {
+      background: #4F46E5; color: white;
+      border-color: #4F46E5; box-shadow: 0 0 0 4px rgba(79,70,229,0.2);
+    }
+    .step-dot.completed {
+      background: #10B981; color: white; border-color: #10B981;
+    }
+    .step-line {
+      width: 60px; height: 2px; background: rgba(255,255,255,0.1);
+      transition: background 0.3s;
+    }
+    .step-line.active { background: #4F46E5; }
+    .step-line.completed { background: #10B981; }
+    .step-label {
+      position: absolute; bottom: -20px; white-space: nowrap;
+      font-size: 10px; font-weight: 700; color: #64748B;
+      text-transform: uppercase; letter-spacing: 0.05em;
+    }
+    .step-dot.active .step-label { color: #A5B4FC; }
+
+    /* Card */
+    .register-card {
+      background: white; border-radius: 24px;
+      box-shadow: 0 40px 80px rgba(0,0,0,0.3);
+      overflow: hidden; position: relative;
+    }
+    body.light-mode .register-card { box-shadow: 0 25px 60px rgba(0,0,0,0.08); }
+
+    /* Progress bar */
+    .progress-bar {
+      height: 3px; background: #E2E8F0;
+    }
+    .progress-fill {
+      height: 100%; background: linear-gradient(90deg, #4F46E5, #7C3AED);
+      transition: width 0.4s ease; width: 0%;
+    }
+
+    /* Steps container */
+    .steps-container { padding: 32px; min-height: 420px; position: relative; }
+    .step-content { display: none; animation: fadeIn 0.3s ease; }
+    .step-content.active { display: block; }
+
+    /* Step title */
+    .step-title {
+      font-size: 20px; font-weight: 800; color: #0F172A; margin-bottom: 4px;
+    }
+    .step-subtitle {
+      font-size: 13px; color: #64748B; margin-bottom: 24px;
+    }
+
+    /* Role cards */
+    .role-cards {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    }
+    .role-card {
+      border: 2px solid #E2E8F0; border-radius: 16px;
+      padding: 20px 16px; cursor: pointer; transition: all 0.2s;
+      text-align: center; background: white;
+    }
+    .role-card:hover { border-color: #4F46E5; transform: translateY(-2px); }
+    .role-card.selected { border-color: #4F46E5; background: #F5F3FF; }
+    .role-card i {
+      font-size: 28px; margin-bottom: 10px; display: block;
+    }
+    .role-card h4 {
+      font-size: 14px; font-weight: 800; color: #0F172A; margin-bottom: 4px;
+    }
+    .role-card p {
+      font-size: 11px; color: #64748B; line-height: 1.4;
+    }
+    .role-card.superadmin i { color: #5B21B6; }
+    .role-card.collegeAdmin i { color: #4F46E5; }
+    .role-card.faculty i { color: #059669; }
+    .role-card.student i { color: #0284C7; }
+    .role-card.parent i { color: #DB2777; }
+
+    /* Form */
+    .form-group { margin-bottom: 18px; position: relative; }
+    .form-label {
+      display: block; font-size: 13px; font-weight: 700;
+      color: #374151; margin-bottom: 6px;
+    }
+    .form-control {
+      width: 100%; padding: 12px 14px;
+      border: 1.5px solid #E2E8F0; border-radius: 10px;
+      font-size: 14px; font-family: inherit; color: #0F172A;
+      background: white; outline: none; transition: all 0.2s;
+    }
+    .form-control:focus {
+      border-color: #4F46E5; box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
+      transform: translateY(-1px);
+    }
+    .form-control::placeholder { color: #94A3B8; }
+    .form-hint { font-size: 12px; color: #64748B; margin-top: 4px; }
+    .input-wrap { position: relative; }
+    .input-wrap input { padding-right: 44px; }
+    .toggle-pass {
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      cursor: pointer; color: #94A3B8; border: none; background: none;
+      font-size: 14px; padding: 4px; transition: color 0.2s;
+    }
+    .toggle-pass:hover { color: #4F46E5; }
+
+    /* Input with icon */
+    .input-icon-wrap { position: relative; }
+    .input-icon-wrap .form-control { padding-left: 40px; }
+    .input-icon {
+      position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+      color: #94A3B8; font-size: 14px; pointer-events: none;
+    }
+    .input-icon-wrap .form-control:focus ~ .input-icon { color: #4F46E5; }
+
+    /* Password strength */
+    .password-strength { margin-top: 8px; }
+    .strength-bar { height: 4px; border-radius: 2px; background: #E2E8F0; overflow: hidden; }
+    .strength-fill { height: 100%; border-radius: 2px; transition: all 0.3s; width: 0%; }
+    .strength-fill.weak { width: 25%; background: #EF4444; }
+    .strength-fill.fair { width: 50%; background: #F59E0B; }
+    .strength-fill.good { width: 75%; background: #3B82F6; }
+    .strength-fill.strong { width: 100%; background: #10B981; }
+    .strength-text { font-size: 11px; font-weight: 700; margin-top: 4px; }
+    .strength-checks {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 8px;
+    }
+    .strength-check {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 11px; color: #94A3B8; font-weight: 500;
+    }
+    .strength-check.met { color: #10B981; }
+    .strength-check i { font-size: 10px; }
+
+    /* Social signup */
+    .social-signup { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+    .social-btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 11px 8px; border-radius: 10px;
+      border: 1.5px solid #E2E8F0; cursor: pointer;
+      font-size: 12px; font-weight: 700; font-family: inherit;
+      background: white; color: #374151; transition: all 0.2s;
+    }
+    .social-btn:hover { border-color: #4F46E5; transform: translateY(-2px); }
+    .social-btn img, .social-btn svg { width: 18px; height: 18px; }
+    .social-btn.google:hover { border-color: #EA4335; color: #EA4335; }
+    .social-btn.microsoft:hover { border-color: #00A4EF; color: #00A4EF; }
+    .social-btn.github:hover { border-color: #24292E; color: #24292E; }
+
+    /* Divider */
+    .divider { text-align: center; color: #94A3B8; font-size: 12px; font-weight: 600; position: relative; margin: 18px 0; }
+    .divider::before, .divider::after { content: ''; position: absolute; top: 50%; width: 38%; height: 1px; background: #E2E8F0; }
+    .divider::before { left: 0; }
+    .divider::after { right: 0; }
+
+    /* OTP inputs */
+    .otp-section { display: none; }
+    .otp-section.show { display: block; animation: fadeIn 0.3s ease; }
+    .otp-inputs { display: flex; gap: 8px; justify-content: center; margin-bottom: 20px; }
+    .otp-input {
+      width: 48px; height: 52px; text-align: center;
+      border: 2px solid #E2E8F0; border-radius: 12px;
+      font-size: 20px; font-weight: 800; color: #0F172A;
+      outline: none; transition: all 0.2s; font-family: inherit;
+    }
+    .otp-input:focus { border-color: #4F46E5; box-shadow: 0 0 0 3px rgba(79,70,229,0.1); }
+    .otp-input.filled { border-color: #10B981; background: #F0FDF4; }
+    .otp-timer { text-align: center; font-size: 13px; color: #64748B; margin-bottom: 16px; }
+    .otp-timer strong { color: #4F46E5; }
+    .resend-otp { color: #4F46E5; font-weight: 700; cursor: pointer; text-decoration: none; }
+    .resend-otp:hover { text-decoration: underline; }
+
+    /* Terms */
+    .terms-check {
+      display: flex; align-items: flex-start; gap: 10px;
+      margin-bottom: 20px; cursor: pointer;
+    }
+    .terms-check input { width: 18px; height: 18px; accent-color: #4F46E5; margin-top: 2px; flex-shrink: 0; }
+    .terms-check span { font-size: 13px; color: #64748B; line-height: 1.5; }
+    .terms-check a { color: #4F46E5; font-weight: 700; text-decoration: none; }
+    .terms-check a:hover { text-decoration: underline; }
+
+    /* Referral code */
+    .referral-toggle {
+      font-size: 13px; color: #4F46E5; font-weight: 700;
+      cursor: pointer; margin-bottom: 16px; display: inline-flex;
+      align-items: center; gap: 6px;
+    }
+    .referral-toggle:hover { text-decoration: underline; }
+    .referral-field { display: none; }
+    .referral-field.show { display: block; animation: fadeIn 0.3s ease; }
+
+    /* Buttons */
+    .btn-next {
+      width: 100%; padding: 14px 20px;
+      background: linear-gradient(135deg, #4F46E5, #7C3AED);
+      color: white; border: none; border-radius: 12px;
+      font-size: 15px; font-weight: 700; cursor: pointer;
+      font-family: inherit; transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      position: relative; overflow: hidden;
+    }
+    .btn-next:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(79,70,229,0.35); }
+    .btn-next:active { transform: translateY(0); }
+    .btn-next:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+    .btn-next::after {
+      content: ''; position: absolute; top: 50%; left: 50%;
+      width: 0; height: 0; background: rgba(255,255,255,0.2);
+      border-radius: 50%; transform: translate(-50%, -50%);
+      transition: width 0.4s, height 0.4s;
+    }
+    .btn-next:hover::after { width: 300%; height: 300%; }
+    .btn-back {
+      width: 100%; padding: 12px 20px;
+      background: transparent; color: #64748B;
+      border: 1.5px solid #E2E8F0; border-radius: 12px;
+      font-size: 14px; font-weight: 700; cursor: pointer;
+      font-family: inherit; transition: all 0.2s; margin-top: 10px;
+    }
+    .btn-back:hover { border-color: #4F46E5; color: #4F46E5; }
+
+    .btn-row { display: flex; gap: 12px; margin-top: 8px; }
+    .btn-row .btn-next { flex: 2; }
+    .btn-row .btn-back { flex: 1; margin-top: 0; }
+
+    /* Spinner */
+    .spinner {
+      width: 20px; height: 20px; border: 2px solid transparent;
+      border-top-color: currentColor; border-radius: 50%;
+      animation: spin 0.6s linear infinite; display: inline-block;
+    }
+
+    /* Error/Success */
+    .error-msg {
+      background: #FEE2E2; color: #991B1B; font-size: 13px;
+      padding: 10px 14px; border-radius: 10px; margin-bottom: 14px;
+      display: none; align-items: center; gap: 8px;
+    }
+    .error-msg.show { display: flex; animation: shake 0.4s ease; }
+    .success-msg {
+      background: #D1FAE5; color: #065F46; font-size: 13px;
+      padding: 10px 14px; border-radius: 10px; margin-bottom: 14px;
+      display: none; align-items: center; gap: 8px;
+    }
+    .success-msg.show { display: flex; animation: fadeIn 0.3s ease; }
+
+    /* Success page */
+    .success-page { text-align: center; padding: 20px 0; }
+    .success-icon {
+      width: 80px; height: 80px; border-radius: 50%;
+      background: #D1FAE5; display: inline-flex;
+      align-items: center; justify-content: center;
+      margin-bottom: 20px; animation: scaleIn 0.5s ease;
+    }
+    .success-icon i { font-size: 36px; color: #10B981; }
+    .success-page h3 { font-size: 22px; font-weight: 800; color: #0F172A; margin-bottom: 8px; }
+    .success-page p { font-size: 14px; color: #64748B; margin-bottom: 24px; line-height: 1.6; }
+
+    /* Login link */
+    .login-link { text-align: center; margin-top: 20px; }
+    .login-link a { font-size: 13px; color: #94A3B8; text-decoration: none; }
+    .login-link a:hover { color: #4F46E5; }
+
+    /* Toast */
+    #toast-container {
+      position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .toast {
+      display: flex; align-items: center; gap: 12px;
+      background: white; border-radius: 12px; padding: 12px 18px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      border-left: 4px solid #4F46E5;
+      font-size: 13px; font-weight: 600; min-width: 280px;
+      animation: slideInRight 0.3s ease;
+    }
+    .toast.success { border-color: #10B981; }
+    .toast.error { border-color: #EF4444; }
+
+    @media(max-width:580px) {
+      .register-container { max-width: 100%; }
+      .register-card { border-radius: 20px; }
+      .steps-container { padding: 24px 18px; }
+      .role-cards { grid-template-columns: 1fr; }
+      .otp-input { width: 42px; height: 46px; font-size: 18px; }
+      .social-signup { grid-template-columns: 1fr; }
+    }
+
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+  </style>
 </head>
-<body class="bg-gray-50 flex items-center justify-center min-h-screen relative overflow-hidden py-12 px-4 sm:px-6">
-  
-  <div class="absolute w-[500px] h-[500px] bg-primary/20 rounded-full blur-[100px] top-0 left-0"></div>
-  <div class="absolute w-[400px] h-[400px] bg-blue-500/20 rounded-full blur-[80px] bottom-0 right-0"></div>
+<body>
+<canvas id="particles-canvas"></canvas>
 
-  <div class="glass max-w-lg w-full mx-auto rounded-[28px] shadow-xl z-10 border border-white/50 p-5 sm:p-8 animate-fade-in-up">
-    <div class="text-center mb-8">
-      <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white font-bold text-2xl mx-auto mb-4 cursor-pointer" onclick="window.location.href='../index.html'">V</div>
-      <h3 class="text-2xl font-bold text-gray-800">Register College</h3>
-      <p class="text-gray-500 text-sm mt-1">Create an admin account to set up your college.</p>
-    </div>
+<button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+  <i class="fas fa-moon" id="themeIcon"></i>
+</button>
 
-    <form id="registerForm" class="space-y-4">
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div class="floating-input">
-          <input type="text" id="name" placeholder=" " required />
-          <label for="name">Full Name</label>
-        </div>
-        <div class="floating-input">
-          <input type="text" id="phone" placeholder=" " required />
-          <label for="phone">Phone No</label>
-        </div>
-      </div>
-
-      <div class="floating-input">
-        <input type="text" id="collegeName" placeholder=" " required />
-        <label for="collegeName">College / Institution Name</label>
-      </div>
-
-      <div class="floating-input">
-        <input type="email" id="email" placeholder=" " required />
-        <label for="email">Admin Email</label>
-      </div>
-      
-      <div class="floating-input">
-        <input type="password" id="password" placeholder=" " required />
-        <label for="password">Password</label>
-      </div>
-      <p class="text-xs text-gray-500 -mt-2">Use 6+ characters with uppercase, lowercase, number, and special character.</p>
-
-      <div class="bg-indigo-50 border border-indigo-100 p-4 rounded-xl text-sm text-indigo-700">
-        <i class="fas fa-info-circle mr-2"></i> New colleges start with a trial workspace so you can open every page and finish setup immediately.
-      </div>
-
-      <button type="submit" id="submitBtn" class="w-full bg-primary text-white py-3 rounded-xl font-semibold hover:bg-indigo-700 transition flex items-center justify-center gap-2 shadow-lg shadow-indigo-200 mt-4">
-        <span>Create Account</span>
-        <i class="fas fa-arrow-right"></i>
-      </button>
-    </form>
-
-    <p class="text-center text-sm text-gray-600 mt-6">
-      Already have an account? <a href="login.html" class="text-primary font-bold hover:underline">Sign In</a>
-    </p>
+<div class="register-container">
+  <div class="register-header">
+    <div class="brand-icon" onclick="window.location.href='../index.html'">V</div>
+    <h1>Create Account</h1>
+    <p>Join VishvaERP and transform your institution</p>
   </div>
 
-  <script src="../js/api.js"></script>
-  <script>
-    const roleRedirects = {
-      collegeAdmin: './college-admin/dashboard.html'
-    };
+  <!-- Step Indicator -->
+  <div class="step-indicator">
+    <div class="step-dot active" id="stepDot1">
+      1
+      <span class="step-label">Role</span>
+    </div>
+    <div class="step-line" id="stepLine1"></div>
+    <div class="step-dot" id="stepDot2">
+      2
+      <span class="step-label">Details</span>
+    </div>
+    <div class="step-line" id="stepLine2"></div>
+    <div class="step-dot" id="stepDot3">
+      3
+      <span class="step-label">Security</span>
+    </div>
+    <div class="step-line" id="stepLine3"></div>
+    <div class="step-dot" id="stepDot4">
+      4
+      <span class="step-label">Verify</span>
+    </div>
+  </div>
 
-    document.getElementById('registerForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const btn = document.getElementById('submitBtn');
-      const password = document.getElementById('password').value;
-      const passwordPattern = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
-      if (!passwordPattern.test(password)) {
-        showToast('Password must include uppercase, lowercase, number, and special character.', 'error');
-        return;
+  <!-- Register Card -->
+  <div class="register-card">
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="steps-container">
+
+      <!-- Error/Success -->
+      <div class="error-msg" id="errorMsg"><i class="fas fa-exclamation-circle"></i><span id="errorText"></span></div>
+      <div class="success-msg" id="successMsg"><i class="fas fa-check-circle"></i><span id="successText"></span></div>
+
+      <!-- STEP 1: Role Selection -->
+      <div class="step-content active" id="step1">
+        <h3 class="step-title">Select Your Role</h3>
+        <p class="step-subtitle">Choose how you'll use VishvaERP</p>
+        <div class="role-cards">
+          <div class="role-card collegeAdmin" onclick="selectRole(this, 'collegeAdmin')">
+            <i class="fas fa-university"></i>
+            <h4>College Admin</h4>
+            <p>Manage your entire institution — students, faculty, fees, and more.</p>
+          </div>
+          <div class="role-card faculty" onclick="selectRole(this, 'faculty')">
+            <i class="fas fa-chalkboard-teacher"></i>
+            <h4>Faculty</h4>
+            <p>Manage classes, attendance, assignments, and student grades.</p>
+          </div>
+          <div class="role-card student" onclick="selectRole(this, 'student')">
+            <i class="fas fa-user-graduate"></i>
+            <h4>Student</h4>
+            <p>Access courses, assignments, results, and campus services.</p>
+          </div>
+          <div class="role-card parent" onclick="selectRole(this, 'parent')">
+            <i class="fas fa-users"></i>
+            <h4>Parent</h4>
+            <p>Monitor your child's academic progress and fee status.</p>
+          </div>
+        </div>
+        <button class="btn-next" onclick="goToStep(2)" id="step1Btn" disabled>
+          Continue <i class="fas fa-arrow-right"></i>
+        </button>
+      </div>
+
+      <!-- STEP 2: Personal Details -->
+      <div class="step-content" id="step2">
+        <h3 class="step-title">Personal Details</h3>
+        <p class="step-subtitle">Tell us about yourself</p>
+
+        <!-- Social Signup -->
+        <div class="social-signup">
+          <button class="social-btn google" type="button" onclick="socialSignup('google')">
+            <svg viewBox="0 0 24 24" width="18" height="18"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+            Google
+          </button>
+          <button class="social-btn microsoft" type="button" onclick="socialSignup('microsoft')">
+            <svg viewBox="0 0 24 24" width="18" height="18"><path fill="#F25022" d="M1 1h10v10H1z"/><path fill="#00A4EF" d="M1 13h10v10H1z"/><path fill="#7FBA00" d="M13 1h10v10H13z"/><path fill="#FFB900" d="M13 13h10v10H13z"/></svg>
+            Microsoft
+          </button>
+          <button class="social-btn github" type="button" onclick="socialSignup('github')">
+            <i class="fab fa-github" style="font-size:18px"></i>
+            GitHub
+          </button>
+        </div>
+        <div class="divider">or fill in details</div>
+
+        <form id="step2Form">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div class="form-group">
+              <label class="form-label">Full Name *</label>
+              <input class="form-control" type="text" id="regName" placeholder="John Doe" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Phone Number *</label>
+              <input class="form-control" type="tel" id="regPhone" placeholder="+91 98765 43210" required>
+            </div>
+          </div>
+          <div class="form-group" id="collegeNameGroup">
+            <label class="form-label">College / Institution Name *</label>
+            <input class="form-control" type="text" id="regCollege" placeholder="e.g., ABC Institute of Technology">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Email Address *</label>
+            <div class="input-icon-wrap">
+              <input class="form-control" type="email" id="regEmail" placeholder="john@example.com" required>
+              <i class="fas fa-envelope input-icon"></i>
+            </div>
+          </div>
+
+          <div class="referral-toggle" onclick="toggleReferral()">
+            <i class="fas fa-gift"></i> Have a referral code?
+          </div>
+          <div class="form-group referral-field" id="referralField">
+            <input class="form-control" type="text" id="regReferral" placeholder="Enter referral code">
+          </div>
+
+          <div class="btn-row">
+            <button type="button" class="btn-back" onclick="goToStep(1)"><i class="fas fa-arrow-left"></i> Back</button>
+            <button type="submit" class="btn-next">Continue <i class="fas fa-arrow-right"></i></button>
+          </div>
+        </form>
+      </div>
+
+      <!-- STEP 3: Security -->
+      <div class="step-content" id="step3">
+        <h3 class="step-title">Secure Your Account</h3>
+        <p class="step-subtitle">Create a strong password</p>
+        <form id="step3Form">
+          <div class="form-group">
+            <label class="form-label">Password *</label>
+            <div class="input-wrap">
+              <input class="form-control" type="password" id="regPassword" placeholder="Create a strong password" required>
+              <button type="button" class="toggle-pass" onclick="togglePassword(this)">
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
+            <div class="password-strength">
+              <div class="strength-bar"><div class="strength-fill" id="strengthFill"></div></div>
+              <div class="strength-text" id="strengthText"></div>
+              <div class="strength-checks">
+                <div class="strength-check" id="checkLen"><i class="fas fa-circle"></i> 8+ characters</div>
+                <div class="strength-check" id="checkUpper"><i class="fas fa-circle"></i> Uppercase</div>
+                <div class="strength-check" id="checkLower"><i class="fas fa-circle"></i> Lowercase</div>
+                <div class="strength-check" id="checkNum"><i class="fas fa-circle"></i> Number</div>
+                <div class="strength-check" id="checkSpecial"><i class="fas fa-circle"></i> Special char</div>
+                <div class="strength-check" id="checkMatch"><i class="fas fa-circle"></i> Passwords match</div>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Confirm Password *</label>
+            <div class="input-wrap">
+              <input class="form-control" type="password" id="regPasswordConfirm" placeholder="Confirm your password" required>
+              <button type="button" class="toggle-pass" onclick="togglePassword(this)">
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="terms-check">
+            <input type="checkbox" id="agreeTerms" required>
+            <span>I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></span>
+          </div>
+
+          <div class="btn-row">
+            <button type="button" class="btn-back" onclick="goToStep(2)"><i class="fas fa-arrow-left"></i> Back</button>
+            <button type="submit" class="btn-next" id="step3Btn">
+              Create Account <i class="fas fa-check"></i>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- STEP 4: Verification -->
+      <div class="step-content" id="step4">
+        <h3 class="step-title">Verify Your Email</h3>
+        <p class="step-subtitle">Enter the 6-digit code sent to <strong id="verifyEmailDisplay"></strong></p>
+
+        <div class="otp-inputs">
+          <input class="otp-input" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" id="votp1">
+          <input class="otp-input" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" id="votp2">
+          <input class="otp-input" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" id="votp3">
+          <input class="otp-input" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" id="votp4">
+          <input class="otp-input" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" id="votp5">
+          <input class="otp-input" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" id="votp6">
+        </div>
+
+        <div class="otp-timer" id="verifyOtpTimer">
+          Resend code in <strong id="verifyOtpCountdown">60</strong>s
+        </div>
+        <div class="otp-timer" id="verifyOtpResend" style="display:none">
+          <a class="resend-otp" onclick="resendVerifyOTP()">Resend Code</a>
+        </div>
+
+        <button class="btn-next" onclick="verifyEmail()" id="verifyBtn">
+          <i class="fas fa-check-circle"></i> Verify Email
+        </button>
+      </div>
+
+      <!-- SUCCESS PAGE -->
+      <div class="step-content" id="stepSuccess">
+        <div class="success-page">
+          <div class="success-icon"><i class="fas fa-check"></i></div>
+          <h3>Welcome to VishvaERP!</h3>
+          <p>Your account has been created successfully. Your college workspace is ready with a 30-day free trial.</p>
+          <button class="btn-next" onclick="goToDashboard()">
+            <i class="fas fa-rocket"></i> Go to Dashboard
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="login-link">
+    <a href="login.html"><i class="fas fa-arrow-left" style="margin-right:4px"></i>Already have an account? Sign In</a>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script>
+  const BACKEND_ORIGIN = window.location.hostname.endsWith('vercel.app')
+    ? 'https://vishvaerp.onrender.com'
+    : '';
+  const API_URL = BACKEND_ORIGIN ? `${BACKEND_ORIGIN}/api` : '/api';
+
+  let currentStep = 1;
+  let selectedRole = null;
+  let registrationData = {};
+  let verifyOtpInterval = null;
+
+  const roleRedirects = {
+    collegeAdmin: '/pages/college-admin/dashboard.html',
+    faculty: '/pages/faculty/dashboard.html',
+    student: '/pages/student/dashboard.html',
+    parent: '/pages/parent/dashboard.html',
+  };
+
+  /* ========== PARTICLES ========== */
+  (function initParticles() {
+    const canvas = document.getElementById('particles-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    resize();
+    window.addEventListener('resize', resize);
+    class Particle {
+      constructor() { this.reset(); }
+      reset() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = Math.random() * 2 + 0.5;
+        this.speedX = (Math.random() - 0.5) * 0.5;
+        this.speedY = (Math.random() - 0.5) * 0.5;
+        this.opacity = Math.random() * 0.4 + 0.1;
       }
+      update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) this.reset();
+      }
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(139,92,246,${this.opacity})`;
+        ctx.fill();
+      }
+    }
+    for (let i = 0; i < 50; i++) particles.push(new Particle());
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => { p.update(); p.draw(); });
+      requestAnimationFrame(animate);
+    }
+    animate();
+  })();
 
-      const data = {
-        name: document.getElementById('name').value.trim(),
-        collegeName: document.getElementById('collegeName').value.trim(),
-        email: document.getElementById('email').value.trim(),
-        phone: document.getElementById('phone').value.trim(),
-        password,
-        role: 'collegeAdmin'
-      };
+  /* ========== THEME ========== */
+  function toggleTheme() {
+    document.body.classList.toggle('light-mode');
+    const icon = document.getElementById('themeIcon');
+    icon.className = document.body.classList.contains('light-mode') ? 'fas fa-sun' : 'fas fa-moon';
+  }
 
-      try {
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registering...';
-        btn.disabled = true;
+  /* ========== STEP NAVIGATION ========== */
+  function goToStep(step) {
+    if (step === 2 && !selectedRole) { showToast('Please select a role first.', 'error'); return; }
 
-        const res = await api.request('/auth/register', {
-          method: 'POST',
-          body: JSON.stringify(data)
-        });
+    document.querySelectorAll('.step-content').forEach(c => c.classList.remove('active'));
+    document.getElementById(`step${step}`).classList.add('active');
 
-        api.setToken(res.token, res.user, res.refreshToken);
-        showToast('Registration successful! Your college workspace is ready.', 'success');
-        
-        setTimeout(() => {
-          if (res.user?.role === 'collegeAdmin' && res.subscriptionActive === false) {
-            window.location.href = './college-admin/subscription.html';
-            return;
-          }
-          window.location.href = roleRedirects[res.user?.role] || './college-admin/dashboard.html';
-        }, 1500);
+    document.querySelectorAll('.step-dot').forEach(d => d.classList.remove('active'));
+    document.querySelectorAll('.step-dot')[step - 1]?.classList.add('active');
 
-      } catch (error) {
-        showToast(error.message, 'error');
-        btn.innerHTML = '<span>Create Account</span><i class="fas fa-arrow-right"></i>';
-        btn.disabled = false;
+    for (let i = 1; i < step; i++) {
+      document.getElementById(`stepDot${i}`).classList.add('completed');
+    }
+    for (let i = 1; i <= 3; i++) {
+      const line = document.getElementById(`stepLine${i}`);
+      if (line) line.classList.toggle('active', i < step);
+    }
+
+    const progress = ((step - 1) / 3) * 100;
+    document.getElementById('progressFill').style.width = `${progress}%`;
+    currentStep = step;
+
+    if (step === 4) {
+      document.getElementById('verifyEmailDisplay').textContent = registrationData.email;
+      startVerifyOtpCountdown();
+    }
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  /* ========== ROLE SELECTION ========== */
+  function selectRole(card, role) {
+    document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    selectedRole = role;
+    document.getElementById('step1Btn').disabled = false;
+
+    const collegeGroup = document.getElementById('collegeNameGroup');
+    collegeGroup.style.display = role === 'collegeAdmin' ? 'block' : 'none';
+  }
+
+  /* ========== PASSWORD TOGGLE ========== */
+  function togglePassword(btn) {
+    const input = btn.previousElementSibling;
+    input.type = input.type === 'password' ? 'text' : 'password';
+    btn.querySelector('i').className = input.type === 'password' ? 'fas fa-eye' : 'fas fa-eye-slash';
+  }
+
+  /* ========== PASSWORD STRENGTH ========== */
+  document.getElementById('regPassword').addEventListener('input', function() {
+    const val = this.value;
+    const checks = {
+      len: val.length >= 8,
+      upper: /[A-Z]/.test(val),
+      lower: /[a-z]/.test(val),
+      num: /[0-9]/.test(val),
+      special: /[@$!%*?&]/.test(val),
+    };
+    const metCount = Object.values(checks).filter(Boolean).length;
+
+    Object.entries(checks).forEach(([key, met]) => {
+      const el = document.getElementById(`check${key.charAt(0).toUpperCase() + key.slice(1)}`);
+      if (el) {
+        el.classList.toggle('met', met);
+        el.querySelector('i').className = met ? 'fas fa-check-circle' : 'fas fa-circle';
       }
     });
-  </script>
+
+    const fill = document.getElementById('strengthFill');
+    const text = document.getElementById('strengthText');
+    fill.className = 'strength-fill';
+
+    if (val.length === 0) {
+      text.textContent = '';
+    } else if (metCount <= 2) {
+      fill.classList.add('weak');
+      text.textContent = 'Weak password';
+      text.style.color = '#EF4444';
+    } else if (metCount <= 3) {
+      fill.classList.add('fair');
+      text.textContent = 'Fair password';
+      text.style.color = '#F59E0B';
+    } else if (metCount <= 4) {
+      fill.classList.add('good');
+      text.textContent = 'Good password';
+      text.style.color = '#3B82F6';
+    } else {
+      fill.classList.add('strong');
+      text.textContent = 'Strong password!';
+      text.style.color = '#10B981';
+    }
+
+    checkPasswordMatch();
+  });
+
+  document.getElementById('regPasswordConfirm').addEventListener('input', checkPasswordMatch);
+
+  function checkPasswordMatch() {
+    const pw = document.getElementById('regPassword').value;
+    const confirm = document.getElementById('regPasswordConfirm').value;
+    const el = document.getElementById('checkMatch');
+    if (confirm.length > 0) {
+      const match = pw === confirm;
+      el.classList.toggle('met', match);
+      el.querySelector('i').className = match ? 'fas fa-check-circle' : 'fas fa-times-circle';
+    } else {
+      el.classList.remove('met');
+      el.querySelector('i').className = 'fas fa-circle';
+    }
+  }
+
+  /* ========== STEP 2 FORM ========== */
+  document.getElementById('step2Form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    registrationData = {
+      name: document.getElementById('regName').value.trim(),
+      phone: document.getElementById('regPhone').value.trim(),
+      collegeName: document.getElementById('regCollege').value.trim(),
+      email: document.getElementById('regEmail').value.trim(),
+      referralCode: document.getElementById('regReferral').value.trim(),
+    };
+    goToStep(3);
+  });
+
+  /* ========== STEP 3 FORM ========== */
+  document.getElementById('step3Form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const password = document.getElementById('regPassword').value;
+    const confirm = document.getElementById('regPasswordConfirm').value;
+
+    if (password !== confirm) { showError('Passwords do not match.'); return; }
+    if (!document.getElementById('agreeTerms').checked) { showError('Please agree to the Terms of Service.'); return; }
+
+    registrationData.password = password;
+
+    const btn = document.getElementById('step3Btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Creating account...';
+
+    try {
+      const res = await fetch(`${API_URL}/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: registrationData.name,
+          email: registrationData.email,
+          password: registrationData.password,
+          role: selectedRole,
+          phone: registrationData.phone,
+          collegeName: registrationData.collegeName,
+          referralCode: registrationData.referralCode,
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || data.errors?.[0]?.msg || 'Registration failed');
+
+      localStorage.setItem('erp_token', data.token);
+      localStorage.setItem('erp_user', JSON.stringify(data.user));
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      if (data.refreshToken) {
+        localStorage.setItem('erp_refresh_token', data.refreshToken);
+        localStorage.setItem('refreshToken', data.refreshToken);
+      }
+
+      goToStep(4);
+    } catch (error) {
+      showError(error.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = 'Create Account <i class="fas fa-check"></i>';
+    }
+  });
+
+  /* ========== EMAIL VERIFICATION ========== */
+  function startVerifyOtpCountdown() {
+    let seconds = 60;
+    const countdownEl = document.getElementById('verifyOtpCountdown');
+    const timerEl = document.getElementById('verifyOtpTimer');
+    const resendEl = document.getElementById('verifyOtpResend');
+
+    timerEl.style.display = 'block';
+    resendEl.style.display = 'none';
+
+    if (verifyOtpInterval) clearInterval(verifyOtpInterval);
+    verifyOtpInterval = setInterval(() => {
+      seconds--;
+      countdownEl.textContent = seconds;
+      if (seconds <= 0) {
+        clearInterval(verifyOtpInterval);
+        timerEl.style.display = 'none';
+        resendEl.style.display = 'block';
+      }
+    }, 1000);
+  }
+
+  async function resendVerifyOTP() {
+    try {
+      const res = await fetch(`${API_URL}/auth/send-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: registrationData.email })
+      });
+      if (!res.ok) throw new Error('Failed to resend OTP');
+      showToast('New verification code sent!', 'success');
+      startVerifyOtpCountdown();
+    } catch (e) {
+      showToast(e.message, 'error');
+    }
+  }
+
+  async function verifyEmail() {
+    const otp = ['votp1','votp2','votp3','votp4','votp5','votp6'].map(id => document.getElementById(id).value).join('');
+    if (otp.length !== 6) { showError('Please enter the complete 6-digit code.'); return; }
+
+    const btn = document.getElementById('verifyBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Verifying...';
+
+    try {
+      const res = await fetch(`${API_URL}/auth/verify-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: registrationData.email, otp })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Invalid verification code');
+
+      showSuccess('Email verified successfully!');
+      goToStep('Success');
+    } catch (error) {
+      showError(error.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-check-circle"></i> Verify Email';
+    }
+  }
+
+  function goToDashboard() {
+    const role = selectedRole;
+    if (role === 'collegeAdmin') {
+      window.location.href = '/pages/college-admin/subscription.html';
+    } else {
+      window.location.href = roleRedirects[role] || roleRedirects['student'];
+    }
+  }
+
+  /* ========== OTP INPUT HANDLING ========== */
+  document.querySelectorAll('.otp-input').forEach((input, index, inputs) => {
+    input.addEventListener('input', (e) => {
+      const val = e.target.value.replace(/[^0-9]/g, '');
+      e.target.value = val;
+      if (val) {
+        e.target.classList.add('filled');
+        if (index < inputs.length - 1) inputs[index + 1].focus();
+      } else {
+        e.target.classList.remove('filled');
+      }
+    });
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' && !e.target.value && index > 0) {
+        inputs[index - 1].focus();
+        inputs[index - 1].value = '';
+        inputs[index - 1].classList.remove('filled');
+      }
+    });
+    input.addEventListener('paste', (e) => {
+      e.preventDefault();
+      const paste = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '');
+      for (let i = 0; i < Math.min(paste.length, 6); i++) {
+        inputs[i].value = paste[i];
+        inputs[i].classList.add('filled');
+      }
+      if (paste.length >= 6) inputs[5].focus();
+    });
+  });
+
+  /* ========== UTILITY ========== */
+  function toggleReferral() {
+    document.getElementById('referralField').classList.toggle('show');
+  }
+
+  function socialSignup(provider) {
+    showToast(`${provider.charAt(0).toUpperCase() + provider.slice(1)} signup will be available soon.`, 'info');
+  }
+
+  function showError(msg) {
+    hideMessages();
+    document.getElementById('errorText').textContent = msg;
+    document.getElementById('errorMsg').classList.add('show');
+    setTimeout(() => document.getElementById('errorMsg').classList.remove('show'), 5000);
+  }
+  function showSuccess(msg) {
+    hideMessages();
+    document.getElementById('successText').textContent = msg;
+    document.getElementById('successMsg').classList.add('show');
+  }
+  function hideMessages() {
+    document.getElementById('errorMsg').classList.remove('show');
+    document.getElementById('successMsg').classList.remove('show');
+  }
+
+  function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    const icon = type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
+    toast.innerHTML = `<i class="fas ${icon}" style="color:${type === 'success' ? '#10B981' : type === 'error' ? '#EF4444' : '#4F46E5'}"></i><span>${message}</span>`;
+    document.getElementById('toast-container').appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
+  }
+
+  /* ========== AUTO-REDIRECT ========== */
+  if (localStorage.getItem('erp_token')) {
+    try {
+      const user = JSON.parse(localStorage.getItem('erp_user'));
+      if (user && user.role && roleRedirects[user.role]) {
+        window.location.href = roleRedirects[user.role];
+      }
+    } catch (e) {}
+  }
+</script>
 </body>
 </html>

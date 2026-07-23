@@ -136,10 +136,55 @@ async function sendFeeReceiptEmail(email, name, feeDetails, pdfBuffer) {
   }
 }
 
+async function sendOTP(email, otpCode) {
+  return sendMail({
+    to: email,
+    subject: 'Your Login OTP - VishvaERP',
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto;">
+        <h2 style="color: #1e293b;">Login Verification</h2>
+        <p>Use the following OTP to log in to your VishvaERP account:</p>
+        <div style="background: #f1f5f9; border-radius: 12px; padding: 24px; text-align: center; margin: 20px 0;">
+          <span style="font-size: 32px; font-weight: 900; color: #4F46E5; letter-spacing: 8px;">${otpCode}</span>
+        </div>
+        <p style="color: #64748b; font-size: 13px;">This OTP expires in 10 minutes. Do not share this code with anyone.</p>
+        <p style="color: #64748b; font-size: 13px;">If you did not request this OTP, please ignore this email.</p>
+        <hr style="border: none; border-top: 1px solid #e2e8f0;" />
+        <p style="color: #64748b; font-size: 12px;">VishvaERP - Multi-College ERP Platform</p>
+      </div>
+    `,
+    text: `Your OTP: ${otpCode}\n\nThis OTP expires in 10 minutes.`,
+  });
+}
+
+async function sendVerificationOTP(email, otpCode, name) {
+  return sendMail({
+    to: email,
+    subject: 'Verify Your Email - VishvaERP',
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto;">
+        <h2 style="color: #1e293b;">Email Verification</h2>
+        <p>Hi ${name || 'User'},</p>
+        <p>Thank you for registering with VishvaERP. Please verify your email address with the code below:</p>
+        <div style="background: #f1f5f9; border-radius: 12px; padding: 24px; text-align: center; margin: 20px 0;">
+          <span style="font-size: 32px; font-weight: 900; color: #10B981; letter-spacing: 8px;">${otpCode}</span>
+        </div>
+        <p style="color: #64748b; font-size: 13px;">This code expires in 10 minutes.</p>
+        <p style="color: #64748b; font-size: 13px;">If you did not register for an account, please ignore this email.</p>
+        <hr style="border: none; border-top: 1px solid #e2e8f0;" />
+        <p style="color: #64748b; font-size: 12px;">VishvaERP - Multi-College ERP Platform</p>
+      </div>
+    `,
+    text: `Hi ${name || 'User'},\n\nYour verification code: ${otpCode}\n\nThis code expires in 10 minutes.`,
+  });
+}
+
 module.exports = {
   isEmailConfigured,
   sendMail,
   sendPasswordResetEmail,
   sendWelcomeEmail,
   sendFeeReceiptEmail,
+  sendOTP,
+  sendVerificationOTP,
 };

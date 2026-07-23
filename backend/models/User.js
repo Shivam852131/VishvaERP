@@ -37,6 +37,15 @@ const userSchema = new mongoose.Schema({
     platform: { type: String, enum: ['web', 'android', 'ios'], default: 'web' },
     updatedAt: { type: Date, default: Date.now },
   }],
+  trustedDevices: [{
+    fingerprint: { type: String, required: true },
+    name: { type: String },
+    lastUsed: { type: Date, default: Date.now },
+    expiresAt: { type: Date },
+  }],
+  isEmailVerified: { type: Boolean, default: false },
+  twoFactorEnabled: { type: Boolean, default: false },
+  twoFactorSecret: { type: String },
   resetPasswordToken: { type: String },
   resetPasswordExpire: { type: Date },
 }, { timestamps: true });

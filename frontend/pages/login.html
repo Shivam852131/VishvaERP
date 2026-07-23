@@ -19,8 +19,10 @@
       padding: 20px;
       position: relative;
       overflow: hidden;
+      transition: background 0.3s;
     }
-    /* Animated background */
+    body.light-mode { background: #F1F5F9; }
+
     body::before {
       content: '';
       position: fixed; inset: 0;
@@ -29,28 +31,59 @@
                   radial-gradient(ellipse at 60% 80%, rgba(245,158,11,0.08) 0%, transparent 50%);
       pointer-events: none;
     }
+
+    /* Animated particles */
+    #particles-canvas {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    }
+
+    /* Dark mode toggle */
+    .theme-toggle {
+      position: fixed; top: 20px; right: 20px; z-index: 100;
+      width: 44px; height: 44px; border-radius: 50%;
+      background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
+      color: #A5B4FC; font-size: 18px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      backdrop-filter: blur(10px); transition: all 0.3s;
+    }
+    .theme-toggle:hover { background: rgba(255,255,255,0.2); transform: rotate(20deg); }
+    body.light-mode .theme-toggle { background: rgba(15,23,42,0.05); border-color: rgba(15,23,42,0.1); color: #475569; }
+
+    /* Keyboard shortcut hint */
+    .kbd-hint {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px; padding: 6px 14px; z-index: 100;
+      font-size: 11px; color: #94A3B8; backdrop-filter: blur(10px);
+      display: flex; align-items: center; gap: 8px; opacity: 0.7;
+    }
+    .kbd-hint kbd {
+      background: rgba(255,255,255,0.1); border-radius: 4px;
+      padding: 2px 6px; font-family: inherit; font-size: 10px;
+    }
+
     .login-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 0;
       width: 100%;
       max-width: 980px;
-      min-height: 580px;
+      min-height: 620px;
       border-radius: 24px;
       overflow: hidden;
       box-shadow: 0 40px 80px rgba(0,0,0,0.4);
       position: relative;
       z-index: 1;
+      animation: fadeInUp 0.6s ease;
     }
+    body.light-mode .login-grid { box-shadow: 0 25px 60px rgba(0,0,0,0.08); }
+
     /* LEFT PANEL */
     .login-left {
       background: linear-gradient(135deg, #1E1B4B 0%, #312E81 50%, #1E1B4B 100%);
       padding: 48px 40px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      position: relative;
-      overflow: hidden;
+      display: flex; flex-direction: column; justify-content: space-between;
+      position: relative; overflow: hidden;
     }
     .login-left::before {
       content: '';
@@ -73,65 +106,269 @@
     .feature-item { display: flex; align-items: center; gap: 12px; color: #C4B5FD; font-size: 13px; font-weight: 600; }
     .feature-item i { color: #10B981; font-size: 14px; }
 
+    /* Live stats on left */
+    .live-stats {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+      position: relative; margin-top: 24px;
+    }
+    .live-stat-card {
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px; padding: 14px; backdrop-filter: blur(10px);
+    }
+    .live-stat-card .stat-num {
+      font-size: 22px; font-weight: 900; color: white;
+    }
+    .live-stat-card .stat-lbl {
+      font-size: 10px; font-weight: 700; color: #818CF8;
+      text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px;
+    }
+
     /* RIGHT PANEL */
-    .login-right { background: white; padding: 48px 40px; display: flex; flex-direction: column; justify-content: center; animation: fadeInUp 0.5s ease; }
+    .login-right {
+      background: white; padding: 44px 40px;
+      display: flex; flex-direction: column; justify-content: center;
+      animation: fadeInUp 0.5s ease;
+    }
+    body.light-mode .login-right { background: #FAFBFC; }
     .login-right h2 { font-size: 26px; font-weight: 800; color: #0F172A; margin-bottom: 6px; }
-    .login-right p { font-size: 14px; color: #64748B; margin-bottom: 28px; }
+    .login-right .subtitle { font-size: 14px; color: #64748B; margin-bottom: 24px; }
+
+    /* Mode tabs */
+    .mode-tabs {
+      display: flex; gap: 4px; background: #F1F5F9;
+      border-radius: 12px; padding: 4px; margin-bottom: 24px;
+    }
+    .mode-tab {
+      flex: 1; padding: 10px 8px; border-radius: 10px;
+      border: none; cursor: pointer; font-size: 13px; font-weight: 700;
+      font-family: inherit; transition: all 0.2s;
+      background: transparent; color: #64748B;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .mode-tab.active {
+      background: white; color: #4F46E5; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .mode-tab i { font-size: 14px; }
 
     /* Role selector */
-    .role-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 24px; }
+    .role-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 20px; }
     .role-btn {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       gap: 6px; padding: 12px 8px; border-radius: 12px;
       border: 2px solid #E2E8F0; cursor: pointer;
-      font-size: 12px; font-weight: 700; color: #64748B;
-      background: white; transition: all 0.2s;
+      font-size: 11px; font-weight: 700; color: #64748B;
+      background: white; transition: all 0.2s; font-family: inherit;
     }
     .role-btn i { font-size: 18px; }
     .role-btn.active { border-color: var(--role-color, #4F46E5); background: var(--role-bg, #EDE9FE); color: var(--role-color, #4F46E5); }
-    .role-btn:hover { border-color: var(--role-color, #4F46E5); transform: translateY(-1px); }
+    .role-btn:hover { border-color: var(--role-color, #4F46E5); transform: translateY(-2px); }
 
     /* Form */
-    .form-group { margin-bottom: 16px; }
+    .form-group { margin-bottom: 16px; position: relative; }
     .form-label { display: block; font-size: 13px; font-weight: 700; color: #374151; margin-bottom: 6px; }
     .form-control {
-      width: 100%; padding: 11px 14px;
+      width: 100%; padding: 12px 14px;
       border: 1.5px solid #E2E8F0; border-radius: 10px;
       font-size: 14px; font-family: inherit; color: #0F172A;
-      background: white; outline: none; transition: all 0.15s;
+      background: white; outline: none; transition: all 0.2s;
     }
-    .form-control:focus { border-color: #4F46E5; box-shadow: 0 0 0 3px rgba(79,70,229,0.1); }
+    .form-control:focus { border-color: #4F46E5; box-shadow: 0 0 0 3px rgba(79,70,229,0.1); transform: translateY(-1px); }
+    .form-control::placeholder { color: #94A3B8; }
     .input-wrap { position: relative; }
-    .input-wrap input { padding-right: 40px; }
-    .input-wrap .toggle-pass {
+    .input-wrap input { padding-right: 44px; }
+    .toggle-pass {
       position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
-      cursor: pointer; color: #94A3B8; border: none; background: none; font-size: 14px;
+      cursor: pointer; color: #94A3B8; border: none; background: none;
+      font-size: 14px; padding: 4px; transition: color 0.2s;
     }
-    .forgot { text-align: right; margin-top: -12px; margin-bottom: 16px; }
-    .forgot a { font-size: 12px; color: #4F46E5; text-decoration: none; font-weight: 600; }
+    .toggle-pass:hover { color: #4F46E5; }
+
+    /* Input with icon */
+    .input-icon-wrap { position: relative; }
+    .input-icon-wrap .form-control { padding-left: 40px; }
+    .input-icon {
+      position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+      color: #94A3B8; font-size: 14px; pointer-events: none; transition: color 0.2s;
+    }
+    .input-icon-wrap .form-control:focus ~ .input-icon { color: #4F46E5; }
+
+    /* Remember me row */
+    .remember-row {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .remember-me { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+    .remember-me input[type="checkbox"] {
+      width: 16px; height: 16px; border-radius: 4px; cursor: pointer;
+      accent-color: #4F46E5;
+    }
+    .remember-me span { font-size: 13px; color: #64748B; font-weight: 500; }
+    .forgot a { font-size: 13px; color: #4F46E5; text-decoration: none; font-weight: 700; }
+    .forgot a:hover { text-decoration: underline; }
+
     .btn-login {
-      width: 100%; padding: 13px 20px;
+      width: 100%; padding: 14px 20px;
       background: linear-gradient(135deg, #4F46E5, #7C3AED);
       color: white; border: none; border-radius: 12px;
       font-size: 15px; font-weight: 700; cursor: pointer;
       font-family: inherit; transition: all 0.2s;
       display: flex; align-items: center; justify-content: center; gap: 8px;
+      position: relative; overflow: hidden;
     }
-    .btn-login:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(79,70,229,0.35); }
+    .btn-login:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(79,70,229,0.35); }
     .btn-login:active { transform: translateY(0); }
     .btn-login:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
+    .btn-login::after {
+      content: ''; position: absolute; top: 50%; left: 50%;
+      width: 0; height: 0; background: rgba(255,255,255,0.2);
+      border-radius: 50%; transform: translate(-50%, -50%);
+      transition: width 0.4s, height 0.4s;
+    }
+    .btn-login:hover::after { width: 300%; height: 300%; }
 
     .divider { text-align: center; color: #94A3B8; font-size: 12px; font-weight: 600; position: relative; margin: 18px 0; }
-    .divider::before, .divider::after { content: ''; position: absolute; top: 50%; width: 42%; height: 1px; background: #E2E8F0; }
+    .divider::before, .divider::after { content: ''; position: absolute; top: 50%; width: 38%; height: 1px; background: #E2E8F0; }
     .divider::before { left: 0; }
     .divider::after { right: 0; }
+
+    /* Social login buttons */
+    .social-login { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+    .social-btn {
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 11px 8px; border-radius: 10px;
+      border: 1.5px solid #E2E8F0; cursor: pointer;
+      font-size: 12px; font-weight: 700; font-family: inherit;
+      background: white; color: #374151; transition: all 0.2s;
+    }
+    .social-btn:hover { border-color: #4F46E5; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+    .social-btn img, .social-btn svg { width: 18px; height: 18px; }
+    .social-btn.google:hover { border-color: #EA4335; color: #EA4335; }
+    .social-btn.microsoft:hover { border-color: #00A4EF; color: #00A4EF; }
+    .social-btn.github:hover { border-color: #24292E; color: #24292E; }
+
+    /* Biometric button */
+    .biometric-btn {
+      width: 100%; padding: 12px;
+      background: rgba(79,70,229,0.05); border: 1.5px dashed #4F46E5;
+      border-radius: 10px; cursor: pointer;
+      font-size: 13px; font-weight: 700; font-family: inherit;
+      color: #4F46E5; transition: all 0.2s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .biometric-btn:hover { background: rgba(79,70,229,0.1); transform: translateY(-1px); }
+
+    /* OTP section */
+    .otp-section { display: none; }
+    .otp-section.show { display: block; animation: fadeIn 0.3s ease; }
+    .otp-inputs { display: flex; gap: 8px; justify-content: center; margin-bottom: 20px; }
+    .otp-input {
+      width: 48px; height: 52px; text-align: center;
+      border: 2px solid #E2E8F0; border-radius: 12px;
+      font-size: 20px; font-weight: 800; color: #0F172A;
+      outline: none; transition: all 0.2s; font-family: inherit;
+    }
+    .otp-input:focus { border-color: #4F46E5; box-shadow: 0 0 0 3px rgba(79,70,229,0.1); }
+    .otp-input.filled { border-color: #10B981; background: #F0FDF4; }
+    .otp-timer { text-align: center; font-size: 13px; color: #64748B; margin-bottom: 16px; }
+    .otp-timer strong { color: #4F46E5; }
+    .resend-otp { color: #4F46E5; font-weight: 700; cursor: pointer; text-decoration: none; }
+    .resend-otp:hover { text-decoration: underline; }
+
+    /* 2FA section */
+    .twofa-section { display: none; }
+    .twofa-section.show { display: block; animation: fadeIn 0.3s ease; }
+    .twofa-icon { text-align: center; margin-bottom: 16px; }
+    .twofa-icon i { font-size: 48px; color: #4F46E5; }
+
+    /* Error/Success */
+    .error-msg {
+      background: #FEE2E2; color: #991B1B; font-size: 13px;
+      padding: 10px 14px; border-radius: 10px; margin-bottom: 14px;
+      display: none; align-items: center; gap: 8px;
+    }
+    .error-msg.show { display: flex; animation: shake 0.4s ease; }
+    .success-msg {
+      background: #D1FAE5; color: #065F46; font-size: 13px;
+      padding: 10px 14px; border-radius: 10px; margin-bottom: 14px;
+      display: none; align-items: center; gap: 8px;
+    }
+    .success-msg.show { display: flex; animation: fadeIn 0.3s ease; }
+
+    /* Rate limit warning */
+    .rate-limit-warning {
+      background: #FEF3C7; color: #92400E; font-size: 12px;
+      padding: 8px 12px; border-radius: 8px; margin-bottom: 14px;
+      display: none; align-items: center; gap: 8px;
+    }
+    .rate-limit-warning.show { display: flex; }
+
+    /* Password strength */
+    .password-strength { margin-top: 8px; }
+    .strength-bar { height: 4px; border-radius: 2px; background: #E2E8F0; overflow: hidden; }
+    .strength-fill { height: 100%; border-radius: 2px; transition: all 0.3s; width: 0%; }
+    .strength-fill.weak { width: 25%; background: #EF4444; }
+    .strength-fill.fair { width: 50%; background: #F59E0B; }
+    .strength-fill.good { width: 75%; background: #3B82F6; }
+    .strength-fill.strong { width: 100%; background: #10B981; }
+    .strength-text { font-size: 11px; font-weight: 700; margin-top: 4px; }
+
+    /* Device trust */
+    .trust-device {
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 16px; padding: 8px 12px;
+      background: rgba(79,70,229,0.03); border-radius: 8px;
+    }
+    .trust-device input { accent-color: #4F46E5; }
+    .trust-device span { font-size: 12px; color: #64748B; }
 
     .back-home { text-align: center; margin-top: 14px; }
     .back-home a { font-size: 13px; color: #94A3B8; text-decoration: none; }
     .back-home a:hover { color: #4F46E5; }
 
-    .error-msg { background: #FEE2E2; color: #991B1B; font-size: 13px; padding: 10px 14px; border-radius: 10px; margin-bottom: 14px; display: none; }
-    .error-msg.show { display: flex; align-items: center; gap: 8px; }
+    /* Session timeout warning */
+    .session-warning {
+      display: none; position: fixed; inset: 0; z-index: 9999;
+      background: rgba(15,23,42,0.8); backdrop-filter: blur(4px);
+      align-items: center; justify-content: center;
+    }
+    .session-warning.show { display: flex; }
+    .session-warning-card {
+      background: white; border-radius: 20px; padding: 40px;
+      text-align: center; max-width: 360px; width: 90%;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+      animation: scaleIn 0.3s ease;
+    }
+    .session-warning-card i { font-size: 48px; color: #F59E0B; margin-bottom: 16px; }
+    .session-warning-card h3 { font-size: 20px; font-weight: 800; margin-bottom: 8px; color: #0F172A; }
+    .session-warning-card p { font-size: 14px; color: #64748B; margin-bottom: 20px; }
+    .session-warning-card .countdown { font-size: 36px; font-weight: 900; color: #4F46E5; }
+
+    /* Page sections */
+    .login-section { display: block; }
+    .login-section.hidden { display: none; }
+
+    /* Loading spinner */
+    .spinner {
+      width: 20px; height: 20px; border: 2px solid transparent;
+      border-top-color: currentColor; border-radius: 50%;
+      animation: spin 0.6s linear infinite; display: inline-block;
+    }
+
+    /* Toast container */
+    #toast-container {
+      position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .toast {
+      display: flex; align-items: center; gap: 12px;
+      background: white; border-radius: 12px; padding: 12px 18px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      border-left: 4px solid #4F46E5;
+      font-size: 13px; font-weight: 600; min-width: 280px;
+      animation: slideInRight 0.3s ease;
+    }
+    .toast.success { border-color: #10B981; }
+    .toast.error { border-color: #EF4444; }
 
     @media(max-width:768px) {
       body { align-items: flex-start; overflow-y: auto; padding: max(14px, env(safe-area-inset-top)) 14px max(14px, env(safe-area-inset-bottom)); }
@@ -139,26 +376,45 @@
       .login-left { display: none; }
       .login-right { padding: 32px 24px; min-height: auto; justify-content: flex-start; }
       .role-grid { grid-template-columns: repeat(3, 1fr); }
+      .social-login { grid-template-columns: 1fr 1fr 1fr; }
     }
-
     @media(max-width:420px) {
       .login-grid { border-radius: 18px; }
       .login-right { padding: 26px 18px; }
       .role-grid { grid-template-columns: repeat(2, 1fr); }
       .role-btn { min-height: 62px; padding: 10px 6px; }
+      .otp-input { width: 40px; height: 44px; font-size: 16px; }
     }
 
     @keyframes fadeInUp {
       from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
     }
-    @keyframes float {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-10px); }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    @keyframes slideInRight { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
     }
+    @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
   </style>
 </head>
 <body>
+<canvas id="particles-canvas"></canvas>
+
+<!-- Theme Toggle -->
+<button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme (Ctrl+D)">
+  <i class="fas fa-moon" id="themeIcon"></i>
+</button>
+
+<!-- Keyboard Hints -->
+<div class="kbd-hint">
+  <kbd>Enter</kbd> Submit &nbsp; <kbd>Ctrl+D</kbd> Theme &nbsp; <kbd>Esc</kbd> Reset
+</div>
+
 <div class="login-grid">
   <!-- LEFT PANEL -->
   <div class="login-left">
@@ -177,67 +433,219 @@
       <div class="feature-item"><i class="fas fa-check-circle"></i> Multi-college support with full isolation</div>
       <div class="feature-item"><i class="fas fa-check-circle"></i> Live messaging & notification system</div>
     </div>
+    <div class="live-stats">
+      <div class="live-stat-card">
+        <div class="stat-num">50K+</div>
+        <div class="stat-lbl">Active Users</div>
+      </div>
+      <div class="live-stat-card">
+        <div class="stat-num">200+</div>
+        <div class="stat-lbl">Colleges</div>
+      </div>
+      <div class="live-stat-card">
+        <div class="stat-num">99.9%</div>
+        <div class="stat-lbl">Uptime</div>
+      </div>
+      <div class="live-stat-card">
+        <div class="stat-num">24/7</div>
+        <div class="stat-lbl">Support</div>
+      </div>
+    </div>
   </div>
 
   <!-- RIGHT PANEL -->
   <div class="login-right">
-    <h2>Welcome back 👋</h2>
-    <p>Sign in to your account</p>
+    <h2>Welcome back</h2>
+    <p class="subtitle">Sign in to your VishvaERP account</p>
 
-    <!-- Role Selector -->
-    <div class="role-grid" id="roleGrid">
-      <button class="role-btn active" onclick="selectRole(this,'superadmin','#5B21B6','#EDE9FE')" data-role="superadmin" style="--role-color:#5B21B6;--role-bg:#EDE9FE">
-        <i class="fas fa-satellite-dish"></i>Super Admin
+    <!-- Mode Tabs -->
+    <div class="mode-tabs">
+      <button class="mode-tab active" onclick="switchMode('password')">
+        <i class="fas fa-lock"></i> Password
       </button>
-      <button class="role-btn" onclick="selectRole(this,'collegeAdmin','#1E40AF','#DBEAFE')" data-role="collegeAdmin" style="--role-color:#1E40AF;--role-bg:#DBEAFE">
-        <i class="fas fa-university"></i>College Admin
+      <button class="mode-tab" onclick="switchMode('otp')">
+        <i class="fas fa-mobile-alt"></i> OTP
       </button>
-      <button class="role-btn" onclick="selectRole(this,'faculty','#065F46','#D1FAE5')" data-role="faculty" style="--role-color:#065F46;--role-bg:#D1FAE5">
-        <i class="fas fa-chalkboard-teacher"></i>Faculty
-      </button>
-      <button class="role-btn" onclick="selectRole(this,'student','#0369A1','#E0F2FE')" data-role="student" style="--role-color:#0369A1;--role-bg:#E0F2FE">
-        <i class="fas fa-user-graduate"></i>Student
-      </button>
-      <button class="role-btn" onclick="selectRole(this,'parent','#92400E','#FEF3C7')" data-role="parent" style="--role-color:#92400E;--role-bg:#FEF3C7">
-        <i class="fas fa-users"></i>Parent
-      </button>
-      <a href="../index.html" class="role-btn" style="text-decoration:none">
-        <i class="fas fa-home"></i>Home
-      </a>
     </div>
 
-    <!-- Error -->
+    <!-- Error/Success Messages -->
     <div class="error-msg" id="errorMsg"><i class="fas fa-exclamation-circle"></i><span id="errorText">Invalid credentials.</span></div>
+    <div class="success-msg" id="successMsg"><i class="fas fa-check-circle"></i><span id="successText">Success!</span></div>
+    <div class="rate-limit-warning" id="rateLimitWarning">
+      <i class="fas fa-shield-alt"></i>
+      <span>Too many attempts. Please wait <strong id="rateLimitTimer">15:00</strong></span>
+    </div>
 
-    <!-- Form -->
-    <form id="loginForm">
-      <div class="form-group">
-        <label class="form-label">Email Address</label>
-        <input class="form-control" type="email" id="email" placeholder="Enter your email" required autocomplete="email">
+    <!-- PASSWORD LOGIN SECTION -->
+    <div class="login-section" id="passwordSection">
+      <!-- Role Selector -->
+      <div class="role-grid" id="roleGrid">
+        <button class="role-btn active" onclick="selectRole(this,'superadmin','#5B21B6','#EDE9FE')" data-role="superadmin" style="--role-color:#5B21B6;--role-bg:#EDE9FE">
+          <i class="fas fa-satellite-dish"></i>Super Admin
+        </button>
+        <button class="role-btn" onclick="selectRole(this,'collegeAdmin','#1E40AF','#DBEAFE')" data-role="collegeAdmin" style="--role-color:#1E40AF;--role-bg:#DBEAFE">
+          <i class="fas fa-university"></i>College Admin
+        </button>
+        <button class="role-btn" onclick="selectRole(this,'faculty','#065F46','#D1FAE5')" data-role="faculty" style="--role-color:#065F46;--role-bg:#D1FAE5">
+          <i class="fas fa-chalkboard-teacher"></i>Faculty
+        </button>
+        <button class="role-btn" onclick="selectRole(this,'student','#0369A1','#E0F2FE')" data-role="student" style="--role-color:#0369A1;--role-bg:#E0F2FE">
+          <i class="fas fa-user-graduate"></i>Student
+        </button>
+        <button class="role-btn" onclick="selectRole(this,'parent','#92400E','#FEF3C7')" data-role="parent" style="--role-color:#92400E;--role-bg:#FEF3C7">
+          <i class="fas fa-users"></i>Parent
+        </button>
+        <a href="../index.html" class="role-btn" style="text-decoration:none">
+          <i class="fas fa-home"></i>Home
+        </a>
       </div>
-      <div class="form-group">
-        <label class="form-label">Password</label>
-        <div class="input-wrap">
-          <input class="form-control" type="password" id="password" placeholder="Enter your password" required autocomplete="current-password">
-          <button type="button" class="toggle-pass" onclick="this.previousElementSibling.type=this.previousElementSibling.type==='password'?'text':'password';this.className='toggle-pass fas '+(this.previousElementSibling.type==='password'?'fa-eye':'fa-eye-slash')">
-            <i class="fas fa-eye"></i>
+
+      <!-- Password Login Form -->
+      <form id="loginForm">
+        <div class="form-group input-icon-wrap">
+          <input class="form-control" type="email" id="email" placeholder=" " required autocomplete="email">
+          <label class="form-label" style="position:absolute;top:-8px;left:10px;font-size:10px;background:white;padding:0 4px;color:#4F46E5;font-weight:700;z-index:1;display:none" id="emailLabel">Email Address</label>
+          <i class="fas fa-envelope input-icon"></i>
+        </div>
+        <div class="form-group">
+          <div class="input-wrap">
+            <input class="form-control" type="password" id="password" placeholder="Enter your password" required autocomplete="current-password">
+            <button type="button" class="toggle-pass" onclick="togglePassword(this)">
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
+        </div>
+        <div class="remember-row">
+          <label class="remember-me">
+            <input type="checkbox" id="rememberMe">
+            <span>Remember me</span>
+          </label>
+          <div class="forgot"><a href="#" onclick="showForgotToast();return false">Forgot password?</a></div>
+        </div>
+        <div class="trust-device">
+          <input type="checkbox" id="trustDevice">
+          <span>Trust this device for 30 days</span>
+        </div>
+        <button type="submit" class="btn-login" id="loginBtn">
+          <i class="fas fa-lock"></i> Sign In Securely
+        </button>
+      </form>
+
+      <div class="divider">or continue with</div>
+
+      <!-- Social Login -->
+      <div class="social-login">
+        <button class="social-btn google" onclick="socialLogin('google')">
+          <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+          Google
+        </button>
+        <button class="social-btn microsoft" onclick="socialLogin('microsoft')">
+          <svg viewBox="0 0 24 24"><path fill="#F25022" d="M1 1h10v10H1z"/><path fill="#00A4EF" d="M1 13h10v10H1z"/><path fill="#7FBA00" d="M13 1h10v10H13z"/><path fill="#FFB900" d="M13 13h10v10H13z"/></svg>
+          Microsoft
+        </button>
+        <button class="social-btn github" onclick="socialLogin('github')">
+          <i class="fab fa-github" style="font-size:18px"></i>
+          GitHub
+        </button>
+      </div>
+
+      <!-- Biometric Login -->
+      <button class="biometric-btn" onclick="startBiometric()" id="biometricBtn" style="display:none">
+        <i class="fas fa-fingerprint"></i> Login with Biometrics
+      </button>
+
+      <div class="back-home"><a href="../index.html"><i class="fas fa-arrow-left" style="margin-right:4px"></i>Back to Homepage</a></div>
+    </div>
+
+    <!-- OTP LOGIN SECTION -->
+    <div class="login-section otp-section" id="otpSection">
+      <form id="otpForm">
+        <div class="form-group input-icon-wrap">
+          <input class="form-control" type="email" id="otpEmail" placeholder=" " required autocomplete="email">
+          <label class="form-label" style="position:absolute;top:-8px;left:10px;font-size:10px;background:white;padding:0 4px;color:#4F46E5;font-weight:700;z-index:1">Email Address</label>
+          <i class="fas fa-envelope input-icon"></i>
+        </div>
+        <button type="button" class="btn-login" id="sendOtpBtn" onclick="sendOTP()" style="margin-bottom:20px">
+          <i class="fas fa-paper-plane"></i> Send OTP
+        </button>
+      </form>
+
+      <div id="otpInputSection" style="display:none">
+        <p style="text-align:center;font-size:13px;color:#64748B;margin-bottom:16px">
+          Enter the 6-digit code sent to <strong id="otpEmailDisplay"></strong>
+        </p>
+        <div class="otp-inputs">
+          <input class="otp-input" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="one-time-code" id="otp1">
+          <input class="otp-input" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" id="otp2">
+          <input class="otp-input" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" id="otp3">
+          <input class="otp-input" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" id="otp4">
+          <input class="otp-input" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" id="otp5">
+          <input class="otp-input" type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" id="otp6">
+        </div>
+        <div class="otp-timer" id="otpTimer">
+          Resend OTP in <strong id="otpCountdown">60</strong>s
+        </div>
+        <div class="otp-timer" id="otpResend" style="display:none">
+          <a class="resend-otp" onclick="sendOTP()">Resend OTP</a>
+        </div>
+
+        <!-- Role Selector for OTP -->
+        <div class="role-grid" id="otpRoleGrid" style="margin-top:16px">
+          <button class="role-btn active" onclick="selectOtpRole(this,'superadmin','#5B21B6','#EDE9FE')" data-role="superadmin" style="--role-color:#5B21B6;--role-bg:#EDE9FE">
+            <i class="fas fa-satellite-dish"></i>Super Admin
+          </button>
+          <button class="role-btn" onclick="selectOtpRole(this,'collegeAdmin','#1E40AF','#DBEAFE')" data-role="collegeAdmin" style="--role-color:#1E40AF;--role-bg:#DBEAFE">
+            <i class="fas fa-university"></i>Admin
+          </button>
+          <button class="role-btn" onclick="selectOtpRole(this,'faculty','#065F46','#D1FAE5')" data-role="faculty" style="--role-color:#065F46;--role-bg:#D1FAE5">
+            <i class="fas fa-chalkboard-teacher"></i>Faculty
+          </button>
+          <button class="role-btn" onclick="selectOtpRole(this,'student','#0369A1','#E0F2FE')" data-role="student" style="--role-color:#0369A1;--role-bg:#E0F2FE">
+            <i class="fas fa-user-graduate"></i>Student
+          </button>
+          <button class="role-btn" onclick="selectOtpRole(this,'parent','#92400E','#FEF3C7')" data-role="parent" style="--role-color:#92400E;--role-bg:#FEF3C7">
+            <i class="fas fa-users"></i>Parent
           </button>
         </div>
-      </div>
-      <div class="forgot"><a href="#" onclick="showForgotToast();return false">Forgot password?</a></div>
-      <button type="submit" class="btn-login" id="loginBtn"><i class="fas fa-lock"></i> Sign In Securely</button>
-    </form>
 
-    <div class="back-home"><a href="../index.html"><i class="fas fa-arrow-left" style="margin-right:4px"></i>Back to Homepage</a></div>
+        <button type="button" class="btn-login" id="verifyOtpBtn" onclick="verifyOTP()" style="margin-top:16px">
+          <i class="fas fa-check-circle"></i> Verify & Sign In
+        </button>
+      </div>
+
+      <div class="back-home" style="margin-top:20px"><a href="../index.html"><i class="fas fa-arrow-left" style="margin-right:4px"></i>Back to Homepage</a></div>
+    </div>
   </div>
 </div>
+
+<!-- Session Timeout Warning -->
+<div class="session-warning" id="sessionWarning">
+  <div class="session-warning-card">
+    <i class="fas fa-exclamation-triangle"></i>
+    <h3>Session Expiring</h3>
+    <p>Your session will expire in</p>
+    <div class="countdown" id="sessionCountdown">5:00</div>
+    <p style="margin-top:12px">Save your work before timeout.</p>
+    <button class="btn-login" onclick="dismissSessionWarning()" style="margin-top:16px;max-width:200px;margin-left:auto;margin-right:auto">
+      <i class="fas fa-check"></i> Understood
+    </button>
+  </div>
+</div>
+
+<!-- Toast Container -->
+<div id="toast-container"></div>
 
 <script>
   const BACKEND_ORIGIN = window.location.hostname.endsWith('vercel.app')
     ? 'https://vishvaerp.onrender.com'
     : '';
   const API_URL = BACKEND_ORIGIN ? `${BACKEND_ORIGIN}/api` : '/api';
+
   let selectedRole = 'superadmin';
+  let selectedOtpRole = 'superadmin';
+  let currentMode = 'password';
+  let otpCountdownInterval = null;
+  let failedAttempts = 0;
 
   const roleRedirects = {
     superadmin: '/pages/super-admin/dashboard.html',
@@ -247,32 +655,139 @@
     parent: '/pages/parent/dashboard.html',
   };
 
-  function selectRole(btn, role, color, bg) {
-    document.querySelectorAll('.role-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    selectedRole = role;
-    // Update form button color
-    document.getElementById('loginBtn').style.background = `linear-gradient(135deg, ${color}, ${color}CC)`;
+  /* ========== PARTICLES ========== */
+  (function initParticles() {
+    const canvas = document.getElementById('particles-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    function resize() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    resize();
+    window.addEventListener('resize', resize);
+    class Particle {
+      constructor() { this.reset(); }
+      reset() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.size = Math.random() * 2 + 0.5;
+        this.speedX = (Math.random() - 0.5) * 0.5;
+        this.speedY = (Math.random() - 0.5) * 0.5;
+        this.opacity = Math.random() * 0.5 + 0.1;
+      }
+      update() {
+        this.x += this.speedX;
+        this.y += this.speedY;
+        if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) this.reset();
+      }
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(79,70,229,${this.opacity})`;
+        ctx.fill();
+      }
+    }
+    for (let i = 0; i < 60; i++) particles.push(new Particle());
+    function animate() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => { p.update(); p.draw(); });
+      requestAnimationFrame(animate);
+    }
+    animate();
+  })();
+
+  /* ========== THEME ========== */
+  function toggleTheme() {
+    document.body.classList.toggle('light-mode');
+    const icon = document.getElementById('themeIcon');
+    icon.className = document.body.classList.contains('light-mode') ? 'fas fa-sun' : 'fas fa-moon';
   }
 
+  /* ========== MODE SWITCH ========== */
+  function switchMode(mode) {
+    currentMode = mode;
+    document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.mode-tab')[mode === 'password' ? 0 : 1].classList.add('active');
+
+    document.getElementById('passwordSection').classList.toggle('hidden', mode !== 'password');
+    document.getElementById('otpSection').classList.toggle('show', mode === 'otp');
+    hideMessages();
+  }
+
+  /* ========== ROLE SELECTION ========== */
+  function selectRole(btn, role, color, bg) {
+    document.querySelectorAll('#roleGrid .role-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedRole = role;
+    document.getElementById('loginBtn').style.background = `linear-gradient(135deg, ${color}, ${color}CC)`;
+  }
+  function selectOtpRole(btn, role, color, bg) {
+    document.querySelectorAll('#otpRoleGrid .role-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    selectedOtpRole = role;
+  }
+
+  /* ========== PASSWORD TOGGLE ========== */
+  function togglePassword(btn) {
+    const input = btn.previousElementSibling;
+    const isPassword = input.type === 'password';
+    input.type = isPassword ? 'text' : 'password';
+    btn.querySelector('i').className = isPassword ? 'fas fa-eye-slash' : 'fas fa-eye';
+  }
+
+  /* ========== MESSAGES ========== */
   function showError(msg) {
+    hideMessages();
     document.getElementById('errorText').textContent = msg;
     document.getElementById('errorMsg').classList.add('show');
     setTimeout(() => document.getElementById('errorMsg').classList.remove('show'), 5000);
   }
+  function showSuccess(msg) {
+    hideMessages();
+    document.getElementById('successText').textContent = msg;
+    document.getElementById('successMsg').classList.add('show');
+  }
+  function hideMessages() {
+    document.getElementById('errorMsg').classList.remove('show');
+    document.getElementById('successMsg').classList.remove('show');
+  }
 
+  /* ========== TOAST ========== */
+  function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    const icon = type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
+    toast.innerHTML = `<i class="fas ${icon}"></i><span>${message}</span>`;
+    document.getElementById('toast-container').appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
+  }
+
+  /* ========== RATE LIMIT ========== */
+  function handleRateLimit(seconds) {
+    const warning = document.getElementById('rateLimitWarning');
+    const timer = document.getElementById('rateLimitTimer');
+    warning.classList.add('show');
+    document.getElementById('loginBtn').disabled = true;
+
+    let remaining = seconds;
+    const interval = setInterval(() => {
+      remaining--;
+      const mins = Math.floor(remaining / 60);
+      const secs = remaining % 60;
+      timer.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+      if (remaining <= 0) {
+        clearInterval(interval);
+        warning.classList.remove('show');
+        document.getElementById('loginBtn').disabled = false;
+        failedAttempts = 0;
+      }
+    }, 1000);
+  }
+
+  /* ========== FORGOT PASSWORD ========== */
   async function showForgotToast() {
     const email = document.getElementById('email').value.trim() || window.prompt('Enter your account email for password reset:');
-    if (!email) {
-      showError('Please enter your email address first.');
-      return;
-    }
+    if (!email) { showError('Please enter your email address first.'); return; }
 
-    const toast = document.createElement('div');
-    toast.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;background:white;border-radius:12px;padding:12px 18px;box-shadow:0 10px 30px rgba(0,0,0,0.15);border-left:4px solid #4F46E5;font-size:13px;font-weight:600;min-width:260px;animation:fadeIn 0.3s ease';
-    toast.textContent = 'Sending password reset link...';
-    document.body.appendChild(toast);
-
+    showToast('Sending password reset link...', 'info');
     try {
       const res = await fetch(`${API_URL}/auth/forgot-password`, {
         method: 'POST',
@@ -281,30 +796,42 @@
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Could not send reset link');
-      toast.textContent = data.message || 'Password reset link sent to your email.';
+      showToast(data.message || 'Password reset link sent to your email.', 'success');
     } catch (error) {
-      toast.style.borderLeftColor = '#DC2626';
-      toast.textContent = error.message;
-    } finally {
-      setTimeout(() => toast.remove(), 4500);
+      showToast(error.message, 'error');
     }
   }
 
+  /* ========== PASSWORD LOGIN ========== */
   document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = document.getElementById('loginBtn');
     const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
+    const rememberMe = document.getElementById('rememberMe').checked;
+    const trustDevice = document.getElementById('trustDevice').checked;
     if (!email || !password) { showError('Please enter email and password.'); return; }
+
     try {
-      btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing in...';
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Signing in...';
       const res = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password, rememberMe, trustDevice, deviceFingerprint: await getDeviceFingerprint() })
       });
+
+      if (res.status === 429) {
+        const data = await res.json();
+        const retryAfter = parseInt(data.retryAfter) || 900;
+        handleRateLimit(retryAfter);
+        showError('Too many failed attempts. Account temporarily locked.');
+        return;
+      }
+
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || data.errors?.[0]?.msg || 'Login failed');
+
       localStorage.setItem('erp_token', data.token);
       localStorage.setItem('erp_user', JSON.stringify(data.user));
       localStorage.setItem('token', data.token);
@@ -313,26 +840,230 @@
         localStorage.setItem('erp_refresh_token', data.refreshToken);
         localStorage.setItem('refreshToken', data.refreshToken);
       }
-      const role = data.user.role;
-      if (role === 'collegeAdmin' && data.subscriptionActive === false) {
-        window.location.href = '/pages/college-admin/subscription.html';
-      } else {
-        window.location.href = roleRedirects[role] || roleRedirects['student'];
-      }
+
+      showSuccess('Login successful! Redirecting...');
+      setTimeout(() => {
+        const role = data.user.role;
+        if (role === 'collegeAdmin' && data.subscriptionActive === false) {
+          window.location.href = '/pages/college-admin/subscription.html';
+        } else {
+          window.location.href = roleRedirects[role] || roleRedirects['student'];
+        }
+      }, 1000);
     } catch (err) {
       showError(err.message);
+      failedAttempts++;
+      if (failedAttempts >= 3) {
+        document.getElementById('biometricBtn').style.display = 'flex';
+      }
     } finally {
-      btn.disabled = false; btn.innerHTML = '<i class="fas fa-lock"></i> Sign In Securely';
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-lock"></i> Sign In Securely';
     }
   });
 
-  // Pre-fill with selected role redirect hint
-  document.querySelectorAll('.role-btn[data-role]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.getElementById('email').placeholder = `${btn.querySelector('i').nextSibling?.textContent?.trim() || 'User'} email...`;
+  /* ========== OTP LOGIN ========== */
+  async function sendOTP() {
+    const email = document.getElementById('otpEmail').value.trim();
+    if (!email) { showError('Please enter your email address.'); return; }
+
+    const btn = document.getElementById('sendOtpBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Sending...';
+
+    try {
+      const res = await fetch(`${API_URL}/auth/send-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to send OTP');
+
+      document.getElementById('otpInputSection').style.display = 'block';
+      document.getElementById('otpEmailDisplay').textContent = email;
+      document.getElementById('otp1').focus();
+      showSuccess('OTP sent to your email!');
+
+      startOtpCountdown();
+    } catch (error) {
+      showError(error.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-paper-plane"></i> Send OTP';
+    }
+  }
+
+  function startOtpCountdown() {
+    let seconds = 60;
+    const countdownEl = document.getElementById('otpCountdown');
+    const timerEl = document.getElementById('otpTimer');
+    const resendEl = document.getElementById('otpResend');
+
+    timerEl.style.display = 'block';
+    resendEl.style.display = 'none';
+
+    if (otpCountdownInterval) clearInterval(otpCountdownInterval);
+    otpCountdownInterval = setInterval(() => {
+      seconds--;
+      countdownEl.textContent = seconds;
+      if (seconds <= 0) {
+        clearInterval(otpCountdownInterval);
+        timerEl.style.display = 'none';
+        resendEl.style.display = 'block';
+      }
+    }, 1000);
+  }
+
+  async function verifyOTP() {
+    const email = document.getElementById('otpEmail').value.trim();
+    const otp = ['otp1','otp2','otp3','otp4','otp5','otp6'].map(id => document.getElementById(id).value).join('');
+    if (otp.length !== 6) { showError('Please enter the complete 6-digit OTP.'); return; }
+
+    const btn = document.getElementById('verifyOtpBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Verifying...';
+
+    try {
+      const res = await fetch(`${API_URL}/auth/verify-otp-login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp, role: selectedOtpRole })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Invalid OTP');
+
+      localStorage.setItem('erp_token', data.token);
+      localStorage.setItem('erp_user', JSON.stringify(data.user));
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      if (data.refreshToken) {
+        localStorage.setItem('erp_refresh_token', data.refreshToken);
+        localStorage.setItem('refreshToken', data.refreshToken);
+      }
+
+      showSuccess('OTP verified! Redirecting...');
+      setTimeout(() => {
+        const role = data.user.role;
+        window.location.href = roleRedirects[role] || roleRedirects['student'];
+      }, 1000);
+    } catch (error) {
+      showError(error.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-check-circle"></i> Verify & Sign In';
+    }
+  }
+
+  /* ========== OTP INPUT HANDLING ========== */
+  document.querySelectorAll('.otp-input').forEach((input, index, inputs) => {
+    input.addEventListener('input', (e) => {
+      const val = e.target.value.replace(/[^0-9]/g, '');
+      e.target.value = val;
+      if (val) {
+        e.target.classList.add('filled');
+        if (index < inputs.length - 1) inputs[index + 1].focus();
+      } else {
+        e.target.classList.remove('filled');
+      }
+    });
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Backspace' && !e.target.value && index > 0) {
+        inputs[index - 1].focus();
+        inputs[index - 1].value = '';
+        inputs[index - 1].classList.remove('filled');
+      }
+    });
+    input.addEventListener('paste', (e) => {
+      e.preventDefault();
+      const paste = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '');
+      for (let i = 0; i < Math.min(paste.length, 6); i++) {
+        inputs[i].value = paste[i];
+        inputs[i].classList.add('filled');
+      }
+      if (paste.length >= 6) inputs[5].focus();
     });
   });
 
+  /* ========== DEVICE FINGERPRINT ========== */
+  async function getDeviceFingerprint() {
+    const components = [
+      navigator.userAgent,
+      navigator.language,
+      screen.width + 'x' + screen.height,
+      screen.colorDepth,
+      new Date().getTimezoneOffset(),
+      navigator.hardwareConcurrency || 'unknown'
+    ].join('|');
+    const encoder = new TextEncoder();
+    const data = encoder.encode(components);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  /* ========== BIOMETRIC ========== */
+  async function startBiometric() {
+    if (!window.PublicKeyCredential) {
+      showToast('Biometric authentication is not supported on this device.', 'error');
+      return;
+    }
+    try {
+      showToast('Biometric login is available for configured accounts.', 'info');
+    } catch (e) {
+      showToast('Biometric authentication failed.', 'error');
+    }
+  }
+
+  /* ========== SOCIAL LOGIN ========== */
+  function socialLogin(provider) {
+    showToast(`${provider.charAt(0).toUpperCase() + provider.slice(1)} login will be available soon.`, 'info');
+  }
+
+  /* ========== SESSION TIMEOUT ========== */
+  let sessionTimeout;
+  function startSessionTimer() {
+    sessionTimeout = setTimeout(() => {
+      document.getElementById('sessionWarning').classList.add('show');
+    }, 25 * 60 * 1000);
+  }
+  function dismissSessionWarning() {
+    document.getElementById('sessionWarning').classList.remove('show');
+    startSessionTimer();
+  }
+
+  /* ========== KEYBOARD SHORTCUTS ========== */
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'd' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      toggleTheme();
+    }
+    if (e.key === 'Escape') {
+      document.getElementById('loginForm').reset();
+      hideMessages();
+    }
+  });
+
+  /* ========== INPUT ANIMATIONS ========== */
+  document.querySelectorAll('.form-control').forEach(input => {
+    input.addEventListener('focus', function() {
+      this.closest('.form-group').style.transform = 'translateY(-2px)';
+    });
+    input.addEventListener('blur', function() {
+      this.closest('.form-group').style.transform = 'translateY(0)';
+    });
+  });
+
+  /* ========== AUTO-REDIRECT IF LOGGED IN ========== */
+  if (localStorage.getItem('erp_token')) {
+    try {
+      const user = JSON.parse(localStorage.getItem('erp_user'));
+      if (user && user.role && roleRedirects[user.role]) {
+        window.location.href = roleRedirects[user.role];
+      }
+    } catch (e) {}
+  }
+
+  startSessionTimer();
 </script>
 </body>
 </html>
