@@ -6,6 +6,7 @@ const Subscription = require('../models/Subscription');
 const { generateToken, generateRefreshToken, verifyRefreshToken, generateResetToken } = require('../config/jwt');
 const { validationResult } = require('express-validator');
 const { sendPasswordResetEmail, sendWelcomeEmail, sendOTP: sendOTPEmail, sendVerificationOTP: sendVerificationOTPEmail } = require('../services/emailService');
+const { sendWhatsApp } = require('../services/whatsappService');
 const { logAudit } = require('../services/auditService');
 const { OAuth2Client } = require('google-auth-library');
 
@@ -660,6 +661,129 @@ const googleLogin = asyncHandler(async (req, res) => {
   });
 });
 
+// @desc    Send OTP to phone via WhatsApp
+// @route   POST /api/auth/send-phone-otp
+// @access  Public
+const sendPhoneOTP = asyncHandler(async (req, res) => {
+  const { phone } = req.body;
+  if (!phone) {
+    return res.status(400).json({ success: false, message: 'Phone number is required' });
+  }
+
+  const cleaned = phone.replace(/\s/g, '');
+  const phoneRegex = /^\+[1-9]\d{6,14}$/;
+  if (!phoneRegex.test(cleaned)) {
+    return res.status(400).json({ success: false, message: 'Invalid phone number format. Use +[country][number] (e.g. +919876543210)' });
+  }
+
+  const otpCode = crypto.randomInt(100000, 999999).toString();
+
+  await OTP.deleteMany({ phone: cleaned, type: 'phone-login', verified: false });
+
+  await OTP.create({
+    phone: cleaned,
+    otp: otpCode,
+    type: 'phone-login',
+    channel: 'whatsapp',
+    expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+  });
+
+  const result = await sendWhatsApp(cleaned,
+    `🔐 *VishvaERP Login OTP*\n\nYour verification code is:\n\n*${otpCode}*\n\nThis code expires in 10 minutes.\nDo not share this code with anyone.\n\n- VishvaERP Team`
+  );
+
+  if (result.success) {
+    res.json({ success: true, message: 'OTP sent to your WhatsApp', sid: result.sid });
+  } else {
+    res.status(200).json({
+      success: true,
+      message: 'OTP generated (WhatsApp not delivered).',
+      otp: process.env.NODE_ENV === 'development' ? otpCode : undefined,
+      debug: result.message,
+    });
+  }
+});
+
+// @desc    Verify phone OTP and login
+// @route   POST /api/auth/verify-phone-otp
+// @access  Public
+const verifyPhoneOTP = asyncHandler(async (req, res) => {
+  const { phone, otp, role } = req.body;
+
+  if (!phone || !otp) {
+    return res.status(400).json({ success: false, message: 'Phone and OTP are required' });
+  }
+
+  const cleaned = phone.replace(/\s/g, '');
+
+  const otpRecord = await OTP.findOne({
+    phone: cleaned,
+    type: 'phone-login',
+    verified: false,
+    expiresAt: { $gt: new Date() },
+  });
+
+  if (!otpRecord) {
+    return res.status(400).json({ success: false, message: 'Invalid or expired OTP' });
+  }
+
+  if (otpRecord.attempts >= 5) {
+    return res.status(429).json({ success: false, message: 'Too many OTP attempts. Please request a new code.' });
+  }
+
+  if (otpRecord.otp !== otp) {
+    otpRecord.attempts += 1;
+    await otpRecord.save();
+    return res.status(400).json({ success: false, message: 'Invalid OTP' });
+  }
+
+  otpRecord.verified = true;
+  await otpRecord.save();
+
+  let user = await User.findOne({ phone: cleaned });
+
+  if (!user) {
+    user = await User.create({
+      name: `User ${cleaned.slice(-4)}`,
+      email: `phone_${cleaned.replace('+', '')}@vishvaerp.local`,
+      phone: cleaned,
+      password: crypto.randomBytes(16).toString('hex'),
+      role: role || 'student',
+    });
+  }
+
+  user.lastLogin = new Date();
+  await user.save({ validateBeforeSave: false });
+
+  logAudit(req, 'phone-otp-login', 'user', { resourceId: user._id, description: `Phone OTP login: ${cleaned}`, metadata: { role: user.role } });
+
+  const token = generateToken({ id: user._id, role: user.role, collegeId: user.collegeId });
+  const refreshToken = generateRefreshToken({ id: user._id, role: user.role, collegeId: user.collegeId });
+
+  let subscriptionActive = null;
+  if (user.role === 'collegeAdmin' && user.collegeId) {
+    subscriptionActive = await hasActiveCollegeAccess(user.collegeId);
+  }
+
+  res.json({
+    success: true,
+    message: 'Login successful',
+    token,
+    refreshToken,
+    user: {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      phone: user.phone,
+      role: user.role,
+      collegeId: user.collegeId,
+      avatar: user.avatar,
+      lastLogin: user.lastLogin,
+    },
+    subscriptionActive,
+  });
+});
+
 module.exports = {
   register,
   login,
@@ -675,4 +799,6 @@ module.exports = {
   verifyEmail,
   checkDevice,
   googleLogin,
+  sendPhoneOTP,
+  verifyPhoneOTP,
 };

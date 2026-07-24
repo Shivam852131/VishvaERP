@@ -1,5 +1,5 @@
 const express = require('express');
-const { register, login, refreshToken, forgotPassword, resetPassword, getMe, updateProfile, changePassword, sendOTPHandler, verifyOTPLogin, sendVerificationOTP, verifyEmail, checkDevice, googleLogin } = require('../controllers/authController');
+const { register, login, refreshToken, forgotPassword, resetPassword, getMe, updateProfile, changePassword, sendOTPHandler, verifyOTPLogin, sendVerificationOTP, verifyEmail, checkDevice, googleLogin, sendPhoneOTP, verifyPhoneOTP } = require('../controllers/authController');
 const { protect } = require('../middleware/auth');
 const { authLimiter } = require('../middleware/rateLimiter');
 const { body } = require('express-validator');
@@ -20,6 +20,8 @@ router.post('/login', authLimiter, [
 
 router.post('/send-otp', authLimiter, sendOTPHandler);
 router.post('/verify-otp-login', authLimiter, verifyOTPLogin);
+router.post('/send-phone-otp', authLimiter, sendPhoneOTP);
+router.post('/verify-phone-otp', authLimiter, verifyPhoneOTP);
 router.post('/send-verification-otp', authLimiter, sendVerificationOTP);
 router.post('/verify-email', verifyEmail);
 router.post('/check-device', checkDevice);

@@ -3,18 +3,25 @@ const mongoose = require('mongoose');
 const otpSchema = new mongoose.Schema({
   email: {
     type: String,
-    required: true,
     lowercase: true,
     trim: true,
-    index: true,
+  },
+  phone: {
+    type: String,
+    trim: true,
   },
   otp: {
     type: String,
     required: true,
   },
+  channel: {
+    type: String,
+    enum: ['email', 'whatsapp', 'sms'],
+    default: 'email',
+  },
   type: {
     type: String,
-    enum: ['login', 'registration', 'password-reset'],
+    enum: ['login', 'registration', 'password-reset', 'phone-login'],
     default: 'login',
   },
   role: {
@@ -42,5 +49,6 @@ const otpSchema = new mongoose.Schema({
 });
 
 otpSchema.index({ email: 1, type: 1 });
+otpSchema.index({ phone: 1, type: 1 });
 
 module.exports = mongoose.model('OTP', otpSchema);
