@@ -8,11 +8,13 @@ const {
   getDatabaseStats, getCollectionData, deleteCollectionDocument,
   getAuditLogs, getBroadcastHistory, getPlatformSettings, updatePlatformSettings,
   getGlobalAnalytics, getSystemHealth, broadcastNotice, bulkToggleUsers,
+  bulkDeleteDocuments, exportCollection, getCollectionStatsByCollege,
+  importUsers, getCollegeDrillDown, getAllSubscriptions, createSubscription, cancelSubscription,
+  getEnhancedAuditLogs, exportUserData, deleteUserData,
 } = require('../controllers/superAdminController');
 
 const router = express.Router();
 
-// All routes require authentication and superadmin role
 router.use(protect);
 router.use(authorize('superadmin'));
 
@@ -40,6 +42,8 @@ router.route('/colleges/:id')
 router.patch('/colleges/:id/toggle', toggleCollege);
 router.put('/colleges/:id/assign-admin', assignCollegeAdmin);
 router.put('/colleges/:id/plan', updateCollegePlan);
+router.get('/colleges/:id/drilldown', getCollegeDrillDown);
+router.get('/colleges/:id/collection-stats', getCollectionStatsByCollege);
 
 // ── User Management ───────────────────────────────
 router.route('/users')
@@ -53,13 +57,28 @@ router.route('/users/:id')
 router.patch('/users/:id/toggle', toggleUser);
 router.post('/users/:id/reset-password', resetUserPassword);
 router.post('/users/bulk-toggle', bulkToggleUsers);
+router.post('/users/import', importUsers);
+
+// ── User Data Compliance ───────────────────────────────
+router.get('/users/:id/export-data', exportUserData);
+router.delete('/users/:id/purge-data', deleteUserData);
 
 // ── Database Management ───────────────────────────────
 router.get('/database/stats', getDatabaseStats);
 router.get('/database/collection/:collection', getCollectionData);
 router.delete('/database/collection/:collection/:docId', deleteCollectionDocument);
+router.post('/database/collection/:collection/bulk-delete', bulkDeleteDocuments);
+router.get('/database/collection/:collection/export', exportCollection);
+
+// ── Subscription Management ───────────────────────────
+router.route('/subscriptions')
+  .get(getAllSubscriptions)
+  .post(createSubscription);
+
+router.patch('/subscriptions/:id/cancel', cancelSubscription);
 
 // ── Audit Logs ───────────────────────────────────────
 router.get('/audit-logs', getAuditLogs);
+router.get('/audit-logs/enhanced', getEnhancedAuditLogs);
 
 module.exports = router;

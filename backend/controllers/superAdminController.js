@@ -7,9 +7,37 @@ const Leave = require('../models/Leave');
 const Broadcast = require('../models/Broadcast');
 const PlatformSetting = require('../models/PlatformSetting');
 const Subscription = require('../models/Subscription');
+const AuditLog = require('../models/AuditLog');
 const mongoose = require('mongoose');
 const { emitDataChange } = require('../utils/realtime');
 const { logAudit } = require('../services/auditService');
+
+const ALL_COLLECTIONS = [
+  'users', 'colleges', 'subscriptions', 'payments', 'auditlogs', 'platformsettings',
+  'broadcasts', 'otps', 'fees', 'feestructures', 'attendances', 'leaves',
+  'courses', 'subjects', 'exams', 'results', 'timetables', 'examtemplates',
+  'questionbanks', 'notes', 'assignments', 'submissions', 'liveclasssessions',
+  'notices', 'events', 'communications', 'messages', 'notifications',
+  'transports', 'hostels', 'rooms', 'studentprofiles', 'skillassessments',
+  'assessmentattempts', 'placementcompanies', 'placementjobs', 'placementapplications',
+  'placementdrives', 'alumni', 'alumnidonations', 'alumnievents',
+  'campusresources', 'campussensors', 'sensorreadings', 'energylogs', 'sustainabilitygoals',
+  'grievances', 'feedbacks', 'inventories', 'mentorships', 'mentorsessions',
+  'classroomlocations', 'locationconsents', 'livepresences',
+];
+
+const DELETABLE_COLLECTIONS = new Set([
+  'fees', 'feestructures', 'attendances', 'leaves', 'courses', 'subjects',
+  'exams', 'results', 'timetables', 'examtemplates', 'questionbanks', 'notes',
+  'assignments', 'submissions', 'notices', 'events', 'transports', 'hostels',
+  'rooms', 'studentprofiles', 'skillassessments', 'assessmentattempts',
+  'placementcompanies', 'placementjobs', 'placementapplications', 'placementdrives',
+  'alumni', 'alumnidonations', 'alumnievents', 'campusresources', 'campussensors',
+  'sensorreadings', 'energylogs', 'sustainabilitygoals', 'grievances', 'feedbacks',
+  'inventories', 'mentorships', 'mentorsessions', 'broadcasts', 'payments',
+  'subscriptions', 'communications', 'messages', 'notifications', 'liveclasssessions',
+  'classroomlocations', 'locationconsents', 'livepresences',
+]);
 
 const DEFAULT_TRIAL_DAYS = 30;
 
@@ -391,11 +419,11 @@ const getDatabaseStats = asyncHandler(async (req, res) => {
 
 const getCollectionData = asyncHandler(async (req, res) => {
     const { collection } = req.params;
-    const { page = 1, limit = 20, search = '' } = req.query;
+    const { page = 1, limit = 20, search = '', collegeId, sortBy = 'createdAt', sortOrder = 'desc' } = req.query;
 
-    // Whitelist allowed collections
-    const allowed = ['users', 'colleges', 'fees', 'attendances', 'leaves', 'courses', 'exams', 'results', 'subjects', 'notices', 'timetables', 'transports', 'hostels', 'libraries', 'assignments', 'communications'];
-    if (!allowed.includes(collection)) return res.status(403).json({ success: false, message: 'Access to this collection is restricted' });
+    if (!ALL_COLLECTIONS.includes(collection)) {
+      return res.status(403).json({ success: false, message: 'Access to this collection is restricted' });
+    }
 
     const db = mongoose.connection.db;
     const col = db.collection(collection);
@@ -407,27 +435,37 @@ const getCollectionData = asyncHandler(async (req, res) => {
         { email: { $regex: search, $options: 'i' } },
         { code: { $regex: search, $options: 'i' } },
         { title: { $regex: search, $options: 'i' } },
-      ];
+        { title: { $regex: search, $options: 'i' } },
+        { subject: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } },
+      ].filter((clause) => Object.keys(clause).length > 0);
+    }
+    if (collegeId && mongoose.Types.ObjectId.isValid(collegeId)) {
+      query.collegeId = new mongoose.Types.ObjectId(collegeId);
     }
 
     const total = await col.countDocuments(query);
+    const sortObj = { [sortBy]: sortOrder === 'asc' ? 1 : -1 };
     const docs = await col.find(query)
-      .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
+      .sort(sortObj)
+      .skip((page - 1) * parseInt(limit))
       .limit(parseInt(limit))
       .toArray();
 
-    res.json({ success: true, collection, docs, total, page: parseInt(page), pages: Math.ceil(total / limit) });
+    res.json({ success: true, collection, docs, total, page: parseInt(page), pages: Math.ceil(total / parseInt(limit)) });
   });
 
 const deleteCollectionDocument = asyncHandler(async (req, res) => {
     const { collection, docId } = req.params;
-    const allowed = ['fees', 'attendances', 'leaves', 'courses', 'exams', 'results', 'subjects', 'notices', 'timetables', 'transports', 'hostels', 'libraries', 'assignments', 'communications'];
-    if (!allowed.includes(collection)) return res.status(403).json({ success: false, message: 'Cannot delete from this collection via this endpoint' });
+    if (!DELETABLE_COLLECTIONS.has(collection)) {
+      return res.status(403).json({ success: false, message: 'Cannot delete from this collection via this endpoint' });
+    }
 
     const db = mongoose.connection.db;
     const result = await db.collection(collection).deleteOne({ _id: new mongoose.Types.ObjectId(docId) });
     if (result.deletedCount === 0) return res.status(404).json({ success: false, message: 'Document not found' });
+
+    logAudit(req, 'delete', collection, { resourceId: docId, description: `Deleted document from ${collection}` });
     res.json({ success: true, message: 'Document deleted successfully' });
   });
 
@@ -649,6 +687,317 @@ const bulkToggleUsers = asyncHandler(async (req, res) => {
     res.json({ success: true, message: `${result.modifiedCount} users ${isActive ? 'activated' : 'deactivated'}` });
   });
 
+// ─────────────────────────────────────────────
+// ADVANCED DATABASE OPERATIONS
+// ─────────────────────────────────────────────
+
+const bulkDeleteDocuments = asyncHandler(async (req, res) => {
+    const { collection } = req.params;
+    const { docIds } = req.body;
+    if (!DELETABLE_COLLECTIONS.has(collection)) {
+      return res.status(403).json({ success: false, message: 'Cannot bulk delete from this collection' });
+    }
+    if (!docIds || !docIds.length) {
+      return res.status(400).json({ success: false, message: 'No document IDs provided' });
+    }
+    const db = mongoose.connection.db;
+    const objectIds = docIds.filter((id) => mongoose.Types.ObjectId.isValid(id)).map((id) => new mongoose.Types.ObjectId(id));
+    const result = await db.collection(collection).deleteMany({ _id: { $in: objectIds } });
+    logAudit(req, 'bulk_action', collection, { description: `Bulk deleted ${result.deletedCount} documents from ${collection}`, metadata: { count: result.deletedCount } });
+    res.json({ success: true, message: `${result.deletedCount} documents deleted from ${collection}` });
+  });
+
+const exportCollection = asyncHandler(async (req, res) => {
+    const { collection } = req.params;
+    const { collegeId, format = 'json' } = req.query;
+    if (!ALL_COLLECTIONS.includes(collection)) {
+      return res.status(403).json({ success: false, message: 'Access to this collection is restricted' });
+    }
+    const db = mongoose.connection.db;
+    let query = {};
+    if (collegeId && mongoose.Types.ObjectId.isValid(collegeId)) {
+      query.collegeId = new mongoose.Types.ObjectId(collegeId);
+    }
+    const docs = await db.collection(collection).find(query).sort({ createdAt: -1 }).limit(10000).toArray();
+    logAudit(req, 'report_download', collection, { description: `Exported ${docs.length} documents from ${collection}`, metadata: { count: docs.length, collegeId } });
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', `attachment; filename="${collection}-export-${Date.now()}.json"`);
+    res.json({ success: true, collection, count: docs.length, data: docs });
+  });
+
+const getCollectionStatsByCollege = asyncHandler(async (req, res) => {
+    const { collegeId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(collegeId)) {
+      return res.status(400).json({ success: false, message: 'Invalid college ID' });
+    }
+    const db = mongoose.connection.db;
+    const oid = new mongoose.Types.ObjectId(collegeId);
+    const collectionsWithCollegeId = [
+      'users', 'fees', 'feestructures', 'attendances', 'courses', 'subjects',
+      'exams', 'results', 'timetables', 'notices', 'events', 'assignments',
+      'submissions', 'leaves', 'broadcasts', 'studentprofiles', 'skillassessments',
+      'placementjobs', 'placementapplications', 'placementdrives', 'grievances',
+      'feedbacks', 'mentorships', 'liveclasssessions',
+    ];
+    const stats = await Promise.all(
+      collectionsWithCollegeId.map(async (name) => {
+        try {
+          const count = await db.collection(name).countDocuments({ collegeId: oid });
+          return { name, count };
+        } catch {
+          return { name, count: 0 };
+        }
+      })
+    );
+    res.json({ success: true, collegeId, stats: stats.filter((s) => s.count > 0).sort((a, b) => b.count - a.count) });
+  });
+
+// ─────────────────────────────────────────────
+// USER IMPORT (CSV/JSON)
+// ─────────────────────────────────────────────
+
+const importUsers = asyncHandler(async (req, res) => {
+    const { users: rawUsers, collegeId, defaultRole = 'student', defaultPassword } = req.body;
+    if (!rawUsers || !Array.isArray(rawUsers) || !rawUsers.length) {
+      return res.status(400).json({ success: false, message: 'No users data provided. Send { users: [...] }' });
+    }
+    if (!collegeId || !mongoose.Types.ObjectId.isValid(collegeId)) {
+      return res.status(400).json({ success: false, message: 'Valid collegeId is required' });
+    }
+    const college = await College.findById(collegeId);
+    if (!college) return res.status(404).json({ success: false, message: 'College not found' });
+
+    const results = { created: 0, skipped: 0, errors: [] };
+    const password = defaultPassword || 'Welcome@123';
+
+    for (const raw of rawUsers) {
+      try {
+        const email = String(raw.email || '').trim().toLowerCase();
+        if (!email) { results.skipped++; results.errors.push('Missing email'); continue; }
+        const existing = await User.findOne({ email });
+        if (existing) { results.skipped++; continue; }
+        await User.create({
+          name: String(raw.name || '').trim() || email.split('@')[0],
+          email,
+          password: raw.password || password,
+          role: raw.role || defaultRole,
+          collegeId,
+          phone: raw.phone || '',
+          rollNo: raw.rollNo || '',
+          semester: raw.semester || '',
+          department: raw.department || '',
+          section: raw.section || '',
+        });
+        results.created++;
+      } catch (err) {
+        results.skipped++;
+        results.errors.push(err.message);
+      }
+    }
+
+    logAudit(req, 'user_import', 'user', { description: `Imported ${results.created} users to college ${college.name}`, metadata: { collegeId, created: results.created, skipped: results.skipped } });
+    res.json({ success: true, message: `Import complete: ${results.created} created, ${results.skipped} skipped`, results });
+  });
+
+// ─────────────────────────────────────────────
+// COLLEGE DRILL-DOWN
+// ─────────────────────────────────────────────
+
+const getCollegeDrillDown = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const college = await College.findById(id).populate('adminId', 'name email phone lastLogin');
+    if (!college) return res.status(404).json({ success: false, message: 'College not found' });
+
+    const oid = new mongoose.Types.ObjectId(id);
+    const [usersByRole, feeStats, attendanceStats, examCount, resultStats, recentActivity] = await Promise.all([
+      User.aggregate([
+        { $match: { collegeId: oid } },
+        { $group: { _id: '$role', count: { $sum: 1 }, activeCount: { $sum: { $cond: ['$isActive', 1, 0] } } } },
+      ]),
+      mongoose.connection.db.collection('fees').aggregate([
+        { $match: { collegeId: oid } },
+        { $group: { _id: '$status', count: { $sum: 1 }, totalAmount: { $sum: '$amount' }, paidAmount: { $sum: '$paidAmount' } } },
+      ]).toArray(),
+      mongoose.connection.db.collection('attendances').aggregate([
+        { $match: { collegeId: oid } },
+        { $group: { _id: '$status', count: { $sum: 1 } } },
+      ]).toArray(),
+      mongoose.connection.db.collection('exams').countDocuments({ collegeId: oid }),
+      mongoose.connection.db.collection('results').aggregate([
+        { $match: { collegeId: oid } },
+        { $group: { _id: null, avgPercentage: { $avg: '$percentage' }, totalResults: { $sum: 1 }, passCount: { $sum: { $cond: [{ $eq: ['$status', 'pass'] }, 1, 0] } } } },
+      ]).toArray(),
+      AuditLog.find({ collegeId: id }).sort({ createdAt: -1 }).limit(10).select('action resource description createdAt'),
+    ]);
+
+    const feeAggregate = { totalAmount: 0, paidAmount: 0, pendingCount: 0, paidCount: 0 };
+    feeStats.forEach((f) => {
+      feeAggregate.totalAmount += f.totalAmount || 0;
+      feeAggregate.paidAmount += f.paidAmount || 0;
+      if (['pending', 'partial', 'overdue'].includes(f._id)) feeAggregate.pendingCount += f.count;
+      if (f._id === 'paid') feeAggregate.paidCount += f.count;
+    });
+
+    const attendanceAggregate = { total: 0, present: 0, absent: 0 };
+    attendanceStats.forEach((a) => {
+      attendanceAggregate.total += a.count;
+      if (a._id === 'present' || a._id === 'late') attendanceAggregate.present += a.count;
+      if (a._id === 'absent') attendanceAggregate.absent += a.count;
+    });
+
+    const resultAggregate = resultStats[0] || { avgPercentage: 0, totalResults: 0, passCount: 0 };
+
+    res.json({
+      success: true,
+      college: { ...college.toObject(), adminName: college.adminId?.name, adminEmail: college.adminId?.email },
+      breakdown: {
+        usersByRole,
+        fees: feeAggregate,
+        attendance: { ...attendanceAggregate, rate: attendanceAggregate.total ? Math.round((attendanceAggregate.present / attendanceAggregate.total) * 100) : 0 },
+        exams: examCount,
+        results: { ...resultAggregate, passRate: resultAggregate.totalResults ? Math.round((resultAggregate.passCount / resultAggregate.totalResults) * 100) : 0 },
+        recentActivity,
+      },
+    });
+  });
+
+// ─────────────────────────────────────────────
+// SUBSCRIPTION MANAGEMENT
+// ─────────────────────────────────────────────
+
+const getAllSubscriptions = asyncHandler(async (req, res) => {
+    const { page = 1, limit = 20, status, plan, collegeId } = req.query;
+    const query = {};
+    if (status) query.status = status;
+    if (plan) query.plan = plan;
+    if (collegeId) query.collegeId = collegeId;
+
+    const subs = await Subscription.find(query)
+      .populate('collegeId', 'name code')
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * parseInt(limit))
+      .limit(parseInt(limit));
+    const total = await Subscription.countDocuments(query);
+
+    res.json({ success: true, subscriptions: subs, total, page: parseInt(page), pages: Math.ceil(total / parseInt(limit)) });
+  });
+
+const createSubscription = asyncHandler(async (req, res) => {
+    const { collegeId, plan, amount, billingCycle = 'monthly', startDate, endDate } = req.body;
+    if (!collegeId || !plan) return res.status(400).json({ success: false, message: 'collegeId and plan are required' });
+    const college = await College.findById(collegeId);
+    if (!college) return res.status(404).json({ success: false, message: 'College not found' });
+
+    const sub = await Subscription.create({
+      collegeId, plan, amount: amount || 0, currency: 'INR',
+      status: 'active', billingCycle,
+      startDate: startDate || new Date(),
+      endDate: endDate || new Date(Date.now() + 30 * 86400000),
+    });
+    await College.findByIdAndUpdate(collegeId, { plan, planExpiry: sub.endDate });
+    logAudit(req, 'payment', 'subscription', { description: `Created ${plan} subscription for ${college.name}`, metadata: { collegeId, plan } });
+    res.status(201).json({ success: true, subscription: sub });
+  });
+
+const cancelSubscription = asyncHandler(async (req, res) => {
+    const { id } = req.params;
+    const sub = await Subscription.findById(id);
+    if (!sub) return res.status(404).json({ success: false, message: 'Subscription not found' });
+    sub.status = 'cancelled';
+    await sub.save();
+    logAudit(req, 'payment', 'subscription', { description: `Cancelled subscription for college`, metadata: { subscriptionId: id } });
+    res.json({ success: true, message: 'Subscription cancelled', subscription: sub });
+  });
+
+// ─────────────────────────────────────────────
+// ENHANCED AUDIT LOGS
+// ─────────────────────────────────────────────
+
+const getEnhancedAuditLogs = asyncHandler(async (req, res) => {
+    const { page = 1, limit = 50, action, role, status, collegeId, startDate, endDate, resource, search } = req.query;
+    const query = {};
+    if (action) query.action = action;
+    if (role) query.userRole = role;
+    if (status) query.status = status;
+    if (collegeId) query.collegeId = collegeId;
+    if (resource) query.resource = resource;
+    if (startDate || endDate) {
+      query.createdAt = {};
+      if (startDate) query.createdAt.$gte = new Date(startDate);
+      if (endDate) query.createdAt.$lte = new Date(endDate);
+    }
+    if (search) {
+      query.$or = [
+        { userEmail: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } },
+      ];
+    }
+
+    const { getAuditLogs: fetchAuditLogs } = require('../services/auditService');
+    const result = await fetchAuditLogs(query, { page: parseInt(page), limit: parseInt(limit) });
+    if (result.data && result.data.length > 0) {
+      return res.json({ success: true, ...result });
+    }
+
+    // Direct query fallback
+    const dbQuery = AuditLog.find(query).sort({ createdAt: -1 });
+    const total = await AuditLog.countDocuments(query);
+    const logs = await dbQuery.skip((page - 1) * parseInt(limit)).limit(parseInt(limit));
+    res.json({ success: true, data: logs, pagination: { page: parseInt(page), limit: parseInt(limit), total, totalPages: Math.ceil(total / parseInt(limit)) } });
+  });
+
+// ─────────────────────────────────────────────
+// DATA COMPLIANCE (GDPR)
+// ─────────────────────────────────────────────
+
+const exportUserData = asyncHandler(async (req, res) => {
+    const { userId } = req.params;
+    const user = await User.findById(userId).select('-password');
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+
+    const oid = new mongoose.Types.ObjectId(userId);
+    const collectionsToSearch = ['fees', 'attendances', 'results', 'assignments', 'submissions', 'leaves', 'mentorships'];
+    const userData = { user: user.toObject() };
+
+    for (const colName of collectionsToSearch) {
+      try {
+        const docs = await mongoose.connection.db.collection(colName).find({
+          $or: [{ studentId: oid }, { userId: oid }, { menteeId: oid }, { mentorId: oid }],
+        }).toArray();
+        if (docs.length) userData[colName] = docs;
+      } catch {}
+    }
+
+    logAudit(req, 'report_download', 'user', { description: `Exported all data for user ${user.email}`, metadata: { userId } });
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', `attachment; filename="user-data-${user.email}-${Date.now()}.json"`);
+    res.json({ success: true, data: userData });
+  });
+
+const deleteUserData = asyncHandler(async (req, res) => {
+    const { userId } = req.params;
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    if (user.role === 'superadmin') return res.status(403).json({ success: false, message: 'Cannot delete superadmin' });
+
+    const oid = new mongoose.Types.ObjectId(userId);
+    const deletions = {};
+    const safeCollections = ['fees', 'attendances', 'results', 'assignments', 'submissions', 'leaves', 'mentorships', 'studentprofiles'];
+
+    for (const colName of safeCollections) {
+      try {
+        const result = await mongoose.connection.db.collection(colName).deleteMany({
+          $or: [{ studentId: oid }, { userId: oid }, { menteeId: oid }, { mentorId: oid }],
+        });
+        if (result.deletedCount > 0) deletions[colName] = result.deletedCount;
+      } catch {}
+    }
+
+    await User.findByIdAndDelete(userId);
+    logAudit(req, 'delete', 'user', { description: `Deleted user ${user.email} and associated data`, metadata: { userId, deletions } });
+    res.json({ success: true, message: `User deleted. Removed data from: ${Object.keys(deletions).join(', ') || 'none'}`, deletions });
+  });
+
 module.exports = {
   createCollege, getColleges, getCollegeById, updateCollege, deleteCollege,
   toggleCollege, updateCollegePlan, assignCollegeAdmin,
@@ -656,4 +1005,7 @@ module.exports = {
   getDatabaseStats, getCollectionData, deleteCollectionDocument,
   getAuditLogs, getBroadcastHistory, getPlatformSettings, updatePlatformSettings,
   getGlobalAnalytics, getSystemHealth, broadcastNotice, bulkToggleUsers,
+  bulkDeleteDocuments, exportCollection, getCollectionStatsByCollege,
+  importUsers, getCollegeDrillDown, getAllSubscriptions, createSubscription, cancelSubscription,
+  getEnhancedAuditLogs, exportUserData, deleteUserData,
 };
