@@ -194,6 +194,8 @@ app.use('/api/exam-generator', require('./routes/examGenerator'));
 app.use('/api/grievances', require('./routes/grievance'));
 app.use('/api/feedback', require('./routes/feedback'));
 app.use('/api/inventory', require('./routes/inventory'));
+app.use('/api/visitors', require('./routes/visitor'));
+app.use('/api/library', require('./routes/library'));
 app.use('/api/placements', require('./routes/placement'));
 app.use('/api/alumni', require('./routes/alumni'));
 app.use('/api/events', require('./routes/event'));

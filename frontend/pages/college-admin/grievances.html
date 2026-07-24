@@ -32,6 +32,7 @@
       <a href="inventory.html" class="nav-link"><i class="nav-link-icon fas fa-boxes"></i> Inventory</a>
       <a href="placement.html" class="nav-link"><i class="nav-link-icon fas fa-briefcase"></i> Placement</a>
       <a href="alumni.html" class="nav-link"><i class="nav-link-icon fas fa-users"></i> Alumni</a>
+      <a href="visitors.html" class="nav-link"><i class="nav-link-icon fas fa-id-card-visitor"></i> Visitors</a>
       <div class="nav-section-label">Smart Campus</div>
       <a href="iot-dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-microchip"></i> IoT Dashboard</a>
       <a href="sustainability.html" class="nav-link"><i class="nav-link-icon fas fa-leaf"></i> Sustainability</a>
@@ -62,9 +63,43 @@
           <div class="card" style="padding:16px"><h3 style="font-weight:700;font-size:14px;margin-bottom:12px">By Priority</h3><canvas id="prioChart" height="200"></canvas></div>
         </div>
       </div>
+</div>
+</div>
+</div>
+
+<div id="grievanceModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:12px;width:90%;max-width:680px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3)">
+    <div style="padding:20px 24px;border-bottom:1px solid #E2E8F0;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;border-radius:12px 12px 0 0;z-index:1">
+      <h2 style="font-size:18px;font-weight:700;margin:0" id="modalTitle">Grievance Details</h2>
+      <button onclick="closeGrievanceModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#64748B;padding:4px 8px"><i class="fas fa-times"></i></button>
+    </div>
+    <div style="padding:24px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+        <div><span style="font-size:11px;text-transform:uppercase;color:#94A3B8;font-weight:600">Tracking ID</span><div id="modalTrackingId" style="font-size:14px;font-weight:600;color:#1E293B;margin-top:2px"></div></div>
+        <div><span style="font-size:11px;text-transform:uppercase;color:#94A3B8;font-weight:600">Status</span><div id="modalStatus" style="margin-top:2px"></div></div>
+        <div><span style="font-size:11px;text-transform:uppercase;color:#94A3B8;font-weight:600">Category</span><div id="modalCategory" style="font-size:14px;color:#1E293B;margin-top:2px;text-transform:capitalize"></div></div>
+        <div><span style="font-size:11px;text-transform:uppercase;color:#94A3B8;font-weight:600">Priority</span><div id="modalPriority" style="margin-top:2px"></div></div>
+        <div><span style="font-size:11px;text-transform:uppercase;color:#94A3B8;font-weight:600">Raised By</span><div id="modalRaisedBy" style="font-size:14px;color:#1E293B;margin-top:2px"></div></div>
+        <div><span style="font-size:11px;text-transform:uppercase;color:#94A3B8;font-weight:600">Date</span><div id="modalDate" style="font-size:14px;color:#1E293B;margin-top:2px"></div></div>
+      </div>
+      <div style="margin-bottom:20px"><span style="font-size:11px;text-transform:uppercase;color:#94A3B8;font-weight:600">Subject</span><div id="modalSubject" style="font-size:16px;font-weight:600;color:#1E293B;margin-top:4px"></div></div>
+      <div style="margin-bottom:20px"><span style="font-size:11px;text-transform:uppercase;color:#94A3B8;font-weight:600">Description</span><div id="modalDescription" style="font-size:14px;color:#475569;margin-top:4px;line-height:1.6;white-space:pre-wrap"></div></div>
+      <div style="margin-bottom:20px">
+        <span style="font-size:11px;text-transform:uppercase;color:#94A3B8;font-weight:600">Responses</span>
+        <div id="modalResponses" style="margin-top:8px"></div>
+      </div>
+      <div style="border-top:1px solid #E2E8F0;padding-top:16px">
+        <label style="font-size:11px;text-transform:uppercase;color:#94A3B8;font-weight:600;display:block;margin-bottom:6px">Add Response</label>
+        <textarea id="responseText" class="form-control" rows="3" placeholder="Type your response..." style="width:100%;resize:vertical"></textarea>
+        <div style="margin-top:8px;display:flex;justify-content:flex-end;gap:8px">
+          <button class="btn btn-secondary" onclick="closeGrievanceModal()">Close</button>
+          <button class="btn btn-primary" onclick="submitResponse()"><i class="fas fa-paper-plane"></i> Send Response</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
+
 <script src="../../js/shared.js"></script>
 <script>
 let catChartInst=null,prioChartInst=null;
@@ -107,7 +142,47 @@ async function resolveGrievance(id){
   await window.api.request(`/grievances/${id}`,{method:'PUT',body:JSON.stringify({status:'resolved'})});
   window.showToast('Grievance resolved','success');loadGrievances();
 }
-function viewGrievance(id){window.showToast('Opening grievance details...','info');}
+let currentGrievanceId=null;
+function viewGrievance(id){
+  currentGrievanceId=id;
+  document.getElementById('grievanceModal').style.display='flex';
+  document.getElementById('responseText').value='';
+  document.getElementById('modalResponses').innerHTML='<div style="text-align:center;padding:16px;color:#94A3B8"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
+  loadGrievanceDetail(id);
+}
+async function loadGrievanceDetail(id){
+  const g=await window.api.request(`/grievances/${id}`);
+  document.getElementById('modalTitle').textContent=g.subject||'Grievance Details';
+  document.getElementById('modalTrackingId').textContent=g.trackingId||'';
+  document.getElementById('modalSubject').textContent=g.subject||'';
+  document.getElementById('modalDescription').textContent=g.description||'';
+  document.getElementById('modalCategory').textContent=g.category||'';
+  document.getElementById('modalRaisedBy').textContent=g.raisedBy?.name||'Anonymous';
+  document.getElementById('modalDate').textContent=g.createdAt?new Date(g.createdAt).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'}):'';
+  const prioColors={urgent:'#EF4444',high:'#F59E0B',medium:'#4F46E5',low:'#10B981'};
+  document.getElementById('modalPriority').innerHTML=`<span class="badge" style="background:${prioColors[g.priority]||'#64748B'}22;color:${prioColors[g.priority]||'#64748B'};font-size:12px;padding:3px 10px;border-radius:20px;text-transform:capitalize">${g.priority||'N/A'}</span>`;
+  const statusColors={open:'#EF4444',resolved:'#10B981','in-progress':'#F59E0B',closed:'#64748B'};
+  document.getElementById('modalStatus').innerHTML=`<span class="badge" style="background:${statusColors[g.status]||'#64748B'}22;color:${statusColors[g.status]||'#64748B'};font-size:12px;padding:3px 10px;border-radius:20px;text-transform:capitalize">${g.status||'N/A'}</span>`;
+  const responses=g.responses||[];
+  document.getElementById('modalResponses').innerHTML=responses.length?responses.map(r=>`<div style="padding:12px;background:#F8FAFC;border-radius:8px;margin-bottom:8px;border-left:3px solid ${r.isAdmin?'#4F46E5':'#10B981'}">
+    <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-weight:600;font-size:13px;color:#1E293B">${r.author||'Admin'}</span><span style="font-size:11px;color:#94A3B8">${r.createdAt?new Date(r.createdAt).toLocaleString():''}</span></div>
+    <div style="font-size:13px;color:#475569;line-height:1.5">${r.text||''}</div>
+  </div>`).join(''):'<div style="text-align:center;padding:12px;color:#94A3B8;font-size:13px">No responses yet</div>';
+}
+function closeGrievanceModal(){
+  document.getElementById('grievanceModal').style.display='none';
+  currentGrievanceId=null;
+}
+async function submitResponse(){
+  const text=document.getElementById('responseText').value.trim();
+  if(!text){window.showToast('Please enter a response','error');return;}
+  if(!currentGrievanceId)return;
+  await window.api.request(`/grievances/${currentGrievanceId}/respond`,{method:'POST',body:JSON.stringify({text})});
+  document.getElementById('responseText').value='';
+  window.showToast('Response sent','success');
+  loadGrievanceDetail(currentGrievanceId);
+  loadGrievances();
+}
 loadGrievances();
 </script>
 </body>

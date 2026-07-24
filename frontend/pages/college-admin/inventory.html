@@ -27,6 +27,7 @@
       <a href="inventory.html" class="nav-link active"><i class="nav-link-icon fas fa-boxes"></i> Inventory</a>
       <a href="placement.html" class="nav-link"><i class="nav-link-icon fas fa-briefcase"></i> Placement</a>
       <a href="alumni.html" class="nav-link"><i class="nav-link-icon fas fa-users"></i> Alumni</a>
+      <a href="visitors.html" class="nav-link"><i class="nav-link-icon fas fa-user-friends"></i> Visitors</a>
       <div class="nav-section-label">Smart Campus</div>
       <a href="iot-dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-microchip"></i> IoT Dashboard</a>
       <a href="sustainability.html" class="nav-link"><i class="nav-link-icon fas fa-leaf"></i> Sustainability</a>
@@ -51,7 +52,7 @@
         <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
           <input class="form-control" id="searchInput" placeholder="Search items..." oninput="loadItems()">
           <select class="form-control" id="filterCat" style="width:auto" onchange="loadItems()"><option value="">All Categories</option><option value="lab-equipment">Lab Equipment</option><option value="furniture">Furniture</option><option value="it-hardware">IT Hardware</option><option value="stationery">Stationery</option><option value="sports">Sports</option><option value="other">Other</option></select>
-          <select class="form-control" id="filterStatus" style="width:auto" onchange="loadItems()"><option value="">All Status</option><option value="available">Available</option><option value="in-use">In Use</option><option value="maintenance">Maintenance</option><option value="retired">Retired</option></select>
+          <select class="form-control" id="filterStatus" style="width:auto" onchange="loadItems()"><option value="">All Status</option><option value="available">Available</option><option value="assigned">Assigned</option><option value="maintenance">Maintenance</option><option value="retired">Retired</option></select>
         </div>
         <div id="itemList"></div>
       </div>
@@ -89,23 +90,108 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="assignItemModal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header"><h3 class="modal-title">Assign Item</h3><button class="modal-close" onclick="closeModal('assignItemModal')">&times;</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Item *</label><select class="form-control" id="assignItemSelect"></select></div>
+      <div class="form-group"><label class="form-label">Assign To *</label><input class="form-control" id="assignTo" placeholder="e.g. John Smith"></div>
+      <div class="form-group"><label class="form-label">Return Date</label><input type="date" class="form-control" id="assignReturnDate"></div>
+      <div class="form-group"><label class="form-label">Notes</label><textarea class="form-control" id="assignNotes" rows="2" placeholder="Optional notes"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('assignItemModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="assignItem()"><i class="fas fa-hand-holding"></i> Assign</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="maintenanceModal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header"><h3 class="modal-title">Log Maintenance</h3><button class="modal-close" onclick="closeModal('maintenanceModal')">&times;</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="maintItemId">
+      <div class="form-group"><label class="form-label">Maintenance Type *</label><select class="form-control" id="maintType"><option value="routine">Routine</option><option value="repair">Repair</option><option value="inspection">Inspection</option><option value="upgrade">Upgrade</option></select></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group"><label class="form-label">Cost (₹)</label><input type="number" class="form-control" id="maintCost"></div>
+        <div class="form-group"><label class="form-label">Vendor</label><input class="form-control" id="maintVendor"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Description</label><textarea class="form-control" id="maintDesc" rows="2"></textarea></div>
+      <div class="form-group"><label class="form-label">Next Due Date</label><input type="date" class="form-control" id="maintNextDue"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('maintenanceModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="logMaintenance()"><i class="fas fa-wrench"></i> Log Maintenance</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="editItemModal">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header"><h3 class="modal-title">Edit Item</h3><button class="modal-close" onclick="closeModal('editItemModal')">&times;</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="editItemId">
+      <div class="form-group"><label class="form-label">Item Name *</label><input class="form-control" id="editItemName"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group"><label class="form-label">Category *</label><select class="form-control" id="editItemCategory"><option value="lab-equipment">Lab Equipment</option><option value="furniture">Furniture</option><option value="it-hardware">IT Hardware</option><option value="stationery">Stationery</option><option value="sports">Sports</option><option value="medical">Medical</option><option value="other">Other</option></select></div>
+        <div class="form-group"><label class="form-label">Condition</label><select class="form-control" id="editItemCondition"><option value="new">New</option><option value="good">Good</option><option value="fair">Fair</option><option value="poor">Poor</option></select></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group"><label class="form-label">Quantity *</label><input type="number" class="form-control" id="editItemQty"></div>
+        <div class="form-group"><label class="form-label">Unit</label><input class="form-control" id="editItemUnit"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group"><label class="form-label">Location</label><input class="form-control" id="editItemLocation"></div>
+        <div class="form-group"><label class="form-label">Department</label><input class="form-control" id="editItemDept"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group"><label class="form-label">Purchase Price (₹)</label><input type="number" class="form-control" id="editItemPrice"></div>
+        <div class="form-group"><label class="form-label">Vendor</label><input class="form-control" id="editItemVendor"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Status</label><select class="form-control" id="editItemStatus"><option value="available">Available</option><option value="assigned">Assigned</option><option value="maintenance">Maintenance</option><option value="retired">Retired</option></select></div>
+      <div class="form-group"><label class="form-label">Description</label><textarea class="form-control" id="editItemDesc" rows="2"></textarea></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('editItemModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="updateItem()"><i class="fas fa-save"></i> Save Changes</button>
+    </div>
+  </div>
+</div>
+
 <script src="../../js/shared.js"></script>
 <script>
-let catChartInst=null,statusChartInst=null;
+let catChartInst=null,statusChartInst=null,allItems=[];
+const statusColors={available:{bg:'#D1FAE5',fg:'#065F46'},assigned:{bg:'#DBEAFE',fg:'#1D4ED8'},maintenance:{bg:'#FEF3C7',fg:'#92400E'},retired:{bg:'#F1F5F9',fg:'#64748B'}};
 async function loadItems(){
   const search=document.getElementById('searchInput').value;
   const category=document.getElementById('filterCat').value;
   const status=document.getElementById('filterStatus').value;
   let url='/inventory?limit=100';if(search)url+=`&search=${search}`;if(category)url+=`&category=${category}`;if(status)url+=`&status=${status}`;
   const res=await window.api.request(url);
-  const items=res.items||[];
+  allItems=res.items||[];
   const icons={'lab-equipment':'🔬','furniture':'🪑','it-hardware':'💻','stationery':'📝','sports':'⚽','medical':'🏥','other':'📦'};
-  document.getElementById('itemList').innerHTML=items.map(item=>`<div style="display:flex;align-items:center;gap:12px;padding:12px;border-bottom:1px solid #F1F5F9">
-    <div style="width:44px;height:44px;background:#EEF2FF;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px">${icons[item.category]||'📦'}</div>
-    <div style="flex:1"><div style="font-weight:600;font-size:14px">${item.name}</div><div style="font-size:12px;color:#64748B">${item.itemId} • ${item.category} • Qty: ${item.quantity} ${item.unit}</div></div>
-    <span class="badge" style="background:${item.status==='available'?'#D1FAE5':item.status==='in-use'?'#DBEAFE':item.status==='maintenance'?'#FEF3C7':'#F1F5F9'};color:${item.status==='available'?'#065F46':item.status==='in-use'?'#1D4ED8':item.status==='maintenance'?'#92400E':'#64748B'};font-size:11px">${item.status}</span>
-    <div style="font-size:12px;color:#64748B">${item.location||'-'}</div>
-  </div>`).join('')||'<div class="empty-state"><div class="empty-state-title">No items found</div></div>';
+  document.getElementById('itemList').innerHTML=allItems.length?`<table style="width:100%;border-collapse:collapse;font-size:13px">
+    <thead><tr style="border-bottom:2px solid #E2E8F0;text-align:left">
+      <th style="padding:10px 12px;color:#64748B;font-weight:600">Item</th>
+      <th style="padding:10px 12px;color:#64748B;font-weight:600">Category</th>
+      <th style="padding:10px 12px;color:#64748B;font-weight:600">Qty</th>
+      <th style="padding:10px 12px;color:#64748B;font-weight:600">Status</th>
+      <th style="padding:10px 12px;color:#64748B;font-weight:600">Location</th>
+      <th style="padding:10px 12px;color:#64748B;font-weight:600;text-align:right">Actions</th>
+    </tr></thead>
+    <tbody>${allItems.map(item=>{const sc=statusColors[item.status]||statusColors.available;return`<tr style="border-bottom:1px solid #F1F5F9">
+      <td style="padding:10px 12px"><div style="display:flex;align-items:center;gap:10px"><div style="width:36px;height:36px;background:#EEF2FF;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px">${icons[item.category]||'📦'}</div><div><div style="font-weight:600">${item.name}</div><div style="font-size:11px;color:#94A3B8">${item.itemId}</div></div></div></td>
+      <td style="padding:10px 12px;color:#64748B">${item.category}</td>
+      <td style="padding:10px 12px;color:#64748B">${item.quantity} ${item.unit}</td>
+      <td style="padding:10px 12px"><span class="badge" style="background:${sc.bg};color:${sc.fg};font-size:11px;padding:3px 8px;border-radius:12px">${item.status}</span></td>
+      <td style="padding:10px 12px;color:#64748B">${item.location||'-'}</td>
+      <td style="padding:10px 12px;text-align:right;white-space:nowrap">
+        <button class="btn btn-sm btn-primary" style="padding:4px 8px;font-size:11px;margin-right:4px" onclick="openAssignModal('${item._id}')" title="Assign"><i class="fas fa-hand-holding"></i></button>
+        <button class="btn btn-sm btn-warning" style="padding:4px 8px;font-size:11px;margin-right:4px;background:#FEF3C7;color:#92400E;border:none;border-radius:4px;cursor:pointer" onclick="openMaintenanceModal('${item._id}')" title="Maintenance"><i class="fas fa-wrench"></i></button>
+        <button class="btn btn-sm btn-secondary" style="padding:4px 8px;font-size:11px;margin-right:4px" onclick="openEditModal('${item._id}')" title="Edit"><i class="fas fa-edit"></i></button>
+        <button class="btn btn-sm btn-danger" style="padding:4px 8px;font-size:11px;background:#FEE2E2;color:#DC2626;border:none;border-radius:4px;cursor:pointer" onclick="deleteItem('${item._id}','${item.name}')" title="Delete"><i class="fas fa-trash"></i></button>
+      </td>
+    </tr>`}).join('')}</tbody></table>`:'<div class="empty-state"><div class="empty-state-title">No items found</div></div>';
   loadStats();
 }
 async function loadStats(){
@@ -137,6 +223,81 @@ async function addItem(){
     vendor:document.getElementById('itemVendor').value,description:document.getElementById('itemDesc').value,
   })});
   window.closeModal('addItemModal');window.showToast('Item added','success');loadItems();
+}
+function openAssignModal(itemId){
+  const sel=document.getElementById('assignItemSelect');
+  sel.innerHTML=allItems.map(i=>`<option value="${i._id}" ${i._id===itemId?'selected':''}>${i.name} (${i.itemId})</option>`).join('');
+  document.getElementById('assignTo').value='';
+  document.getElementById('assignReturnDate').value='';
+  document.getElementById('assignNotes').value='';
+  openModal('assignItemModal');
+}
+async function assignItem(){
+  const itemId=document.getElementById('assignItemSelect').value;
+  const assignTo=document.getElementById('assignTo').value;
+  if(!assignTo){window.showToast('Assign to is required','error');return;}
+  await window.api.request(`/inventory/${itemId}/assign`,{method:'POST',body:JSON.stringify({
+    assignTo,assignDate:new Date().toISOString(),
+    returnDate:document.getElementById('assignReturnDate').value||undefined,
+    notes:document.getElementById('assignNotes').value,
+  })});
+  window.closeModal('assignItemModal');window.showToast('Item assigned','success');loadItems();
+}
+function openMaintenanceModal(itemId){
+  document.getElementById('maintItemId').value=itemId;
+  document.getElementById('maintType').value='routine';
+  document.getElementById('maintCost').value='';
+  document.getElementById('maintVendor').value='';
+  document.getElementById('maintDesc').value='';
+  document.getElementById('maintNextDue').value='';
+  openModal('maintenanceModal');
+}
+async function logMaintenance(){
+  const itemId=document.getElementById('maintItemId').value;
+  await window.api.request(`/inventory/${itemId}/maintenance`,{method:'POST',body:JSON.stringify({
+    type:document.getElementById('maintType').value,
+    cost:Number(document.getElementById('maintCost').value)||0,
+    vendor:document.getElementById('maintVendor').value,
+    description:document.getElementById('maintDesc').value,
+    nextDueDate:document.getElementById('maintNextDue').value||undefined,
+  })});
+  window.closeModal('maintenanceModal');window.showToast('Maintenance logged','success');loadItems();
+}
+async function openEditModal(itemId){
+  const item=allItems.find(i=>i._id===itemId);
+  if(!item)return;
+  document.getElementById('editItemId').value=item._id;
+  document.getElementById('editItemName').value=item.name;
+  document.getElementById('editItemCategory').value=item.category;
+  document.getElementById('editItemCondition').value=item.condition||'good';
+  document.getElementById('editItemQty').value=item.quantity;
+  document.getElementById('editItemUnit').value=item.unit||'pcs';
+  document.getElementById('editItemLocation').value=item.location||'';
+  document.getElementById('editItemDept').value=item.department||'';
+  document.getElementById('editItemPrice').value=item.purchasePrice||'';
+  document.getElementById('editItemVendor').value=item.vendor||'';
+  document.getElementById('editItemStatus').value=item.status;
+  document.getElementById('editItemDesc').value=item.description||'';
+  openModal('editItemModal');
+}
+async function updateItem(){
+  const id=document.getElementById('editItemId').value;
+  const name=document.getElementById('editItemName').value;
+  if(!name){window.showToast('Item name is required','error');return;}
+  await window.api.request(`/inventory/${id}`,{method:'PUT',body:JSON.stringify({
+    name,category:document.getElementById('editItemCategory').value,
+    quantity:Number(document.getElementById('editItemQty').value)||1,unit:document.getElementById('editItemUnit').value,
+    location:document.getElementById('editItemLocation').value,department:document.getElementById('editItemDept').value,
+    condition:document.getElementById('editItemCondition').value,status:document.getElementById('editItemStatus').value,
+    purchasePrice:Number(document.getElementById('editItemPrice').value)||undefined,
+    vendor:document.getElementById('editItemVendor').value,description:document.getElementById('editItemDesc').value,
+  })});
+  window.closeModal('editItemModal');window.showToast('Item updated','success');loadItems();
+}
+async function deleteItem(id,name){
+  if(!confirm(`Are you sure you want to delete "${name}"? This action cannot be undone.`))return;
+  await window.api.request(`/inventory/${id}`,{method:'DELETE'});
+  window.showToast('Item deleted','success');loadItems();
 }
 loadItems();
 </script>

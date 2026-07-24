@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Complaints | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../css/custom.css">
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-student" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)" id="sidebar-avatar">S</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Student</div><div class="sidebar-user-role" id="sidebar-user-role">B.Tech CS • Sem 4</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Academics</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-reader"></i> My Courses</a>
+      <a href="timetable.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-week"></i> Timetable</a>
+      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Attendance</a>
+      <a href="assignments.html" class="nav-link"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
+      <a href="results.html" class="nav-link"><i class="nav-link-icon fas fa-poll"></i> Results</a>
+      <div class="nav-section-label">Career Center</div>
+      <a href="career.html" class="nav-link"><i class="nav-link-icon fas fa-rocket"></i> Career Dashboard</a>
+      <a href="skills.html" class="nav-link"><i class="nav-link-icon fas fa-tools"></i> Skills Profile</a>
+      <a href="mentorship.html" class="nav-link"><i class="nav-link-icon fas fa-user-tie"></i> Mentorship</a>
+      <a href="placements.html" class="nav-link"><i class="nav-link-icon fas fa-briefcase"></i> Placements</a>
+      <a href="assessments.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-check"></i> Skill Assessments</a>
+      <div class="nav-section-label">Facilities</div>
+      <a href="library.html" class="nav-link"><i class="nav-link-icon fas fa-book"></i> Library</a>
+      <a href="../college-admin/events.html" class="nav-link"><i class="nav-link-icon fas fa-bus"></i> Transport</a>
+      <a href="../college-admin/events.html" class="nav-link"><i class="nav-link-icon fas fa-building"></i> Hostel</a>
+      <a href="complaints.html" class="nav-link active"><i class="nav-link-icon fas fa-exclamation-circle"></i> Complaints</a>
+      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-receipt"></i> Fee Details</a>
+      <a href="../messages.html" class="nav-link"><i class="nav-link-icon fas fa-comment-dots"></i> Messages</a>
+      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-brain"></i> AI Tutor</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">Student / <span>Complaints</span></div>
+      </div>
+      <div class="topbar-right"><div class="topbar-avatar" id="topbar-avatar">S</div></div>
+    </header>
+
+    <div class="erp-content page-enter">
+      <div class="page-header">
+        <h1 class="page-title"><i class="fas fa-exclamation-circle" style="color:#EF4444"></i> Complaints & Grievances</h1>
+        <p class="page-subtitle">Submit and track your complaints</p>
+      </div>
+
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;align-items:start">
+
+        <!-- Left: Grievance List -->
+        <div>
+          <div class="card" style="padding:20px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+              <div style="font-weight:700;font-size:16px"><i class="fas fa-list-ul" style="color:#4F46E5;margin-right:8px"></i>My Complaints</div>
+              <div style="display:flex;gap:8px">
+                <select class="form-control" id="filterStatus" style="width:auto;font-size:13px" onchange="loadGrievances()">
+                  <option value="">All Status</option>
+                  <option value="open">Open</option>
+                  <option value="in-progress">In Progress</option>
+                  <option value="resolved">Resolved</option>
+                  <option value="closed">Closed</option>
+                </select>
+              </div>
+            </div>
+            <div id="grievanceList">
+              <div style="text-align:center;padding:40px 0;color:#94A3B8">
+                <div class="skeleton" style="height:60px;border-radius:10px;margin-bottom:12px"></div>
+                <div class="skeleton" style="height:60px;border-radius:10px;margin-bottom:12px"></div>
+                <div class="skeleton" style="height:60px;border-radius:10px"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Raise New Complaint -->
+        <div>
+          <div class="card" style="padding:20px">
+            <div style="font-weight:700;font-size:16px;margin-bottom:16px"><i class="fas fa-pen-to-square" style="color:#059669;margin-right:8px"></i>Raise New Complaint</div>
+            <form id="complaintForm" onsubmit="submitComplaint(event)">
+              <div class="form-group" style="margin-bottom:14px">
+                <label class="form-label" style="font-weight:600;font-size:13px;color:#334155">Category</label>
+                <select class="form-control" id="compCategory" required style="font-size:13px">
+                  <option value="">Select category...</option>
+                  <option value="academic">Academic</option>
+                  <option value="infrastructure">Infrastructure</option>
+                  <option value="harassment">Harassment</option>
+                  <option value="fee">Fee</option>
+                  <option value="exam">Exam</option>
+                  <option value="hostel">Hostel</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+              <div class="form-group" style="margin-bottom:14px">
+                <label class="form-label" style="font-weight:600;font-size:13px;color:#334155">Subject</label>
+                <input class="form-control" type="text" id="compSubject" placeholder="Brief subject of your complaint" required style="font-size:13px">
+              </div>
+              <div class="form-group" style="margin-bottom:14px">
+                <label class="form-label" style="font-weight:600;font-size:13px;color:#334155">Description</label>
+                <textarea class="form-control" id="compDescription" rows="4" placeholder="Describe your complaint in detail..." required style="font-size:13px;resize:vertical"></textarea>
+              </div>
+              <div class="form-group" style="margin-bottom:14px">
+                <label class="form-label" style="font-weight:600;font-size:13px;color:#334155">Priority</label>
+                <select class="form-control" id="compPriority" required style="font-size:13px">
+                  <option value="low">Low</option>
+                  <option value="medium" selected>Medium</option>
+                  <option value="high">High</option>
+                  <option value="urgent">Urgent</option>
+                </select>
+              </div>
+              <div class="form-group" style="margin-bottom:18px">
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:#334155">
+                  <input type="checkbox" id="compAnonymous" style="accent-color:#4F46E5;width:16px;height:16px">
+                  <span>Submit anonymously</span>
+                </label>
+                <div style="font-size:11px;color:#94A3B8;margin-top:4px;padding-left:24px">Your identity will be hidden from the handler</div>
+              </div>
+              <button type="submit" class="btn btn-primary" id="submitBtn" style="width:100%;background:linear-gradient(135deg,#059669,#10B981);border:none;padding:12px;font-weight:700">
+                <i class="fas fa-paper-plane"></i> Submit Complaint
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="modal-backdrop" id="detailModal">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-header">
+      <div class="modal-title" id="detailTitle"><i class="fas fa-file-alt" style="color:#4F46E5;margin-right:8px"></i>Complaint Details</div>
+      <button class="modal-close" onclick="closeModal('detailModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body" id="detailBody" style="padding:24px"></div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script>
+const statusColors = {
+  open:         { bg: '#FEE2E2', color: '#991B1B', icon: 'fa-folder-open' },
+  'in-progress':{ bg: '#FEF3C7', color: '#92400E', icon: 'fa-spinner' },
+  resolved:     { bg: '#D1FAE5', color: '#065F46', icon: 'fa-check-circle' },
+  closed:       { bg: '#F1F5F9', color: '#64748B', icon: 'fa-times-circle' }
+};
+const priorityColors = {
+  low:    { bg: '#D1FAE5', color: '#065F46', border: '#10B981' },
+  medium: { bg: '#DBEAFE', color: '#1E40AF', border: '#4F46E5' },
+  high:   { bg: '#FEF3C7', color: '#92400E', border: '#F59E0B' },
+  urgent: { bg: '#FEE2E2', color: '#991B1B', border: '#EF4444' }
+};
+const categoryLabels = {
+  academic:'Academic', infrastructure:'Infrastructure', harassment:'Harassment',
+  fee:'Fee', exam:'Exam', hostel:'Hostel', other:'Other'
+};
+
+async function loadGrievances() {
+  const list = document.getElementById('grievanceList');
+  const status = document.getElementById('filterStatus').value;
+  let url = '/grievances?limit=50';
+  if (status) url += `&status=${status}`;
+  try {
+    const res = await window.api.request(url);
+    const grievances = res.grievances || res.data || [];
+    if (!grievances.length) {
+      list.innerHTML = `<div style="text-align:center;padding:40px 0">
+        <div style="width:64px;height:64px;background:#F1F5F9;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
+          <i class="fas fa-check-circle" style="font-size:28px;color:#10B981"></i>
+        </div>
+        <div style="font-weight:700;font-size:15px;color:#334155;margin-bottom:4px">No complaints yet</div>
+        <div style="font-size:13px;color:#94A3B8">Raise a complaint using the form on the right</div>
+      </div>`;
+      return;
+    }
+    list.innerHTML = grievances.map(g => {
+      const sc = statusColors[g.status] || statusColors.open;
+      const pc = priorityColors[g.priority] || priorityColors.medium;
+      const date = new Date(g.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      return `<div style="padding:16px;border:1px solid #E2E8F0;border-radius:12px;margin-bottom:12px;border-left:4px solid ${pc.border};transition:all 0.15s" onmouseover="this.style.boxShadow='0 4px 12px rgba(0,0,0,0.06)'" onmouseout="this.style.boxShadow='none'">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;gap:12px">
+          <div style="flex:1">
+            <div style="font-weight:700;font-size:14px;color:#0F172A;margin-bottom:4px">${g.subject}</div>
+            <div style="font-size:11px;color:#64748B;display:flex;flex-wrap:wrap;gap:6px;align-items:center">
+              <span style="background:#F1F5F9;padding:2px 6px;border-radius:4px;font-weight:600;font-family:monospace">${g.trackingId}</span>
+              <span>•</span>
+              <span>${categoryLabels[g.category] || g.category}</span>
+              <span>•</span>
+              <span>${date}</span>
+            </div>
+          </div>
+          <span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:${sc.bg};color:${sc.color};white-space:nowrap;text-transform:capitalize">
+            <i class="fas ${sc.icon}" style="margin-right:4px;font-size:10px"></i>${g.status.replace('-',' ')}
+          </span>
+        </div>
+        <p style="font-size:13px;color:#475569;margin:8px 0;line-height:1.5">${(g.description||'').slice(0,150)}${(g.description||'').length > 150 ? '...' : ''}</p>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <button class="btn btn-xs btn-secondary" onclick="viewGrievance('${g._id}')"><i class="fas fa-eye"></i> View</button>
+          ${g.status !== 'resolved' && g.status !== 'closed' ? `<button class="btn btn-xs btn-danger" onclick="closeGrievance('${g._id}')"><i class="fas fa-times"></i> Close</button>` : ''}
+        </div>
+      </div>`;
+    }).join('');
+  } catch (err) {
+    list.innerHTML = `<div style="text-align:center;padding:30px 0;color:#EF4444">
+      <i class="fas fa-exclamation-triangle" style="font-size:28px;margin-bottom:8px"></i>
+      <div style="font-size:13px">Failed to load complaints. Please try again.</div>
+    </div>`;
+  }
+}
+
+async function submitComplaint(e) {
+  e.preventDefault();
+  const btn = document.getElementById('submitBtn');
+  setLoading(btn, true);
+  const body = {
+    category: document.getElementById('compCategory').value,
+    subject: document.getElementById('compSubject').value.trim(),
+    description: document.getElementById('compDescription').value.trim(),
+    priority: document.getElementById('compPriority').value,
+    anonymous: document.getElementById('compAnonymous').checked
+  };
+  try {
+    await window.api.request('/grievances', {
+      method: 'POST',
+      body: JSON.stringify(body)
+    });
+    showToast('Complaint submitted successfully!', 'success');
+    document.getElementById('complaintForm').reset();
+    loadGrievances();
+  } catch (err) {
+    showToast('Failed to submit complaint. Please try again.', 'error');
+  } finally {
+    setLoading(btn, false);
+  }
+}
+
+async function viewGrievance(id) {
+  const body = document.getElementById('detailBody');
+  body.innerHTML = `<div style="text-align:center;padding:20px"><div class="skeleton" style="height:20px;width:60%;margin:0 auto 8px;border-radius:6px"></div><div class="skeleton" style="height:16px;width:40%;margin:0 auto;border-radius:6px"></div></div>`;
+  openModal('detailModal');
+  try {
+    const res = await window.api.request(`/grievances/${id}`);
+    const g = res.grievance || res;
+    const sc = statusColors[g.status] || statusColors.open;
+    const pc = priorityColors[g.priority] || priorityColors.medium;
+    const created = new Date(g.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+    const responses = (g.responses || []).map(r => `
+      <div style="border-left:3px solid ${r.from === 'admin' ? '#4F46E5' : '#10B981'};padding:12px 16px;background:${r.from === 'admin' ? '#EEF2FF' : '#F0FDF4'};border-radius:0 10px 10px 0;margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+          <span style="font-weight:700;font-size:12px;color:${r.from === 'admin' ? '#4F46E5' : '#059669'}">${r.from === 'admin' ? 'Administrator' : 'You'}</span>
+          <span style="font-size:11px;color:#94A3B8">${new Date(r.date || r.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+        </div>
+        <p style="font-size:13px;color:#334155;margin:0;line-height:1.5">${r.message}</p>
+      </div>
+    `).join('');
+
+    body.innerHTML = `
+      <div style="margin-bottom:20px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+          <div>
+            <h3 style="font-weight:800;font-size:18px;color:#0F172A;margin-bottom:6px">${g.subject}</h3>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+              <span style="background:#F1F5F9;padding:3px 8px;border-radius:4px;font-weight:600;font-size:12px;font-family:monospace;color:#334155">${g.trackingId}</span>
+              <span style="font-size:12px;color:#64748B">${categoryLabels[g.category] || g.category}</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px">
+            <span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:${sc.bg};color:${sc.color};text-transform:capitalize">
+              <i class="fas ${sc.icon}" style="margin-right:4px;font-size:10px"></i>${g.status.replace('-',' ')}
+            </span>
+            <span style="font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:${pc.bg};color:${pc.color};text-transform:capitalize">
+              <i class="fas fa-flag" style="margin-right:4px;font-size:10px"></i>${g.priority}
+            </span>
+          </div>
+        </div>
+        <div style="display:flex;gap:16px;font-size:12px;color:#64748B;margin-bottom:16px;flex-wrap:wrap">
+          <span><i class="fas fa-calendar" style="margin-right:4px"></i>Submitted: ${created}</span>
+          ${g.anonymous ? '<span><i class="fas fa-user-secret" style="margin-right:4px"></i>Anonymous</span>' : ''}
+        </div>
+      </div>
+
+      <div style="margin-bottom:20px">
+        <div style="font-weight:700;font-size:13px;color:#334155;margin-bottom:8px"><i class="fas fa-align-left" style="color:#64748B;margin-right:6px"></i>Description</div>
+        <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:14px;font-size:13px;color:#475569;line-height:1.6;white-space:pre-wrap">${g.description}</div>
+      </div>
+
+      <div>
+        <div style="font-weight:700;font-size:13px;color:#334155;margin-bottom:12px"><i class="fas fa-comments" style="color:#4F46E5;margin-right:6px"></i>Responses ${responses.length ? `(${responses.length})` : ''}</div>
+        ${responses.length ? responses : `<div style="text-align:center;padding:20px;background:#F8FAFC;border-radius:10px;border:1px dashed #E2E8F0;color:#94A3B8;font-size:13px">
+          <i class="fas fa-hourglass-half" style="display:block;font-size:20px;margin-bottom:8px"></i>
+          Waiting for a response from the administration
+        </div>`}
+      </div>
+    `;
+  } catch (err) {
+    body.innerHTML = `<div style="text-align:center;padding:20px;color:#EF4444">
+      <i class="fas fa-exclamation-triangle" style="font-size:24px;margin-bottom:8px"></i>
+      <div style="font-size:13px">Failed to load complaint details.</div>
+    </div>`;
+  }
+}
+
+async function closeGrievance(id) {
+  const ok = await showConfirm({ title: 'Close Complaint?', message: 'Are you sure you want to close this complaint? This action cannot be undone.', confirmText: 'Close', type: 'danger' });
+  if (!ok) return;
+  try {
+    await window.api.request(`/grievances/${id}`, { method: 'PUT', body: JSON.stringify({ status: 'closed' }) });
+    showToast('Complaint closed', 'success');
+    loadGrievances();
+  } catch (err) {
+    showToast('Failed to close complaint', 'error');
+  }
+}
+
+loadGrievances();
+</script>
+</body>
+</html>

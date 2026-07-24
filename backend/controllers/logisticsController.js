@@ -117,4 +117,92 @@ const deleteRoute = asyncHandler(async (req, res) => {
     res.json({ success: true, message: 'Transport route deleted' });
   });
 
-module.exports = { addHostel, addRoom, allocateRoom, getHostels, addRoute, getRoutes, deleteRoute };
+const updateRoute = asyncHandler(async (req, res) => {
+    const route = await TransportRoute.findOneAndUpdate(
+      { _id: req.params.id, collegeId: req.user.collegeId },
+      req.body,
+      { new: true, runValidators: true }
+    );
+    if (!route) return res.status(404).json({ success: false, message: 'Transport route not found' });
+    emitDataChange(req, { collegeId: String(req.user.collegeId), roles: ['superadmin'], resource: 'transport', action: 'updated' });
+    res.json({ success: true, route });
+  });
+
+const enrollStudent = asyncHandler(async (req, res) => {
+    const { studentId, rollNo } = req.body;
+    const route = await TransportRoute.findOne({ _id: req.params.id, collegeId: req.user.collegeId });
+    if (!route) return res.status(404).json({ success: false, message: 'Route not found' });
+
+    const student = await User.findOne({
+      collegeId: req.user.collegeId, role: 'student',
+      $or: [{ _id: studentId }, { rollNo }],
+    }).select('_id name');
+    if (!student) return res.status(404).json({ success: false, message: 'Student not found' });
+
+    if (route.enrolledStudents.some((id) => String(id) === String(student._id))) {
+      return res.json({ success: true, message: 'Student already enrolled', route });
+    }
+    if (route.enrolledStudents.length >= route.capacity) {
+      return res.status(400).json({ success: false, message: 'Route is at full capacity' });
+    }
+    route.enrolledStudents.push(student._id);
+    await route.save();
+    res.json({ success: true, message: `${student.name} enrolled on ${route.routeName}`, route });
+  });
+
+const unenrollStudent = asyncHandler(async (req, res) => {
+    const route = await TransportRoute.findOne({ _id: req.params.id, collegeId: req.user.collegeId });
+    if (!route) return res.status(404).json({ success: false, message: 'Route not found' });
+    route.enrolledStudents = route.enrolledStudents.filter((id) => String(id) !== req.body.studentId);
+    await route.save();
+    res.json({ success: true, message: 'Student unenrolled', route });
+  });
+
+// --- HOSTEL UPDATES ---
+
+const updateHostel = asyncHandler(async (req, res) => {
+    const hostel = await Hostel.findOneAndUpdate(
+      { _id: req.params.id, collegeId: req.user.collegeId },
+      req.body,
+      { new: true, runValidators: true }
+    );
+    if (!hostel) return res.status(404).json({ success: false, message: 'Hostel not found' });
+    res.json({ success: true, hostel });
+  });
+
+const deleteHostel = asyncHandler(async (req, res) => {
+    const hostel = await Hostel.findOneAndDelete({ _id: req.params.id, collegeId: req.user.collegeId });
+    if (!hostel) return res.status(404).json({ success: false, message: 'Hostel not found' });
+    await Room.deleteMany({ hostelId: hostel._id });
+    res.json({ success: true, message: 'Hostel and all rooms deleted' });
+  });
+
+const deleteRoom = asyncHandler(async (req, res) => {
+    const room = await Room.findOneAndDelete({ _id: req.params.id, collegeId: req.user.collegeId });
+    if (!room) return res.status(404).json({ success: false, message: 'Room not found' });
+    res.json({ success: true, message: 'Room deleted' });
+  });
+
+const deallocateRoom = asyncHandler(async (req, res) => {
+    const { roomId, studentId } = req.body;
+    const room = await Room.findOne({ _id: roomId, collegeId: req.user.collegeId });
+    if (!room) return res.status(404).json({ success: false, message: 'Room not found' });
+    room.occupants = room.occupants.filter((id) => String(id) !== String(studentId));
+    await room.save();
+    res.json({ success: true, message: 'Student deallocated from room', room });
+  });
+
+const updateRoom = asyncHandler(async (req, res) => {
+    const room = await Room.findOneAndUpdate(
+      { _id: req.params.id, collegeId: req.user.collegeId },
+      req.body,
+      { new: true, runValidators: true }
+    );
+    if (!room) return res.status(404).json({ success: false, message: 'Room not found' });
+    res.json({ success: true, room });
+  });
+
+module.exports = {
+  addHostel, addRoom, allocateRoom, getHostels, updateHostel, deleteHostel, deleteRoom, deallocateRoom, updateRoom,
+  addRoute, getRoutes, deleteRoute, updateRoute, enrollStudent, unenrollStudent,
+};

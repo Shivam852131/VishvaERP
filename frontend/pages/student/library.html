@@ -12,6 +12,16 @@
     .book-cover { width: 80px; height: 110px; background: #F1F5F9; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 24px; color: #94A3B8; flex-shrink: 0; box-shadow: inset 0 0 10px rgba(0,0,0,0.05); }
     .book-title { font-weight: 800; font-size: 15px; color: #0F172A; margin-bottom: 4px; line-height: 1.2; }
     .book-author { font-size: 12px; color: #64748B; margin-bottom: 8px; }
+    .category-btn.active { background: #0284C7; color: white; border-color: #0284C7; }
+    .toast { position: fixed; bottom: 24px; right: 24px; background: #1E293B; color: white; padding: 14px 24px; border-radius: 10px; font-size: 13px; font-weight: 600; box-shadow: 0 8px 24px rgba(0,0,0,0.2); z-index: 9999; opacity: 0; transform: translateY(12px); transition: all 0.3s ease; pointer-events: none; }
+    .toast.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+    .stat-card { background: white; border: 1px solid #E2E8F0; border-radius: 12px; padding: 20px; display: flex; align-items: center; gap: 14px; }
+    .stat-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+    .pagination { display: flex; gap: 6px; justify-content: center; margin-top: 20px; }
+    .pagination button { padding: 6px 14px; border: 1px solid #E2E8F0; border-radius: 8px; background: white; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .pagination button:hover { border-color: #0284C7; color: #0284C7; }
+    .pagination button.active { background: #0284C7; color: white; border-color: #0284C7; }
+    .pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
   </style>
 </head>
 <body>
@@ -35,6 +45,8 @@
       <a href="assessments.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-check"></i> Skill Assessments</a>
       <div class="nav-section-label">Facilities</div>
       <a href="library.html" class="nav-link active"><i class="nav-link-icon fas fa-book-reader"></i> Library</a>
+      <a href="transport.html" class="nav-link"><i class="nav-link-icon fas fa-bus"></i> Transport</a>
+      <a href="complaints.html" class="nav-link"><i class="nav-link-icon fas fa-exclamation-triangle"></i> Complaints</a>
       <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-rupee-sign"></i> Fee Details</a>
       <a href="../messages.html" class="nav-link"><i class="nav-link-icon fas fa-envelope"></i> Messages</a>
       <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Tutor</a>
@@ -58,65 +70,50 @@
           <h1 class="page-title">📖 Digital Library</h1>
           <p class="page-subtitle">Search course books, check issued items, and reserve new ones.</p>
         </div>
-        <div class="search-bar" style="flex:1;min-width:200px;max-width:400px"><i class="fas fa-search"></i><input type="text" placeholder="Search by title, author, ISBN..."></div>
+        <div class="search-bar" style="flex:1;min-width:200px;max-width:400px"><i class="fas fa-search"></i><input type="text" id="searchInput" placeholder="Search by title, author, ISBN..."></div>
+      </div>
+
+      <!-- Stats -->
+      <div class="grid" style="grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#DBEAFE;color:#2563EB"><i class="fas fa-book"></i></div>
+          <div><div style="font-size:22px;font-weight:800;color:#0F172A" id="statTotalBooks">0</div><div style="font-size:12px;color:#64748B;font-weight:600">Total Books</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#D1FAE5;color:#059669"><i class="fas fa-check-circle"></i></div>
+          <div><div style="font-size:22px;font-weight:800;color:#0F172A" id="statAvailable">0</div><div style="font-size:12px;color:#64748B;font-weight:600">Available</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#FEF3C7;color:#D97706"><i class="fas fa-bookmark"></i></div>
+          <div><div style="font-size:22px;font-weight:800;color:#0F172A" id="statIssued">0</div><div style="font-size:12px;color:#64748B;font-weight:600">Currently Issued</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#FEE2E2;color:#DC2626"><i class="fas fa-exclamation-triangle"></i></div>
+          <div><div style="font-size:22px;font-weight:800;color:#0F172A" id="statOverdue">0</div><div style="font-size:12px;color:#64748B;font-weight:600">Overdue</div></div>
+        </div>
       </div>
 
       <div class="grid" style="grid-template-columns:1fr 340px;gap:24px;align-items:start">
         
         <!-- Book Catalog -->
         <div>
-          <div style="display:flex;gap:10px;margin-bottom:16px">
-            <button class="btn btn-sm btn-primary">All Books</button>
-            <button class="btn btn-sm btn-secondary" style="background:white">Computer Science</button>
-            <button class="btn btn-sm btn-secondary" style="background:white">Mathematics</button>
-            <button class="btn btn-sm btn-secondary" style="background:white">E-Books</button>
+          <div style="display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap" id="categoryFilters">
+            <button class="btn btn-sm btn-primary category-btn active" data-category="">All Books</button>
+            <button class="btn btn-sm btn-secondary category-btn" style="background:white" data-category="Computer Science">Computer Science</button>
+            <button class="btn btn-sm btn-secondary category-btn" style="background:white" data-category="Mathematics">Mathematics</button>
+            <button class="btn btn-sm btn-secondary category-btn" style="background:white" data-category="E-Books">E-Books</button>
           </div>
           <div class="grid col-2" id="catalogGrid">
-            ${[
-              ['Database System Concepts', 'Silberschatz, Korth', 'Available', '#10B981'],
-              ['Operating System Concepts', 'Silberschatz, Galvin', '3 Copies Left', '#D97706'],
-              ['Introduction to Algorithms', 'Cormen, Leiserson', 'Reserved', '#EF4444'],
-              ['Computer Networking', 'Kurose, Ross', 'Available', '#10B981'],
-              ['Software Engineering', 'Ian Sommerville', 'Available', '#10B981'],
-              ['Discrete Mathematics', 'Kenneth H. Rosen', '1 Copy Left', '#D97706'],
-            ].map(([title, author, status, color]) => `
-              <div class="book-card">
-                <div class="book-cover"><i class="fas fa-book-open"></i></div>
-                <div style="flex:1">
-                  <div class="book-title">${title}</div>
-                  <div class="book-author">${author}</div>
-                  <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
-                    <span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;background:${color}22;color:${color}">${status}</span>
-                    <button class="btn btn-xs ${status==='Reserved'?'btn-secondary':'btn-primary'}" ${status==='Reserved'?'disabled':''}>
-                      ${status==='Reserved'?'Unavailable':'Reserve'}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            `).join('')}
+            <div style="grid-column:1/-1;text-align:center;padding:40px;color:#94A3B8"><i class="fas fa-spinner fa-spin" style="font-size:20px"></i><p style="margin-top:8px;font-size:13px">Loading books...</p></div>
           </div>
+          <div class="pagination" id="pagination"></div>
         </div>
 
         <!-- Issued Books Panel -->
         <div class="card">
-          <div class="card-header"><div class="card-title"><i class="fas fa-bookmark text-primary" style="margin-right:8px"></i>My Issued Books</div><span class="badge badge-info">2 Items</span></div>
-          <div class="card-body" style="display:flex;flex-direction:column;gap:12px">
-            <div style="border:1px solid #E2E8F0;border-radius:10px;padding:12px">
-              <div style="font-weight:700;font-size:13px;margin-bottom:2px">Fundamentals of Database Systems</div>
-              <div style="font-size:11px;color:#64748B;margin-bottom:8px">Elmasri, Navathe • Acc. No: L-4819</div>
-              <div style="display:flex;justify-content:space-between;align-items:center">
-                <span style="font-size:11px;font-weight:600;color:#059669"><i class="fas fa-clock"></i> Due: Apr 25</span>
-                <button class="btn btn-xs btn-secondary">Renew</button>
-              </div>
-            </div>
-            
-            <div style="border:1px solid #FEE2E2;border-radius:10px;padding:12px;background:#FEF2F2">
-              <div style="font-weight:700;font-size:13px;margin-bottom:2px;color:#991B1B">Modern Operating Systems</div>
-              <div style="font-size:11px;color:#991B1B;margin-bottom:8px;opacity:0.8">Andrew S. Tanenbaum • Acc. No: L-3912</div>
-              <div style="display:flex;justify-content:space-between;align-items:center">
-                <span class="badge badge-danger" style="font-size:10px"><i class="fas fa-exclamation-circle"></i> Overdue (Fine: ₹10)</span>
-              </div>
-            </div>
+          <div class="card-header"><div class="card-title"><i class="fas fa-bookmark text-primary" style="margin-right:8px"></i>My Issued Books</div><span class="badge badge-info" id="issuedCount">0 Items</span></div>
+          <div class="card-body" id="issuedList" style="display:flex;flex-direction:column;gap:12px">
+            <div style="text-align:center;padding:20px;color:#94A3B8;font-size:13px">Loading...</div>
           </div>
           <div class="card-footer" style="text-align:center"><a href="#" style="font-size:12px;color:#0284C7;font-weight:600;text-decoration:none">View History</a></div>
         </div>
@@ -126,7 +123,234 @@
   </div>
 </div>
 
+<div class="toast" id="toast"></div>
+
 <script src="../../js/shared.js"></script>
 <script src="../../live/live-pages.js"></script>
+<script>
+(function() {
+  const API = '/api/library';
+  const token = localStorage.getItem('token');
+  const headers = token ? { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
+  let currentUser = null;
+
+  try { currentUser = JSON.parse(localStorage.getItem('user') || '{}'); } catch(e) { currentUser = {}; }
+
+  let currentPage = 1;
+  let currentCategory = '';
+  let currentSearch = '';
+
+  function showToast(msg, duration) {
+    duration = duration || 3000;
+    var t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(function() { t.classList.remove('show'); }, duration);
+  }
+
+  function loadStats() {
+    fetch(API + '/stats', { headers: headers })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var s = data.stats || data;
+        document.getElementById('statTotalBooks').textContent = s.totalBooks || 0;
+        document.getElementById('statAvailable').textContent = s.availableCopies || 0;
+        document.getElementById('statIssued').textContent = s.currentlyIssued || 0;
+        document.getElementById('statOverdue').textContent = s.overdue || 0;
+      })
+      .catch(function() { showToast('Failed to load stats'); });
+  }
+
+  function loadBooks(page) {
+    currentPage = page || 1;
+    var params = new URLSearchParams();
+    params.set('page', currentPage);
+    if (currentCategory) params.set('category', currentCategory);
+    if (currentSearch) params.set('search', currentSearch);
+
+    var grid = document.getElementById('catalogGrid');
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#94A3B8"><i class="fas fa-spinner fa-spin" style="font-size:20px"></i><p style="margin-top:8px;font-size:13px">Loading books...</p></div>';
+
+    fetch(API + '/books?' + params.toString(), { headers: headers })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var books = data.books || [];
+        if (books.length === 0) {
+          grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#94A3B8"><i class="fas fa-book-open" style="font-size:32px;margin-bottom:8px"></i><p style="font-size:14px;font-weight:600">No books found</p></div>';
+          document.getElementById('pagination').innerHTML = '';
+          return;
+        }
+        grid.innerHTML = books.map(function(b) {
+          var avail = b.availableCopies !== undefined ? b.availableCopies : (b.copies || 0);
+          var total = b.totalCopies !== undefined ? b.totalCopies : (b.copies || 0);
+          var color, statusText;
+          if (avail === 0) { color = '#EF4444'; statusText = 'Unavailable'; }
+          else if (avail <= 2) { color = '#D97706'; statusText = avail + ' Cop' + (avail === 1 ? 'y' : 'ies') + ' Left'; }
+          else { color = '#10B981'; statusText = 'Available'; }
+          return '<div class="book-card">' +
+            '<div class="book-cover"><i class="fas fa-book-open"></i></div>' +
+            '<div style="flex:1">' +
+              '<div class="book-title">' + escapeHtml(b.title || '') + '</div>' +
+              '<div class="book-author">' + escapeHtml(b.author || b.authors || '') + (b.isbn ? ' &bull; ISBN: ' + escapeHtml(b.isbn) : '') + '</div>' +
+              '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">' +
+                '<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;background:' + color + '22;color:' + color + '">' + statusText + '</span>' +
+                (avail > 0
+                  ? '<button class="btn btn-xs btn-primary" onclick="issueBook(\'' + (b._id || b.id) + '\')">Reserve</button>'
+                  : '<button class="btn btn-xs btn-secondary" disabled>Unavailable</button>') +
+              '</div>' +
+            '</div>' +
+          '</div>';
+        }).join('');
+
+        renderPagination(data.page || 1, data.pages || 1);
+      })
+      .catch(function() {
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#EF4444"><i class="fas fa-exclamation-triangle" style="font-size:24px;margin-bottom:8px"></i><p style="font-size:14px;font-weight:600">Failed to load books</p></div>';
+      });
+  }
+
+  function renderPagination(page, pages) {
+    var el = document.getElementById('pagination');
+    if (pages <= 1) { el.innerHTML = ''; return; }
+    var html = '<button ' + (page <= 1 ? 'disabled' : '') + ' onclick="goToPage(' + (page - 1) + ')"><i class="fas fa-chevron-left"></i></button>';
+    for (var i = 1; i <= pages; i++) {
+      if (i === 1 || i === pages || (i >= page - 2 && i <= page + 2)) {
+        html += '<button class="' + (i === page ? 'active' : '') + '" onclick="goToPage(' + i + ')">' + i + '</button>';
+      } else if (i === page - 3 || i === page + 3) {
+        html += '<button disabled>...</button>';
+      }
+    }
+    html += '<button ' + (page >= pages ? 'disabled' : '') + ' onclick="goToPage(' + (page + 1) + ')"><i class="fas fa-chevron-right"></i></button>';
+    el.innerHTML = html;
+  }
+
+  window.goToPage = function(p) { loadBooks(p); };
+
+  function loadIssuedBooks() {
+    fetch(API + '/books/mine', { headers: headers })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var records = data.records || data.books || [];
+        var list = document.getElementById('issuedList');
+        document.getElementById('issuedCount').textContent = records.length + ' Item' + (records.length !== 1 ? 's' : '');
+
+        if (records.length === 0) {
+          list.innerHTML = '<div style="text-align:center;padding:24px;color:#94A3B8;font-size:13px"><i class="fas fa-book-open" style="font-size:24px;margin-bottom:8px"></i><p>No books currently issued</p></div>';
+          return;
+        }
+
+        list.innerHTML = records.map(function(r) {
+          var isOverdue = r.status === 'overdue' || (r.dueDate && new Date(r.dueDate) < new Date());
+          var dueDateStr = r.dueDate ? new Date(r.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'N/A';
+          var bookTitle = r.book ? (r.book.title || 'Unknown') : (r.title || 'Unknown');
+          var bookAuthor = r.book ? (r.book.author || r.book.authors || '') : (r.author || '');
+          var accNo = r.accessionNumber || r.accNo || '';
+          var fine = r.fine || 0;
+
+          if (isOverdue) {
+            return '<div style="border:1px solid #FEE2E2;border-radius:10px;padding:12px;background:#FEF2F2">' +
+              '<div style="font-weight:700;font-size:13px;margin-bottom:2px;color:#991B1B">' + escapeHtml(bookTitle) + '</div>' +
+              '<div style="font-size:11px;color:#991B1B;margin-bottom:8px;opacity:0.8">' + escapeHtml(bookAuthor) + (accNo ? ' &bull; Acc. No: ' + escapeHtml(accNo) : '') + '</div>' +
+              '<div style="display:flex;justify-content:space-between;align-items:center">' +
+                '<span class="badge badge-danger" style="font-size:10px"><i class="fas fa-exclamation-circle"></i> Overdue' + (fine > 0 ? ' (Fine: ₹' + fine + ')' : '') + '</span>' +
+                '<button class="btn btn-xs btn-primary" onclick="returnBook(\'' + (r._id || r.id) + '\')">Return</button>' +
+              '</div>' +
+            '</div>';
+          }
+
+          return '<div style="border:1px solid #E2E8F0;border-radius:10px;padding:12px">' +
+            '<div style="font-weight:700;font-size:13px;margin-bottom:2px">' + escapeHtml(bookTitle) + '</div>' +
+            '<div style="font-size:11px;color:#64748B;margin-bottom:8px">' + escapeHtml(bookAuthor) + (accNo ? ' &bull; Acc. No: ' + escapeHtml(accNo) : '') + '</div>' +
+            '<div style="display:flex;justify-content:space-between;align-items:center">' +
+              '<span style="font-size:11px;font-weight:600;color:#059669"><i class="fas fa-clock"></i> Due: ' + dueDateStr + '</span>' +
+              '<button class="btn btn-xs btn-secondary" onclick="showToast(\'Renewal is managed by admin\')">Renew</button>' +
+            '</div>' +
+          '</div>';
+        }).join('');
+      })
+      .catch(function() {
+        document.getElementById('issuedList').innerHTML = '<div style="text-align:center;padding:20px;color:#EF4444;font-size:13px">Failed to load issued books</div>';
+      });
+  }
+
+  window.issueBook = function(bookId) {
+    if (!currentUser || (!currentUser._id && !currentUser.id)) {
+      showToast('Please log in to reserve a book');
+      return;
+    }
+    var userId = currentUser._id || currentUser.id;
+
+    fetch(API + '/issue', {
+      method: 'POST',
+      headers: headers,
+      body: JSON.stringify({ bookId: bookId, userId: userId })
+    })
+    .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+    .then(function(res) {
+      if (res.ok) {
+        showToast('Book reserved successfully!');
+        loadBooks(currentPage);
+        loadIssuedBooks();
+        loadStats();
+      } else {
+        showToast(res.data.message || res.data.error || 'Failed to reserve book');
+      }
+    })
+    .catch(function() { showToast('Network error. Please try again.'); });
+  };
+
+  window.returnBook = function(recordId) {
+    fetch(API + '/return/' + recordId, {
+      method: 'POST',
+      headers: headers
+    })
+    .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+    .then(function(res) {
+      if (res.ok) {
+        showToast('Book returned successfully!');
+        loadIssuedBooks();
+        loadBooks(currentPage);
+        loadStats();
+      } else {
+        showToast(res.data.message || res.data.error || 'Failed to return book');
+      }
+    })
+    .catch(function() { showToast('Network error. Please try again.'); });
+  };
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  var searchTimeout;
+  document.getElementById('searchInput').addEventListener('input', function(e) {
+    clearTimeout(searchTimeout);
+    var val = e.target.value.trim();
+    searchTimeout = setTimeout(function() {
+      currentSearch = val;
+      loadBooks(1);
+    }, 350);
+  });
+
+  document.getElementById('categoryFilters').addEventListener('click', function(e) {
+    var btn = e.target.closest('.category-btn');
+    if (!btn) return;
+    document.querySelectorAll('.category-btn').forEach(function(b) {
+      b.classList.remove('active');
+      b.style.background = 'white';
+    });
+    btn.classList.add('active');
+    btn.style.background = '#0284C7';
+    btn.style.color = 'white';
+    currentCategory = btn.dataset.category || '';
+    loadBooks(1);
+  });
+
+  loadStats();
+  loadBooks(1);
+  loadIssuedBooks();
+})();
+</script>
 </body>
 </html>

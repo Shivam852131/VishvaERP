@@ -4128,6 +4128,7 @@
       const options = '<option value="">Select hostel</option>' + hostels.map((item) => `<option value="${item._id}">${escapeHTML(item.name)}</option>`).join('');
       if (byId('roomHostelSelect')) byId('roomHostelSelect').innerHTML = options;
       if (byId('hostelSelectAllocate')) byId('hostelSelectAllocate').innerHTML = options;
+      if (byId('deallocateHostelSelect')) byId('deallocateHostelSelect').innerHTML = options;
     }
 
     function renderRoutes() {
@@ -4140,7 +4141,11 @@
           <td style="font-size:13px">${escapeHTML(route.stops?.[0]?.pickupTime || '-')}</td>
           <td><span class="badge badge-info">${(route.enrolledStudents || []).length}</span></td>
           <td><span class="badge ${route.isActive ? 'badge-success' : 'badge-warning'}">${route.isActive ? 'active' : 'maintenance'}</span></td>
-          <td><div style="display:flex;gap:5px"><button class="btn btn-xs btn-danger" onclick="deleteRouteLive('${route._id}')"><i class="fas fa-trash"></i></button></div></td>
+          <td><div style="display:flex;gap:5px;flex-wrap:wrap">
+            <button class="btn btn-xs btn-primary" title="Edit" onclick="openEditRoute('${route._id}')"><i class="fas fa-pen"></i></button>
+            <button class="btn btn-xs btn-info" title="Enroll Student" onclick="openEnrollTransport('${route._id}')"><i class="fas fa-user-plus"></i></button>
+            <button class="btn btn-xs btn-danger" title="Delete" onclick="confirmDeleteRoute('${route._id}','${escapeHTML(route.routeName)}')"><i class="fas fa-trash"></i></button>
+          </div></td>
         </tr>
       `).join('') || '<tr><td colspan="8"><div class="empty-state"><div class="empty-state-title">No transport routes found</div></div></td></tr>');
     }
@@ -4153,14 +4158,34 @@
         const occupied = hostelRooms.reduce((sum, room) => sum + (room.occupants || []).length, 0);
         const capacity = hostelRooms.reduce((sum, room) => sum + Number(room.capacity || 0), 0) || Number(hostel.totalRooms || 0);
         const pct = capacity ? Math.round((occupied / capacity) * 100) : 0;
+        const facilitiesList = (hostel.facilities || []).join(', ') || '-';
         return `
           <div class="card" style="padding:0;overflow:hidden;border-top:4px solid #8B5CF6">
             <div style="padding:16px">
-              <div style="font-weight:700;font-size:14px;margin-bottom:4px">${escapeHTML(hostel.name)}</div>
-              <div style="font-size:12px;color:#64748B;margin-bottom:12px">${escapeHTML(hostel.type)} • ${hostelRooms.length} configured rooms</div>
+              <div style="display:flex;justify-content:space-between;align-items:start">
+                <div>
+                  <div style="font-weight:700;font-size:14px;margin-bottom:4px">${escapeHTML(hostel.name)}</div>
+                  <div style="font-size:12px;color:#64748B;margin-bottom:4px">${escapeHTML(hostel.type)} • ${hostelRooms.length} configured rooms</div>
+                </div>
+                <div style="display:flex;gap:4px">
+                  <button class="btn btn-xs btn-primary" title="Edit" onclick="openEditHostel('${hostel._id}')"><i class="fas fa-pen"></i></button>
+                  <button class="btn btn-xs btn-danger" title="Delete" onclick="confirmDeleteHostel('${hostel._id}','${escapeHTML(hostel.name)}')"><i class="fas fa-trash"></i></button>
+                </div>
+              </div>
+              <div style="font-size:11px;color:#94A3B8;margin-bottom:8px">Facilities: ${escapeHTML(facilitiesList)}</div>
               <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:12px;color:#64748B">Occupancy</span><span style="font-size:12px;font-weight:700">${occupied}/${capacity || 0}</span></div>
               <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:#8B5CF6"></div></div>
               <div style="font-size:11px;color:#94A3B8;margin-top:4px">${pct}% occupied</div>
+              ${hostelRooms.length ? `
+              <div style="margin-top:10px;border-top:1px solid #E2E8F0;padding-top:8px">
+                <div style="font-size:11px;font-weight:600;color:#64748B;margin-bottom:6px">Rooms</div>
+                ${hostelRooms.map((room) => `
+                  <div style="display:flex;justify-content:space-between;align-items:center;padding:3px 0;font-size:12px;border-bottom:1px solid #F1F5F9">
+                    <span>Room <strong>${escapeHTML(room.roomNumber)}</strong> — ${(room.occupants || []).length}/${room.capacity || 0} occupants</span>
+                    <button class="btn btn-xs btn-danger" title="Delete Room" onclick="confirmDeleteRoom('${room._id}','${escapeHTML(room.roomNumber)}','${escapeHTML(hostel.name)}')"><i class="fas fa-trash"></i></button>
+                  </div>
+                `).join('')}
+              </div>` : ''}
             </div>
           </div>
         `;
@@ -4184,12 +4209,6 @@
       renderRoutes();
       renderHostels();
     }
-
-    window.deleteRouteLive = async function deleteRouteLive(id) {
-      await window.api.request(`/logistics/transport/${id}`, { method: 'DELETE' });
-      window.showToast?.('Route deleted', 'warning');
-      await loadLogistics();
-    };
 
     window.createRouteLive = async function createRouteLive() {
       const payload = {
@@ -4255,6 +4274,148 @@
       ['allocateRollInput', 'allocateRoomNumberInput'].forEach((id) => { if (byId(id)) byId(id).value = ''; });
       if (byId('hostelSelectAllocate')) byId('hostelSelectAllocate').value = '';
       window.showToast?.('Room allocated successfully', 'success');
+      await loadLogistics();
+    };
+
+    window.openEditRoute = function openEditRoute(id) {
+      const route = routes.find((r) => r._id === id);
+      if (!route) return;
+      if (byId('editRouteId')) byId('editRouteId').value = id;
+      if (byId('editRouteNoInput')) byId('editRouteNoInput').value = route.routeNo || route.routeName || '';
+      if (byId('editRouteBusInput')) byId('editRouteBusInput').value = route.busNumber || '';
+      const stops = (route.stops || []).map((s) => s.stopName || s.name || '').join(', ');
+      if (byId('editRouteStopsInput')) byId('editRouteStopsInput').value = stops;
+      if (byId('editRouteDriverInput')) byId('editRouteDriverInput').value = route.driverName || '';
+      if (byId('editRouteDriverPhoneInput')) byId('editRouteDriverPhoneInput').value = route.driverPhone || route.driver_number || '';
+      if (byId('editRouteMorningInput')) byId('editRouteMorningInput').value = route.stops?.[0]?.pickupTime || route.morningTime || '';
+      if (byId('editRouteEveningInput')) byId('editRouteEveningInput').value = route.eveningTime || '';
+      window.openModal?.('editRouteModal');
+    };
+
+    window.updateRouteLive = async function updateRouteLive() {
+      const id = byId('editRouteId')?.value;
+      if (!id) return;
+      const payload = {
+        routeNo: byId('editRouteNoInput')?.value.trim(),
+        busNumber: byId('editRouteBusInput')?.value.trim(),
+        via: byId('editRouteStopsInput')?.value.trim(),
+        driverName: byId('editRouteDriverInput')?.value.trim(),
+        driverPhone: byId('editRouteDriverPhoneInput')?.value.trim(),
+        morningTime: byId('editRouteMorningInput')?.value,
+        eveningTime: byId('editRouteEveningInput')?.value,
+      };
+      if (!payload.routeNo || !payload.busNumber) return window.showToast?.('Route number and bus number are required', 'error');
+      await window.api.request(`/logistics/transport/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+      window.closeModal?.('editRouteModal');
+      window.showToast?.('Route updated successfully', 'success');
+      await loadLogistics();
+    };
+
+    window.openEnrollTransport = function openEnrollTransport(id) {
+      if (byId('enrollRouteId')) byId('enrollRouteId').value = id;
+      if (byId('enrollTransportRollInput')) byId('enrollTransportRollInput').value = '';
+      window.openModal?.('enrollTransportModal');
+    };
+
+    window.enrollTransportLive = async function enrollTransportLive() {
+      const id = byId('enrollRouteId')?.value;
+      const roll = byId('enrollTransportRollInput')?.value.trim();
+      if (!id || !roll) return window.showToast?.('Please enter a roll number', 'error');
+      await window.api.request(`/logistics/transport/${id}/enroll`, { method: 'POST', body: JSON.stringify({ roll }) });
+      window.closeModal?.('enrollTransportModal');
+      window.showToast?.('Student enrolled in transport', 'success');
+      await loadLogistics();
+    };
+
+    let deleteRouteId = null;
+    window.confirmDeleteRoute = function confirmDeleteRoute(id, name) {
+      deleteRouteId = id;
+      if (byId('deleteRouteName')) byId('deleteRouteName').textContent = name;
+      window.openModal?.('deleteRouteModal');
+    };
+
+    window.confirmDeleteRouteLive = async function confirmDeleteRouteLive() {
+      if (!deleteRouteId) return;
+      await window.api.request(`/logistics/transport/${deleteRouteId}`, { method: 'DELETE' });
+      window.closeModal?.('deleteRouteModal');
+      window.showToast?.('Route deleted', 'warning');
+      deleteRouteId = null;
+      await loadLogistics();
+    };
+
+    window.openEditHostel = function openEditHostel(id) {
+      const hostel = hostels.find((h) => h._id === id);
+      if (!hostel) return;
+      if (byId('editHostelId')) byId('editHostelId').value = id;
+      if (byId('editHostelNameInput')) byId('editHostelNameInput').value = hostel.name || '';
+      if (byId('editHostelTypeInput')) byId('editHostelTypeInput').value = hostel.type || 'boys';
+      if (byId('editHostelRoomsInput')) byId('editHostelRoomsInput').value = hostel.totalRooms || '';
+      const facilities = (hostel.facilities || []).join(', ');
+      if (byId('editHostelFacilitiesInput')) byId('editHostelFacilitiesInput').value = facilities;
+      window.openModal?.('editHostelModal');
+    };
+
+    window.updateHostelLive = async function updateHostelLive() {
+      const id = byId('editHostelId')?.value;
+      if (!id) return;
+      const payload = {
+        name: byId('editHostelNameInput')?.value.trim(),
+        type: byId('editHostelTypeInput')?.value,
+        totalRooms: Number(byId('editHostelRoomsInput')?.value || 0),
+        facilities: String(byId('editHostelFacilitiesInput')?.value || '').split(',').map((item) => item.trim()).filter(Boolean),
+      };
+      if (!payload.name || !payload.type) return window.showToast?.('Hostel name and type are required', 'error');
+      await window.api.request(`/logistics/hostels/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+      window.closeModal?.('editHostelModal');
+      window.showToast?.('Hostel updated successfully', 'success');
+      await loadLogistics();
+    };
+
+    let deleteHostelId = null;
+    window.confirmDeleteHostel = function confirmDeleteHostel(id, name) {
+      deleteHostelId = id;
+      if (byId('deleteHostelName')) byId('deleteHostelName').textContent = name;
+      window.openModal?.('deleteHostelModal');
+    };
+
+    window.confirmDeleteHostelLive = async function confirmDeleteHostelLive() {
+      if (!deleteHostelId) return;
+      await window.api.request(`/logistics/hostels/${deleteHostelId}`, { method: 'DELETE' });
+      window.closeModal?.('deleteHostelModal');
+      window.showToast?.('Hostel deleted', 'warning');
+      deleteHostelId = null;
+      await loadLogistics();
+    };
+
+    let deleteRoomId = null;
+    window.confirmDeleteRoom = function confirmDeleteRoom(id, roomNumber, hostelName) {
+      deleteRoomId = id;
+      if (byId('deleteRoomNumber')) byId('deleteRoomNumber').textContent = roomNumber;
+      if (byId('deleteRoomHostel')) byId('deleteRoomHostel').textContent = hostelName;
+      window.openModal?.('deleteRoomModal');
+    };
+
+    window.confirmDeleteRoomLive = async function confirmDeleteRoomLive() {
+      if (!deleteRoomId) return;
+      await window.api.request(`/logistics/hostels/rooms/${deleteRoomId}`, { method: 'DELETE' });
+      window.closeModal?.('deleteRoomModal');
+      window.showToast?.('Room deleted', 'warning');
+      deleteRoomId = null;
+      await loadLogistics();
+    };
+
+    window.deallocateRoomLive = async function deallocateRoomLive() {
+      const payload = {
+        roll: byId('deallocateRollInput')?.value.trim(),
+        hostelId: byId('deallocateHostelSelect')?.value,
+        roomNumber: byId('deallocateRoomNumberInput')?.value.trim(),
+      };
+      if (!payload.roll || !payload.hostelId || !payload.roomNumber) return window.showToast?.('Roll number, hostel, and room number are required', 'error');
+      await window.api.request('/logistics/hostels/deallocate', { method: 'POST', body: JSON.stringify(payload) });
+      window.closeModal?.('deallocateRoomModal');
+      ['deallocateRollInput', 'deallocateRoomNumberInput'].forEach((id) => { if (byId(id)) byId(id).value = ''; });
+      if (byId('deallocateHostelSelect')) byId('deallocateHostelSelect').value = '';
+      window.showToast?.('Room deallocated successfully', 'success');
       await loadLogistics();
     };
 

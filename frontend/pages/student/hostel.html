@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Hostel | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../css/custom.css">
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-student" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)" id="sidebar-avatar">S</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Student</div><div class="sidebar-user-role">B.Tech | Sem 4</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Academics</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book"></i> My Courses</a>
+      <a href="timetable.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Timetable</a>
+      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-user-check"></i> Attendance</a>
+      <a href="assignments.html" class="nav-link"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
+      <a href="results.html" class="nav-link"><i class="nav-link-icon fas fa-poll"></i> Results</a>
+      <div class="nav-section-label">Career Center</div>
+      <a href="career.html" class="nav-link"><i class="nav-link-icon fas fa-rocket"></i> Career Dashboard</a>
+      <a href="skills.html" class="nav-link"><i class="nav-link-icon fas fa-tools"></i> Skills Profile</a>
+      <a href="mentorship.html" class="nav-link"><i class="nav-link-icon fas fa-user-tie"></i> Mentorship</a>
+      <a href="placements.html" class="nav-link"><i class="nav-link-icon fas fa-briefcase"></i> Placements</a>
+      <a href="assessments.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-check"></i> Skill Assessments</a>
+      <div class="nav-section-label">Facilities</div>
+      <a href="library.html" class="nav-link"><i class="nav-link-icon fas fa-book-reader"></i> Library</a>
+      <a href="transport.html" class="nav-link"><i class="nav-link-icon fas fa-bus"></i> Transport</a>
+      <a href="hostel.html" class="nav-link active"><i class="nav-link-icon fas fa-building"></i> Hostel</a>
+      <a href="complaints.html" class="nav-link"><i class="nav-link-icon fas fa-exclamation-circle"></i> Complaints</a>
+      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-rupee-sign"></i> Fee Details</a>
+      <a href="../messages.html" class="nav-link"><i class="nav-link-icon fas fa-envelope"></i> Messages</a>
+      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Tutor</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">Student / <span>Hostel</span></div>
+      </div>
+      <div class="topbar-right"><div class="topbar-avatar" id="topbar-avatar">S</div></div>
+    </header>
+
+    <div class="erp-content">
+      <div class="page-header">
+        <h1 class="page-title">Hostel Allocation</h1>
+        <p class="page-subtitle">Your hostel room details and allocation status</p>
+      </div>
+
+      <div class="stats-grid" id="hostelStatsGrid">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#DBEAFE;color:#1E40AF"><i class="fas fa-building"></i></div>
+          <div class="stat-label">Hostel Name</div>
+          <div class="stat-value" id="statHostelName">--</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#E0E7FF;color:#3730A3"><i class="fas fa-door-open"></i></div>
+          <div class="stat-label">Room Number</div>
+          <div class="stat-value" id="statRoomNumber">--</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#D1FAE5;color:#065F46"><i class="fas fa-users"></i></div>
+          <div class="stat-label">Capacity</div>
+          <div class="stat-value" id="statCapacity">--</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#FEF3C7;color:#92400E"><i class="fas fa-rupee-sign"></i></div>
+          <div class="stat-label">Fee Per Term</div>
+          <div class="stat-value" id="statFeePerTerm">--</div>
+        </div>
+      </div>
+
+      <div class="grid" style="grid-template-columns:1fr 1fr;gap:24px;align-items:start" id="hostelDetailsGrid">
+        <div id="hostelLeftColumn">
+          <div class="card">
+            <div class="card-header"><div class="card-title"><i class="fas fa-door-open text-primary" style="margin-right:8px"></i>Room Details</div></div>
+            <div class="card-body" id="roomDetailsBody">
+              <div style="text-align:center;padding:40px 20px;color:#94A3B8">
+                <i class="fas fa-spinner fa-spin" style="font-size:24px;margin-bottom:12px"></i>
+                <div>Loading room details...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="hostelRightColumn">
+          <div class="card">
+            <div class="card-header"><div class="card-title"><i class="fas fa-user-friends text-primary" style="margin-right:8px"></i>Roommates</div></div>
+            <div class="card-body" id="roommatesBody">
+              <div style="text-align:center;padding:40px 20px;color:#94A3B8">
+                <i class="fas fa-spinner fa-spin" style="font-size:24px;margin-bottom:12px"></i>
+                <div>Loading roommates...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script>
+(function(){
+  const user = api.getUser();
+  if(!user){ window.location.href='/pages/login.html'; return; }
+  document.getElementById('sidebar-user-name').textContent = user.name || 'Student';
+  document.getElementById('sidebar-avatar').textContent = (user.name||'S').charAt(0).toUpperCase();
+  document.getElementById('topbar-avatar').textContent = (user.name||'S').charAt(0).toUpperCase();
+
+  loadHostel();
+
+  async function loadHostel(){
+    try {
+      const data = await window.api.request('/logistics/my-hostel');
+      const room = data.room || data.hostelRoom || data;
+      if(!room || !room._id){
+        showEmptyState();
+        return;
+      }
+      renderRoom(room);
+      renderRoommates(room);
+    } catch(err){
+      showEmptyState();
+    }
+  }
+
+  function showEmptyState(){
+    document.getElementById('statHostelName').textContent = '--';
+    document.getElementById('statRoomNumber').textContent = '--';
+    document.getElementById('statCapacity').textContent = '--';
+    document.getElementById('statFeePerTerm').textContent = '--';
+
+    const emptyHtml = `
+      <div style="text-align:center;padding:48px 24px;color:#94A3B8">
+        <div style="width:64px;height:64px;margin:0 auto 16px;border-radius:50%;background:#F1F5F9;display:flex;align-items:center;justify-content:center">
+          <i class="fas fa-building" style="font-size:28px;color:#CBD5E1"></i>
+        </div>
+        <div style="font-size:15px;font-weight:700;color:#475569;margin-bottom:6px">No Hostel Allocation Found</div>
+        <div style="font-size:13px;line-height:1.6;max-width:360px;margin:0 auto">You are not allocated to any hostel room. Contact your college admin.</div>
+      </div>`;
+    document.getElementById('roomDetailsBody').innerHTML = emptyHtml;
+    document.getElementById('roommatesBody').innerHTML = emptyHtml;
+  }
+
+  function renderRoom(room){
+    const hostelName = room.hostelName || room.hostel?.name || '--';
+    const roomNumber = room.roomNumber || room.roomNumber || '--';
+    const capacity = room.capacity || room.bedCount || '--';
+    const feePerTerm = room.feePerTerm || room.hostelFee || 0;
+    const warden = room.wardenName || room.warden?.name || room.hostel?.wardenName || '--';
+    const occupants = room.occupants || room.students || [];
+
+    document.getElementById('statHostelName').textContent = hostelName;
+    document.getElementById('statRoomNumber').textContent = roomNumber;
+    document.getElementById('statCapacity').textContent = capacity;
+    document.getElementById('statFeePerTerm').textContent = feePerTerm ? '₹' + Number(feePerTerm).toLocaleString('en-IN') : '--';
+
+    document.getElementById('roomDetailsBody').innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:16px">
+        <div style="display:flex;justify-content:space-between;padding:12px 16px;border-radius:10px;background:#F8FAFC;border:1px solid #E2E8F0">
+          <div><div style="font-size:11px;font-weight:600;color:#64748B;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Hostel Block</div><div style="font-size:15px;font-weight:700;color:#0F172A">${hostelName}</div></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:12px 16px;border-radius:10px;background:#F8FAFC;border:1px solid #E2E8F0">
+          <div><div style="font-size:11px;font-weight:600;color:#64748B;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Room Number</div><div style="font-size:15px;font-weight:700;color:#0F172A">${roomNumber}</div></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:12px 16px;border-radius:10px;background:#F8FAFC;border:1px solid #E2E8F0">
+          <div><div style="font-size:11px;font-weight:600;color:#64748B;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Capacity</div><div style="font-size:15px;font-weight:700;color:#0F172A">${capacity} students</div></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:12px 16px;border-radius:10px;background:#F8FAFC;border:1px solid #E2E8F0">
+          <div><div style="font-size:11px;font-weight:600;color:#64748B;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Fee Per Term</div><div style="font-size:15px;font-weight:700;color:#059669">${feePerTerm ? '₹' + Number(feePerTerm).toLocaleString('en-IN') : '--'}</div></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding:12px 16px;border-radius:10px;background:#F8FAFC;border:1px solid #E2E8F0">
+          <div><div style="font-size:11px;font-weight:600;color:#64748B;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Warden</div><div style="font-size:15px;font-weight:700;color:#0F172A">${warden}</div></div>
+        </div>
+        <div style="padding:12px 16px;border-radius:10px;background:#F8FAFC;border:1px solid #E2E8F0">
+          <div style="font-size:11px;font-weight:600;color:#64748B;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Occupants (${occupants.length})</div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            ${occupants.length ? occupants.map(o => `
+              <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:8px;background:white;border:1px solid #F1F5F9">
+                <div style="width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#0284C7,#0EA5E9);display:flex;align-items:center;justify-content:center;color:white;font-size:12px;font-weight:700;flex-shrink:0">${(o.name || o.studentName || 'S').charAt(0).toUpperCase()}</div>
+                <div>
+                  <div style="font-size:13px;font-weight:600;color:#0F172A">${o.name || o.studentName || 'Student'}</div>
+                  <div style="font-size:11px;color:#94A3B8">${o.rollNumber || o.enrollmentNo || ''}</div>
+                </div>
+              </div>
+            `).join('') : '<div style="font-size:13px;color:#94A3B8">No occupants data available</div>'}
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function renderRoommates(room){
+    const occupants = room.occupants || room.students || [];
+    const currentUser = api.getUser();
+    const roommates = occupants.filter(o => {
+      const id = o._id || o.studentId || o.id;
+      return id && id !== currentUser?._id && id !== currentUser?.id;
+    });
+
+    if(!roommates.length){
+      document.getElementById('roommatesBody').innerHTML = `
+        <div style="text-align:center;padding:32px 20px;color:#94A3B8">
+          <div style="width:56px;height:56px;margin:0 auto 12px;border-radius:50%;background:#F1F5F9;display:flex;align-items:center;justify-content:center">
+            <i class="fas fa-user-friends" style="font-size:22px;color:#CBD5E1"></i>
+          </div>
+          <div style="font-size:14px;font-weight:600;color:#475569;margin-bottom:4px">No Roommates</div>
+          <div style="font-size:12px">No other roommates allocated to your room yet.</div>
+        </div>`;
+      return;
+    }
+
+    document.getElementById('roommatesBody').innerHTML = `
+      <div style="display:flex;flex-direction:column;gap:10px">
+        ${roommates.map(r => `
+          <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:10px;background:#F8FAFC;border:1px solid #E2E8F0;transition:all 0.2s">
+            <div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#0284C7,#0EA5E9);display:flex;align-items:center;justify-content:center;color:white;font-size:15px;font-weight:700;flex-shrink:0">${(r.name || r.studentName || 'S').charAt(0).toUpperCase()}</div>
+            <div style="flex:1">
+              <div style="font-size:14px;font-weight:700;color:#0F172A">${r.name || r.studentName || 'Student'}</div>
+              <div style="font-size:12px;color:#64748B">${r.rollNumber || r.enrollmentNo || ''} ${r.course ? '&bull; ' + r.course : ''}</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>`;
+  }
+})();
+</script>
+</body>
+</html>

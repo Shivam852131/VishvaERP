@@ -31,6 +31,8 @@
       <a href="ai-intelligence.html" class="nav-link"><i class="nav-link-icon fas fa-brain"></i> AI Intelligence</a>
       <div class="nav-section-label">Facilities</div>
       <a href="logistics.html" class="nav-link active"><i class="nav-link-icon fas fa-bus"></i> Logistics & Hostel</a>
+      <a href="visitors.html" class="nav-link"><i class="nav-link-icon fas fa-door-open"></i> Visitors</a>
+      <a href="library.html" class="nav-link"><i class="nav-link-icon fas fa-book"></i> Library</a>
       <div class="nav-section-label">Tools</div>
       <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Hub</a>
     </nav>
@@ -84,6 +86,7 @@
             <button class="btn btn-secondary btn-sm" onclick="openModal('addHostelModal')"><i class="fas fa-building"></i> Add Hostel</button>
             <button class="btn btn-secondary btn-sm" onclick="openModal('addRoomModal')"><i class="fas fa-door-open"></i> Add Room</button>
             <button class="btn btn-primary btn-sm" onclick="openModal('allocateRoomModal')"><i class="fas fa-plus"></i> Allocate Room</button>
+            <button class="btn btn-warning btn-sm" onclick="openModal('deallocateRoomModal')"><i class="fas fa-times"></i> Deallocate</button>
           </div>
         </div>
         <div id="hostelsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;padding:20px">
@@ -174,6 +177,130 @@
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('allocateRoomModal')">Cancel</button>
       <button class="btn btn-primary" onclick="allocateRoomLive()"><i class="fas fa-check"></i> Allocate</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT ROUTE MODAL -->
+<div class="modal-backdrop" id="editRouteModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Edit Transport Route</div><button class="modal-close" onclick="closeModal('editRouteModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <input type="hidden" id="editRouteId">
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Route No.</label><input class="form-control" id="editRouteNoInput" placeholder="e.g. Route 9"></div>
+        <div class="form-group"><label class="form-label">Bus No.</label><input class="form-control" id="editRouteBusInput" placeholder="e.g. KA-01-AB-1234"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Via Points (comma separated)</label><input class="form-control" id="editRouteStopsInput" placeholder="e.g. City Center, Railway Station, Market"></div>
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Driver Name</label><input class="form-control" id="editRouteDriverInput" placeholder="Driver full name"></div>
+        <div class="form-group"><label class="form-label">Driver Phone</label><input class="form-control" id="editRouteDriverPhoneInput" placeholder="+91 ..."></div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Timing (Morning)</label><input class="form-control" type="time" id="editRouteMorningInput"></div>
+        <div class="form-group"><label class="form-label">Timing (Evening)</label><input class="form-control" type="time" id="editRouteEveningInput"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('editRouteModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="updateRouteLive()"><i class="fas fa-check"></i> Update Route</button>
+    </div>
+  </div>
+</div>
+
+<!-- ENROLL TRANSPORT MODAL -->
+<div class="modal-backdrop" id="enrollTransportModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Enroll Student in Transport</div><button class="modal-close" onclick="closeModal('enrollTransportModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <input type="hidden" id="enrollRouteId">
+      <div class="form-group"><label class="form-label">Student Roll No.</label><input class="form-control" id="enrollTransportRollInput" placeholder="e.g. 2021CS001"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('enrollTransportModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="enrollTransportLive()"><i class="fas fa-check"></i> Enroll</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE ROUTE CONFIRM MODAL -->
+<div class="modal-backdrop" id="deleteRouteModal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header"><div class="modal-title">Delete Route</div><button class="modal-close" onclick="closeModal('deleteRouteModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <p style="margin:0;font-size:14px">Are you sure you want to delete route <strong id="deleteRouteName"></strong>? This action cannot be undone.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('deleteRouteModal')">Cancel</button>
+      <button class="btn btn-danger" onclick="confirmDeleteRouteLive()"><i class="fas fa-trash"></i> Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDIT HOSTEL MODAL -->
+<div class="modal-backdrop" id="editHostelModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Edit Hostel Block</div><button class="modal-close" onclick="closeModal('editHostelModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <input type="hidden" id="editHostelId">
+      <div class="form-group"><label class="form-label">Hostel Name</label><input class="form-control" id="editHostelNameInput" placeholder="e.g. Ganga Block"></div>
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Hostel Type</label><select class="form-control" id="editHostelTypeInput"><option value="boys">Boys</option><option value="girls">Girls</option><option value="coed">Co-ed</option></select></div>
+        <div class="form-group"><label class="form-label">Total Rooms</label><input class="form-control" type="number" id="editHostelRoomsInput" min="1" placeholder="e.g. 80"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Facilities</label><input class="form-control" id="editHostelFacilitiesInput" placeholder="e.g. WiFi, Laundry, Mess"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('editHostelModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="updateHostelLive()"><i class="fas fa-check"></i> Update Hostel</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE HOSTEL CONFIRM MODAL -->
+<div class="modal-backdrop" id="deleteHostelModal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header"><div class="modal-title">Delete Hostel</div><button class="modal-close" onclick="closeModal('deleteHostelModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <p style="margin:0;font-size:14px">Are you sure you want to delete hostel <strong id="deleteHostelName"></strong>? All rooms and allocations will be removed.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('deleteHostelModal')">Cancel</button>
+      <button class="btn btn-danger" onclick="confirmDeleteHostelLive()"><i class="fas fa-trash"></i> Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE ROOM CONFIRM MODAL -->
+<div class="modal-backdrop" id="deleteRoomModal">
+  <div class="modal" style="max-width:400px">
+    <div class="modal-header"><div class="modal-title">Delete Room</div><button class="modal-close" onclick="closeModal('deleteRoomModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <p style="margin:0;font-size:14px">Are you sure you want to delete room <strong id="deleteRoomNumber"></strong> from <strong id="deleteRoomHostel"></strong>?</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('deleteRoomModal')">Cancel</button>
+      <button class="btn btn-danger" onclick="confirmDeleteRoomLive()"><i class="fas fa-trash"></i> Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- DEALLOCATE ROOM MODAL -->
+<div class="modal-backdrop" id="deallocateRoomModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Deallocate Room</div><button class="modal-close" onclick="closeModal('deallocateRoomModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Student Roll No.</label><input class="form-control" id="deallocateRollInput" placeholder="e.g. 2021CS001"></div>
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Hostel Block</label>
+          <select class="form-control" id="deallocateHostelSelect"><option value="">Select hostel</option></select>
+        </div>
+        <div class="form-group"><label class="form-label">Room Number</label><input class="form-control" id="deallocateRoomNumberInput" placeholder="e.g. 204"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('deallocateRoomModal')">Cancel</button>
+      <button class="btn btn-warning" onclick="deallocateRoomLive()"><i class="fas fa-times"></i> Deallocate</button>
     </div>
   </div>
 </div>
