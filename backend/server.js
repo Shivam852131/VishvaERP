@@ -197,6 +197,7 @@ app.use('/api/feedback', require('./routes/feedback'));
 app.use('/api/inventory', require('./routes/inventory'));
 app.use('/api/visitors', require('./routes/visitor'));
 app.use('/api/library', require('./routes/library'));
+app.use('/api/verification', require('./routes/verification'));
 app.use('/api/placements', require('./routes/placement'));
 app.use('/api/alumni', require('./routes/alumni'));
 app.use('/api/events', require('./routes/event'));
