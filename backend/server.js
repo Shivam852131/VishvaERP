@@ -185,6 +185,7 @@ app.use('/api/academics', require('./modules/academicsRoutes'));
 app.use('/api/notices', require('./modules/noticesRoutes'));
 app.use('/api/communications', require('./modules/communicationsRoutes'));
 app.use('/api/notifications', require('./routes/notifications'));
+app.use('/api/notification-preferences', require('./routes/notificationPreferences'));
 app.use('/api/config', require('./routes/config'));
 app.use('/api/health', require('./routes/health'));
 app.use('/api/upload', require('./routes/upload'));

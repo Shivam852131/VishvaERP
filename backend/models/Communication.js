@@ -24,6 +24,12 @@ const notificationSchema = new mongoose.Schema({
   link: { type: String },
   isRead: { type: Boolean, default: false },
   readAt: { type: Date },
+  delivery: {
+    push: { status: { type: String, enum: ['sent', 'failed', 'skipped', 'pending'], default: 'pending' }, sentAt: Date, error: String },
+    email: { status: { type: String, enum: ['sent', 'failed', 'skipped', 'pending'], default: 'pending' }, sentAt: Date, error: String },
+    whatsapp: { status: { type: String, enum: ['sent', 'failed', 'skipped', 'pending'], default: 'pending' }, sentAt: Date, error: String },
+  },
+  metadata: { type: mongoose.Schema.Types.Mixed },
 }, { timestamps: true });
 
 notificationSchema.index({ userId: 1, isRead: 1 });

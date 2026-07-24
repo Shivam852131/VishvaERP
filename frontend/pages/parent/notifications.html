@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Notification Settings | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../css/custom.css">
+  <style>
+    .toggle-track { width: 44px; height: 24px; border-radius: 12px; background: #CBD5E1; position: relative; cursor: pointer; transition: background 0.2s; }
+    .toggle-track.active { background: #10B981; }
+    .toggle-thumb { width: 20px; height: 20px; border-radius: 50%; background: white; position: absolute; top: 2px; left: 2px; transition: transform 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.15); }
+    .toggle-track.active .toggle-thumb { transform: translateX(20px); }
+    .channel-card { border: 1px solid #E2E8F0; border-radius: 12px; padding: 20px; background: white; transition: all 0.2s; }
+    .channel-card:hover { border-color: #94A3B8; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    .pref-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid #F1F5F9; }
+    .pref-row:last-child { border-bottom: none; }
+    .delivery-badge { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 10px; }
+  </style>
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-parent" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon" style="background:linear-gradient(135deg,#F59E0B,#D97706)">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" style="background:linear-gradient(135deg,#F59E0B,#D97706)" id="sidebar-avatar">P</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Parent</div><div class="sidebar-user-role">Parent Dashboard</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <div class="nav-section-label">Academics</div>
+      <a href="child-profile.html" class="nav-link"><i class="nav-link-icon fas fa-user-graduate"></i> Child Profile</a>
+      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-check"></i> Attendance</a>
+      <a href="results.html" class="nav-link"><i class="nav-link-icon fas fa-poll"></i> Results</a>
+      <div class="nav-section-label">Finance</div>
+      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-rupee-sign"></i> Fees</a>
+      <div class="nav-section-label">Communication</div>
+      <a href="notifications.html" class="nav-link active"><i class="nav-link-icon fas fa-bell"></i> Notifications</a>
+      <div class="nav-section-label">Tools</div>
+      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Parent Assistant</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">Parent / <span>Notification Settings</span></div>
+      </div>
+      <div class="topbar-right"><div class="topbar-avatar" id="topbar-avatar">P</div></div>
+    </header>
+    <div class="erp-content page-enter">
+
+      <div class="page-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+        <div><h1 class="page-title"><i class="fas fa-bell"></i> Notification Settings</h1><p class="page-subtitle">Manage how you receive notifications about your child's progress</p></div>
+        <button class="btn btn-primary" onclick="saveAllPreferences()"><i class="fas fa-save"></i> Save All Settings</button>
+      </div>
+
+      <!-- CHANNEL STATUS -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px" id="channelCards">
+        <div class="channel-card">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+            <div style="width:44px;height:44px;background:#DBEAFE;border-radius:12px;display:flex;align-items:center;justify-content:center"><i class="fas fa-mobile-alt" style="color:#2563EB;font-size:18px"></i></div>
+            <div><div style="font-weight:700;font-size:14px">Push Notifications</div><div style="font-size:12px;color:#64748B" id="pushStatus">Checking...</div></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:12px;color:#64748B"><span id="pushDeviceCount">0</span> devices</span>
+            <button class="btn btn-xs btn-primary" onclick="registerDevice()"><i class="fas fa-plus"></i> Register</button>
+          </div>
+        </div>
+        <div class="channel-card">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+            <div style="width:44px;height:44px;background:#D1FAE5;border-radius:12px;display:flex;align-items:center;justify-content:center"><i class="fas fa-envelope" style="color:#059669;font-size:18px"></i></div>
+            <div><div style="font-weight:700;font-size:14px">Email</div><div style="font-size:12px;color:#64748B" id="emailStatus">Checking...</div></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span style="font-size:12px;color:#64748B" id="emailAddr"></span>
+            <button class="btn btn-xs btn-secondary" onclick="testChannel('email')"><i class="fas fa-paper-plane"></i> Test</button>
+          </div>
+        </div>
+        <div class="channel-card">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+            <div style="width:44px;height:44px;background:#D1FAE5;border-radius:12px;display:flex;align-items:center;justify-content:center"><i class="fab fa-whatsapp" style="color:#25D366;font-size:20px"></i></div>
+            <div><div style="font-weight:700;font-size:14px">WhatsApp</div><div style="font-size:12px;color:#64748B" id="whatsappStatus">Checking...</div></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <input class="form-control" id="whatsappPhone" placeholder="+91 ..." style="width:120px;font-size:12px;padding:4px 8px">
+            <button class="btn btn-xs btn-secondary" onclick="testChannel('whatsapp')"><i class="fas fa-paper-plane"></i> Test</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- MASTER TOGGLES -->
+      <div class="card" style="padding:20px;margin-bottom:20px">
+        <h3 style="font-weight:700;font-size:15px;margin-bottom:16px"><i class="fas fa-toggle-on" style="color:#10B981;margin-right:8px"></i>Master Channel Toggles</h3>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px">
+          <div class="pref-row" style="border:none">
+            <div><div style="font-weight:600;font-size:13px">Push Notifications</div><div style="font-size:11px;color:#64748B">Browser & mobile push</div></div>
+            <div class="toggle-track" id="masterPush" onclick="toggleMaster('push')"><div class="toggle-thumb"></div></div>
+          </div>
+          <div class="pref-row" style="border:none">
+            <div><div style="font-weight:600;font-size:13px">Email Notifications</div><div style="font-size:11px;color:#64748B">Email alerts & reports</div></div>
+            <div class="toggle-track" id="masterEmail" onclick="toggleMaster('email')"><div class="toggle-thumb"></div></div>
+          </div>
+          <div class="pref-row" style="border:none">
+            <div><div style="font-weight:600;font-size:13px">WhatsApp Notifications</div><div style="font-size:11px;color:#64748B">WhatsApp messages</div></div>
+            <div class="toggle-track" id="masterWhatsapp" onclick="toggleMaster('whatsapp')"><div class="toggle-thumb"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EVENT PREFERENCES -->
+      <div class="card" style="padding:20px;margin-bottom:20px">
+        <h3 style="font-weight:700;font-size:15px;margin-bottom:16px"><i class="fas fa-sliders-h" style="color:#4F46E5;margin-right:8px"></i>Event Preferences</h3>
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse">
+            <thead>
+              <tr style="border-bottom:2px solid #E2E8F0">
+                <th style="text-align:left;padding:10px;font-size:13px;font-weight:700;color:#475569">Event Type</th>
+                <th style="text-align:center;padding:10px;font-size:13px;font-weight:700;color:#475569;width:80px">Push</th>
+                <th style="text-align:center;padding:10px;font-size:13px;font-weight:700;color:#475569;width:80px">Email</th>
+                <th style="text-align:center;padding:10px;font-size:13px;font-weight:700;color:#475569;width:80px">WhatsApp</th>
+                <th style="text-align:left;padding:10px;font-size:13px;font-weight:700;color:#475569;width:150px">Options</th>
+              </tr>
+            </thead>
+            <tbody id="eventPrefsBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- QUIET HOURS -->
+      <div class="card" style="padding:20px;margin-bottom:20px">
+        <h3 style="font-weight:700;font-size:15px;margin-bottom:16px"><i class="fas fa-moon" style="color:#6366F1;margin-right:8px"></i>Quiet Hours</h3>
+        <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">
+          <div class="pref-row" style="border:none;padding:0">
+            <div><div style="font-weight:600;font-size:13px">Enable Quiet Hours</div><div style="font-size:11px;color:#64748B">Pause non-critical notifications</div></div>
+            <div class="toggle-track" id="quietHoursEnabled" onclick="toggleQuietHours()"><div class="toggle-thumb"></div></div>
+          </div>
+          <div style="display:flex;gap:12px;align-items:center">
+            <div><label class="form-label" style="font-size:11px">From</label><input type="time" class="form-control" id="quietStart" value="22:00" style="width:120px;font-size:12px"></div>
+            <div><label class="form-label" style="font-size:11px">To</label><input type="time" class="form-control" id="quietEnd" value="07:00" style="width:120px;font-size:12px"></div>
+            <div><label class="form-label" style="font-size:11px">Timezone</label><select class="form-control" id="quietTimezone" style="width:160px;font-size:12px"><option value="Asia/Kolkata">Asia/Kolkata (IST)</option><option value="America/New_York">America/New_York (EST)</option><option value="Europe/London">Europe/London (GMT)</option><option value="Asia/Dubai">Asia/Dubai (GST)</option></select></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- NOTIFICATION HISTORY -->
+      <div class="card" style="padding:20px">
+        <h3 style="font-weight:700;font-size:15px;margin-bottom:16px"><i class="fas fa-history" style="color:#F59E0B;margin-right:8px"></i>Recent Notifications</h3>
+        <div id="notifHistory" style="max-height:400px;overflow-y:auto"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script>
+const EVENTS = [
+  { key: 'attendance', label: 'Attendance Alerts', icon: 'fas fa-clipboard-check', color: '#3B82F6', extra: '<label class="form-label" style="font-size:10px;margin:0">Threshold %</label><input type="number" class="form-control" id="attendanceThreshold" min="0" max="100" value="75" style="width:60px;font-size:11px;padding:2px 6px">' },
+  { key: 'fees', label: 'Fee Reminders', icon: 'fas fa-rupee-sign', color: '#F59E0B', extra: '<label class="form-label" style="font-size:10px;margin:0">Remind before</label><input type="number" class="form-control" id="feeReminderDays" min="1" max="30" value="7" style="width:50px;font-size:11px;padding:2px 6px"><span style="font-size:10px;color:#64748B">days</span>' },
+  { key: 'exams', label: 'Exam Notices', icon: 'fas fa-file-alt', color: '#8B5CF6' },
+  { key: 'results', label: 'Results Published', icon: 'fas fa-chart-bar', color: '#10B981' },
+  { key: 'assignments', label: 'Assignment Updates', icon: 'fas fa-tasks', color: '#F97316' },
+  { key: 'notices', label: 'College Notices', icon: 'fas fa-bullhorn', color: '#64748B' },
+  { key: 'liveClasses', label: 'Live Class Alerts', icon: 'fas fa-video', color: '#EF4444' },
+  { key: 'messages', label: 'Direct Messages', icon: 'fas fa-comment-dots', color: '#06B6D4' },
+  { key: 'progressReport', label: 'Weekly Progress Report', icon: 'fas fa-chart-line', color: '#A855F7' },
+];
+
+let prefs = {};
+let channelStatus = {};
+
+function toggle(id) {
+  const el = document.getElementById(id);
+  el.classList.toggle('active');
+  return el.classList.contains('active');
+}
+
+function setToggle(id, active) {
+  const el = document.getElementById(id);
+  if (active) el.classList.add('active'); else el.classList.remove('active');
+}
+
+function toggleMaster(ch) {
+  toggle('master' + ch.charAt(0).toUpperCase() + ch.slice(1));
+  EVENTS.forEach((ev) => {
+    const key = ev.key + '_' + ch;
+    setToggle(key, document.getElementById('master' + ch.charAt(0).toUpperCase() + ch.slice(1)).classList.contains('active'));
+  });
+}
+
+function toggleQuietHours() { toggle('quietHoursEnabled'); }
+
+function renderEventPrefs() {
+  const tbody = document.getElementById('eventPrefsBody');
+  tbody.innerHTML = EVENTS.map((ev) => {
+    const p = prefs.preferences?.[ev.key] || {};
+    return '<tr style="border-bottom:1px solid #F1F5F9">' +
+      '<td style="padding:12px"><div style="display:flex;align-items:center;gap:10px"><div style="width:32px;height:32px;background:' + ev.color + '15;border-radius:8px;display:flex;align-items:center;justify-content:center"><i class="' + ev.icon + '" style="color:' + ev.color + ';font-size:14px"></i></div><span style="font-weight:600;font-size:13px">' + ev.label + '</span></div></td>' +
+      '<td style="text-align:center;padding:12px"><div class="toggle-track ' + (p.push ? 'active' : '') + '" id="' + ev.key + '_push" onclick="toggle(\'' + ev.key + '_push\')"><div class="toggle-thumb"></div></div></td>' +
+      '<td style="text-align:center;padding:12px"><div class="toggle-track ' + (p.email ? 'active' : '') + '" id="' + ev.key + '_email" onclick="toggle(\'' + ev.key + '_email\')"><div class="toggle-thumb"></div></div></td>' +
+      '<td style="text-align:center;padding:12px"><div class="toggle-track ' + (p.whatsapp ? 'active' : '') + '" id="' + ev.key + '_whatsapp" onclick="toggle(\'' + ev.key + '_whatsapp\')"><div class="toggle-thumb"></div></div></td>' +
+      '<td style="padding:12px">' + (ev.extra || '') + '</td></tr>';
+  }).join('');
+}
+
+async function loadPreferences() {
+  try {
+    const res = await window.api.request('/notification-preferences/preferences');
+    prefs = res.prefs || {};
+    const ch = prefs.channels || {};
+    setToggle('masterPush', ch.push !== false);
+    setToggle('masterEmail', ch.email !== false);
+    setToggle('masterWhatsapp', ch.whatsapp !== false);
+    if (prefs.whatsappPhone) document.getElementById('whatsappPhone').value = prefs.whatsappPhone;
+    if (prefs.quietHours) {
+      setToggle('quietHoursEnabled', prefs.quietHours.enabled);
+      document.getElementById('quietStart').value = prefs.quietHours.start || '22:00';
+      document.getElementById('quietEnd').value = prefs.quietHours.end || '07:00';
+      document.getElementById('quietTimezone').value = prefs.quietHours.timezone || 'Asia/Kolkata';
+    }
+    if (prefs.preferences?.attendance?.threshold) document.getElementById('attendanceThreshold').value = prefs.preferences.attendance.threshold;
+    if (prefs.preferences?.fees?.reminderDaysBefore) document.getElementById('feeReminderDays').value = prefs.preferences.fees.reminderDaysBefore;
+    renderEventPrefs();
+  } catch (e) { console.error(e); }
+}
+
+async function loadChannelStatus() {
+  try {
+    const res = await window.api.request('/notification-preferences/channels');
+    channelStatus = res.channels || {};
+    document.getElementById('pushStatus').textContent = channelStatus.push?.configured ? (channelStatus.push.enabled ? 'Active' : 'Configured') : 'Not configured';
+    document.getElementById('pushDeviceCount').textContent = channelStatus.push?.deviceCount || 0;
+    document.getElementById('emailStatus').textContent = channelStatus.email?.configured ? 'Connected' : 'Not configured';
+    document.getElementById('whatsappStatus').textContent = channelStatus.whatsapp?.configured ? 'Connected' : 'Not configured';
+    document.getElementById('emailAddr').textContent = window.api?.getUser?.()?.email || '';
+  } catch (e) { console.error(e); }
+}
+
+async function loadNotificationHistory() {
+  try {
+    const res = await window.api.request('/notifications?limit=15');
+    const notifications = res.notifications || res.data || [];
+    const colors = { attendance: '#3B82F6', fee: '#F59E0B', exam: '#8B5CF6', assignment: '#F97316', info: '#64748B' };
+    document.getElementById('notifHistory').innerHTML = notifications.map((n) => {
+      const c = colors[n.type] || '#64748B';
+      const delivery = n.delivery || {};
+      const badges = ['push', 'email', 'whatsapp'].map((ch) => {
+        const s = delivery[ch]?.status;
+        if (!s || s === 'skipped') return '';
+        return '<span class="delivery-badge" style="background:' + (s === 'sent' ? '#D1FAE5' : '#FEE2E2') + ';color:' + (s === 'sent' ? '#065F46' : '#991B1B') + '">' + ch + '</span>';
+      }).join(' ');
+      return '<div style="padding:12px;border-bottom:1px solid #F1F5F9;display:flex;gap:12px;align-items:flex-start">' +
+        '<div style="width:8px;height:8px;border-radius:50%;background:' + c + ';margin-top:6px;flex-shrink:0"></div>' +
+        '<div style="flex:1"><div style="font-weight:600;font-size:13px">' + (n.title || '') + '</div><div style="font-size:12px;color:#64748B;margin-top:2px">' + (n.body || '') + '</div><div style="display:flex;gap:6px;margin-top:6px">' + badges + '</div></div>' +
+        '<div style="font-size:11px;color:#94A3B8;white-space:nowrap">' + (n.createdAt ? new Date(n.createdAt).toLocaleDateString() : '') + '</div></div>';
+    }).join('') || '<div class="empty-state"><div class="empty-state-title">No notifications yet</div></div>';
+  } catch (e) { console.error(e); }
+}
+
+async function saveAllPreferences() {
+  const channels = {
+    push: document.getElementById('masterPush').classList.contains('active'),
+    email: document.getElementById('masterEmail').classList.contains('active'),
+    whatsapp: document.getElementById('masterWhatsapp').classList.contains('active'),
+  };
+  const preferences = {};
+  EVENTS.forEach((ev) => {
+    preferences[ev.key] = {
+      push: document.getElementById(ev.key + '_push')?.classList.contains('active') || false,
+      email: document.getElementById(ev.key + '_email')?.classList.contains('active') || false,
+      whatsapp: document.getElementById(ev.key + '_whatsapp')?.classList.contains('active') || false,
+    };
+  });
+  preferences.attendance.threshold = Number(document.getElementById('attendanceThreshold')?.value) || 75;
+  preferences.fees.reminderDaysBefore = Number(document.getElementById('feeReminderDays')?.value) || 7;
+
+  const payload = {
+    channels,
+    preferences,
+    whatsappPhone: document.getElementById('whatsappPhone').value.trim(),
+    quietHours: {
+      enabled: document.getElementById('quietHoursEnabled').classList.contains('active'),
+      start: document.getElementById('quietStart').value,
+      end: document.getElementById('quietEnd').value,
+      timezone: document.getElementById('quietTimezone').value,
+    },
+  };
+
+  try {
+    await window.api.request('/notification-preferences/preferences', { method: 'PUT', body: JSON.stringify(payload) });
+    window.showToast?.('Preferences saved successfully', 'success');
+  } catch (e) {
+    window.showToast?.('Failed to save preferences', 'error');
+  }
+}
+
+async function registerDevice() {
+  if (typeof window.initWebPush === 'function') {
+    await window.initWebPush();
+    loadChannelStatus();
+  } else {
+    window.showToast?.('Web Push not available', 'warning');
+  }
+}
+
+async function testChannel(channel) {
+  try {
+    await window.api.request('/notification-preferences/test', { method: 'POST', body: JSON.stringify({ channel }) });
+    window.showToast?.('Test ' + channel + ' notification sent', 'success');
+  } catch (e) {
+    window.showToast?.('Test failed: ' + (e.message || 'Unknown error'), 'error');
+  }
+}
+
+(async () => {
+  await Promise.all([loadPreferences(), loadChannelStatus(), loadNotificationHistory()]);
+})();
+</script>
+</body>
+</html>

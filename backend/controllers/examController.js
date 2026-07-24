@@ -6,6 +6,7 @@ const Subject = require('../models/Subject');
 const { emitDataChange } = require('../utils/realtime');
 const { parseSemester } = require('../utils/parseHelpers');
 const { logAudit } = require('../services/auditService');
+const { sendParentNotification } = require('../services/parentNotificationService');
 
 const calculateResultFields = (marksObtained, totalMarks) => {
     const percentage = totalMarks > 0 ? Number(((marksObtained / totalMarks) * 100).toFixed(2)) : 0;
@@ -168,6 +169,29 @@ const addResults = asyncHandler(async (req, res) => {
     await Result.bulkWrite(operations);
     logAudit(req, 'create', 'exam_result', { description: `Added ${results.length} results for exam`, metadata: { examId: exam._id } });
     emitDataChange(req, { collegeId: String(req.user.collegeId), roles: ['superadmin'], resource: 'results', action: 'saved' });
+
+    // Notify parents of results
+    try {
+      const studentIds = results.map((r) => r.studentId).filter(Boolean);
+      const studentsWithParents = await User.find({
+        _id: { $in: studentIds },
+        role: 'student',
+        parentId: { $exists: true, $ne: null },
+      }).select('name parentId');
+      for (const student of studentsWithParents) {
+        const studentResult = results.find((r) => String(r.studentId) === String(student._id));
+        const marks = Number(studentResult?.marksObtained ?? studentResult?.marks ?? 0);
+        const total = Number(exam.totalMarks);
+        sendParentNotification(student.parentId, 'results', {
+          studentName: student.name,
+          examName: exam.name,
+          sgpa: null,
+          cgpa: null,
+          percentage: total > 0 ? ((marks / total) * 100).toFixed(1) : null,
+        }, { link: '/pages/parent/results.html' }).catch(() => {});
+      }
+    } catch (e) { /* notification errors should not block results */ }
+
     res.json({ success: true, message: 'Results saved' });
   });
 

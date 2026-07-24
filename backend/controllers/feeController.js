@@ -6,6 +6,7 @@ const User = require('../models/User');
 const { emitDataChange } = require('../utils/realtime');
 const { parseSemester } = require('../utils/parseHelpers');
 const { logAudit } = require('../services/auditService');
+const { sendParentNotification } = require('../services/parentNotificationService');
 const {
   confirmRazorpayPayment,
   getRazorpay,
@@ -401,6 +402,22 @@ const payFee = asyncHandler(async (req, res) => {
   fee.paymentHistory.push({ amount: paymentAmount, date: new Date(), method: paymentMethod, receiptNo: fee.receiptNo, recordedBy: req.user._id });
   recalcFeeStatus(fee);
   await fee.save();
+
+  (async () => {
+    try {
+      const student = await User.findById(fee.studentId).select('name parentId');
+      const parentId = student?.parentId;
+      if (parentId) {
+        sendParentNotification(parentId, 'fees', {
+          studentName: student.name,
+          feeType: fee.feeType,
+          amount: fee.amount,
+          dueDate: fee.dueDate ? new Date(fee.dueDate).toISOString().slice(0, 10) : '',
+          status: fee.status === 'paid' ? 'Paid' : undefined,
+        }).catch(() => {});
+      }
+    } catch (_) {}
+  })();
 
   logAudit(req, 'fee_payment', 'fee', { resourceId: fee._id, description: `Payment of ₹${paymentAmount}`, metadata: { studentId: fee.studentId, amount: paymentAmount } });
   emitDataChange(req, { collegeId: String(req.user.collegeId), roles: ['superadmin'], resource: 'fees', action: 'paid' });

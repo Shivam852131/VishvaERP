@@ -7,6 +7,7 @@ const { ClassroomLocation, LocationConsent, LivePresence } = require('../models/
 const { emitDataChange } = require('../utils/realtime');
 const { parseSemester } = require('../utils/parseHelpers');
 const { logAudit } = require('../services/auditService');
+const { sendParentNotification } = require('../services/parentNotificationService');
 
 const SMART_PRESENCE_TTL_MINUTES = 90;
 const TEACHER_HEARTBEAT_GRACE_MINUTES = 5;
@@ -141,6 +142,31 @@ const markAttendance = asyncHandler(async (req, res) => {
       resource: 'attendance',
       action: 'marked',
     });
+
+    (async () => {
+      try {
+        const studentIds = attendanceRecords.map(r => r.studentId);
+        const students = await User.find({ _id: { $in: studentIds }, collegeId })
+          .select('name parentId');
+        const subjectDoc = await Subject.findById(subjectId).select('name');
+        for (const record of attendanceRecords) {
+          const student = students.find(s => String(s._id) === String(record.studentId));
+          if (!student?.parentId) continue;
+          const allRecords = await Attendance.find({ collegeId, studentId: student._id });
+          const total = allRecords.length;
+          const present = allRecords.filter(r => r.status === 'present' || r.status === 'late').length;
+          const percentage = total > 0 ? Number(((present / total) * 100).toFixed(1)) : 0;
+          sendParentNotification(student.parentId, 'attendance', {
+            studentName: student.name,
+            date: attendanceDate.toISOString().slice(0, 10),
+            status: record.status,
+            subject: subjectDoc?.name || '',
+            percentage,
+          }).catch(() => {});
+        }
+      } catch (_) {}
+    })();
+
     res.json({ success: true, message: 'Attendance marked successfully' });
   });
 
