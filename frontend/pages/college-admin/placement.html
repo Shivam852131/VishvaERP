@@ -7,6 +7,135 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="../../css/custom.css">
+  <style>
+    .placement-hero {
+      background: linear-gradient(135deg, #312E81 0%, #4F46E5 50%, #7C3AED 100%);
+      border-radius: 16px; padding: 28px 32px; color: white;
+      position: relative; overflow: hidden; margin-bottom: 24px;
+    }
+    .placement-hero::before {
+      content: ''; position: absolute; top: -30px; right: -30px;
+      width: 140px; height: 140px; background: rgba(255,255,255,0.08); border-radius: 50%;
+    }
+    .placement-hero::after {
+      content: ''; position: absolute; bottom: -50px; left: 30%;
+      width: 200px; height: 200px; background: rgba(255,255,255,0.04); border-radius: 50%;
+    }
+    .pipeline-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+    .data-card {
+      background: white; border: 1px solid var(--card-border, #E2E8F0);
+      border-radius: 14px; padding: 20px; box-shadow: var(--card-shadow, 0 1px 3px rgba(0,0,0,0.04));
+      transition: all 0.2s ease;
+    }
+    .data-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
+    .data-card h3 { font-weight: 700; font-size: 14px; margin-bottom: 12px; color: var(--text-primary, #0F172A); }
+    .company-item {
+      display: flex; align-items: center; gap: 12px; padding: 12px;
+      border-bottom: 1px solid #F1F5F9; transition: background 0.15s;
+    }
+    .company-item:last-child { border-bottom: none; }
+    .company-item:hover { background: #F8FAFC; border-radius: 8px; }
+    .company-avatar {
+      width: 40px; height: 40px; border-radius: 10px; display: flex;
+      align-items: center; justify-content: center; font-weight: 700;
+      font-size: 14px; color: white; flex-shrink: 0;
+    }
+    .job-item {
+      padding: 16px; border: 1px solid #E2E8F0; border-radius: 12px;
+      margin-bottom: 10px; transition: all 0.2s ease;
+    }
+    .job-item:hover { border-color: #4F46E5; box-shadow: 0 4px 12px rgba(79,70,229,0.08); }
+    .job-meta { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 8px; font-size: 11px; color: #64748B; }
+    .job-meta i { margin-right: 4px; }
+    .stat-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 24px; }
+    .mini-stat {
+      background: white; border: 1px solid var(--card-border, #E2E8F0);
+      border-radius: 12px; padding: 16px; display: flex; align-items: center; gap: 12px;
+      box-shadow: var(--card-shadow, 0 1px 3px rgba(0,0,0,0.04)); transition: all 0.2s ease;
+    }
+    .mini-stat:hover { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0,0,0,0.06); }
+    .mini-stat .stat-icon {
+      width: 42px; height: 42px; border-radius: 10px; display: flex;
+      align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;
+    }
+    .mini-stat .stat-number { font-size: 20px; font-weight: 800; color: var(--text-primary, #0F172A); }
+    .mini-stat .stat-label { font-size: 11px; color: var(--text-muted, #64748B); font-weight: 600; }
+    .selection-ring {
+      width: 120px; height: 120px; border-radius: 50%; margin: 0 auto 16px;
+      display: flex; align-items: center; justify-content: center; flex-direction: column;
+      border: 6px solid #4F46E5; background: #EEF2FF;
+    }
+    .selection-ring .rate { font-size: 32px; font-weight: 900; color: #4F46E5; line-height: 1; }
+    .selection-ring .label { font-size: 10px; font-weight: 700; color: #6366F1; text-transform: uppercase; margin-top: 2px; }
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; z-index: 9999;
+      background: rgba(15,23,42,0.6); backdrop-filter: blur(4px);
+      align-items: center; justify-content: center; padding: 20px;
+    }
+    .modal-overlay.show { display: flex; }
+    .modal-box {
+      background: white; border-radius: 16px; width: 100%; max-width: 520px;
+      max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 60px rgba(0,0,0,0.2);
+      animation: modalIn 0.25s ease;
+    }
+    .modal-head {
+      padding: 20px 24px; border-bottom: 1px solid #F1F5F9;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .modal-head h3 { font-weight: 800; font-size: 17px; color: #0F172A; }
+    .modal-close {
+      width: 32px; height: 32px; border-radius: 8px; border: none; background: #F1F5F9;
+      cursor: pointer; font-size: 16px; color: #64748B; display: flex;
+      align-items: center; justify-content: center; transition: all 0.15s;
+    }
+    .modal-close:hover { background: #E2E8F0; color: #0F172A; }
+    .modal-body { padding: 24px; }
+    .modal-foot {
+      padding: 16px 24px; border-top: 1px solid #F1F5F9;
+      display: flex; justify-content: flex-end; gap: 10px;
+    }
+    .form-group { margin-bottom: 16px; }
+    .form-label { display: block; font-size: 12px; font-weight: 700; color: #374151; margin-bottom: 5px; }
+    .form-control {
+      width: 100%; padding: 10px 12px; border: 1.5px solid #E2E8F0;
+      border-radius: 8px; font-size: 13px; font-family: inherit; color: #0F172A;
+      background: white; outline: none; transition: all 0.2s;
+    }
+    .form-control:focus { border-color: #4F46E5; box-shadow: 0 0 0 3px rgba(79,70,229,0.1); }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .btn {
+      padding: 10px 18px; border-radius: 10px; font-size: 13px; font-weight: 700;
+      font-family: inherit; cursor: pointer; border: none; transition: all 0.2s;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-primary { background: linear-gradient(135deg, #4F46E5, #7C3AED); color: white; }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(79,70,229,0.3); }
+    .btn-secondary { background: #F1F5F9; color: #475569; }
+    .btn-secondary:hover { background: #E2E8F0; }
+    .badge-status {
+      display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px;
+      border-radius: 999px; font-size: 11px; font-weight: 700;
+    }
+    .badge-active { background: #D1FAE5; color: #065F46; }
+    .badge-closed { background: #F1F5F9; color: #64748B; }
+    .empty-msg { padding: 32px; text-align: center; color: #94A3B8; font-size: 13px; }
+    .empty-msg i { font-size: 32px; margin-bottom: 10px; display: block; color: #CBD5E1; }
+    @keyframes modalIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+
+    @media (max-width: 900px) {
+      .stat-row { grid-template-columns: repeat(3, 1fr); }
+      .pipeline-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 640px) {
+      .stat-row { grid-template-columns: repeat(2, 1fr); }
+      .form-grid { grid-template-columns: 1fr; }
+      .placement-hero { padding: 20px 18px; }
+      .placement-hero h1 { font-size: 18px; }
+    }
+    @media (max-width: 420px) {
+      .stat-row { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 <body>
 <div class="erp-layout">
@@ -29,7 +158,7 @@
       <a href="alumni.html" class="nav-link"><i class="nav-link-icon fas fa-users"></i> Alumni</a>
       <a href="visitors.html" class="nav-link"><i class="nav-link-icon fas fa-id-card-visitor"></i> Visitors</a>
       <div class="nav-section-label">Facilities</div>
-      <a href="logistics.html" class="nav-link"><i class="nav-link-icon fas fa-bus"></i> Logistics & Hostel</a>
+      <a href="logistics.html" class="nav-link"><i class="nav-link-icon fas fa-bus"></i> Logistics &amp; Hostel</a>
       <a href="library.html" class="nav-link"><i class="nav-link-icon fas fa-book"></i> Library</a>
       <div class="nav-section-label">Smart Campus</div>
       <a href="iot-dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-microchip"></i> IoT Dashboard</a>
@@ -40,126 +169,282 @@
   </aside>
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
   <div class="erp-main">
-    <header class="erp-topbar"><div class="topbar-left"><button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button><div class="topbar-breadcrumb">College Admin / <span>Placement Cell</span></div></div><div class="topbar-right"><div class="topbar-avatar" id="topbar-avatar">A</div></div></header>
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">College Admin / <span>Placement Cell</span></div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-avatar" id="topbar-avatar">A</div>
+      </div>
+    </header>
     <div class="erp-content page-enter">
-      <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
-        <div><h1 class="page-title"><i class="fas fa-briefcase"></i> Placement Cell</h1><p class="page-subtitle">Manage companies, job postings, and applications</p></div>
-        <div style="display:flex;gap:8px">
-          <button class="btn btn-secondary" onclick="openModal('addCompanyModal')"><i class="fas fa-building"></i> Add Company</button>
-          <button class="btn btn-primary" onclick="openModal('addJobModal')"><i class="fas fa-plus"></i> Post Job</button>
+
+      <!-- HERO -->
+      <div class="placement-hero">
+        <div style="position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px">
+          <div>
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px">
+              <div style="width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:18px"><i class="fas fa-briefcase"></i></div>
+              <div>
+                <h1 style="font-size:22px;font-weight:900;line-height:1.2">Placement Cell</h1>
+                <p style="font-size:13px;opacity:0.85;margin-top:2px">Manage companies, job postings &amp; application pipeline</p>
+              </div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn" style="background:rgba(255,255,255,0.15);color:white;border:1px solid rgba(255,255,255,0.2)" onclick="openModal('addCompanyModal')"><i class="fas fa-building"></i> Add Company</button>
+            <button class="btn" style="background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.25)" onclick="openModal('addJobModal')"><i class="fas fa-plus"></i> Post Job</button>
+          </div>
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:24px" id="statsRow"></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">
-        <div class="card" style="padding:20px"><h3 style="font-weight:700;font-size:14px;margin-bottom:12px">Application Pipeline</h3><canvas id="pipelineChart" height="200"></canvas></div>
-        <div class="card" style="padding:20px"><h3 style="font-weight:700;font-size:14px;margin-bottom:12px">Selection Rate</h3><div style="text-align:center;padding:30px"><div id="selectionRate" style="font-size:48px;font-weight:900;color:#4F46E5">0%</div><div style="font-size:13px;color:#64748B;margin-top:8px">Students placed</div></div></div>
+
+      <!-- STATS ROW -->
+      <div class="stat-row" id="statsRow"></div>
+
+      <!-- PIPELINE + SELECTION -->
+      <div class="pipeline-grid">
+        <div class="data-card">
+          <h3><i class="fas fa-chart-bar" style="margin-right:6px;color:#4F46E5"></i> Application Pipeline</h3>
+          <div style="position:relative;height:220px"><canvas id="pipelineChart"></canvas></div>
+        </div>
+        <div class="data-card" style="display:flex;flex-direction:column;align-items:center;justify-content:center">
+          <h3 style="align-self:flex-start"><i class="fas fa-trophy" style="margin-right:6px;color:#F59E0B"></i> Selection Rate</h3>
+          <div class="selection-ring">
+            <div class="rate" id="selectionRate">0%</div>
+            <div class="label">Placed</div>
+          </div>
+          <p style="font-size:12px;color:#64748B;text-align:center">Of total applicants</p>
+        </div>
       </div>
-      <div class="card" style="padding:20px;margin-bottom:20px">
-        <h3 style="font-weight:700;font-size:16px;margin-bottom:16px"><i class="fas fa-building"></i> Companies</h3>
-        <div id="companyList"></div>
+
+      <!-- COMPANIES + JOBS -->
+      <div class="pipeline-grid">
+        <div class="data-card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <h3 style="margin-bottom:0"><i class="fas fa-building" style="margin-right:6px;color:#4F46E5"></i> Companies</h3>
+            <span style="font-size:11px;color:#94A3B8;font-weight:600" id="companyCount">0 total</span>
+          </div>
+          <div id="companyList" style="max-height:320px;overflow-y:auto"></div>
+        </div>
+        <div class="data-card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <h3 style="margin-bottom:0"><i class="fas fa-briefcase" style="margin-right:6px;color:#10B981"></i> Job Postings</h3>
+            <span style="font-size:11px;color:#94A3B8;font-weight:600" id="jobCount">0 total</span>
+          </div>
+          <div id="jobList" style="max-height:320px;overflow-y:auto"></div>
+        </div>
       </div>
-      <div class="card" style="padding:20px">
-        <h3 style="font-weight:700;font-size:16px;margin-bottom:16px"><i class="fas fa-briefcase"></i> Job Postings</h3>
-        <div id="jobList"></div>
-      </div>
+
     </div>
   </div>
 </div>
 
+<!-- ADD COMPANY MODAL -->
 <div class="modal-overlay" id="addCompanyModal">
-  <div class="modal" style="max-width:480px">
-    <div class="modal-header"><h3 class="modal-title">Add Company</h3><button class="modal-close" onclick="closeModal('addCompanyModal')">&times;</button></div>
+  <div class="modal-box">
+    <div class="modal-head"><h3>Add Company</h3><button class="modal-close" onclick="closeModal('addCompanyModal')">&times;</button></div>
     <div class="modal-body">
       <div class="form-group"><label class="form-label">Company Name *</label><input class="form-control" id="compName" placeholder="e.g. TCS"></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-grid">
         <div class="form-group"><label class="form-label">Industry</label><input class="form-control" id="compIndustry" placeholder="e.g. IT Services"></div>
-        <div class="form-group"><label class="form-label">Size</label><select class="form-control" id="compSize"><option value="startup">Startup</option><option value="small">Small</option><option value="medium">Medium</option><option value="large" selected>Large</option><option value="enterprise">Enterprise</option></select></div>
+        <div class="form-group"><label class="form-label">Size</label>
+          <select class="form-control" id="compSize">
+            <option value="startup">Startup</option><option value="small">Small</option>
+            <option value="medium">Medium</option><option value="large" selected>Large</option>
+            <option value="enterprise">Enterprise</option>
+          </select>
+        </div>
       </div>
       <div class="form-group"><label class="form-label">Website</label><input class="form-control" id="compWebsite" placeholder="https://"></div>
       <div class="form-group"><label class="form-label">Description</label><textarea class="form-control" id="compDesc" rows="2"></textarea></div>
     </div>
-    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('addCompanyModal')">Cancel</button><button class="btn btn-primary" onclick="addCompany()"><i class="fas fa-plus"></i> Add</button></div>
+    <div class="modal-foot"><button class="btn btn-secondary" onclick="closeModal('addCompanyModal')">Cancel</button><button class="btn btn-primary" onclick="addCompany()"><i class="fas fa-plus"></i> Add</button></div>
   </div>
 </div>
 
+<!-- ADD JOB MODAL -->
 <div class="modal-overlay" id="addJobModal">
-  <div class="modal" style="max-width:520px">
-    <div class="modal-header"><h3 class="modal-title">Post Job</h3><button class="modal-close" onclick="closeModal('addJobModal')">&times;</button></div>
+  <div class="modal-box">
+    <div class="modal-head"><h3>Post Job</h3><button class="modal-close" onclick="closeModal('addJobModal')">&times;</button></div>
     <div class="modal-body">
       <div class="form-group"><label class="form-label">Job Title *</label><input class="form-control" id="jobTitle" placeholder="e.g. Software Engineer"></div>
       <div class="form-group"><label class="form-label">Company *</label><select class="form-control" id="jobCompany"></select></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-        <div class="form-group"><label class="form-label">Type *</label><select class="form-control" id="jobType"><option value="full-time">Full-Time</option><option value="internship">Internship</option><option value="part-time">Part-Time</option><option value="contract">Contract</option></select></div>
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label">Type *</label>
+          <select class="form-control" id="jobType">
+            <option value="full-time">Full-Time</option><option value="internship">Internship</option>
+            <option value="part-time">Part-Time</option><option value="contract">Contract</option>
+          </select>
+        </div>
         <div class="form-group"><label class="form-label">Salary Range</label><input class="form-control" id="jobSalary" placeholder="e.g. 4-8 LPA"></div>
       </div>
       <div class="form-group"><label class="form-label">Location</label><input class="form-control" id="jobLocation" placeholder="e.g. Bangalore"></div>
       <div class="form-group"><label class="form-label">Description *</label><textarea class="form-control" id="jobDesc" rows="3"></textarea></div>
       <div class="form-group"><label class="form-label">Skills Required</label><input class="form-control" id="jobSkills" placeholder="e.g. JavaScript, Python, React"></div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-grid">
         <div class="form-group"><label class="form-label">Application Deadline</label><input type="date" class="form-control" id="jobDeadline"></div>
         <div class="form-group"><label class="form-label">Total Positions</label><input type="number" class="form-control" id="jobPositions" value="1"></div>
       </div>
     </div>
-    <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('addJobModal')">Cancel</button><button class="btn btn-primary" onclick="addJob()"><i class="fas fa-plus"></i> Post Job</button></div>
+    <div class="modal-foot"><button class="btn btn-secondary" onclick="closeModal('addJobModal')">Cancel</button><button class="btn btn-primary" onclick="addJob()"><i class="fas fa-plus"></i> Post Job</button></div>
   </div>
 </div>
 
 <script src="../../js/shared.js"></script>
 <script>
-let companies=[],pipelineChartInst=null;
-async function loadAll(){
-  const [statsRes,companiesRes,jobsRes]=await Promise.all([
+let companies = [], pipelineChartInst = null;
+
+const COMPANY_COLORS = [
+  'linear-gradient(135deg,#4F46E5,#6366F1)',
+  'linear-gradient(135deg,#059669,#10B981)',
+  'linear-gradient(135deg,#D97706,#F59E0B)',
+  'linear-gradient(135deg,#DC2626,#EF4444)',
+  'linear-gradient(135deg,#7C3AED,#8B5CF6)',
+  'linear-gradient(135deg,#0284C7,#0EA5E9)',
+  'linear-gradient(135deg,#BE185D,#EC4899)',
+  'linear-gradient(135deg,#0891B2,#06B6D4)'
+];
+
+function getCompanyColor(name) {
+  let hash = 0;
+  for (let i = 0; i < (name || '').length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  return COMPANY_COLORS[Math.abs(hash) % COMPANY_COLORS.length];
+}
+
+function openModal(id) { document.getElementById(id).classList.add('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+async function loadAll() {
+  const [statsRes, companiesRes, jobsRes] = await Promise.all([
     window.api.request('/placements/stats'),
     window.api.request('/placements/companies'),
     window.api.request('/placements/jobs?limit=50'),
   ]);
-  companies=companiesRes.companies||[];
-  const stats=statsRes;const jobs=jobsRes.jobs||[];
-  document.getElementById('statsRow').innerHTML=[
-    {icon:'fas fa-building',bg:'#EEF2FF',color:'#4F46E5',num:stats.companyCount||0,label:'Companies'},
-    {icon:'fas fa-briefcase',bg:'#D1FAE5',color:'#10B981',num:stats.totalJobs||0,label:'Total Jobs'},
-    {icon:'fas fa-check-circle',bg:'#FEF3C7',color:'#D97706',num:stats.activeJobs||0,label:'Active Jobs'},
-    {icon:'fas fa-users',bg:'#FCE7F3',color:'#EC4899',num:stats.totalApplications||0,label:'Applications'},
-    {icon:'fas fa-trophy',bg:'#FEE2E2',color:'#EF4444',num:stats.selectionRate||0+'%',label:'Selection Rate'},
-  ].map(s=>`<div class="card stat-card"><div class="stat-icon" style="background:${s.bg};color:${s.color}"><i class="${s.icon}"></i></div><div class="stat-info"><div class="stat-number">${s.num}</div><div class="stat-label">${s.label}</div></div></div>`).join('');
 
-  document.getElementById('selectionRate').textContent=(stats.selectionRate||0)+'%';
+  companies = companiesRes.companies || [];
+  const stats = statsRes;
+  const jobs = jobsRes.jobs || [];
 
-  const byStatus=Object.entries(stats.byStatus||{});
-  if(pipelineChartInst)pipelineChartInst.destroy();
-  pipelineChartInst=new Chart(document.getElementById('pipelineChart'),{type:'bar',data:{labels:byStatus.map(s=>s[0]),datasets:[{data:byStatus.map(s=>s[1]),backgroundColor:['#4F46E5','#F59E0B','#10B981','#EF4444','#8B5CF6','#0EA5E9','#EC4899','#64748B'],borderRadius:4}]},options:{responsive:false,plugins:{legend:{display:false}}}});
+  document.getElementById('statsRow').innerHTML = [
+    { icon: 'fas fa-building', bg: '#EEF2FF', color: '#4F46E5', num: stats.companyCount || 0, label: 'Companies' },
+    { icon: 'fas fa-briefcase', bg: '#D1FAE5', color: '#10B981', num: stats.totalJobs || 0, label: 'Total Jobs' },
+    { icon: 'fas fa-check-circle', bg: '#FEF3C7', color: '#D97706', num: stats.activeJobs || 0, label: 'Active Jobs' },
+    { icon: 'fas fa-users', bg: '#FCE7F3', color: '#EC4899', num: stats.totalApplications || 0, label: 'Applications' },
+    { icon: 'fas fa-trophy', bg: '#FEE2E2', color: '#EF4444', num: (stats.selectionRate || 0) + '%', label: 'Selection Rate' },
+  ].map(s =>
+    '<div class="mini-stat">' +
+      '<div class="stat-icon" style="background:' + s.bg + ';color:' + s.color + '"><i class="' + s.icon + '"></i></div>' +
+      '<div><div class="stat-number">' + s.num + '</div><div class="stat-label">' + s.label + '</div></div>' +
+    '</div>'
+  ).join('');
 
-  document.getElementById('companyList').innerHTML=companies.map(c=>`<div style="display:flex;align-items:center;gap:12px;padding:10px;border-bottom:1px solid #F1F5F9"><div style="width:40px;height:40px;background:#EEF2FF;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#4F46E5;font-weight:700;font-size:14px">${c.name[0]}</div><div style="flex:1"><div style="font-weight:600;font-size:13px">${c.name}</div><div style="font-size:11px;color:#64748B">${c.industry||'-'} • ${c.size||'-'}</div></div></div>`).join('')||'<div style="padding:16px;color:#94A3B8;text-align:center;font-size:13px">No companies added yet</div>';
+  document.getElementById('selectionRate').textContent = (stats.selectionRate || 0) + '%';
 
-  document.getElementById('jobList').innerHTML=jobs.map(j=>`<div style="padding:14px;border:1px solid #E2E8F0;border-radius:10px;margin-bottom:10px">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
-      <div><div style="font-weight:700;font-size:14px">${j.title}</div><div style="font-size:12px;color:#64748B">${j.companyId?.name||'-'} • ${j.type} • ${j.location||'Remote'}</div></div>
-      <span class="badge" style="background:${j.status==='active'?'#D1FAE5':'#F1F5F9'};color:${j.status==='active'?'#065F46':'#64748B'};font-size:11px">${j.status}</span>
-    </div>
-    <div style="font-size:12px;color:#475569">${j.description?.slice(0,100)||''}...</div>
-    <div style="display:flex;gap:16px;margin-top:8px;font-size:11px;color:#64748B">
-      ${j.salary?`<span><i class="fas fa-rupee-sign"></i> ${j.salary}</span>`:''}
-      <span><i class="fas fa-users"></i> ${j.totalPositions||'-'} positions</span>
-      ${j.applicationDeadline?`<span><i class="fas fa-clock"></i> Deadline: ${new Date(j.applicationDeadline).toLocaleDateString()}</span>`:''}
-    </div>
-  </div>`).join('')||'<div class="empty-state"><div class="empty-state-title">No job postings yet</div></div>';
+  document.getElementById('companyCount').textContent = companies.length + ' total';
+  document.getElementById('jobCount').textContent = jobs.length + ' total';
 
-  const companySelect=document.getElementById('jobCompany');
-  companySelect.innerHTML=companies.map(c=>`<option value="${c._id}">${c.name}</option>`).join('');
+  const byStatus = Object.entries(stats.byStatus || {});
+  if (pipelineChartInst) pipelineChartInst.destroy();
+  pipelineChartInst = new Chart(document.getElementById('pipelineChart'), {
+    type: 'bar',
+    data: {
+      labels: byStatus.map(function(s) { return s[0]; }),
+      datasets: [{
+        data: byStatus.map(function(s) { return s[1]; }),
+        backgroundColor: ['#4F46E5','#F59E0B','#10B981','#EF4444','#8B5CF6','#0EA5E9','#EC4899','#64748B'],
+        borderRadius: 6, borderSkipped: false,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { y: { beginAtZero: true, grid: { color: '#F1F5F9' } }, x: { grid: { display: false } } }
+    }
+  });
+
+  document.getElementById('companyList').innerHTML = companies.map(function(c) {
+    return '<div class="company-item">' +
+      '<div class="company-avatar" style="background:' + getCompanyColor(c.name) + '">' + (c.name[0] || '').toUpperCase() + '</div>' +
+      '<div style="flex:1;min-width:0">' +
+        '<div style="font-weight:600;font-size:13px;color:var(--text-primary,#0F172A)">' + c.name + '</div>' +
+        '<div style="font-size:11px;color:#64748B">' + (c.industry || '-') + ' &bull; ' + (c.size || '-') + '</div>' +
+      '</div>' +
+      (c.website ? '<a href="' + c.website + '" target="_blank" style="color:#4F46E5;font-size:12px"><i class="fas fa-external-link-alt"></i></a>' : '') +
+    '</div>';
+  }).join('') || '<div class="empty-msg"><i class="fas fa-building"></i>No companies added yet</div>';
+
+  document.getElementById('jobList').innerHTML = jobs.map(function(j) {
+    return '<div class="job-item">' +
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">' +
+        '<div style="min-width:0">' +
+          '<div style="font-weight:700;font-size:14px;color:var(--text-primary,#0F172A)">' + j.title + '</div>' +
+          '<div style="font-size:12px;color:#64748B;margin-top:1px">' + (j.companyId && j.companyId.name ? j.companyId.name : '-') + ' &bull; ' + j.type + ' &bull; ' + (j.location || 'Remote') + '</div>' +
+        '</div>' +
+        '<span class="badge-status ' + (j.status === 'active' ? 'badge-active' : 'badge-closed') + '">' + j.status + '</span>' +
+      '</div>' +
+      '<div style="font-size:12px;color:#475569;margin-top:6px">' + (j.description || '').slice(0, 90) + '...</div>' +
+      '<div class="job-meta">' +
+        (j.salary ? '<span><i class="fas fa-rupee-sign"></i>' + j.salary + '</span>' : '') +
+        '<span><i class="fas fa-users"></i>' + (j.totalPositions || '-') + ' positions</span>' +
+        (j.applicationDeadline ? '<span><i class="fas fa-clock"></i>Deadline: ' + new Date(j.applicationDeadline).toLocaleDateString() + '</span>' : '') +
+      '</div>' +
+    '</div>';
+  }).join('') || '<div class="empty-msg"><i class="fas fa-briefcase"></i>No job postings yet</div>';
+
+  var companySelect = document.getElementById('jobCompany');
+  companySelect.innerHTML = companies.map(function(c) {
+    return '<option value="' + c._id + '">' + c.name + '</option>';
+  }).join('');
 }
-async function addCompany(){
-  const name=document.getElementById('compName').value;
-  if(!name){window.showToast('Company name is required','error');return;}
-  await window.api.request('/placements/companies',{method:'POST',body:JSON.stringify({name,industry:document.getElementById('compIndustry').value,size:document.getElementById('compSize').value,website:document.getElementById('compWebsite').value,description:document.getElementById('compDesc').value})});
-  window.closeModal('addCompanyModal');window.showToast('Company added','success');loadAll();
+
+async function addCompany() {
+  var name = document.getElementById('compName').value.trim();
+  if (!name) { window.showToast('Company name is required', 'error'); return; }
+  await window.api.request('/placements/companies', {
+    method: 'POST',
+    body: JSON.stringify({
+      name: name,
+      industry: document.getElementById('compIndustry').value,
+      size: document.getElementById('compSize').value,
+      website: document.getElementById('compWebsite').value,
+      description: document.getElementById('compDesc').value
+    })
+  });
+  closeModal('addCompanyModal');
+  window.showToast('Company added successfully', 'success');
+  loadAll();
 }
-async function addJob(){
-  const title=document.getElementById('jobTitle').value;
-  if(!title){window.showToast('Job title is required','error');return;}
-  const skills=document.getElementById('jobSkills').value.split(',').map(s=>s.trim()).filter(Boolean);
-  await window.api.request('/placements/jobs',{method:'POST',body:JSON.stringify({title,companyId:document.getElementById('jobCompany').value,type:document.getElementById('jobType').value,salary:document.getElementById('jobSalary').value,location:document.getElementById('jobLocation').value,description:document.getElementById('jobDesc').value,skills,applicationDeadline:document.getElementById('jobDeadline').value||undefined,totalPositions:Number(document.getElementById('jobPositions').value)||1})});
-  window.closeModal('addJobModal');window.showToast('Job posted','success');loadAll();
+
+async function addJob() {
+  var title = document.getElementById('jobTitle').value.trim();
+  if (!title) { window.showToast('Job title is required', 'error'); return; }
+  var skills = document.getElementById('jobSkills').value.split(',').map(function(s) { return s.trim(); }).filter(Boolean);
+  await window.api.request('/placements/jobs', {
+    method: 'POST',
+    body: JSON.stringify({
+      title: title,
+      companyId: document.getElementById('jobCompany').value,
+      type: document.getElementById('jobType').value,
+      salary: document.getElementById('jobSalary').value,
+      location: document.getElementById('jobLocation').value,
+      description: document.getElementById('jobDesc').value,
+      skills: skills,
+      applicationDeadline: document.getElementById('jobDeadline').value || undefined,
+      totalPositions: Number(document.getElementById('jobPositions').value) || 1
+    })
+  });
+  closeModal('addJobModal');
+  window.showToast('Job posted successfully', 'success');
+  loadAll();
 }
+
+document.querySelectorAll('.modal-overlay').forEach(function(overlay) {
+  overlay.addEventListener('click', function(e) {
+    if (e.target === overlay) overlay.classList.remove('show');
+  });
+});
+
 loadAll();
 </script>
 </body>
