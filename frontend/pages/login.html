@@ -16,19 +16,26 @@
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { overflow: hidden; height: 100%; }
+
+    html {
+      height: 100%;
+      overflow: hidden;
+    }
+
     body {
       font-family: 'Inter', sans-serif;
       background: #0F172A;
       height: 100%;
+      width: 100%;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 20px;
+      padding: 16px;
       position: relative;
       overflow: hidden;
-      transition: background 0.3s;
+      transition: background 0.4s ease;
     }
+
     body.light-mode { background: #F1F5F9; }
 
     body::before {
@@ -38,27 +45,32 @@
                   radial-gradient(ellipse at 80% 20%, rgba(16,185,129,0.1) 0%, transparent 50%),
                   radial-gradient(ellipse at 60% 80%, rgba(245,158,11,0.08) 0%, transparent 50%);
       pointer-events: none;
+      z-index: 0;
     }
 
     #particles-canvas {
       position: fixed; inset: 0; z-index: 0; pointer-events: none;
     }
 
+    /* ── Theme Toggle ── */
     .theme-toggle {
-      position: fixed; top: 20px; right: 20px; z-index: 100;
-      width: 44px; height: 44px; border-radius: 50%;
-      background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
-      color: #A5B4FC; font-size: 18px; cursor: pointer;
+      position: fixed; top: 16px; right: 16px; z-index: 100;
+      width: 40px; height: 40px; border-radius: 50%;
+      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);
+      color: #A5B4FC; font-size: 16px; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-      backdrop-filter: blur(10px); transition: all 0.3s;
+      backdrop-filter: blur(12px); transition: all 0.3s ease;
     }
-    .theme-toggle:hover { background: rgba(255,255,255,0.2); transform: rotate(20deg); }
-    body.light-mode .theme-toggle { background: rgba(15,23,42,0.05); border-color: rgba(15,23,42,0.1); color: #475569; }
+    .theme-toggle:hover { background: rgba(255,255,255,0.15); transform: rotate(20deg); }
+    body.light-mode .theme-toggle {
+      background: rgba(15,23,42,0.05); border-color: rgba(15,23,42,0.1); color: #475569;
+    }
 
+    /* ── Keyboard Hint ── */
     .kbd-hint {
-      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-      background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 8px; padding: 6px 14px; z-index: 100;
+      position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px; padding: 5px 12px; z-index: 100;
       font-size: 11px; color: #94A3B8; backdrop-filter: blur(10px);
       display: flex; align-items: center; gap: 8px; opacity: 0.7;
       white-space: nowrap;
@@ -68,252 +80,273 @@
       padding: 2px 6px; font-family: inherit; font-size: 10px;
     }
 
-    .login-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0;
+    /* ── Main Login Container ── */
+    .login-container {
+      display: flex;
       width: 100%;
-      max-width: 980px;
-      height: 620px;
+      max-width: 960px;
       max-height: 90vh;
-      border-radius: 24px;
+      border-radius: 20px;
       overflow: hidden;
       box-shadow: 0 40px 80px rgba(0,0,0,0.4);
       position: relative;
       z-index: 1;
       animation: fadeInUp 0.6s ease;
     }
-    body.light-mode .login-grid { box-shadow: 0 25px 60px rgba(0,0,0,0.08); }
+    body.light-mode .login-container { box-shadow: 0 25px 60px rgba(0,0,0,0.08); }
 
+    /* ── Left Panel ── */
     .login-left {
+      flex: 0 0 420px;
       background: linear-gradient(135deg, #1E1B4B 0%, #312E81 50%, #1E1B4B 100%);
-      padding: 48px 40px;
+      padding: 40px 36px;
       display: flex; flex-direction: column; justify-content: space-between;
       position: relative; overflow: hidden;
+      min-height: 0;
     }
     .login-left::before {
       content: '';
       position: absolute; inset: 0;
       background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.05'%3E%3Ccircle cx='30' cy='30' r='20'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
     }
+
     .brand { display: flex; align-items: center; gap: 12px; position: relative; z-index: 1; }
     .brand-icon {
-      width: 48px; height: 48px; border-radius: 14px;
+      width: 44px; height: 44px; border-radius: 12px;
       background: linear-gradient(135deg, #4F46E5, #7C3AED);
       display: flex; align-items: center; justify-content: center;
-      font-size: 22px; font-weight: 900; color: white;
       box-shadow: 0 4px 12px rgba(79,70,229,0.4);
     }
-    .brand-name { font-size: 24px; font-weight: 900; color: white; }
+    .brand-name { font-size: 22px; font-weight: 900; color: white; }
     .brand-name span { color: #A5B4FC; }
-    .left-hero { position: relative; z-index: 1; }
-    .left-hero h1 { font-size: 32px; font-weight: 900; color: white; line-height: 1.2; margin-bottom: 16px; }
-    .left-hero p { font-size: 15px; color: #A5B4FC; line-height: 1.6; }
-    .feature-list { display: flex; flex-direction: column; gap: 12px; position: relative; z-index: 1; }
-    .feature-item { display: flex; align-items: center; gap: 12px; color: #C4B5FD; font-size: 13px; font-weight: 600; }
-    .feature-item i { color: #10B981; font-size: 14px; }
+
+    .left-hero { position: relative; z-index: 1; margin-top: auto; }
+    .left-hero h1 { font-size: 28px; font-weight: 900; color: white; line-height: 1.2; margin-bottom: 12px; }
+    .left-hero p { font-size: 14px; color: #A5B4FC; line-height: 1.6; }
+
+    .feature-list { display: flex; flex-direction: column; gap: 10px; position: relative; z-index: 1; margin-top: 20px; }
+    .feature-item { display: flex; align-items: center; gap: 10px; color: #C4B5FD; font-size: 12px; font-weight: 600; }
+    .feature-item i { color: #10B981; font-size: 12px; flex-shrink: 0; }
 
     .live-stats {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
-      position: relative; z-index: 1; margin-top: 24px;
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+      position: relative; z-index: 1; margin-top: 20px;
     }
     .live-stat-card {
       background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 12px; padding: 14px; backdrop-filter: blur(10px);
+      border-radius: 10px; padding: 12px; backdrop-filter: blur(10px);
     }
-    .live-stat-card .stat-num { font-size: 22px; font-weight: 900; color: white; }
+    .live-stat-card .stat-num { font-size: 20px; font-weight: 900; color: white; }
     .live-stat-card .stat-lbl {
-      font-size: 10px; font-weight: 700; color: #818CF8;
+      font-size: 9px; font-weight: 700; color: #818CF8;
       text-transform: uppercase; letter-spacing: 0.08em; margin-top: 2px;
     }
 
+    /* ── Right Panel ── */
     .login-right {
-      background: white; padding: 44px 40px;
-      display: flex; flex-direction: column; justify-content: center;
-      overflow-y: auto;
+      flex: 1 1 0;
+      background: white; padding: 36px 32px;
+      display: flex; flex-direction: column;
+      overflow-y: auto; overflow-x: hidden;
+      min-height: 0;
       animation: fadeInUp 0.5s ease;
     }
     body.light-mode .login-right { background: #FAFBFC; }
-    .login-right h2 { font-size: 26px; font-weight: 800; color: #0F172A; margin-bottom: 6px; }
-    .login-right .subtitle { font-size: 14px; color: #64748B; margin-bottom: 24px; }
 
+    .login-right::-webkit-scrollbar { width: 4px; }
+    .login-right::-webkit-scrollbar-track { background: transparent; }
+    .login-right::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
+
+    .login-right h2 { font-size: 24px; font-weight: 800; color: #0F172A; margin-bottom: 4px; }
+    .login-right .subtitle { font-size: 13px; color: #64748B; margin-bottom: 20px; }
+
+    /* ── Mode Tabs ── */
     .mode-tabs {
       display: flex; gap: 4px; background: #F1F5F9;
-      border-radius: 12px; padding: 4px; margin-bottom: 24px;
+      border-radius: 10px; padding: 4px; margin-bottom: 20px;
       flex-shrink: 0;
     }
     .mode-tab {
-      flex: 1; padding: 10px 8px; border-radius: 10px;
-      border: none; cursor: pointer; font-size: 13px; font-weight: 700;
-      font-family: inherit; transition: all 0.2s;
+      flex: 1; padding: 9px 6px; border-radius: 8px;
+      border: none; cursor: pointer; font-size: 12px; font-weight: 700;
+      font-family: inherit; transition: all 0.2s ease;
       background: transparent; color: #64748B;
-      display: flex; align-items: center; justify-content: center; gap: 6px;
+      display: flex; align-items: center; justify-content: center; gap: 5px;
     }
     .mode-tab.active {
       background: white; color: #4F46E5; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
     }
     body.light-mode .mode-tab.active { box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
-    .mode-tab i { font-size: 14px; }
+    .mode-tab i { font-size: 13px; }
 
-    .role-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 20px; }
+    /* ── Role Grid ── */
+    .role-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 16px; }
     .role-btn {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 6px; padding: 12px 8px; border-radius: 12px;
+      gap: 4px; padding: 10px 6px; border-radius: 10px;
       border: 2px solid #E2E8F0; cursor: pointer;
-      font-size: 11px; font-weight: 700; color: #64748B;
-      background: white; transition: all 0.2s; font-family: inherit;
+      font-size: 10px; font-weight: 700; color: #64748B;
+      background: white; transition: all 0.2s ease; font-family: inherit;
     }
-    .role-btn i { font-size: 18px; }
+    .role-btn i { font-size: 16px; }
     .role-btn.active { border-color: var(--role-color, #4F46E5); background: var(--role-bg, #EDE9FE); color: var(--role-color, #4F46E5); }
-    .role-btn:hover { border-color: var(--role-color, #4F46E5); transform: translateY(-2px); }
+    .role-btn:hover { border-color: var(--role-color, #4F46E5); transform: translateY(-1px); }
 
-    .form-group { margin-bottom: 16px; position: relative; }
-    .form-label { display: block; font-size: 13px; font-weight: 700; color: #374151; margin-bottom: 6px; }
+    /* ── Form Elements ── */
+    .form-group { margin-bottom: 14px; position: relative; }
+    .form-label { display: block; font-size: 12px; font-weight: 700; color: #374151; margin-bottom: 5px; }
     .form-control {
-      width: 100%; padding: 12px 14px;
+      width: 100%; padding: 11px 12px;
       border: 1.5px solid #E2E8F0; border-radius: 10px;
-      font-size: 14px; font-family: inherit; color: #0F172A;
-      background: white; outline: none; transition: all 0.2s;
+      font-size: 13px; font-family: inherit; color: #0F172A;
+      background: white; outline: none; transition: all 0.2s ease;
     }
     .form-control:focus { border-color: #4F46E5; box-shadow: 0 0 0 3px rgba(79,70,229,0.1); transform: translateY(-1px); }
     .form-control::placeholder { color: #94A3B8; }
     .input-wrap { position: relative; }
-    .input-wrap input { padding-right: 44px; }
+    .input-wrap input { padding-right: 40px; }
     .toggle-pass {
-      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
       cursor: pointer; color: #94A3B8; border: none; background: none;
-      font-size: 14px; padding: 4px; transition: color 0.2s;
+      font-size: 13px; padding: 4px; transition: color 0.2s;
     }
     .toggle-pass:hover { color: #4F46E5; }
 
     .input-icon-wrap { position: relative; }
-    .input-icon-wrap .form-control { padding-left: 40px; }
+    .input-icon-wrap .form-control { padding-left: 38px; }
     .input-icon {
-      position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
-      color: #94A3B8; font-size: 14px; pointer-events: none; transition: color 0.2s;
+      position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+      color: #94A3B8; font-size: 13px; pointer-events: none; transition: color 0.2s;
     }
     .input-icon-wrap .form-control:focus ~ .input-icon { color: #4F46E5; }
 
+    /* ── Remember / Forgot Row ── */
     .remember-row {
       display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 20px;
+      margin-bottom: 14px;
     }
-    .remember-me { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+    .remember-me { display: flex; align-items: center; gap: 6px; cursor: pointer; }
     .remember-me input[type="checkbox"] {
-      width: 16px; height: 16px; border-radius: 4px; cursor: pointer;
-      accent-color: #4F46E5;
+      width: 15px; height: 15px; border-radius: 4px; cursor: pointer; accent-color: #4F46E5;
     }
-    .remember-me span { font-size: 13px; color: #64748B; font-weight: 500; }
-    .forgot a { font-size: 13px; color: #4F46E5; text-decoration: none; font-weight: 700; }
+    .remember-me span { font-size: 12px; color: #64748B; font-weight: 500; }
+    .forgot a { font-size: 12px; color: #4F46E5; text-decoration: none; font-weight: 700; }
     .forgot a:hover { text-decoration: underline; }
 
-    .btn-login {
-      width: 100%; padding: 14px 20px;
+    /* ── Primary Button ── */
+    .btn-primary {
+      width: 100%; padding: 12px 16px;
       background: linear-gradient(135deg, #4F46E5, #7C3AED);
-      color: white; border: none; border-radius: 12px;
-      font-size: 15px; font-weight: 700; cursor: pointer;
-      font-family: inherit; transition: all 0.2s;
+      color: white; border: none; border-radius: 10px;
+      font-size: 14px; font-weight: 700; cursor: pointer;
+      font-family: inherit; transition: all 0.25s ease;
       display: flex; align-items: center; justify-content: center; gap: 8px;
       position: relative; overflow: hidden;
+      flex-shrink: 0;
     }
-    .btn-login:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(79,70,229,0.35); }
-    .btn-login:active { transform: translateY(0); }
-    .btn-login:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
-    .btn-login::after {
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(79,70,229,0.35); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; box-shadow: none; }
+    .btn-primary::after {
       content: ''; position: absolute; top: 50%; left: 50%;
-      width: 0; height: 0; background: rgba(255,255,255,0.2);
+      width: 0; height: 0; background: rgba(255,255,255,0.15);
       border-radius: 50%; transform: translate(-50%, -50%);
-      transition: width 0.4s, height 0.4s;
+      transition: width 0.5s, height 0.5s;
     }
-    .btn-login:hover::after { width: 300%; height: 300%; }
+    .btn-primary:hover::after { width: 300%; height: 300%; }
 
-    .divider { text-align: center; color: #94A3B8; font-size: 12px; font-weight: 600; position: relative; margin: 18px 0; }
-    .divider::before, .divider::after { content: ''; position: absolute; top: 50%; width: 38%; height: 1px; background: #E2E8F0; }
+    /* ── Divider ── */
+    .divider {
+      text-align: center; color: #94A3B8; font-size: 11px; font-weight: 600;
+      position: relative; margin: 14px 0; flex-shrink: 0;
+    }
+    .divider::before, .divider::after {
+      content: ''; position: absolute; top: 50%; width: 36%; height: 1px; background: #E2E8F0;
+    }
     .divider::before { left: 0; }
     .divider::after { right: 0; }
 
-    .social-login { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+    /* ── Social Login ── */
+    .social-login { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px; flex-shrink: 0; }
     .social-btn {
-      display: flex; align-items: center; justify-content: center; gap: 8px;
-      padding: 11px 8px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 10px 6px; border-radius: 8px;
       border: 1.5px solid #E2E8F0; cursor: pointer;
-      font-size: 12px; font-weight: 700; font-family: inherit;
-      background: white; color: #374151; transition: all 0.2s;
+      font-size: 11px; font-weight: 700; font-family: inherit;
+      background: white; color: #374151; transition: all 0.2s ease;
     }
-    .social-btn:hover { border-color: #4F46E5; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
-    .social-btn img, .social-btn svg { width: 18px; height: 18px; }
+    .social-btn:hover { border-color: #4F46E5; transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+    .social-btn img, .social-btn svg { width: 16px; height: 16px; }
     .social-btn.microsoft:hover { border-color: #00A4EF; color: #00A4EF; }
     .social-btn.github:hover { border-color: #24292E; color: #24292E; }
 
+    /* ── Biometric Button ── */
     .biometric-btn {
-      width: 100%; padding: 12px;
+      width: 100%; padding: 10px;
       background: rgba(79,70,229,0.05); border: 1.5px dashed #4F46E5;
-      border-radius: 10px; cursor: pointer;
-      font-size: 13px; font-weight: 700; font-family: inherit;
-      color: #4F46E5; transition: all 0.2s;
-      display: none; align-items: center; justify-content: center; gap: 8px;
+      border-radius: 8px; cursor: pointer;
+      font-size: 12px; font-weight: 700; font-family: inherit;
+      color: #4F46E5; transition: all 0.2s ease;
+      display: none; align-items: center; justify-content: center; gap: 6px;
+      margin-bottom: 10px; flex-shrink: 0;
     }
     .biometric-btn:hover { background: rgba(79,70,229,0.1); transform: translateY(-1px); }
     .biometric-btn.show-bio { display: flex; }
 
-    .login-panel { display: none; }
-    .login-panel.active-panel { display: block; animation: fadeIn 0.3s ease; }
+    /* ── Trust Device ── */
+    .trust-device {
+      display: flex; align-items: center; gap: 6px;
+      margin-bottom: 12px; padding: 7px 10px;
+      background: rgba(79,70,229,0.03); border-radius: 8px;
+    }
+    .trust-device input { accent-color: #4F46E5; width: 14px; height: 14px; }
+    .trust-device span { font-size: 11px; color: #64748B; }
 
-    .otp-inputs { display: flex; gap: 8px; justify-content: center; margin-bottom: 20px; }
+    /* ── Login Panels ── */
+    .login-panel { display: none; flex-direction: column; min-height: 0; }
+    .login-panel.active-panel { display: flex; animation: fadeIn 0.3s ease; }
+
+    /* ── OTP Inputs ── */
+    .otp-inputs { display: flex; gap: 8px; justify-content: center; margin-bottom: 14px; }
     .otp-input {
-      width: 48px; height: 52px; text-align: center;
-      border: 2px solid #E2E8F0; border-radius: 12px;
-      font-size: 20px; font-weight: 800; color: #0F172A;
-      outline: none; transition: all 0.2s; font-family: inherit;
+      width: 46px; height: 50px; text-align: center;
+      border: 2px solid #E2E8F0; border-radius: 10px;
+      font-size: 19px; font-weight: 800; color: #0F172A;
+      outline: none; transition: all 0.2s ease; font-family: inherit;
     }
     .otp-input:focus { border-color: #4F46E5; box-shadow: 0 0 0 3px rgba(79,70,229,0.1); }
     .otp-input.filled { border-color: #10B981; background: #F0FDF4; }
-    .otp-timer { text-align: center; font-size: 13px; color: #64748B; margin-bottom: 16px; }
+    .otp-timer { text-align: center; font-size: 12px; color: #64748B; margin-bottom: 12px; }
     .otp-timer strong { color: #4F46E5; }
     .resend-otp { color: #4F46E5; font-weight: 700; cursor: pointer; text-decoration: none; }
     .resend-otp:hover { text-decoration: underline; }
 
+    /* ── Messages ── */
     .error-msg {
-      background: #FEE2E2; color: #991B1B; font-size: 13px;
-      padding: 10px 14px; border-radius: 10px; margin-bottom: 14px;
-      display: none; align-items: center; gap: 8px;
+      background: #FEE2E2; color: #991B1B; font-size: 12px;
+      padding: 9px 12px; border-radius: 8px; margin-bottom: 12px;
+      display: none; align-items: center; gap: 7px; flex-shrink: 0;
     }
     .error-msg.show { display: flex; animation: shake 0.4s ease; }
     .success-msg {
-      background: #D1FAE5; color: #065F46; font-size: 13px;
-      padding: 10px 14px; border-radius: 10px; margin-bottom: 14px;
-      display: none; align-items: center; gap: 8px;
+      background: #D1FAE5; color: #065F46; font-size: 12px;
+      padding: 9px 12px; border-radius: 8px; margin-bottom: 12px;
+      display: none; align-items: center; gap: 7px; flex-shrink: 0;
     }
     .success-msg.show { display: flex; animation: fadeIn 0.3s ease; }
-
     .rate-limit-warning {
-      background: #FEF3C7; color: #92400E; font-size: 12px;
-      padding: 8px 12px; border-radius: 8px; margin-bottom: 14px;
-      display: none; align-items: center; gap: 8px;
+      background: #FEF3C7; color: #92400E; font-size: 11px;
+      padding: 7px 10px; border-radius: 8px; margin-bottom: 12px;
+      display: none; align-items: center; gap: 7px; flex-shrink: 0;
     }
     .rate-limit-warning.show { display: flex; }
 
-    .password-strength { margin-top: 8px; }
-    .strength-bar { height: 4px; border-radius: 2px; background: #E2E8F0; overflow: hidden; }
-    .strength-fill { height: 100%; border-radius: 2px; transition: all 0.3s; width: 0%; }
-    .strength-fill.weak { width: 25%; background: #EF4444; }
-    .strength-fill.fair { width: 50%; background: #F59E0B; }
-    .strength-fill.good { width: 75%; background: #3B82F6; }
-    .strength-fill.strong { width: 100%; background: #10B981; }
-    .strength-text { font-size: 11px; font-weight: 700; margin-top: 4px; }
-
-    .trust-device {
-      display: flex; align-items: center; gap: 8px;
-      margin-bottom: 16px; padding: 8px 12px;
-      background: rgba(79,70,229,0.03); border-radius: 8px;
-    }
-    .trust-device input { accent-color: #4F46E5; }
-    .trust-device span { font-size: 12px; color: #64748B; }
-
-    .back-home { text-align: center; margin-top: 14px; padding-top: 8px; flex-shrink: 0; }
-    .back-home a { font-size: 13px; color: #94A3B8; text-decoration: none; }
+    /* ── Back Home ── */
+    .back-home { text-align: center; margin-top: auto; padding-top: 12px; flex-shrink: 0; }
+    .back-home a { font-size: 12px; color: #94A3B8; text-decoration: none; }
     .back-home a:hover { color: #4F46E5; }
 
+    /* ── Session Warning Modal ── */
     .session-warning {
       display: none; position: fixed; inset: 0; z-index: 9999;
       background: rgba(15,23,42,0.8); backdrop-filter: blur(4px);
@@ -321,57 +354,40 @@
     }
     .session-warning.show { display: flex; }
     .session-warning-card {
-      background: white; border-radius: 20px; padding: 40px;
-      text-align: center; max-width: 360px; width: 90%;
+      background: white; border-radius: 18px; padding: 36px;
+      text-align: center; max-width: 340px; width: 90%;
       box-shadow: 0 25px 50px rgba(0,0,0,0.25);
       animation: scaleIn 0.3s ease;
     }
-    .session-warning-card i { font-size: 48px; color: #F59E0B; margin-bottom: 16px; }
-    .session-warning-card h3 { font-size: 20px; font-weight: 800; margin-bottom: 8px; color: #0F172A; }
-    .session-warning-card p { font-size: 14px; color: #64748B; margin-bottom: 20px; }
-    .session-warning-card .countdown { font-size: 36px; font-weight: 900; color: #4F46E5; }
+    .session-warning-card i { font-size: 44px; color: #F59E0B; margin-bottom: 14px; }
+    .session-warning-card h3 { font-size: 18px; font-weight: 800; margin-bottom: 6px; color: #0F172A; }
+    .session-warning-card p { font-size: 13px; color: #64748B; margin-bottom: 16px; }
+    .session-warning-card .countdown { font-size: 34px; font-weight: 900; color: #4F46E5; }
 
+    /* ── Spinner ── */
     .spinner {
-      width: 20px; height: 20px; border: 2px solid transparent;
+      width: 18px; height: 18px; border: 2px solid transparent;
       border-top-color: currentColor; border-radius: 50%;
       animation: spin 0.6s linear infinite; display: inline-block;
     }
 
+    /* ── Toast Container ── */
     #toast-container {
-      position: fixed; bottom: 24px; right: 24px; z-index: 9999;
-      display: flex; flex-direction: column; gap: 10px;
+      position: fixed; bottom: 20px; right: 20px; z-index: 9999;
+      display: flex; flex-direction: column; gap: 8px;
     }
     .toast {
-      display: flex; align-items: center; gap: 12px;
-      background: white; border-radius: 12px; padding: 12px 18px;
+      display: flex; align-items: center; gap: 10px;
+      background: white; border-radius: 10px; padding: 10px 16px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.15);
       border-left: 4px solid #4F46E5;
-      font-size: 13px; font-weight: 600; min-width: 280px;
+      font-size: 12px; font-weight: 600; min-width: 260px;
       animation: slideInRight 0.3s ease;
     }
     .toast.success { border-color: #10B981; }
     .toast.error { border-color: #EF4444; }
 
-    @media(max-width:768px) {
-      html, body { height: auto; min-height: 100%; }
-      body { align-items: flex-start; overflow-y: auto; padding: max(14px, env(safe-area-inset-top)) 14px max(14px, env(safe-area-inset-bottom)); }
-      .login-grid { grid-template-columns: 1fr; height: auto; min-height: auto; max-height: none; max-width: 520px; border-radius: 22px; }
-      .login-left { display: none; }
-      .login-right { padding: 32px 24px; min-height: auto; justify-content: flex-start; max-height: none; }
-      .role-grid { grid-template-columns: repeat(3, 1fr); }
-      .social-login { grid-template-columns: 1fr 1fr 1fr; }
-      .kbd-hint { display: none; }
-    }
-    @media(max-width:420px) {
-      .login-grid { border-radius: 18px; }
-      .login-right { padding: 26px 18px; }
-      .role-grid { grid-template-columns: repeat(2, 1fr); }
-      .role-btn { min-height: 62px; padding: 10px 6px; }
-      .otp-input { width: 40px; height: 44px; font-size: 16px; }
-      .social-login { grid-template-columns: 1fr; gap: 8px; }
-      .social-btn { padding: 12px; }
-    }
-
+    /* ── Animations ── */
     @keyframes fadeInUp {
       from { opacity: 0; transform: translateY(20px); }
       to { opacity: 1; transform: translateY(0); }
@@ -385,13 +401,70 @@
       25% { transform: translateX(-5px); }
       75% { transform: translateX(5px); }
     }
-    @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+
+    /* ── Responsive: Tablet ── */
+    @media (max-width: 860px) {
+      body { padding: 12px; align-items: center; }
+      .login-container { flex-direction: column; max-height: 95vh; }
+      .login-left { flex: none; padding: 28px 24px; }
+      .left-hero h1 { font-size: 22px; }
+      .left-hero p { font-size: 13px; }
+      .feature-list { gap: 8px; margin-top: 14px; }
+      .feature-item { font-size: 11px; }
+      .live-stats { gap: 8px; margin-top: 14px; }
+      .live-stat-card { padding: 10px; }
+      .live-stat-card .stat-num { font-size: 17px; }
+      .login-right { padding: 28px 24px; }
+    }
+
+    /* ── Responsive: Mobile ── */
+    @media (max-width: 600px) {
+      html, body { height: auto; min-height: 100%; overflow: hidden; }
+      body {
+        align-items: flex-start; padding: 0;
+        padding-top: max(10px, env(safe-area-inset-top));
+        padding-bottom: max(10px, env(safe-area-inset-bottom));
+      }
+      .login-container {
+        flex-direction: column; max-height: none; border-radius: 0;
+        width: 100%; max-width: 100%;
+      }
+      .login-left { display: none; }
+      .login-right {
+        padding: 24px 20px; min-height: 100vh; min-height: 100dvh;
+        justify-content: flex-start;
+      }
+      .role-grid { grid-template-columns: repeat(3, 1fr); gap: 5px; }
+      .role-btn { padding: 8px 4px; font-size: 9px; min-height: 56px; }
+      .role-btn i { font-size: 14px; }
+      .otp-input { width: 40px; height: 44px; font-size: 16px; }
+      .social-login { grid-template-columns: 1fr; gap: 6px; }
+      .social-btn { padding: 11px; }
+      .kbd-hint { display: none; }
+      .theme-toggle { top: 12px; right: 12px; width: 36px; height: 36px; font-size: 14px; }
+    }
+
+    /* ── Responsive: Small Mobile ── */
+    @media (max-width: 380px) {
+      .login-right { padding: 20px 16px; }
+      .role-grid { grid-template-columns: repeat(2, 1fr); }
+      .otp-inputs { gap: 5px; }
+      .otp-input { width: 36px; height: 40px; font-size: 15px; }
+    }
+
+    /* ── Safe area for notched phones ── */
+    @supports (padding: max(0px)) {
+      .login-right {
+        padding-left: max(20px, env(safe-area-inset-left));
+        padding-right: max(20px, env(safe-area-inset-right));
+      }
+    }
   </style>
 </head>
 <body>
 <canvas id="particles-canvas"></canvas>
 
-<button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme (Ctrl+D)">
+<button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme (Ctrl+D)" aria-label="Toggle theme">
   <i class="fas fa-moon" id="themeIcon"></i>
 </button>
 
@@ -399,10 +472,11 @@
   <kbd>Enter</kbd> Submit &nbsp; <kbd>Ctrl+D</kbd> Theme &nbsp; <kbd>Esc</kbd> Reset
 </div>
 
-<div class="login-grid">
+<div class="login-container">
+  <!-- ── Left Panel ── -->
   <div class="login-left">
     <div class="brand">
-      <div class="brand-icon"><img src="../icons/icon.svg" alt="VishvaERP" style="width:28px;height:28px"></div>
+      <div class="brand-icon"><img src="../icons/icon.svg" alt="VishvaERP" style="width:26px;height:26px"></div>
       <div class="brand-name">Vishva<span>ERP</span></div>
     </div>
     <div class="left-hero">
@@ -411,10 +485,10 @@
     </div>
     <div class="feature-list">
       <div class="feature-item"><i class="fas fa-check-circle"></i> Role-based access for 5 user types</div>
-      <div class="feature-item"><i class="fas fa-check-circle"></i> Real-time attendance & fee management</div>
-      <div class="feature-item"><i class="fas fa-check-circle"></i> AI-powered exam & content generation</div>
+      <div class="feature-item"><i class="fas fa-check-circle"></i> Real-time attendance &amp; fee management</div>
+      <div class="feature-item"><i class="fas fa-check-circle"></i> AI-powered exam &amp; content generation</div>
       <div class="feature-item"><i class="fas fa-check-circle"></i> Multi-college support with full isolation</div>
-      <div class="feature-item"><i class="fas fa-check-circle"></i> Live messaging & notification system</div>
+      <div class="feature-item"><i class="fas fa-check-circle"></i> Live messaging &amp; notification system</div>
     </div>
     <div class="live-stats">
       <div class="live-stat-card"><div class="stat-num">50K+</div><div class="stat-lbl">Active Users</div></div>
@@ -424,6 +498,7 @@
     </div>
   </div>
 
+  <!-- ── Right Panel ── -->
   <div class="login-right">
     <h2>Welcome back</h2>
     <p class="subtitle">Sign in to your VishvaERP account</p>
@@ -447,7 +522,7 @@
       <span>Too many attempts. Please wait <strong id="rateLimitTimer">15:00</strong></span>
     </div>
 
-    <!-- PASSWORD PANEL -->
+    <!-- ═══════ PASSWORD PANEL ═══════ -->
     <div class="login-panel active-panel" id="passwordPanel">
       <div class="role-grid" id="roleGrid">
         <button class="role-btn active" onclick="selectRole(this,'superadmin','#5B21B6','#EDE9FE')" data-role="superadmin" style="--role-color:#5B21B6;--role-bg:#EDE9FE">
@@ -494,7 +569,7 @@
           <input type="checkbox" id="trustDevice">
           <span>Trust this device for 30 days</span>
         </div>
-        <button type="submit" class="btn-login" id="loginBtn">
+        <button type="submit" class="btn-primary" id="loginBtn">
           <i class="fas fa-lock"></i> Sign In Securely
         </button>
       </form>
@@ -504,11 +579,11 @@
       <div class="social-login">
         <div id="googleSignInBtn" style="width:100%"></div>
         <button class="social-btn microsoft" onclick="socialLogin('microsoft')">
-          <svg viewBox="0 0 24 24" width="18" height="18"><path fill="#F25022" d="M1 1h10v10H1z"/><path fill="#00A4EF" d="M1 13h10v10H1z"/><path fill="#7FBA00" d="M13 1h10v10H13z"/><path fill="#FFB900" d="M13 13h10v10H13z"/></svg>
+          <svg viewBox="0 0 24 24" width="16" height="16"><path fill="#F25022" d="M1 1h10v10H1z"/><path fill="#00A4EF" d="M1 13h10v10H1z"/><path fill="#7FBA00" d="M13 1h10v10H13z"/><path fill="#FFB900" d="M13 13h10v10H13z"/></svg>
           Microsoft
         </button>
         <button class="social-btn github" onclick="socialLogin('github')">
-          <i class="fab fa-github" style="font-size:18px"></i>
+          <i class="fab fa-github" style="font-size:16px"></i>
           GitHub
         </button>
       </div>
@@ -520,20 +595,20 @@
       <div class="back-home"><a href="../index.html"><i class="fas fa-arrow-left" style="margin-right:4px"></i>Back to Homepage</a></div>
     </div>
 
-    <!-- OTP PANEL -->
+    <!-- ═══════ OTP PANEL ═══════ -->
     <div class="login-panel" id="otpPanel">
       <form id="otpForm">
         <div class="form-group input-icon-wrap">
           <input class="form-control" type="email" id="otpEmail" placeholder="Enter your email" required autocomplete="email">
           <i class="fas fa-envelope input-icon"></i>
         </div>
-        <button type="button" class="btn-login" id="sendOtpBtn" onclick="sendOTP()" style="margin-bottom:20px">
+        <button type="button" class="btn-primary" id="sendOtpBtn" onclick="sendOTP()" style="margin-bottom:16px">
           <i class="fas fa-paper-plane"></i> Send OTP
         </button>
       </form>
 
       <div id="otpInputSection" style="display:none">
-        <p style="text-align:center;font-size:13px;color:#64748B;margin-bottom:16px">
+        <p style="text-align:center;font-size:12px;color:#64748B;margin-bottom:14px">
           Enter the 6-digit code sent to <strong id="otpEmailDisplay"></strong>
         </p>
         <div class="otp-inputs">
@@ -551,7 +626,7 @@
           <a class="resend-otp" onclick="sendOTP()">Resend OTP</a>
         </div>
 
-        <div class="role-grid" id="otpRoleGrid" style="margin-top:16px">
+        <div class="role-grid" id="otpRoleGrid" style="margin-top:14px">
           <button class="role-btn active" onclick="selectOtpRole(this,'superadmin','#5B21B6','#EDE9FE')" data-role="superadmin" style="--role-color:#5B21B6;--role-bg:#EDE9FE">
             <i class="fas fa-satellite-dish"></i>Super Admin
           </button>
@@ -569,29 +644,29 @@
           </button>
         </div>
 
-        <button type="button" class="btn-login" id="verifyOtpBtn" onclick="verifyOTP()" style="margin-top:16px">
-          <i class="fas fa-check-circle"></i> Verify & Sign In
+        <button type="button" class="btn-primary" id="verifyOtpBtn" onclick="verifyOTP()" style="margin-top:14px">
+          <i class="fas fa-check-circle"></i> Verify &amp; Sign In
         </button>
       </div>
 
       <div class="back-home"><a href="../index.html"><i class="fas fa-arrow-left" style="margin-right:4px"></i>Back to Homepage</a></div>
     </div>
 
-    <!-- PHONE PANEL -->
+    <!-- ═══════ PHONE PANEL ═══════ -->
     <div class="login-panel" id="phonePanel">
       <form id="phoneOtpForm">
         <div class="form-group input-icon-wrap">
           <input class="form-control" type="tel" id="phoneInput" placeholder="Enter phone number" required autocomplete="tel" pattern="\+[0-9]{6,14}">
           <i class="fas fa-phone input-icon"></i>
         </div>
-        <p style="font-size:11px;color:#94A3B8;margin-bottom:12px">Include country code, e.g. +919876543210</p>
-        <button type="button" class="btn-login" id="sendPhoneOtpBtn" onclick="sendPhoneOTP()" style="margin-bottom:20px">
+        <p style="font-size:10px;color:#94A3B8;margin-bottom:10px">Include country code, e.g. +919876543210</p>
+        <button type="button" class="btn-primary" id="sendPhoneOtpBtn" onclick="sendPhoneOTP()" style="margin-bottom:16px">
           <i class="fab fa-whatsapp"></i> Send OTP via WhatsApp
         </button>
       </form>
 
       <div id="phoneOtpInputSection" style="display:none">
-        <p style="text-align:center;font-size:13px;color:#64748B;margin-bottom:16px">
+        <p style="text-align:center;font-size:12px;color:#64748B;margin-bottom:14px">
           Enter the 6-digit code sent to <strong id="phoneDisplay"></strong>
         </p>
         <div class="otp-inputs">
@@ -609,7 +684,7 @@
           <a class="resend-otp" onclick="sendPhoneOTP()">Resend OTP</a>
         </div>
 
-        <div class="role-grid" id="phoneRoleGrid" style="margin-top:16px">
+        <div class="role-grid" id="phoneRoleGrid" style="margin-top:14px">
           <button class="role-btn active" onclick="selectPhoneRole(this,'student','#0369A1','#E0F2FE')" data-role="student" style="--role-color:#0369A1;--role-bg:#E0F2FE">
             <i class="fas fa-user-graduate"></i>Student
           </button>
@@ -624,8 +699,8 @@
           </button>
         </div>
 
-        <button type="button" class="btn-login" id="verifyPhoneOtpBtn" onclick="verifyPhoneOTP()" style="margin-top:16px">
-          <i class="fas fa-check-circle"></i> Verify & Sign In
+        <button type="button" class="btn-primary" id="verifyPhoneOtpBtn" onclick="verifyPhoneOTP()" style="margin-top:14px">
+          <i class="fas fa-check-circle"></i> Verify &amp; Sign In
         </button>
       </div>
 
@@ -634,14 +709,15 @@
   </div>
 </div>
 
+<!-- ── Session Warning Modal ── -->
 <div class="session-warning" id="sessionWarning">
   <div class="session-warning-card">
     <i class="fas fa-exclamation-triangle"></i>
     <h3>Session Expiring</h3>
     <p>Your session will expire in</p>
     <div class="countdown" id="sessionCountdown">5:00</div>
-    <p style="margin-top:12px">Save your work before timeout.</p>
-    <button class="btn-login" onclick="dismissSessionWarning()" style="margin-top:16px;max-width:200px;margin-left:auto;margin-right:auto">
+    <p style="margin-top:10px">Save your work before timeout.</p>
+    <button class="btn-primary" onclick="dismissSessionWarning()" style="margin-top:14px;max-width:180px;margin-left:auto;margin-right:auto">
       <i class="fas fa-check"></i> Understood
     </button>
   </div>
@@ -671,6 +747,7 @@
     parent: '/pages/parent/dashboard.html',
   };
 
+  // ── Particles ──
   (function initParticles() {
     const canvas = document.getElementById('particles-canvas');
     const ctx = canvas.getContext('2d');
@@ -700,7 +777,7 @@
         ctx.fill();
       }
     }
-    for (let i = 0; i < 60; i++) particles.push(new Particle());
+    for (let i = 0; i < 50; i++) particles.push(new Particle());
     function animate() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       particles.forEach(p => { p.update(); p.draw(); });
@@ -709,12 +786,14 @@
     animate();
   })();
 
+  // ── Theme Toggle ──
   function toggleTheme() {
     document.body.classList.toggle('light-mode');
     const icon = document.getElementById('themeIcon');
     icon.className = document.body.classList.contains('light-mode') ? 'fas fa-sun' : 'fas fa-moon';
   }
 
+  // ── Mode Switching ──
   function switchMode(mode) {
     currentMode = mode;
     document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
@@ -722,12 +801,12 @@
     if (mode === 'password') tabs[0].classList.add('active');
     else if (mode === 'otp') tabs[1].classList.add('active');
     else if (mode === 'phone') tabs[2].classList.add('active');
-
     document.querySelectorAll('.login-panel').forEach(p => p.classList.remove('active-panel'));
     document.getElementById(mode === 'password' ? 'passwordPanel' : mode === 'otp' ? 'otpPanel' : 'phonePanel').classList.add('active-panel');
     hideMessages();
   }
 
+  // ── Role Selection ──
   function selectRole(btn, role, color, bg) {
     document.querySelectorAll('#roleGrid .role-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
@@ -745,6 +824,7 @@
     selectedPhoneRole = role;
   }
 
+  // ── Password Toggle ──
   function togglePassword(btn) {
     const input = btn.previousElementSibling;
     const isPassword = input.type === 'password';
@@ -752,6 +832,7 @@
     btn.querySelector('i').className = isPassword ? 'fas fa-eye-slash' : 'fas fa-eye';
   }
 
+  // ── Messages ──
   function showError(msg) {
     hideMessages();
     document.getElementById('errorText').textContent = msg;
@@ -768,6 +849,7 @@
     document.getElementById('successMsg').classList.remove('show');
   }
 
+  // ── Toast ──
   function showToast(message, type = 'info') {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
@@ -777,12 +859,12 @@
     setTimeout(() => toast.remove(), 4000);
   }
 
+  // ── Rate Limit ──
   function handleRateLimit(seconds) {
     const warning = document.getElementById('rateLimitWarning');
     const timer = document.getElementById('rateLimitTimer');
     warning.classList.add('show');
     document.getElementById('loginBtn').disabled = true;
-
     let remaining = seconds;
     const interval = setInterval(() => {
       remaining--;
@@ -798,10 +880,10 @@
     }, 1000);
   }
 
+  // ── Forgot Password ──
   async function showForgotToast() {
     const email = document.getElementById('email').value.trim() || window.prompt('Enter your account email for password reset:');
     if (!email) { showError('Please enter your email address first.'); return; }
-
     showToast('Sending password reset link...', 'info');
     try {
       const res = await fetch(`${API_URL}/auth/forgot-password`, {
@@ -817,6 +899,20 @@
     }
   }
 
+  // ── Device Fingerprint ──
+  async function getDeviceFingerprint() {
+    const components = [
+      navigator.userAgent, navigator.language,
+      screen.width + 'x' + screen.height, screen.colorDepth,
+      new Date().getTimezoneOffset(), navigator.hardwareConcurrency || 'unknown'
+    ].join('|');
+    const encoder = new TextEncoder();
+    const data = encoder.encode(components);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  // ═══════ PASSWORD LOGIN ═══════
   document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = document.getElementById('loginBtn');
@@ -834,18 +930,14 @@
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password, rememberMe, trustDevice, deviceFingerprint: await getDeviceFingerprint() })
       });
-
       if (res.status === 429) {
         const data = await res.json();
-        const retryAfter = parseInt(data.retryAfter) || 900;
-        handleRateLimit(retryAfter);
+        handleRateLimit(parseInt(data.retryAfter) || 900);
         showError('Too many failed attempts. Account temporarily locked.');
         return;
       }
-
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || data.errors?.[0]?.msg || 'Login failed');
-
       localStorage.setItem('erp_token', data.token);
       localStorage.setItem('erp_user', JSON.stringify(data.user));
       localStorage.setItem('token', data.token);
@@ -854,7 +946,6 @@
         localStorage.setItem('erp_refresh_token', data.refreshToken);
         localStorage.setItem('refreshToken', data.refreshToken);
       }
-
       showSuccess('Login successful! Redirecting...');
       setTimeout(() => {
         const role = data.user.role;
@@ -867,23 +958,20 @@
     } catch (err) {
       showError(err.message);
       failedAttempts++;
-      if (failedAttempts >= 3) {
-        document.getElementById('biometricBtn').classList.add('show-bio');
-      }
+      if (failedAttempts >= 3) document.getElementById('biometricBtn').classList.add('show-bio');
     } finally {
       btn.disabled = false;
       btn.innerHTML = '<i class="fas fa-lock"></i> Sign In Securely';
     }
   });
 
+  // ═══════ EMAIL OTP ═══════
   async function sendOTP() {
     const email = document.getElementById('otpEmail').value.trim();
     if (!email) { showError('Please enter your email address.'); return; }
-
     const btn = document.getElementById('sendOtpBtn');
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner"></span> Sending...';
-
     try {
       const res = await fetch(`${API_URL}/auth/send-otp`, {
         method: 'POST',
@@ -892,12 +980,10 @@
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Failed to send OTP');
-
       document.getElementById('otpInputSection').style.display = 'block';
       document.getElementById('otpEmailDisplay').textContent = email;
       document.getElementById('otp1').focus();
       showSuccess('OTP sent to your email!');
-
       startOtpCountdown();
     } catch (error) {
       showError(error.message);
@@ -912,10 +998,8 @@
     const countdownEl = document.getElementById('otpCountdown');
     const timerEl = document.getElementById('otpTimer');
     const resendEl = document.getElementById('otpResend');
-
     timerEl.style.display = 'block';
     resendEl.style.display = 'none';
-
     if (otpCountdownInterval) clearInterval(otpCountdownInterval);
     otpCountdownInterval = setInterval(() => {
       seconds--;
@@ -932,11 +1016,9 @@
     const email = document.getElementById('otpEmail').value.trim();
     const otp = ['otp1','otp2','otp3','otp4','otp5','otp6'].map(id => document.getElementById(id).value).join('');
     if (otp.length !== 6) { showError('Please enter the complete 6-digit OTP.'); return; }
-
     const btn = document.getElementById('verifyOtpBtn');
     btn.disabled = true;
     btn.innerHTML = '<span class="spinner"></span> Verifying...';
-
     try {
       const res = await fetch(`${API_URL}/auth/verify-otp-login`, {
         method: 'POST',
@@ -945,7 +1027,6 @@
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Invalid OTP');
-
       localStorage.setItem('erp_token', data.token);
       localStorage.setItem('erp_user', JSON.stringify(data.user));
       localStorage.setItem('token', data.token);
@@ -954,11 +1035,9 @@
         localStorage.setItem('erp_refresh_token', data.refreshToken);
         localStorage.setItem('refreshToken', data.refreshToken);
       }
-
       showSuccess('OTP verified! Redirecting...');
       setTimeout(() => {
-        const role = data.user.role;
-        window.location.href = roleRedirects[role] || roleRedirects['student'];
+        window.location.href = roleRedirects[data.user.role] || roleRedirects['student'];
       }, 1000);
     } catch (error) {
       showError(error.message);
@@ -968,99 +1047,131 @@
     }
   }
 
+  // ── OTP Auto-focus & Paste ──
   document.querySelectorAll('#otpPanel .otp-input').forEach((input, index, inputs) => {
     input.addEventListener('input', (e) => {
       const val = e.target.value.replace(/[^0-9]/g, '');
       e.target.value = val;
-      if (val) {
-        e.target.classList.add('filled');
-        if (index < inputs.length - 1) inputs[index + 1].focus();
-      } else {
-        e.target.classList.remove('filled');
-      }
+      if (val) { e.target.classList.add('filled'); if (index < inputs.length - 1) inputs[index + 1].focus(); }
+      else { e.target.classList.remove('filled'); }
     });
     input.addEventListener('keydown', (e) => {
       if (e.key === 'Backspace' && !e.target.value && index > 0) {
-        inputs[index - 1].focus();
-        inputs[index - 1].value = '';
-        inputs[index - 1].classList.remove('filled');
+        inputs[index - 1].focus(); inputs[index - 1].value = ''; inputs[index - 1].classList.remove('filled');
       }
     });
     input.addEventListener('paste', (e) => {
       e.preventDefault();
       const paste = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '');
-      for (let i = 0; i < Math.min(paste.length, 6); i++) {
-        inputs[i].value = paste[i];
-        inputs[i].classList.add('filled');
-      }
+      for (let i = 0; i < Math.min(paste.length, 6); i++) { inputs[i].value = paste[i]; inputs[i].classList.add('filled'); }
       if (paste.length >= 6) inputs[5].focus();
     });
   });
 
+  // ═══════ PHONE OTP ═══════
   document.querySelectorAll('#phonePanel .phone-otp').forEach((input, index, inputs) => {
     input.addEventListener('input', (e) => {
       const val = e.target.value.replace(/[^0-9]/g, '');
       e.target.value = val;
-      if (val) {
-        e.target.classList.add('filled');
-        if (index < inputs.length - 1) inputs[index + 1].focus();
-      } else {
-        e.target.classList.remove('filled');
-      }
+      if (val) { e.target.classList.add('filled'); if (index < inputs.length - 1) inputs[index + 1].focus(); }
+      else { e.target.classList.remove('filled'); }
     });
     input.addEventListener('keydown', (e) => {
       if (e.key === 'Backspace' && !e.target.value && index > 0) {
-        inputs[index - 1].focus();
-        inputs[index - 1].value = '';
-        inputs[index - 1].classList.remove('filled');
+        inputs[index - 1].focus(); inputs[index - 1].value = ''; inputs[index - 1].classList.remove('filled');
       }
     });
     input.addEventListener('paste', (e) => {
       e.preventDefault();
       const paste = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '');
-      for (let i = 0; i < Math.min(paste.length, 6); i++) {
-        inputs[i].value = paste[i];
-        inputs[i].classList.add('filled');
-      }
+      for (let i = 0; i < Math.min(paste.length, 6); i++) { inputs[i].value = paste[i]; inputs[i].classList.add('filled'); }
       if (paste.length >= 6) inputs[5].focus();
     });
   });
 
-  async function getDeviceFingerprint() {
-    const components = [
-      navigator.userAgent,
-      navigator.language,
-      screen.width + 'x' + screen.height,
-      screen.colorDepth,
-      new Date().getTimezoneOffset(),
-      navigator.hardwareConcurrency || 'unknown'
-    ].join('|');
-    const encoder = new TextEncoder();
-    const data = encoder.encode(components);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
-  }
-
-  async function startBiometric() {
-    if (!window.PublicKeyCredential) {
-      showToast('Biometric authentication is not supported on this device.', 'error');
-      return;
-    }
+  async function sendPhoneOTP() {
+    const phone = document.getElementById('phoneInput').value.trim();
+    if (!phone) { showError('Please enter your phone number.'); return; }
+    if (!/^\+[0-9]{6,14}$/.test(phone)) { showError('Include country code, e.g. +919876543210'); return; }
+    const btn = document.getElementById('sendPhoneOtpBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Sending via WhatsApp...';
     try {
-      showToast('Biometric login is available for configured accounts.', 'info');
-    } catch (e) {
-      showToast('Biometric authentication failed.', 'error');
+      const res = await fetch(`${API_URL}/auth/send-phone-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Failed to send OTP');
+      document.getElementById('phoneOtpInputSection').style.display = 'block';
+      document.getElementById('phoneDisplay').textContent = phone;
+      document.getElementById('pOtp1').focus();
+      showSuccess('OTP sent via WhatsApp!');
+      startPhoneOtpCountdown();
+    } catch (error) {
+      showError(error.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fab fa-whatsapp"></i> Send OTP via WhatsApp';
     }
   }
 
-  function socialLogin(provider) {
-    if (provider === 'google') {
-      document.getElementById('googleSignInBtn')?.querySelector('div[role="button"]')?.click();
-    } else {
-      showToast(`${provider.charAt(0).toUpperCase() + provider.slice(1)} login will be available soon.`, 'info');
+  function startPhoneOtpCountdown() {
+    let seconds = 60;
+    const countdownEl = document.getElementById('phoneOtpCountdown');
+    const timerEl = document.getElementById('phoneOtpTimer');
+    const resendEl = document.getElementById('phoneOtpResend');
+    timerEl.style.display = 'block';
+    resendEl.style.display = 'none';
+    if (phoneOtpCountdownInterval) clearInterval(phoneOtpCountdownInterval);
+    phoneOtpCountdownInterval = setInterval(() => {
+      seconds--;
+      countdownEl.textContent = seconds;
+      if (seconds <= 0) {
+        clearInterval(phoneOtpCountdownInterval);
+        timerEl.style.display = 'none';
+        resendEl.style.display = 'block';
+      }
+    }, 1000);
+  }
+
+  async function verifyPhoneOTP() {
+    const phone = document.getElementById('phoneInput').value.trim();
+    const otp = ['pOtp1','pOtp2','pOtp3','pOtp4','pOtp5','pOtp6'].map(id => document.getElementById(id).value).join('');
+    if (otp.length !== 6) { showError('Please enter the complete 6-digit OTP.'); return; }
+    const btn = document.getElementById('verifyPhoneOtpBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Verifying...';
+    try {
+      const res = await fetch(`${API_URL}/auth/verify-phone-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, otp, role: selectedPhoneRole })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Invalid OTP');
+      localStorage.setItem('erp_token', data.token);
+      localStorage.setItem('erp_user', JSON.stringify(data.user));
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      if (data.refreshToken) {
+        localStorage.setItem('erp_refresh_token', data.refreshToken);
+        localStorage.setItem('refreshToken', data.refreshToken);
+      }
+      showSuccess('Login successful! Redirecting...');
+      setTimeout(() => {
+        window.location.href = roleRedirects[data.user.role] || '/pages/student/dashboard.html';
+      }, 1000);
+    } catch (error) {
+      showError(error.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-check-circle"></i> Verify & Sign In';
     }
   }
 
+  // ═══════ GOOGLE SIGN-IN ═══════
   function handleGoogleCredentialResponse(response) {
     fetch(`${API_URL}/auth/google-login`, {
       method: 'POST',
@@ -1108,6 +1219,29 @@
   }
   initGoogleSignIn();
 
+  // ── Social Login Placeholder ──
+  function socialLogin(provider) {
+    if (provider === 'google') {
+      document.getElementById('googleSignInBtn')?.querySelector('div[role="button"]')?.click();
+    } else {
+      showToast(`${provider.charAt(0).toUpperCase() + provider.slice(1)} login will be available soon.`, 'info');
+    }
+  }
+
+  // ── Biometric Login ──
+  async function startBiometric() {
+    if (!window.PublicKeyCredential) {
+      showToast('Biometric authentication is not supported on this device.', 'error');
+      return;
+    }
+    try {
+      showToast('Biometric login is available for configured accounts.', 'info');
+    } catch (e) {
+      showToast('Biometric authentication failed.', 'error');
+    }
+  }
+
+  // ── Session Timer ──
   let sessionTimeout;
   function startSessionTimer() {
     sessionTimeout = setTimeout(() => {
@@ -1118,7 +1252,9 @@
     document.getElementById('sessionWarning').classList.remove('show');
     startSessionTimer();
   }
+  startSessionTimer();
 
+  // ── Keyboard Shortcuts ──
   document.addEventListener('keydown', (e) => {
     if (e.key === 'd' && (e.ctrlKey || e.metaKey)) {
       e.preventDefault();
@@ -1130,15 +1266,19 @@
     }
   });
 
+  // ── Form Focus Effects ──
   document.querySelectorAll('.form-control').forEach(input => {
     input.addEventListener('focus', function() {
-      this.closest('.form-group').style.transform = 'translateY(-2px)';
+      const group = this.closest('.form-group');
+      if (group) group.style.transform = 'translateY(-1px)';
     });
     input.addEventListener('blur', function() {
-      this.closest('.form-group').style.transform = 'translateY(0)';
+      const group = this.closest('.form-group');
+      if (group) group.style.transform = 'translateY(0)';
     });
   });
 
+  // ── Auto-redirect if already logged in ──
   if (localStorage.getItem('erp_token')) {
     try {
       const user = JSON.parse(localStorage.getItem('erp_user'));
@@ -1147,97 +1287,6 @@
       }
     } catch (e) {}
   }
-
-  async function sendPhoneOTP() {
-    const phone = document.getElementById('phoneInput').value.trim();
-    if (!phone) { showError('Please enter your phone number.'); return; }
-    if (!/^\+[0-9]{6,14}$/.test(phone)) { showError('Include country code, e.g. +919876543210'); return; }
-
-    const btn = document.getElementById('sendPhoneOtpBtn');
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span> Sending via WhatsApp...';
-
-    try {
-      const res = await fetch(`${API_URL}/auth/send-phone-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone })
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Failed to send OTP');
-
-      document.getElementById('phoneOtpInputSection').style.display = 'block';
-      document.getElementById('phoneDisplay').textContent = phone;
-      document.getElementById('pOtp1').focus();
-      showSuccess('OTP sent via WhatsApp!');
-      startPhoneOtpCountdown();
-    } catch (error) {
-      showError(error.message);
-    } finally {
-      btn.disabled = false;
-      btn.innerHTML = '<i class="fab fa-whatsapp"></i> Send OTP via WhatsApp';
-    }
-  }
-
-  function startPhoneOtpCountdown() {
-    let seconds = 60;
-    const countdownEl = document.getElementById('phoneOtpCountdown');
-    const timerEl = document.getElementById('phoneOtpTimer');
-    const resendEl = document.getElementById('phoneOtpResend');
-    timerEl.style.display = 'block';
-    resendEl.style.display = 'none';
-    if (phoneOtpCountdownInterval) clearInterval(phoneOtpCountdownInterval);
-    phoneOtpCountdownInterval = setInterval(() => {
-      seconds--;
-      countdownEl.textContent = seconds;
-      if (seconds <= 0) {
-        clearInterval(phoneOtpCountdownInterval);
-        timerEl.style.display = 'none';
-        resendEl.style.display = 'block';
-      }
-    }, 1000);
-  }
-
-  async function verifyPhoneOTP() {
-    const phone = document.getElementById('phoneInput').value.trim();
-    const otp = ['pOtp1','pOtp2','pOtp3','pOtp4','pOtp5','pOtp6'].map(id => document.getElementById(id).value).join('');
-    if (otp.length !== 6) { showError('Please enter the complete 6-digit OTP.'); return; }
-
-    const btn = document.getElementById('verifyPhoneOtpBtn');
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner"></span> Verifying...';
-
-    try {
-      const res = await fetch(`${API_URL}/auth/verify-phone-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, otp, role: selectedPhoneRole })
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || 'Invalid OTP');
-
-      localStorage.setItem('erp_token', data.token);
-      localStorage.setItem('erp_user', JSON.stringify(data.user));
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
-      if (data.refreshToken) {
-        localStorage.setItem('erp_refresh_token', data.refreshToken);
-        localStorage.setItem('refreshToken', data.refreshToken);
-      }
-
-      showSuccess('Login successful! Redirecting...');
-      setTimeout(() => {
-        window.location.href = roleRedirects[data.user.role] || '/pages/student/dashboard.html';
-      }, 1000);
-    } catch (error) {
-      showError(error.message);
-    } finally {
-      btn.disabled = false;
-      btn.innerHTML = '<i class="fas fa-check-circle"></i> Verify & Sign In';
-    }
-  }
-
-  startSessionTimer();
 </script>
 </body>
 </html>
