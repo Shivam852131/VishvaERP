@@ -163,7 +163,7 @@ const checkFaceRegistered = asyncHandler(async (req, res) => {
   const collegeId = req.user.collegeId;
 
   const faceData = await FaceData.findOne({ collegeId, userId, isActive: true })
-    .select('descriptors registeredAt lastVerifiedAt verificationCount avgLivenessScore');
+    .select('descriptors registeredAt lastVerifiedAt verificationCount avgLivenessScore spoofAttempts');
 
   res.json({
     success: true,
@@ -174,6 +174,7 @@ const checkFaceRegistered = asyncHandler(async (req, res) => {
       lastVerifiedAt: faceData?.lastVerifiedAt,
       verificationCount: faceData?.verificationCount || 0,
       livenessScore: faceData?.avgLivenessScore || 0,
+      spoofAttempts: faceData?.spoofAttempts || 0,
     },
   });
 });

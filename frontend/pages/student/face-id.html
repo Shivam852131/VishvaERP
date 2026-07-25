@@ -6,20 +6,20 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="../../css/custom.css">
-  <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
   <style>
     .face-hero {
-      background: linear-gradient(135deg, #0EA5E9 0%, #0284C7 50%, #0369A1 100%);
+      background: linear-gradient(135deg, #0EA5E9 0%, #0284C7 40%, #6366F1 100%);
       border-radius: 16px; padding: 28px 32px; color: white;
       position: relative; overflow: hidden; margin-bottom: 24px;
     }
     .face-hero::before {
-      content: ''; position: absolute; top: -30px; right: -30px;
-      width: 140px; height: 140px; background: rgba(255,255,255,0.08); border-radius: 50%;
+      content: ''; position: absolute; top: -40px; right: -20px;
+      width: 160px; height: 160px; background: rgba(255,255,255,0.07); border-radius: 50%;
     }
     .face-hero::after {
-      content: ''; position: absolute; bottom: -50px; left: 30%;
-      width: 200px; height: 200px; background: rgba(255,255,255,0.04); border-radius: 50%;
+      content: ''; position: absolute; bottom: -60px; left: 25%;
+      width: 240px; height: 240px; background: rgba(255,255,255,0.03); border-radius: 50%;
     }
 
     .camera-container {
@@ -30,13 +30,8 @@
     .camera-container video, .camera-container canvas {
       width: 100%; height: 100%; object-fit: cover; display: block;
     }
-    .camera-container canvas {
-      position: absolute; top: 0; left: 0; z-index: 2;
-    }
-    #overlay {
-      position: absolute; top: 0; left: 0; z-index: 3;
-      pointer-events: none;
-    }
+    .camera-container canvas { position: absolute; top: 0; left: 0; z-index: 2; }
+    #overlay { position: absolute; top: 0; left: 0; z-index: 3; pointer-events: none; }
 
     .face-overlay-ring {
       position: absolute; top: 50%; left: 50%;
@@ -46,9 +41,9 @@
     }
     .face-ring-border {
       position: absolute; inset: 0;
-      border: 3px solid rgba(255,255,255,0.3);
+      border: 3px solid rgba(255,255,255,0.25);
       border-radius: 50%;
-      transition: border-color 0.3s, box-shadow 0.3s;
+      transition: border-color 0.4s, box-shadow 0.4s;
     }
     .face-ring-border.detecting {
       border-color: rgba(14,165,233,0.8);
@@ -57,10 +52,12 @@
     .face-ring-border.success {
       border-color: rgba(16,185,129,0.9);
       box-shadow: 0 0 40px rgba(16,185,129,0.4);
+      animation: ringSuccess 0.6s ease;
     }
     .face-ring-border.fail {
       border-color: rgba(239,68,68,0.9);
       box-shadow: 0 0 40px rgba(239,68,68,0.4);
+      animation: ringFail 0.5s ease;
     }
     .face-ring-border.scanning {
       border-color: rgba(14,165,233,0.8);
@@ -70,16 +67,37 @@
       0%, 100% { box-shadow: 0 0 20px rgba(14,165,233,0.3); }
       50% { box-shadow: 0 0 50px rgba(14,165,233,0.6); }
     }
+    @keyframes ringSuccess {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    @keyframes ringFail {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-6px); }
+      40% { transform: translateX(6px); }
+      60% { transform: translateX(-4px); }
+      80% { transform: translateX(4px); }
+    }
+
+    .corner-mark {
+      position: absolute; width: 24px; height: 24px; z-index: 5; pointer-events: none;
+      transition: border-color 0.3s;
+    }
+    .corner-mark.tl { top: 8px; left: 8px; border-top: 3px solid rgba(255,255,255,0.4); border-left: 3px solid rgba(255,255,255,0.4); border-radius: 8px 0 0 0; }
+    .corner-mark.tr { top: 8px; right: 8px; border-top: 3px solid rgba(255,255,255,0.4); border-right: 3px solid rgba(255,255,255,0.4); border-radius: 0 8px 0 0; }
+    .corner-mark.bl { bottom: 8px; left: 8px; border-bottom: 3px solid rgba(255,255,255,0.4); border-left: 3px solid rgba(255,255,255,0.4); border-radius: 0 0 0 8px; }
+    .corner-mark.br { bottom: 8px; right: 8px; border-bottom: 3px solid rgba(255,255,255,0.4); border-right: 3px solid rgba(255,255,255,0.4); border-radius: 0 0 8px 0; }
+    .face-detected .corner-mark { border-color: rgba(14,165,233,0.9); }
+    .face-ok .corner-mark { border-color: rgba(16,185,129,0.9); }
+    .face-fail .corner-mark { border-color: rgba(239,68,68,0.9); }
 
     .scan-line {
       position: absolute; top: 0; left: 5%; right: 5%;
       height: 2px; background: linear-gradient(90deg, transparent, #0EA5E9, transparent);
       z-index: 5; opacity: 0;
     }
-    .scan-line.active {
-      opacity: 1;
-      animation: scanDown 2s ease-in-out infinite;
-    }
+    .scan-line.active { opacity: 1; animation: scanDown 2s ease-in-out infinite; }
     @keyframes scanDown {
       0% { top: 5%; }
       50% { top: 90%; }
@@ -94,15 +112,51 @@
     .camera-placeholder i { font-size: 48px; }
     .camera-placeholder p { font-size: 14px; }
 
+    .face-guide-label {
+      position: absolute; z-index: 6; pointer-events: none;
+      background: rgba(0,0,0,0.55); backdrop-filter: blur(4px);
+      color: white; font-size: 11px; font-weight: 700; padding: 4px 10px;
+      border-radius: 6px; white-space: nowrap; transition: all 0.3s;
+    }
+    .face-guide-label.pos-top { top: 12px; left: 50%; transform: translateX(-50%); }
+    .face-guide-label.pos-bottom { bottom: 12px; left: 50%; transform: translateX(-50%); }
+
+    .challenge-prompt-overlay {
+      position: absolute; inset: 0; z-index: 7;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(0,0,0,0.45); backdrop-filter: blur(2px);
+      opacity: 0; pointer-events: none; transition: opacity 0.3s;
+    }
+    .challenge-prompt-overlay.show { opacity: 1; pointer-events: auto; }
+    .challenge-prompt-text {
+      background: rgba(14,165,233,0.9); color: white;
+      font-size: 18px; font-weight: 800; padding: 14px 28px;
+      border-radius: 14px; text-align: center;
+      animation: promptPulse 1.5s ease-in-out infinite;
+    }
+    @keyframes promptPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.04); }
+    }
+
+    .quality-badge {
+      position: absolute; top: 12px; right: 12px; z-index: 6;
+      background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+      padding: 6px 12px; border-radius: 8px; display: flex; align-items: center; gap: 6px;
+      font-size: 11px; font-weight: 700; color: white;
+    }
+    .quality-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .quality-dot.great { background: #10B981; }
+    .quality-dot.good { background: #F59E0B; }
+    .quality-dot.bad { background: #EF4444; }
+
     .status-bar {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 12px 16px; background: white; border: 1px solid #E2E8F0;
-      border-radius: 12px; margin-top: 16px;
+      padding: 10px 14px; background: white; border: 1px solid #E2E8F0;
+      border-radius: 12px; margin-top: 14px; flex-wrap: wrap; gap: 6px;
     }
-    .status-item { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; }
-    .status-dot {
-      width: 8px; height: 8px; border-radius: 50%;
-    }
+    .status-item { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; }
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
     .status-dot.green { background: #10B981; }
     .status-dot.yellow { background: #F59E0B; }
     .status-dot.red { background: #EF4444; }
@@ -110,107 +164,163 @@
     @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
 
     .challenge-card {
-      background: white; border: 1px solid #E2E8F0; border-radius: 14px;
-      padding: 16px 20px; margin-top: 16px; display: flex;
-      align-items: center; gap: 14px; transition: all 0.3s;
+      background: white; border: 1.5px solid #E2E8F0; border-radius: 14px;
+      padding: 14px 16px; margin-top: 10px; display: flex;
+      align-items: center; gap: 12px; transition: all 0.35s;
     }
-    .challenge-card.active { border-color: #0EA5E9; background: #F0F9FF; }
+    .challenge-card.active { border-color: #0EA5E9; background: #F0F9FF; transform: scale(1.01); }
     .challenge-card.done { border-color: #10B981; background: #F0FDF4; }
     .challenge-card.fail { border-color: #EF4444; background: #FEF2F2; }
+    .challenge-card.waiting { opacity: 0.5; }
     .challenge-icon {
-      width: 40px; height: 40px; border-radius: 10px; display: flex;
-      align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;
+      width: 38px; height: 38px; border-radius: 10px; display: flex;
+      align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0;
     }
-    .challenge-text h4 { font-size: 13px; font-weight: 700; color: #0F172A; }
-    .challenge-text p { font-size: 11px; color: #64748B; margin-top: 1px; }
+    .challenge-text h4 { font-size: 12px; font-weight: 700; color: #0F172A; }
+    .challenge-text p { font-size: 10px; color: #64748B; margin-top: 1px; }
     .challenge-check { margin-left: auto; font-size: 18px; color: #10B981; display: none; }
     .challenge-card.done .challenge-check { display: block; }
+    .challenge-timer {
+      margin-left: auto; width: 32px; height: 32px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 800; color: #64748B;
+      border: 2px solid #E2E8F0; transition: all 0.3s;
+    }
+    .challenge-card.active .challenge-timer { border-color: #0EA5E9; color: #0EA5E9; }
+    .challenge-card.done .challenge-timer { display: none; }
 
     .action-btn {
-      width: 100%; padding: 14px; border-radius: 12px; border: none;
-      font-size: 15px; font-weight: 700; cursor: pointer;
+      width: 100%; padding: 13px; border-radius: 12px; border: none;
+      font-size: 14px; font-weight: 700; cursor: pointer;
       font-family: inherit; transition: all 0.25s;
       display: flex; align-items: center; justify-content: center; gap: 8px;
     }
-    .action-btn-primary {
-      background: linear-gradient(135deg, #0EA5E9, #0284C7); color: white;
-    }
+    .action-btn-primary { background: linear-gradient(135deg, #0EA5E9, #0284C7); color: white; }
     .action-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(14,165,233,0.35); }
-    .action-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
-    .action-btn-success {
-      background: linear-gradient(135deg, #10B981, #059669); color: white;
-    }
-    .action-btn-danger {
-      background: linear-gradient(135deg, #EF4444, #DC2626); color: white;
-    }
-    .action-btn-outline {
-      background: white; border: 1.5px solid #E2E8F0; color: #475569;
-    }
+    .action-btn-primary:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
+    .action-btn-success { background: linear-gradient(135deg, #10B981, #059669); color: white; }
+    .action-btn-success:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(16,185,129,0.35); }
+    .action-btn-danger { background: linear-gradient(135deg, #EF4444, #DC2626); color: white; }
+    .action-btn-outline { background: white; border: 1.5px solid #E2E8F0; color: #475569; }
     .action-btn-outline:hover { border-color: #0EA5E9; color: #0EA5E9; }
-
-    .confidence-ring {
-      width: 100px; height: 100px; border-radius: 50%; margin: 0 auto 16px;
-      display: flex; align-items: center; justify-content: center; flex-direction: column;
-      border: 5px solid #E2E8F0; position: relative;
-    }
-    .confidence-ring svg {
-      position: absolute; inset: -5px; transform: rotate(-90deg);
-    }
-    .confidence-ring .conf-num { font-size: 28px; font-weight: 900; color: #0F172A; line-height: 1; }
-    .confidence-ring .conf-label { font-size: 9px; font-weight: 700; color: #64748B; text-transform: uppercase; }
 
     .liveness-meter {
       height: 6px; background: #E2E8F0; border-radius: 3px; overflow: hidden; margin-top: 8px;
     }
     .liveness-fill {
-      height: 100%; border-radius: 3px; transition: width 0.5s, background 0.3s;
+      height: 100%; border-radius: 3px; transition: width 0.4s ease, background 0.3s;
       background: #CBD5E1;
     }
-    .liveness-fill.low { background: #EF4444; }
-    .liveness-fill.mid { background: #F59E0B; }
-    .liveness-fill.high { background: #10B981; }
+    .liveness-fill.low { background: linear-gradient(90deg, #EF4444, #F87171); }
+    .liveness-fill.mid { background: linear-gradient(90deg, #F59E0B, #FBBF24); }
+    .liveness-fill.high { background: linear-gradient(90deg, #10B981, #34D399); }
 
     .result-modal {
       display: none; position: fixed; inset: 0; z-index: 9999;
-      background: rgba(15,23,42,0.7); backdrop-filter: blur(6px);
+      background: rgba(15,23,42,0.75); backdrop-filter: blur(8px);
       align-items: center; justify-content: center; padding: 20px;
     }
     .result-modal.show { display: flex; }
     .result-card {
-      background: white; border-radius: 20px; padding: 36px;
-      text-align: center; max-width: 380px; width: 100%;
-      box-shadow: 0 25px 60px rgba(0,0,0,0.3);
-      animation: resultPop 0.35s ease;
+      background: white; border-radius: 24px; padding: 40px 36px;
+      text-align: center; max-width: 400px; width: 100%;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.35);
+      animation: resultPop 0.4s cubic-bezier(0.34,1.56,0.64,1);
     }
-    @keyframes resultPop { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-    .result-icon { font-size: 56px; margin-bottom: 16px; }
+    @keyframes resultPop { from { transform: scale(0.8) translateY(20px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
     .result-card h3 { font-size: 22px; font-weight: 900; margin-bottom: 6px; }
     .result-card p { font-size: 13px; color: #64748B; margin-bottom: 20px; line-height: 1.6; }
 
+    .conf-ring-svg { width: 120px; height: 120px; margin: 0 auto 16px; }
+    .conf-ring-bg { fill: none; stroke: #E2E8F0; stroke-width: 8; }
+    .conf-ring-fill {
+      fill: none; stroke-width: 8; stroke-linecap: round;
+      transform: rotate(-90deg); transform-origin: center;
+      transition: stroke-dashoffset 1s cubic-bezier(0.4,0,0.2,1);
+    }
+    .conf-ring-text { font-size: 28px; font-weight: 900; fill: #0F172A; text-anchor: middle; dominant-baseline: central; }
+    .conf-ring-label { font-size: 9px; font-weight: 700; fill: #64748B; text-anchor: middle; text-transform: uppercase; letter-spacing: 0.5px; }
+
     .spinner {
-      width: 18px; height: 18px; border: 2px solid transparent;
+      width: 18px; height: 18px; border: 2.5px solid transparent;
       border-top-color: currentColor; border-radius: 50%;
       animation: spin 0.6s linear infinite; display: inline-block;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px; }
+    .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 14px; }
     .stat-mini {
       background: white; border: 1px solid #E2E8F0; border-radius: 10px;
-      padding: 12px; text-align: center;
+      padding: 10px; text-align: center; transition: transform 0.2s;
     }
+    .stat-mini:hover { transform: translateY(-2px); }
     .stat-mini .stat-val { font-size: 18px; font-weight: 800; color: #0F172A; }
-    .stat-mini .stat-lbl { font-size: 10px; color: #64748B; font-weight: 600; margin-top: 2px; }
+    .stat-mini .stat-lbl { font-size: 9px; color: #64748B; font-weight: 600; margin-top: 2px; }
 
-    @media (max-width: 860px) {
-      .face-grid-layout { grid-template-columns: 1fr !important; }
+    .reg-sample {
+      flex: 1; height: 72px; border: 2px dashed #E2E8F0; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; color: #94A3B8; font-weight: 600;
+      overflow: hidden; transition: all 0.3s; position: relative;
     }
+    .reg-sample img { width: 100%; height: 100%; object-fit: cover; }
+    .reg-sample.captured { border-color: #10B981; border-style: solid; background: #F0FDF4; }
+    .reg-sample .quality-score {
+      position: absolute; bottom: 4px; right: 4px;
+      background: rgba(0,0,0,0.6); color: white;
+      font-size: 9px; font-weight: 700; padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .checkin-log {
+      background: white; border: 1px solid #E2E8F0; border-radius: 14px;
+      padding: 16px; margin-top: 12px;
+    }
+    .checkin-log-item {
+      display: flex; align-items: center; gap: 10px; padding: 8px 0;
+      border-bottom: 1px solid #F1F5F9; font-size: 12px;
+    }
+    .checkin-log-item:last-child { border-bottom: none; }
+    .log-dot { width: 8px; height: 8px; border-radius: 50%; background: #10B981; flex-shrink: 0; }
+    .log-time { font-weight: 700; color: #0F172A; }
+    .log-conf { margin-left: auto; font-weight: 700; color: #0EA5E9; }
+
+    .mode-tab {
+      flex: 1; padding: 10px; border-radius: 8px; border: none;
+      font-size: 12px; font-weight: 700; font-family: inherit;
+      cursor: pointer; transition: all 0.2s; display: flex;
+      align-items: center; justify-content: center; gap: 5px;
+    }
+    .mode-tab.active { background: white; color: #0EA5E9; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+    .mode-tab:not(.active) { background: transparent; color: #64748B; }
+    .mode-tab:not(.active):hover { color: #0EA5E9; }
+
+    .cooldown-overlay {
+      position: absolute; inset: 0; z-index: 8;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(0,0,0,0.6); backdrop-filter: blur(4px);
+      border-radius: 20px; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+    }
+    .cooldown-overlay.show { opacity: 1; pointer-events: auto; }
+    .cooldown-text { color: white; text-align: center; }
+    .cooldown-text .count { font-size: 48px; font-weight: 900; line-height: 1; }
+    .cooldown-text .label { font-size: 13px; opacity: 0.8; margin-top: 4px; }
+
+    .multi-face-warn {
+      position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%);
+      z-index: 7; background: rgba(239,68,68,0.9); color: white;
+      padding: 8px 16px; border-radius: 10px; font-size: 12px; font-weight: 700;
+      display: none; white-space: nowrap;
+    }
+
+    @media (max-width: 860px) { .face-grid-layout { grid-template-columns: 1fr !important; } }
     @media (max-width: 640px) {
       .face-hero { padding: 20px 18px; }
       .face-hero h1 { font-size: 18px; }
       .camera-container { max-width: 100%; border-radius: 14px; }
       .face-overlay-ring { width: 180px; height: 230px; }
       .stats-grid { grid-template-columns: 1fr; }
+      .challenge-prompt-text { font-size: 15px; padding: 10px 20px; }
     }
   </style>
 </head>
@@ -250,23 +360,25 @@
         <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
         <div class="topbar-breadcrumb">Student / <span>Face ID Check-In</span></div>
       </div>
-      <div class="topbar-right"><div class="topbar-avatar" id="topbar-avatar">S</div></div>
+      <div class="topbar-right">
+        <div class="topbar-avatar" id="topbar-avatar">S</div>
+      </div>
     </header>
 
     <div class="erp-content page-enter">
 
-      <!-- HERO -->
       <div class="face-hero">
         <div style="position:relative;z-index:1;display:flex;align-items:center;gap:14px">
-          <div style="width:46px;height:46px;border-radius:14px;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:20px"><i class="fas fa-face-smile-beam"></i></div>
+          <div style="width:46px;height:46px;border-radius:14px;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:20px"><i class="fas fa-shield-halved"></i></div>
           <div>
             <h1 style="font-size:22px;font-weight:900;line-height:1.2">Face ID Check-In</h1>
-            <p style="font-size:13px;opacity:0.85;margin-top:2px">AI-powered selfie verification with anti-spoofing protection</p>
+            <p style="font-size:13px;opacity:0.85;margin-top:2px">AI-powered selfie verification with real-time liveness & anti-spoofing</p>
           </div>
         </div>
       </div>
 
       <div class="face-grid-layout" style="display:grid;grid-template-columns:1fr 380px;gap:20px;align-items:start">
+
         <!-- LEFT: Camera -->
         <div>
           <div class="camera-container" id="cameraContainer">
@@ -275,6 +387,28 @@
             <div class="scan-line" id="scanLine"></div>
             <div class="face-overlay-ring">
               <div class="face-ring-border" id="faceRing"></div>
+            </div>
+            <div class="corner-mark tl"></div>
+            <div class="corner-mark tr"></div>
+            <div class="corner-mark bl"></div>
+            <div class="corner-mark br"></div>
+            <div class="face-guide-label pos-top" id="guideTop"></div>
+            <div class="face-guide-label pos-bottom" id="guideBottom" style="display:none"></div>
+            <div class="quality-badge" id="qualityBadge" style="display:none">
+              <div class="quality-dot" id="qualityDot"></div>
+              <span id="qualityText">--</span>
+            </div>
+            <div class="multi-face-warn" id="multiFaceWarn">
+              <i class="fas fa-users-slash"></i> Multiple faces detected — only one person allowed
+            </div>
+            <div class="challenge-prompt-overlay" id="challengeOverlay">
+              <div class="challenge-prompt-text" id="challengePromptText"></div>
+            </div>
+            <div class="cooldown-overlay" id="cooldownOverlay">
+              <div class="cooldown-text">
+                <div class="count" id="cooldownCount">5</div>
+                <div class="label">Wait before retrying...</div>
+              </div>
             </div>
             <div class="camera-placeholder" id="cameraPlaceholder">
               <i class="fas fa-camera"></i>
@@ -287,44 +421,46 @@
 
           <div class="status-bar">
             <div class="status-item"><div class="status-dot" id="cameraStatus"></div><span id="cameraStatusText">Camera Off</span></div>
-            <div class="status-item"><div class="status-dot" id="modelStatus"></div><span id="modelStatusText">Models Loading</span></div>
+            <div class="status-item"><div class="status-dot" id="modelStatus"></div><span id="modelStatusText">Loading AI</span></div>
             <div class="status-item"><div class="status-dot" id="livenessStatus"></div><span id="livenessStatusText">Liveness: --</span></div>
+            <div class="status-item"><div class="status-dot" id="antiSpoofStatus"></div><span id="antiSpoofStatusText">Anti-Spoof: Ready</span></div>
           </div>
 
-          <div class="stats-grid" id="statsGrid">
-            <div class="stat-mini"><div class="stat-val" id="statCheckins">0</div><div class="stat-lbl">Today's Check-ins</div></div>
-            <div class="stat-mini"><div class="stat-val" id="statConfidence">--</div><div class="stat-lbl">Last Confidence</div></div>
-            <div class="stat-mini"><div class="stat-val" id="statStreak">0</div><div class="stat-lbl">Day Streak</div></div>
+          <div class="stats-grid">
+            <div class="stat-mini"><div class="stat-val" id="statCheckins">0</div><div class="stat-lbl">Today</div></div>
+            <div class="stat-mini"><div class="stat-val" id="statConfidence">--</div><div class="stat-lbl">Confidence</div></div>
+            <div class="stat-mini"><div class="stat-val" id="statStreak">0</div><div class="stat-lbl">Streak</div></div>
+          </div>
+
+          <div class="checkin-log" id="checkinLog" style="display:none">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <i class="fas fa-clock-rotate-left" style="color:#0EA5E9;font-size:13px"></i>
+              <span style="font-size:12px;font-weight:700;color:#0F172A">Recent Check-ins</span>
+            </div>
+            <div id="checkinLogList"></div>
           </div>
         </div>
 
         <!-- RIGHT: Controls -->
         <div>
-          <!-- Mode Tabs -->
-          <div style="display:flex;gap:4px;background:#F1F5F9;padding:4px;border-radius:10px;margin-bottom:16px">
-            <button class="mode-tab active" onclick="switchMode('checkin')" id="tabCheckin" style="flex:1;padding:10px;border-radius:8px;border:none;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;background:white;color:#0EA5E9;transition:all 0.15s">
-              <i class="fas fa-fingerprint"></i> Check-In
-            </button>
-            <button class="mode-tab" onclick="switchMode('register')" id="tabRegister" style="flex:1;padding:10px;border-radius:8px;border:none;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;background:transparent;color:#64748B;transition:all 0.15s">
-              <i class="fas fa-user-plus"></i> Register
-            </button>
-            <button class="mode-tab" onclick="switchMode('status')" id="tabStatus" style="flex:1;padding:10px;border-radius:8px;border:none;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;background:transparent;color:#64748B;transition:all 0.15s">
-              <i class="fas fa-chart-simple"></i> Status
-            </button>
+          <div style="display:flex;gap:4px;background:#F1F5F9;padding:4px;border-radius:10px;margin-bottom:14px">
+            <button class="mode-tab active" onclick="switchMode('checkin')" id="tabCheckin"><i class="fas fa-fingerprint"></i> Check-In</button>
+            <button class="mode-tab" onclick="switchMode('register')" id="tabRegister"><i class="fas fa-user-plus"></i> Register</button>
+            <button class="mode-tab" onclick="switchMode('status')" id="tabStatus"><i class="fas fa-chart-simple"></i> Status</button>
           </div>
 
           <!-- CHECK-IN MODE -->
           <div id="modeCheckin">
-            <div style="background:white;border:1px solid #E2E8F0;border-radius:14px;padding:20px;margin-bottom:12px">
-              <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
-                <div style="width:36px;height:36px;border-radius:10px;background:#F0F9FF;color:#0EA5E9;display:flex;align-items:center;justify-content:center;font-size:14px"><i class="fas fa-shield-halved"></i></div>
+            <div style="background:white;border:1px solid #E2E8F0;border-radius:14px;padding:16px;margin-bottom:12px">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+                <div style="width:34px;height:34px;border-radius:10px;background:#F0F9FF;color:#0EA5E9;display:flex;align-items:center;justify-content:center;font-size:13px"><i class="fas fa-shield-halved"></i></div>
                 <div>
                   <div style="font-size:13px;font-weight:700;color:#0F172A">Anti-Spoof Protection</div>
-                  <div style="font-size:11px;color:#64748B">Liveness + motion analysis active</div>
+                  <div style="font-size:10px;color:#64748B">Real-time texture + motion analysis</div>
                 </div>
               </div>
               <div>
-                <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:600;margin-bottom:4px">
+                <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:600;margin-bottom:3px">
                   <span>Liveness Score</span>
                   <span id="livenessScoreText">0%</span>
                 </div>
@@ -332,57 +468,64 @@
               </div>
             </div>
 
-            <!-- Liveness Challenges -->
             <div id="challengeList">
-              <div class="challenge-card" id="challengeBlink">
+              <div class="challenge-card waiting" id="challengeBlink">
                 <div class="challenge-icon" style="background:#EEF2FF;color:#4F46E5"><i class="fas fa-eye"></i></div>
-                <div class="challenge-text"><h4>Blink Detection</h4><p>Naturally blink your eyes once</p></div>
+                <div class="challenge-text"><h4>1. Blink Detection</h4><p>Naturally blink your eyes once</p></div>
                 <div class="challenge-check"><i class="fas fa-check-circle"></i></div>
+                <div class="challenge-timer" id="timerBlink">10</div>
               </div>
-              <div class="challenge-card" id="challengeSmile">
-                <div class="challenge-icon" style="background:#FEF3C7;color:#D97706"><i class="fas fa-face-smile"></i></div>
-                <div class="challenge-text"><h4>Smile Check</h4><p>Give a natural smile</p></div>
+              <div class="challenge-card waiting" id="challengeNod">
+                <div class="challenge-icon" style="background:#FEF3C7;color:#D97706"><i class="fas fa-arrows-up-down"></i></div>
+                <div class="challenge-text"><h4>2. Head Nod</h4><p>Nod your head up and down</p></div>
                 <div class="challenge-check"><i class="fas fa-check-circle"></i></div>
+                <div class="challenge-timer" id="timerNod">10</div>
               </div>
-              <div class="challenge-card" id="challengeTurn">
-                <div class="challenge-icon" style="background:#ECFDF5;color:#059669"><i class="fas fa-arrows-rotate"></i></div>
-                <div class="challenge-text"><h4>Head Movement</h4><p>Turn head slightly left then right</p></div>
+              <div class="challenge-card waiting" id="challengeTurn">
+                <div class="challenge-icon" style="background:#ECFDF5;color:#059669"><i class="fas fa-arrows-left-right"></i></div>
+                <div class="challenge-text"><h4>3. Head Turn</h4><p>Turn head slightly left then right</p></div>
                 <div class="challenge-check"><i class="fas fa-check-circle"></i></div>
+                <div class="challenge-timer" id="timerTurn">10</div>
               </div>
             </div>
 
-            <button class="action-btn action-btn-primary" id="checkinBtn" onclick="performCheckIn()" disabled style="margin-top:16px">
+            <button class="action-btn action-btn-primary" id="checkinBtn" disabled style="margin-top:14px">
               <i class="fas fa-fingerprint"></i> Start Face Check-In
             </button>
-            <p style="text-align:center;font-size:11px;color:#94A3B8;margin-top:8px">Position your face inside the oval. All liveness checks must pass.</p>
+            <p style="text-align:center;font-size:10px;color:#94A3B8;margin-top:6px">Position face inside the oval. Complete all 3 challenges.</p>
           </div>
 
           <!-- REGISTER MODE -->
           <div id="modeRegister" style="display:none">
-            <div style="background:white;border:1px solid #E2E8F0;border-radius:14px;padding:20px;margin-bottom:12px">
-              <h3 style="font-size:14px;font-weight:700;color:#0F172A;margin-bottom:10px"><i class="fas fa-user-plus" style="color:#0EA5E9;margin-right:6px"></i> Register Your Face</h3>
-              <p style="font-size:12px;color:#64748B;line-height:1.6">
-                Capture 3 face samples from different angles for accurate recognition.
-                Your face data is encrypted and stored securely.
+            <div style="background:white;border:1px solid #E2E8F0;border-radius:14px;padding:16px;margin-bottom:12px">
+              <h3 style="font-size:14px;font-weight:700;color:#0F172A;margin-bottom:8px"><i class="fas fa-user-plus" style="color:#0EA5E9;margin-right:6px"></i> Register Your Face</h3>
+              <p style="font-size:11px;color:#64748B;line-height:1.6">
+                Capture 3 samples from different angles. Keep your face centered and well-lit.
               </p>
               <div style="display:flex;gap:8px;margin-top:12px">
-                <div class="reg-sample" id="sample1" style="flex:1;height:60px;border:2px dashed #E2E8F0;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#94A3B8;font-weight:600">Sample 1</div>
-                <div class="reg-sample" id="sample2" style="flex:1;height:60px;border:2px dashed #E2E8F0;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#94A3B8;font-weight:600">Sample 2</div>
-                <div class="reg-sample" id="sample3" style="flex:1;height:60px;border:2px dashed #E2E8F0;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#94A3B8;font-weight:600">Sample 3</div>
+                <div class="reg-sample" id="sample1"><span>Sample 1</span></div>
+                <div class="reg-sample" id="sample2"><span>Sample 2</span></div>
+                <div class="reg-sample" id="sample3"><span>Sample 3</span></div>
+              </div>
+              <div id="regQualityBar" style="display:none;margin-top:10px">
+                <div style="display:flex;justify-content:space-between;font-size:10px;font-weight:600;margin-bottom:3px">
+                  <span>Average Quality</span><span id="regQualityText">--</span>
+                </div>
+                <div class="liveness-meter"><div class="liveness-fill" id="regQualityFill" style="width:0%"></div></div>
               </div>
             </div>
-            <button class="action-btn action-btn-primary" id="registerBtn" onclick="captureSample()" disabled style="margin-top:12px">
+            <button class="action-btn action-btn-primary" id="registerBtn" onclick="captureSample()" disabled style="margin-top:10px">
               <i class="fas fa-camera"></i> Capture Sample
             </button>
-            <button class="action-btn action-btn-success" id="saveRegBtn" onclick="saveRegistration()" style="display:none;margin-top:10px">
+            <button class="action-btn action-btn-success" id="saveRegBtn" onclick="saveRegistration()" style="display:none;margin-top:8px">
               <i class="fas fa-check"></i> Save Face Data
             </button>
           </div>
 
           <!-- STATUS MODE -->
           <div id="modeStatus" style="display:none">
-            <div style="background:white;border:1px solid #E2E8F0;border-radius:14px;padding:20px">
-              <h3 style="font-size:14px;font-weight:700;margin-bottom:14px"><i class="fas fa-shield-halved" style="color:#0EA5E9;margin-right:6px"></i> Face ID Status</h3>
+            <div style="background:white;border:1px solid #E2E8F0;border-radius:14px;padding:16px">
+              <h3 style="font-size:14px;font-weight:700;margin-bottom:12px"><i class="fas fa-shield-halved" style="color:#0EA5E9;margin-right:6px"></i> Face ID Status</h3>
               <div id="faceStatusContent">
                 <div style="text-align:center;padding:20px;color:#94A3B8">
                   <div class="spinner" style="border-top-color:#0EA5E9;margin:0 auto 8px"></div>
@@ -390,7 +533,7 @@
                 </div>
               </div>
             </div>
-            <button class="action-btn action-btn-danger" id="deleteFaceBtn" onclick="deleteFaceData()" style="display:none;margin-top:12px">
+            <button class="action-btn action-btn-danger" id="deleteFaceBtn" onclick="deleteFaceData()" style="display:none;margin-top:10px">
               <i class="fas fa-trash"></i> Delete Face Data
             </button>
           </div>
@@ -404,6 +547,13 @@
 <!-- RESULT MODAL -->
 <div class="result-modal" id="resultModal">
   <div class="result-card">
+    <svg class="conf-ring-svg" id="confRingSvg" viewBox="0 0 120 120" style="display:none">
+      <circle class="conf-ring-bg" cx="60" cy="60" r="50"/>
+      <circle class="conf-ring-fill" id="confRingFill" cx="60" cy="60" r="50"
+        stroke-dasharray="314.16" stroke-dashoffset="314.16"/>
+      <text class="conf-ring-text" x="60" y="54" id="confRingNum">0%</text>
+      <text class="conf-ring-label" x="60" y="72">Confidence</text>
+    </svg>
     <div class="result-icon" id="resultIcon"></div>
     <h3 id="resultTitle"></h3>
     <p id="resultMessage"></p>
@@ -416,497 +566,966 @@
 
 <script src="../../js/shared.js"></script>
 <script>
-let stream = null;
-let modelsLoaded = false;
-let currentMode = 'checkin';
-let faceRegistered = false;
-let registrationSamples = [];
-let livenessState = {
-  blinkDetected: false,
-  smileDetected: false,
-  headTurnDetected: false,
-  livenessScore: 0,
-  isScanning: false,
-  frameCount: 0,
-  lastFaceRect: null,
-  motionHistory: [],
-  eyeClosureHistory: [],
-};
+(function() {
+  let stream = null;
+  let modelsLoaded = false;
+  let currentMode = 'checkin';
+  let faceRegistered = false;
+  let registrationSamples = [];
+  let regQualityScores = [];
+  let detectionInterval = null;
+  let challengeRunning = false;
+  let cooldownTimer = null;
+  let retryCooldown = 0;
+  let checkinHistory = JSON.parse(localStorage.getItem('face_checkin_history') || '[]');
+  let currentChallengeIndex = -1;
+  let challengeTimers = { blink: null, nod: null, turn: null };
+  let challengeTimeLeft = { blink: 10, nod: 10, turn: 10 };
 
-const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-  ? '/api' : 'https://vishvaerp.onrender.com/api';
+  let livenessState = {
+    blinkDetected: false,
+    nodDetected: false,
+    turnDetected: false,
+    livenessScore: 0,
+    isScanning: false,
+    frameCount: 0,
+    motionHistory: [],
+    verticalMotionHistory: [],
+    eyeClosureHistory: [],
+    textureScores: [],
+    depthFrames: [],
+    lastFaceBox: null,
+    consecutiveNoFace: 0,
+  };
 
-async function init() {
-  const user = JSON.parse(localStorage.getItem('erp_user') || localStorage.getItem('user') || '{}');
-  if (user.name) {
-    document.getElementById('sidebar-user-name').textContent = user.name;
-    document.getElementById('sidebar-avatar').textContent = (user.name || 'S').charAt(0).toUpperCase();
-    document.getElementById('topbar-avatar').textContent = (user.name || 'S').charAt(0).toUpperCase();
+  const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? '/api' : 'https://vishvaerp.onrender.com/api';
+
+  function getToken() {
+    return localStorage.getItem('erp_token') || localStorage.getItem('token');
   }
-  loadModels();
-  checkFaceStatus();
-}
 
-async function loadModels() {
-  updateStatus('model', 'yellow', 'Loading AI models...');
-  try {
-    const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/model/';
-    await Promise.all([
-      faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
-      faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
-      faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
-      faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL),
-    ]);
-    modelsLoaded = true;
-    updateStatus('model', 'green', 'AI Ready');
-    document.getElementById('checkinBtn').disabled = false;
-    document.getElementById('registerBtn').disabled = false;
-  } catch (e) {
-    console.error('Model load error:', e);
-    updateStatus('model', 'red', 'Models Failed');
+  function getUser() {
+    const u = localStorage.getItem('erp_user') || localStorage.getItem('user');
+    return u ? JSON.parse(u) : {};
   }
-}
 
-async function startCamera() {
-  try {
-    stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }
-    });
+  function updateStatus(type, color, text) {
+    const dot = document.getElementById(type + 'Status');
+    const label = document.getElementById(type + 'StatusText');
+    if (dot) dot.className = 'status-dot ' + color;
+    if (label) label.textContent = text;
+  }
+
+  function speak(text) {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = 1.05;
+    u.pitch = 1;
+    u.volume = 0.9;
+    window.speechSynthesis.speak(u);
+  }
+
+  function playTone(freq, duration, type) {
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = type || 'sine';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.15, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + duration);
+    } catch(e) {}
+  }
+
+  function vibrate(ms) {
+    if (navigator.vibrate) navigator.vibrate(ms);
+  }
+
+  function showToast(msg, type) {
+    const toast = document.createElement('div');
+    toast.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:99999;background:white;border-radius:12px;padding:12px 18px;box-shadow:0 10px 30px rgba(0,0,0,0.15);border-left:4px solid ' + (type === 'success' ? '#10B981' : '#EF4444') + ';font-size:13px;font-weight:600;display:flex;align-items:center;gap:10px;animation:resultPop 0.3s ease;max-width:320px';
+    const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+    const color = type === 'success' ? '#10B981' : '#EF4444';
+    toast.innerHTML = '<i class="fas ' + icon + '" style="color:' + color + '"></i><span>' + msg + '</span>';
+    document.body.appendChild(toast);
+    setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; setTimeout(() => toast.remove(), 300); }, 3500);
+  }
+
+  function calcLaplacianVariance(imageData, w, h) {
+    const d = imageData.data;
+    const gray = new Float32Array(w * h);
+    for (let i = 0; i < gray.length; i++) {
+      const p = i * 4;
+      gray[i] = 0.299 * d[p] + 0.587 * d[p+1] + 0.114 * d[p+2];
+    }
+    let sum = 0, sumSq = 0, count = 0;
+    for (let y = 1; y < h - 1; y++) {
+      for (let x = 1; x < w - 1; x++) {
+        const lap = -4 * gray[y*w+x] + gray[(y-1)*w+x] + gray[(y+1)*w+x] + gray[y*w+x-1] + gray[y*w+x+1];
+        sum += lap;
+        sumSq += lap * lap;
+        count++;
+      }
+    }
+    const mean = sum / count;
+    return sumSq / count - mean * mean;
+  }
+
+  function calcBrightness(imageData) {
+    const d = imageData.data;
+    let total = 0;
+    const n = d.length / 4;
+    for (let i = 0; i < d.length; i += 4) {
+      total += 0.299 * d[i] + 0.587 * d[i+1] + 0.114 * d[i+2];
+    }
+    return total / n / 255;
+  }
+
+  function estimateMotionDepth(frames) {
+    if (frames.length < 3) return 0;
+    let totalVariance = 0;
+    for (let i = 1; i < frames.length; i++) {
+      const dx = frames[i].cx - frames[i-1].cx;
+      const dy = frames[i].cy - frames[i-1].cy;
+      const dw = frames[i].w - frames[i-1].w;
+      totalVariance += dx*dx + dy*dy + dw*dw;
+    }
+    return Math.min(1, totalVariance / (frames.length * 200));
+  }
+
+  function detectMoiréPattern(imageData, w) {
+    const d = imageData.data;
+    let highFreqCount = 0;
+    const stride = 4;
+    for (let y = 0; y < 100; y += stride) {
+      let changes = 0;
+      let prev = d[(y * w) * 4];
+      for (let x = 1; x < w; x++) {
+        const cur = d[(y * w + x) * 4];
+        if ((cur > 128) !== (prev > 128)) changes++;
+        prev = cur;
+      }
+      if (changes > w * 0.4) highFreqCount++;
+    }
+    return highFreqCount / (100 / stride);
+  }
+
+  async function init() {
+    const user = getUser();
+    if (user.name) {
+      document.getElementById('sidebar-user-name').textContent = user.name;
+      const initial = (user.name || 'S').charAt(0).toUpperCase();
+      document.getElementById('sidebar-avatar').textContent = initial;
+      document.getElementById('topbar-avatar').textContent = initial;
+    }
+    renderCheckinHistory();
+    await loadModels();
+    checkFaceStatus();
+    startCamera();
+  }
+
+  async function loadModels() {
+    updateStatus('model', 'yellow', 'Loading AI...');
+    try {
+      const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/model/';
+      await Promise.all([
+        faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+        faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+        faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
+        faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL),
+      ]);
+      modelsLoaded = true;
+      updateStatus('model', 'green', 'AI Ready');
+      document.getElementById('checkinBtn').disabled = false;
+      document.getElementById('registerBtn').disabled = false;
+    } catch (e) {
+      console.error('Model load error:', e);
+      updateStatus('model', 'red', 'Models Failed');
+      showToast('AI models failed to load. Refresh the page.', 'error');
+    }
+  }
+
+  async function startCamera() {
+    if (stream) return;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }
+      });
+      const video = document.getElementById('video');
+      video.srcObject = stream;
+      await video.play();
+      document.getElementById('cameraPlaceholder').style.display = 'none';
+      updateStatus('camera', 'green', 'Camera Active');
+      startDetection();
+    } catch (e) {
+      console.error('Camera error:', e);
+      updateStatus('camera', 'red', 'Camera Denied');
+      showToast('Camera access denied. Please allow camera permission.', 'error');
+    }
+  }
+
+  function startDetection() {
     const video = document.getElementById('video');
-    video.srcObject = stream;
-    await video.play();
-    document.getElementById('cameraPlaceholder').style.display = 'none';
-    updateStatus('camera', 'green', 'Camera Active');
-    startDetection();
-  } catch (e) {
-    console.error('Camera error:', e);
-    updateStatus('camera', 'red', 'Camera Denied');
+    const canvas = document.getElementById('overlay');
+    const displaySize = { width: video.videoWidth || 640, height: video.videoHeight || 480 };
+    faceapi.matchDimensions(canvas, displaySize);
+
+    livenessState.isScanning = true;
+    document.getElementById('scanLine').classList.add('active');
+    document.getElementById('faceRing').classList.add('scanning');
+
+    if (detectionInterval) clearInterval(detectionInterval);
+
+    detectionInterval = setInterval(async () => {
+      if (!livenessState.isScanning || !stream) {
+        clearInterval(detectionInterval);
+        return;
+      }
+      livenessState.frameCount++;
+
+      let detections;
+      try {
+        detections = await faceapi
+          .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.4 }))
+          .withFaceLandmarks()
+          .withFaceExpressions();
+      } catch(e) { return; }
+
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const resized = faceapi.resizeResults(detections, { width: canvas.width, height: canvas.height });
+
+      const container = document.getElementById('cameraContainer');
+      const guideTop = document.getElementById('guideTop');
+      const guideBottom = document.getElementById('guideBottom');
+      const qualityBadge = document.getElementById('qualityBadge');
+      const multiWarn = document.getElementById('multiFaceWarn');
+
+      if (resized.length === 0) {
+        livenessState.consecutiveNoFace++;
+        container.className = 'camera-container';
+        document.getElementById('faceRing').className = 'face-ring-border';
+        guideTop.textContent = '';
+        guideTop.style.display = 'none';
+        qualityBadge.style.display = 'none';
+        if (livenessState.consecutiveNoFace > 15) {
+          guideTop.textContent = 'Position your face in the center';
+          guideTop.style.display = 'block';
+        }
+        return;
+      }
+
+      livenessState.consecutiveNoFace = 0;
+
+      if (resized.length > 1) {
+        multiWarn.style.display = 'block';
+        container.className = 'camera-container face-fail';
+        return;
+      } else {
+        multiWarn.style.display = 'none';
+      }
+
+      const face = resized[0];
+      const box = face.detection.box;
+      const centerX = box.x + box.width / 2;
+      const centerY = box.y + box.height / 2;
+      const canvasCX = canvas.width / 2;
+      const canvasCY = canvas.height / 2;
+
+      const sizeRatio = box.width * box.height / (canvas.width * canvas.height);
+      const distX = Math.abs(centerX - canvasCX) / canvas.width;
+      const distY = Math.abs(centerY - canvasCY) / canvas.height;
+
+      ctx.strokeStyle = 'rgba(14,165,233,0.5)';
+      ctx.lineWidth = 2;
+      const r = Math.min(box.width, box.height) * 0.15;
+      ctx.beginPath();
+      ctx.moveTo(box.x + r, box.y);
+      ctx.lineTo(box.x + box.width - r, box.y);
+      ctx.quadraticCurveTo(box.x + box.width, box.y, box.x + box.width, box.y + r);
+      ctx.lineTo(box.x + box.width, box.y + box.height - r);
+      ctx.quadraticCurveTo(box.x + box.width, box.y + box.height, box.x + box.width - r, box.y + box.height);
+      ctx.lineTo(box.x + r, box.y + box.height);
+      ctx.quadraticCurveTo(box.x, box.y + box.height, box.x, box.y + box.height - r);
+      ctx.lineTo(box.x, box.y + r);
+      ctx.quadraticCurveTo(box.x, box.y, box.x + r, box.y);
+      ctx.closePath();
+      ctx.stroke();
+
+      const landmarks = face.landmarks;
+      drawLandmarks(ctx, landmarks.getLeftEye(), '#0EA5E9');
+      drawLandmarks(ctx, landmarks.getRightEye(), '#0EA5E9');
+      drawLandmarks(ctx, landmarks.getMouth(), '#8B5CF6');
+      drawLandmarks(ctx, landmarks.getNose(), '#F59E0B');
+
+      let quality = 'great';
+      let qualityMsg = 'Optimal';
+      if (sizeRatio < 0.03 || sizeRatio > 0.4) { quality = 'bad'; qualityMsg = sizeRatio < 0.03 ? 'Too far' : 'Too close'; }
+      else if (sizeRatio < 0.06 || sizeRatio > 0.25) { quality = 'good'; qualityMsg = sizeRatio < 0.06 ? 'Move closer' : 'Move back'; }
+      else if (distX > 0.15 || distY > 0.15) { quality = 'good'; qualityMsg = 'Off-center'; }
+
+      const videoCanvas = document.createElement('canvas');
+      videoCanvas.width = video.videoWidth;
+      videoCanvas.height = video.videoHeight;
+      const vctx = videoCanvas.getContext('2d');
+      vctx.drawImage(video, 0, 0);
+      const imgData = vctx.getImageData(
+        Math.max(0, Math.floor(box.x * video.videoWidth / canvas.width)),
+        Math.max(0, Math.floor(box.y * video.videoHeight / canvas.height)),
+        Math.min(Math.floor(box.width * video.videoWidth / canvas.width), video.videoWidth),
+        Math.min(Math.floor(box.height * video.videoHeight / canvas.height), video.videoHeight)
+      );
+
+      const laplacianVar = calcLaplacianVariance(imgData, imgData.width, imgData.height);
+      const brightness = calcBrightness(imgData);
+      const moireScore = detectMoiréPattern(imgData, imgData.width);
+
+      if (brightness < 0.15) { quality = 'bad'; qualityMsg = 'Too dark'; }
+      else if (brightness > 0.9) { quality = 'bad'; qualityMsg = 'Overexposed'; }
+      else if (laplacianVar < 30 && quality !== 'bad') { quality = 'good'; qualityMsg = 'Slightly blurry'; }
+
+      livenessState.textureScores.push({ laplacian: laplacianVar, brightness, moire: moireScore });
+      if (livenessState.textureScores.length > 20) livenessState.textureScores.shift();
+
+      container.className = 'camera-container face-detected';
+      guideTop.style.display = 'block';
+      guideTop.textContent = qualityMsg;
+      qualityBadge.style.display = 'flex';
+      document.getElementById('qualityDot').className = 'quality-dot ' + quality;
+      document.getElementById('qualityText').textContent = qualityMsg;
+
+      guideBottom.style.display = 'block';
+      guideBottom.textContent = 'Face size: ' + Math.round(sizeRatio * 100) + '%';
+
+      livenessState.depthFrames.push({ cx: centerX, cy: centerY, w: box.width });
+      if (livenessState.depthFrames.length > 30) livenessState.depthFrames.shift();
+
+      processLiveness(face, box, { laplacianVar, brightness, moireScore, sizeRatio });
+      updateStatus('camera', 'green', 'Face Detected');
+
+      if (challengeRunning && currentChallengeIndex >= 0) {
+        document.getElementById('faceRing').className = 'face-ring-border detecting';
+      }
+
+    }, 180);
   }
-}
 
-function startDetection() {
-  const video = document.getElementById('video');
-  const canvas = document.getElementById('overlay');
-  const displaySize = { width: video.videoWidth || 640, height: video.videoHeight || 480 };
-  faceapi.matchDimensions(canvas, displaySize);
+  function drawLandmarks(ctx, points, color) {
+    if (!points || points.length === 0) return;
+    ctx.fillStyle = color;
+    for (const p of points) {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
 
-  livenessState.isScanning = true;
-  document.getElementById('scanLine').classList.add('active');
-  document.getElementById('faceRing').classList.add('scanning');
+  function processLiveness(face, box, antiSpoof) {
+    const expr = face.expressions;
+    const eyeAR = calcEyeAspectRatio(face.landmarks);
 
-  const detectionLoop = setInterval(async () => {
-    if (!livenessState.isScanning) { clearInterval(detectionLoop); return; }
-    livenessState.frameCount++;
+    livenessState.eyeClosureHistory.push(eyeAR);
+    if (livenessState.eyeClosureHistory.length > 15) livenessState.eyeClosureHistory.shift();
 
-    const detections = await faceapi
-      .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.4 }))
-      .withFaceLandmarks()
-      .withFaceExpressions();
+    if (!livenessState.blinkDetected && currentChallengeIndex === 0) {
+      const h = livenessState.eyeClosureHistory;
+      if (h.length >= 6) {
+        const recent = h.slice(-6);
+        const minEye = Math.min(...recent);
+        const maxEye = Math.max(...recent);
+        if (maxEye - minEye > 0.02 && minEye < 0.18) {
+          completeChallenge('blink');
+        }
+      }
+    }
 
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (!livenessState.nodDetected && currentChallengeIndex === 1) {
+      const currentY = box.y + box.height / 2;
+      livenessState.verticalMotionHistory.push(currentY);
+      if (livenessState.verticalMotionHistory.length > 25) livenessState.verticalMotionHistory.shift();
+      if (livenessState.verticalMotionHistory.length >= 12) {
+        const min = Math.min(...livenessState.verticalMotionHistory);
+        const max = Math.max(...livenessState.verticalMotionHistory);
+        if (max - min > 25) {
+          completeChallenge('nod');
+        }
+      }
+    }
 
-    const resized = faceapi.resizeResults(detections, { width: canvas.width, height: canvas.height });
+    if (!livenessState.turnDetected && currentChallengeIndex === 2) {
+      const currentX = box.x + box.width / 2;
+      livenessState.motionHistory.push(currentX);
+      if (livenessState.motionHistory.length > 25) livenessState.motionHistory.shift();
+      if (livenessState.motionHistory.length >= 12) {
+        const min = Math.min(...livenessState.motionHistory);
+        const max = Math.max(...livenessState.motionHistory);
+        if (max - min > 30) {
+          completeChallenge('turn');
+        }
+      }
+    }
 
-    if (resized.length === 0) {
-      document.getElementById('faceRing').className = 'face-ring-border';
+    let score = 0;
+    if (livenessState.blinkDetected) score += 33;
+    if (livenessState.nodDetected) score += 34;
+    if (livenessState.turnDetected) score += 33;
+
+    if (antiSpoof) {
+      if (antiSpoof.moireScore > 0.5) {
+        updateStatus('antiSpoof', 'red', 'Screen detected');
+        score = Math.max(0, score - 20);
+      } else {
+        updateStatus('antiSpoof', 'green', 'Anti-Spoof: Clear');
+      }
+      if (antiSpoof.brightness < 0.15 || antiSpoof.brightness > 0.9) {
+        score = Math.max(0, score - 10);
+      }
+    }
+
+    livenessState.livenessScore = score;
+    updateLivenessMeter(score);
+
+    if (livenessState.blinkDetected && livenessState.nodDetected && livenessState.turnDetected) {
+      document.getElementById('faceRing').className = 'face-ring-border success';
+      document.getElementById('checkinBtn').disabled = false;
+    }
+  }
+
+  function calcEyeAspectRatio(landmarks) {
+    const leftEye = landmarks.getLeftEye();
+    const rightEye = landmarks.getRightEye();
+    const eye = leftEye.length > 0 ? leftEye : rightEye;
+    if (eye.length < 6) return 0.3;
+    const v1 = dist2D(eye[1], eye[5]);
+    const v2 = dist2D(eye[2], eye[4]);
+    const h = dist2D(eye[0], eye[3]);
+    return (v1 + v2) / (2 * h + 1e-10);
+  }
+
+  function dist2D(a, b) {
+    return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
+  }
+
+  function completeChallenge(type) {
+    if (type === 'blink') {
+      livenessState.blinkDetected = true;
+      markChallenge('challengeBlink', 'done');
+      speak('Blink detected. Now nod your head up and down.');
+      playTone(880, 0.15);
+      vibrate(100);
+    } else if (type === 'nod') {
+      livenessState.nodDetected = true;
+      markChallenge('challengeNod', 'done');
+      speak('Nod detected. Now turn your head left and right.');
+      playTone(880, 0.15);
+      vibrate(100);
+    } else if (type === 'turn') {
+      livenessState.turnDetected = true;
+      markChallenge('challengeTurn', 'done');
+      speak('All checks passed! You may now check in.');
+      playTone(1200, 0.3);
+      vibrate([100, 50, 100]);
+      document.getElementById('faceRing').className = 'face-ring-border success';
+      document.getElementById('checkinBtn').disabled = false;
+      document.getElementById('checkinBtn').innerHTML = '<i class="fas fa-shield-halved"></i> Verify & Check-In';
+    }
+    advanceChallenge();
+  }
+
+  function startCheckInFlow() {
+    if (!modelsLoaded || !stream) { showToast('Camera and AI models required', 'error'); return; }
+    if (retryCooldown > 0) { showToast('Please wait ' + retryCooldown + 's before retrying', 'error'); return; }
+
+    resetLiveness();
+    challengeRunning = true;
+    currentChallengeIndex = 0;
+    document.getElementById('checkinBtn').disabled = true;
+
+    advanceChallenge();
+  }
+
+  function advanceChallenge() {
+    const challenges = ['challengeBlink', 'challengeNod', 'challengeTurn'];
+    const prompts = ['Look at the camera and blink your eyes', 'Nod your head up and down slowly', 'Turn your head slightly left then right'];
+    const speakPrompts = ['Please blink your eyes now.', 'Please nod your head up and down.', 'Please turn your head left and right.'];
+    const timers = ['timerBlink', 'timerNod', 'timerTurn'];
+    const types = ['blink', 'nod', 'turn'];
+
+    challenges.forEach((c, i) => {
+      const el = document.getElementById(c);
+      if (i < currentChallengeIndex) {
+        el.className = 'challenge-card done';
+      } else if (i === currentChallengeIndex) {
+        el.className = 'challenge-card active';
+      } else {
+        el.className = 'challenge-card waiting';
+      }
+    });
+
+    if (currentChallengeIndex >= challenges.length) {
+      challengeRunning = false;
+      document.getElementById('challengeOverlay').classList.remove('show');
       return;
     }
 
-    const face = resized[0];
-    const box = face.detection.box;
-    const centerX = box.x + box.width / 2;
-    const centerY = box.y + box.height / 2;
+    const overlay = document.getElementById('challengeOverlay');
+    const promptText = document.getElementById('challengePromptText');
+    overlay.classList.add('show');
+    promptText.textContent = prompts[currentChallengeIndex];
 
-    ctx.strokeStyle = 'rgba(14,165,233,0.6)';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(box.x, box.y, box.width, box.height);
+    speak(speakPrompts[currentChallengeIndex]);
 
-    const landmarks = face.landmarks;
-    const leftEye = landmarks.getLeftEye();
-    const rightEye = landmarks.getRightEye();
-    const mouth = landmarks.getMouth();
-    const nose = landmarks.getNose();
+    let timeLeft = 10;
+    challengeTimeLeft[types[currentChallengeIndex]] = timeLeft;
+    document.getElementById(timers[currentChallengeIndex]).textContent = timeLeft;
 
-    drawLandmarks(ctx, leftEye, '#0EA5E9');
-    drawLandmarks(ctx, rightEye, '#0EA5E9');
-    drawLandmarks(ctx, mouth, '#8B5CF6');
+    if (challengeTimers[types[currentChallengeIndex]]) clearInterval(challengeTimers[types[currentChallengeIndex]]);
 
-    processLiveness(face, box);
-    updateStatus('camera', 'green', 'Face Detected');
-
-  }, 200);
-}
-
-function drawLandmarks(ctx, points, color) {
-  if (!points || points.length === 0) return;
-  ctx.fillStyle = color;
-  for (const p of points) {
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
-    ctx.fill();
-  }
-}
-
-function processLiveness(face, box) {
-  const expr = face.expressions;
-  const eyeAspectRatio = calcEyeAspectRatio(face.landmarks);
-  const mouthOpenness = calcMouthOpenness(face.landmarks);
-
-  livenessState.eyeClosureHistory.push(eyeAspectRatio);
-  if (livenessState.eyeClosureHistory.length > 10) livenessState.eyeClosureHistory.shift();
-
-  if (!livenessState.blinkDetected) {
-    const history = livenessState.eyeClosureHistory;
-    if (history.length >= 5) {
-      const recent = history.slice(-5);
-      const minEye = Math.min(...recent);
-      const maxEye = Math.max(...recent);
-      if (maxEye - minEye > 0.02 && minEye < 0.2) {
-        livenessState.blinkDetected = true;
-        markChallenge('challengeBlink', 'done');
+    challengeTimers[types[currentChallengeIndex]] = setInterval(() => {
+      timeLeft--;
+      challengeTimeLeft[types[currentChallengeIndex]] = timeLeft;
+      document.getElementById(timers[currentChallengeIndex]).textContent = timeLeft;
+      if (timeLeft <= 3) {
+        document.getElementById(timers[currentChallengeIndex]).style.borderColor = '#EF4444';
+        document.getElementById(timers[currentChallengeIndex]).style.color = '#EF4444';
       }
+      if (timeLeft <= 0) {
+        clearInterval(challengeTimers[types[currentChallengeIndex]]);
+        markChallenge(challenges[currentChallengeIndex], 'fail');
+        document.getElementById(timers[currentChallengeIndex]).textContent = '0';
+        currentChallengeIndex++;
+        if (currentChallengeIndex < challenges.length) {
+          setTimeout(() => advanceChallenge(), 1000);
+        } else {
+          challengeRunning = false;
+          overlay.classList.remove('show');
+          showToast('Challenge timed out. Try again.', 'error');
+          playTone(300, 0.3, 'sawtooth');
+          vibrate(200);
+          startRetryCooldown(5);
+        }
+      }
+    }, 1000);
+  }
+
+  function startRetryCooldown(seconds) {
+    retryCooldown = seconds;
+    const overlay = document.getElementById('cooldownOverlay');
+    const countEl = document.getElementById('cooldownCount');
+    overlay.classList.add('show');
+
+    cooldownTimer = setInterval(() => {
+      retryCooldown--;
+      countEl.textContent = retryCooldown;
+      if (retryCooldown <= 0) {
+        clearInterval(cooldownTimer);
+        overlay.classList.remove('show');
+        resetLiveness();
+      }
+    }, 1000);
+  }
+
+  function markChallenge(id, state) {
+    const el = document.getElementById(id);
+    if (el) el.className = 'challenge-card ' + state;
+  }
+
+  function updateLivenessMeter(score) {
+    const fill = document.getElementById('livenessFill');
+    const text = document.getElementById('livenessScoreText');
+    fill.style.width = score + '%';
+    text.textContent = score + '%';
+    fill.className = 'liveness-fill ' + (score < 30 ? 'low' : score < 70 ? 'mid' : 'high');
+    updateStatus('liveness', score >= 90 ? 'green' : score >= 50 ? 'yellow' : 'red', 'Liveness: ' + score + '%');
+  }
+
+  async function performCheckIn() {
+    if (!modelsLoaded || !stream) return;
+
+    const btn = document.getElementById('checkinBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Verifying...';
+    document.getElementById('faceRing').className = 'face-ring-border scanning';
+    document.getElementById('challengeOverlay').classList.remove('show');
+
+    try {
+      const video = document.getElementById('video');
+      const detection = await faceapi
+        .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.4 }))
+        .withFaceLandmarks()
+        .withFaceDescriptor();
+
+      if (!detection) {
+        showToast('No face detected. Please position yourself.', 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-fingerprint"></i> Start Face Check-In';
+        document.getElementById('faceRing').className = 'face-ring-border fail';
+        return;
+      }
+
+      const descriptor = Array.from(detection.descriptor);
+
+      const avgTexture = livenessState.textureScores.length > 0
+        ? livenessState.textureScores.reduce((a, b) => a + b.laplacian, 0) / livenessState.textureScores.length : 100;
+      const avgMoire = livenessState.textureScores.length > 0
+        ? livenessState.textureScores.reduce((a, b) => a + b.moire, 0) / livenessState.textureScores.length : 0;
+      const depthScore = estimateMotionDepth(livenessState.depthFrames);
+
+      const res = await fetch(API_BASE + '/face/checkin', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
+        body: JSON.stringify({
+          descriptor,
+          livenessScore: livenessState.livenessScore,
+          antiSpoofData: {
+            screenReflection: avgMoire,
+            flatnessScore: avgTexture < 50 ? 0.8 : avgTexture < 100 ? 0.3 : 0.05,
+            motionConsistency: depthScore,
+          },
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        document.getElementById('faceRing').className = 'face-ring-border success';
+        document.getElementById('statConfidence').textContent = data.data.confidence + '%';
+        playTone(1200, 0.2);
+        playTone(1500, 0.2);
+        vibrate([50, 30, 50]);
+        addCheckinToHistory(data.data.confidence, data.data.timestamp);
+        showResultModal(true, data.data);
+      } else {
+        document.getElementById('faceRing').className = 'face-ring-border fail';
+        playTone(300, 0.3, 'sawtooth');
+        vibrate(200);
+        showResultModal(false, { message: data.message || 'Verification failed' });
+        startRetryCooldown(5);
+      }
+    } catch (e) {
+      console.error('Check-in error:', e);
+      showToast('Network error. Please try again.', 'error');
+      document.getElementById('faceRing').className = 'face-ring-border fail';
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-fingerprint"></i> Start Face Check-In';
     }
   }
 
-  if (!livenessState.smileDetected && expr.happy > 0.6) {
-    livenessState.smileDetected = true;
-    markChallenge('challengeSmile', 'done');
-  }
-
-  if (!livenessState.headTurnDetected) {
-    const currentX = box.x + box.width / 2;
-    livenessState.motionHistory.push(currentX);
-    if (livenessState.motionHistory.length > 20) livenessState.motionHistory.shift();
-    if (livenessState.motionHistory.length >= 15) {
-      const min = Math.min(...livenessState.motionHistory);
-      const max = Math.max(...livenessState.motionHistory);
-      if (max - min > 30) {
-        livenessState.headTurnDetected = true;
-        markChallenge('challengeTurn', 'done');
-      }
-    }
-  }
-
-  let score = 0;
-  if (livenessState.blinkDetected) score += 35;
-  if (livenessState.smileDetected) score += 30;
-  if (livenessState.headTurnDetected) score += 35;
-  livenessState.livenessScore = score;
-  updateLivenessMeter(score);
-
-  const allPassed = livenessState.blinkDetected && livenessState.smileDetected && livenessState.headTurnDetected;
-  if (allPassed) {
-    document.getElementById('faceRing').className = 'face-ring-border success';
-    document.getElementById('checkinBtn').disabled = false;
-  }
-}
-
-function calcEyeAspectRatio(landmarks) {
-  const leftEye = landmarks.getLeftEye();
-  const rightEye = landmarks.getRightEye();
-  const eye = leftEye.length > 0 ? leftEye : rightEye;
-  if (eye.length < 6) return 0.3;
-  const v1 = dist(eye[1], eye[5]);
-  const v2 = dist(eye[2], eye[4]);
-  const h = dist(eye[0], eye[3]);
-  return (v1 + v2) / (2 * h + 1e-10);
-}
-
-function calcMouthOpenness(landmarks) {
-  const mouth = landmarks.getMouth();
-  if (mouth.length < 20) return 0;
-  const upper = mouth[14];
-  const lower = mouth[18];
-  const left = mouth[12];
-  const right = mouth[6];
-  const vertical = dist(upper, lower);
-  const horizontal = dist(left, right);
-  return vertical / (horizontal + 1e-10);
-}
-
-function dist(a, b) {
-  return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
-}
-
-function markChallenge(id, state) {
-  const el = document.getElementById(id);
-  if (el) el.className = 'challenge-card ' + state;
-}
-
-function updateLivenessMeter(score) {
-  const fill = document.getElementById('livenessFill');
-  const text = document.getElementById('livenessScoreText');
-  fill.style.width = score + '%';
-  text.textContent = score + '%';
-  fill.className = 'liveness-fill ' + (score < 30 ? 'low' : score < 70 ? 'mid' : 'high');
-}
-
-function updateStatus(type, color, text) {
-  document.getElementById(type + 'Status').className = 'status-dot ' + color;
-  document.getElementById(type + 'StatusText').textContent = text;
-}
-
-async function performCheckIn() {
-  if (!modelsLoaded || !stream) { showToast('Camera and AI models required', 'error'); return; }
-  const allPassed = livenessState.blinkDetected && livenessState.smileDetected && livenessState.headTurnDetected;
-  if (!allPassed) { showToast('Complete all liveness checks first', 'error'); return; }
-
-  const btn = document.getElementById('checkinBtn');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span> Verifying...';
-  document.getElementById('faceRing').className = 'face-ring-border scanning';
-
-  try {
+  async function captureSample() {
+    if (!modelsLoaded || !stream) { showToast('Camera and AI models required', 'error'); return; }
     const video = document.getElementById('video');
+
     const detection = await faceapi
       .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.4 }))
       .withFaceLandmarks()
       .withFaceDescriptor();
 
     if (!detection) {
-      showToast('No face detected. Please position yourself.', 'error');
-      btn.disabled = false;
-      btn.innerHTML = '<i class="fas fa-fingerprint"></i> Start Face Check-In';
-      document.getElementById('faceRing').className = 'face-ring-border fail';
+      showToast('No face detected. Please center your face.', 'error');
       return;
     }
 
-    const descriptor = Array.from(detection.descriptor);
+    if (registrationSamples.length >= 3) return;
 
-    const token = localStorage.getItem('erp_token') || localStorage.getItem('token');
-    const res = await fetch(API_URL + '/face/checkin', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body: JSON.stringify({
-        descriptor,
-        livenessScore: livenessState.livenessScore,
-        antiSpoofData: {
-          screenReflection: 0.1,
-          flatnessScore: 0.05,
-          motionConsistency: livenessState.headTurnDetected ? 0.8 : 0.3,
-        },
-      }),
-    });
+    const box = detection.detection.box;
+    const sizeRatio = box.width * box.height / (video.videoWidth * video.videoHeight);
+    const qualityScore = Math.min(100, Math.round(sizeRatio * 500 + 40));
 
-    const data = await res.json();
+    registrationSamples.push(Array.from(detection.descriptor));
+    regQualityScores.push(qualityScore);
 
-    if (res.ok && data.success) {
-      document.getElementById('faceRing').className = 'face-ring-border success';
-      document.getElementById('statConfidence').textContent = data.data.confidence + '%';
-      showResultModal(true, data.data);
-    } else {
-      document.getElementById('faceRing').className = 'face-ring-border fail';
-      showResultModal(false, { message: data.message || 'Verification failed' });
+    const thumbCanvas = document.createElement('canvas');
+    thumbCanvas.width = 120;
+    thumbCanvas.height = 90;
+    const tctx = thumbCanvas.getContext('2d');
+    tctx.drawImage(video,
+      Math.max(0, box.x - box.width * 0.1), Math.max(0, box.y - box.height * 0.1),
+      box.width * 1.2, box.height * 1.2,
+      0, 0, 120, 90
+    );
+
+    const sampleEl = document.getElementById('sample' + registrationSamples.length);
+    if (sampleEl) {
+      sampleEl.innerHTML = '';
+      sampleEl.className = 'reg-sample captured';
+      const img = document.createElement('img');
+      img.src = thumbCanvas.toDataURL('image/jpeg', 0.8);
+      sampleEl.appendChild(img);
+      const scoreBadge = document.createElement('div');
+      scoreBadge.className = 'quality-score';
+      scoreBadge.textContent = qualityScore + '%';
+      sampleEl.appendChild(scoreBadge);
     }
-  } catch (e) {
-    console.error('Check-in error:', e);
-    showToast('Network error. Please try again.', 'error');
-    document.getElementById('faceRing').className = 'face-ring-border fail';
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = '<i class="fas fa-fingerprint"></i> Start Face Check-In';
-  }
-}
 
-async function captureSample() {
-  if (!modelsLoaded || !stream) { showToast('Camera and AI models required', 'error'); return; }
-  const video = document.getElementById('video');
+    playTone(880, 0.1);
+    vibrate(50);
+    showToast('Sample ' + registrationSamples.length + '/3 captured (' + qualityScore + '% quality)', 'success');
 
-  const detection = await faceapi
-    .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.4 }))
-    .withFaceLandmarks()
-    .withFaceDescriptor();
+    const avgQ = Math.round(regQualityScores.reduce((a,b) => a+b, 0) / regQualityScores.length);
+    document.getElementById('regQualityBar').style.display = 'block';
+    document.getElementById('regQualityText').textContent = avgQ + '%';
+    document.getElementById('regQualityFill').style.width = avgQ + '%';
+    document.getElementById('regQualityFill').className = 'liveness-fill ' + (avgQ < 50 ? 'low' : avgQ < 75 ? 'mid' : 'high');
 
-  if (!detection) {
-    showToast('No face detected. Please center your face.', 'error');
-    return;
+    if (registrationSamples.length === 3) {
+      document.getElementById('saveRegBtn').style.display = 'flex';
+      document.getElementById('registerBtn').style.display = 'none';
+    }
   }
 
-  if (registrationSamples.length >= 3) return;
+  async function saveRegistration() {
+    if (registrationSamples.length < 3) { showToast('Capture 3 samples first', 'error'); return; }
+    const btn = document.getElementById('saveRegBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Saving...';
 
-  registrationSamples.push(Array.from(detection.descriptor));
-
-  const sampleEl = document.getElementById('sample' + registrationSamples.length);
-  if (sampleEl) {
-    sampleEl.style.border = '2px solid #10B981';
-    sampleEl.style.background = '#F0FDF4';
-    sampleEl.innerHTML = '<i class="fas fa-check" style="color:#10B981;font-size:18px"></i>';
-  }
-
-  showToast('Sample ' + registrationSamples.length + '/3 captured', 'success');
-
-  if (registrationSamples.length === 3) {
-    document.getElementById('saveRegBtn').style.display = 'flex';
-    document.getElementById('registerBtn').style.display = 'none';
-  }
-}
-
-async function saveRegistration() {
-  if (registrationSamples.length < 3) { showToast('Capture 3 samples first', 'error'); return; }
-  const btn = document.getElementById('saveRegBtn');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span> Saving...';
-
-  try {
-    const token = localStorage.getItem('erp_token') || localStorage.getItem('token');
-    const res = await fetch(API_URL + '/face/register', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-      body: JSON.stringify({
-        descriptors: registrationSamples,
-        livenessScore: 95,
-      }),
-    });
-
-    const data = await res.json();
-    if (res.ok && data.success) {
-      faceRegistered = true;
-      showResultModal(true, { message: 'Face registered successfully!', registered: true });
-      registrationSamples = [];
-      ['sample1','sample2','sample3'].forEach(id => {
-        const el = document.getElementById(id);
-        el.style.border = '2px dashed #E2E8F0';
-        el.style.background = 'transparent';
-        el.innerHTML = id.replace('sample', 'Sample ');
+    try {
+      const res = await fetch(API_BASE + '/face/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getToken() },
+        body: JSON.stringify({ descriptors: registrationSamples, livenessScore: 95 }),
       });
-      document.getElementById('saveRegBtn').style.display = 'none';
-      document.getElementById('registerBtn').style.display = 'flex';
-    } else {
-      showToast(data.message || 'Registration failed', 'error');
-    }
-  } catch (e) {
-    showToast('Network error', 'error');
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = '<i class="fas fa-check"></i> Save Face Data';
-  }
-}
 
-async function checkFaceStatus() {
-  try {
-    const token = localStorage.getItem('erp_token') || localStorage.getItem('token');
-    const res = await fetch(API_URL + '/face/status', {
-      headers: { 'Authorization': 'Bearer ' + token },
-    });
-    const data = await res.json();
-    if (data.success && data.data.registered) {
-      faceRegistered = true;
-      renderFaceStatus(data.data);
-    } else {
+      const data = await res.json();
+      if (res.ok && data.success) {
+        faceRegistered = true;
+        playTone(1200, 0.15);
+        playTone(1500, 0.15);
+        vibrate([50, 30, 50]);
+        showResultModal(true, { message: 'Face registered successfully! You can now use Face ID check-in.', registered: true });
+        registrationSamples = [];
+        regQualityScores = [];
+        for (let i = 1; i <= 3; i++) {
+          const el = document.getElementById('sample' + i);
+          el.className = 'reg-sample';
+          el.innerHTML = '<span>Sample ' + i + '</span>';
+        }
+        document.getElementById('saveRegBtn').style.display = 'none';
+        document.getElementById('registerBtn').style.display = 'flex';
+        document.getElementById('regQualityBar').style.display = 'none';
+      } else {
+        showToast(data.message || 'Registration failed', 'error');
+      }
+    } catch (e) {
+      showToast('Network error', 'error');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-check"></i> Save Face Data';
+    }
+  }
+
+  async function checkFaceStatus() {
+    try {
+      const res = await fetch(API_BASE + '/face/status', {
+        headers: { 'Authorization': 'Bearer ' + getToken() },
+      });
+      const data = await res.json();
+      if (data.success && data.data.registered) {
+        faceRegistered = true;
+        renderFaceStatus(data.data);
+      } else {
+        document.getElementById('faceStatusContent').innerHTML =
+          '<div style="text-align:center;padding:20px">' +
+            '<i class="fas fa-face-smile" style="font-size:36px;color:#CBD5E1;margin-bottom:10px;display:block"></i>' +
+            '<p style="font-size:13px;color:#64748B">No face registered yet.</p>' +
+            '<button class="action-btn action-btn-outline" style="width:auto;padding:8px 16px;font-size:12px;margin-top:10px" onclick="switchMode(\'register\')"><i class="fas fa-user-plus"></i> Register Now</button>' +
+          '</div>';
+      }
+    } catch (e) {
       document.getElementById('faceStatusContent').innerHTML =
-        '<div style="text-align:center;padding:20px">' +
-          '<i class="fas fa-face-smile" style="font-size:36px;color:#CBD5E1;margin-bottom:10px;display:block"></i>' +
-          '<p style="font-size:13px;color:#64748B">No face registered yet.</p>' +
-          '<button class="action-btn action-btn-outline" style="width:auto;padding:8px 16px;font-size:12px;margin-top:10px" onclick="switchMode(\'register\')"><i class="fas fa-user-plus"></i> Register Now</button>' +
-        '</div>';
+        '<div style="text-align:center;padding:16px;color:#94A3B8;font-size:13px">Could not load status</div>';
     }
-  } catch (e) {
+  }
+
+  function renderFaceStatus(status) {
+    document.getElementById('statCheckins').textContent = status.verificationCount || 0;
+    document.getElementById('statStreak').textContent = Math.min(status.verificationCount || 0, 7);
+    document.getElementById('deleteFaceBtn').style.display = 'flex';
+
     document.getElementById('faceStatusContent').innerHTML =
-      '<div style="text-align:center;padding:16px;color:#94A3B8;font-size:13px">Could not load status</div>';
+      '<div style="display:flex;flex-direction:column;gap:8px">' +
+        '<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #F1F5F9"><span style="font-size:11px;color:#64748B">Status</span><span style="font-size:11px;font-weight:700;color:#10B981"><i class="fas fa-check-circle" style="margin-right:3px"></i>Registered</span></div>' +
+        '<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #F1F5F9"><span style="font-size:11px;color:#64748B">Face Samples</span><span style="font-size:11px;font-weight:700">' + (status.descriptorCount || 0) + '/3</span></div>' +
+        '<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #F1F5F9"><span style="font-size:11px;color:#64748B">Registered</span><span style="font-size:11px;font-weight:700">' + new Date(status.registeredAt).toLocaleDateString() + '</span></div>' +
+        '<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #F1F5F9"><span style="font-size:11px;color:#64748B">Last Verified</span><span style="font-size:11px;font-weight:700">' + (status.lastVerifiedAt ? new Date(status.lastVerifiedAt).toLocaleString() : 'Never') + '</span></div>' +
+        '<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #F1F5F9"><span style="font-size:11px;color:#64748B">Total Verifications</span><span style="font-size:11px;font-weight:700">' + (status.verificationCount || 0) + '</span></div>' +
+        '<div style="display:flex;justify-content:space-between;padding:7px 0"><span style="font-size:11px;color:#64748B">Spoof Attempts</span><span style="font-size:11px;font-weight:700;color:' + ((status.spoofAttempts || 0) > 0 ? '#EF4444' : '#10B981') + '">' + (status.spoofAttempts || 0) + '</span></div>' +
+      '</div>';
   }
-}
 
-function renderFaceStatus(status) {
-  document.getElementById('statCheckins').textContent = status.verificationCount || 0;
-  document.getElementById('statStreak').textContent = Math.min(status.verificationCount || 0, 7);
-  document.getElementById('deleteFaceBtn').style.display = 'flex';
-
-  document.getElementById('faceStatusContent').innerHTML =
-    '<div style="display:flex;flex-direction:column;gap:10px">' +
-      '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #F1F5F9"><span style="font-size:12px;color:#64748B">Status</span><span style="font-size:12px;font-weight:700;color:#10B981"><i class="fas fa-check-circle" style="margin-right:4px"></i>Registered</span></div>' +
-      '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #F1F5F9"><span style="font-size:12px;color:#64748B">Face Samples</span><span style="font-size:12px;font-weight:700">' + (status.descriptorCount || 0) + '/3</span></div>' +
-      '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #F1F5F9"><span style="font-size:12px;color:#64748B">Registered</span><span style="font-size:12px;font-weight:700">' + new Date(status.registeredAt).toLocaleDateString() + '</span></div>' +
-      '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #F1F5F9"><span style="font-size:12px;color:#64748B">Last Verified</span><span style="font-size:12px;font-weight:700">' + (status.lastVerifiedAt ? new Date(status.lastVerifiedAt).toLocaleString() : 'Never') + '</span></div>' +
-      '<div style="display:flex;justify-content:space-between;padding:8px 0"><span style="font-size:12px;color:#64748B">Total Verifications</span><span style="font-size:12px;font-weight:700">' + (status.verificationCount || 0) + '</span></div>' +
-    '</div>';
-}
-
-async function deleteFaceData() {
-  if (!confirm('Delete your face data? You will need to re-register.')) return;
-  try {
-    const token = localStorage.getItem('erp_token') || localStorage.getItem('token');
-    const res = await fetch(API_URL + '/face', {
-      method: 'DELETE',
-      headers: { 'Authorization': 'Bearer ' + token },
-    });
-    const data = await res.json();
-    if (data.success) {
-      faceRegistered = false;
-      showToast('Face data deleted', 'success');
-      checkFaceStatus();
-      document.getElementById('deleteFaceBtn').style.display = 'none';
+  async function deleteFaceData() {
+    if (!confirm('Delete your face data? You will need to re-register.')) return;
+    try {
+      const res = await fetch(API_BASE + '/face', {
+        method: 'DELETE',
+        headers: { 'Authorization': 'Bearer ' + getToken() },
+      });
+      const data = await res.json();
+      if (data.success) {
+        faceRegistered = false;
+        showToast('Face data deleted', 'success');
+        checkFaceStatus();
+        document.getElementById('deleteFaceBtn').style.display = 'none';
+      }
+    } catch (e) {
+      showToast('Failed to delete', 'error');
     }
-  } catch (e) {
-    showToast('Failed to delete', 'error');
   }
-}
 
-function switchMode(mode) {
-  currentMode = mode;
-  document.querySelectorAll('.mode-tab').forEach(t => { t.style.background = 'transparent'; t.style.color = '#64748B'; });
-  const activeTab = document.getElementById('tab' + mode.charAt(0).toUpperCase() + mode.slice(1));
-  if (activeTab) { activeTab.style.background = 'white'; activeTab.style.color = '#0EA5E9'; }
+  function switchMode(mode) {
+    currentMode = mode;
+    document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+    const tabMap = { checkin: 'tabCheckin', register: 'tabRegister', status: 'tabStatus' };
+    document.getElementById(tabMap[mode]).classList.add('active');
+    document.getElementById('modeCheckin').style.display = mode === 'checkin' ? '' : 'none';
+    document.getElementById('modeRegister').style.display = mode === 'register' ? '' : 'none';
+    document.getElementById('modeStatus').style.display = mode === 'status' ? '' : 'none';
+    if (mode === 'status') checkFaceStatus();
+  }
 
-  document.getElementById('modeCheckin').style.display = mode === 'checkin' ? '' : 'none';
-  document.getElementById('modeRegister').style.display = mode === 'register' ? '' : 'none';
-  document.getElementById('modeStatus').style.display = mode === 'status' ? '' : 'none';
+  function addCheckinToHistory(confidence, timestamp) {
+    const entry = { confidence, time: timestamp || new Date().toISOString() };
+    checkinHistory.unshift(entry);
+    if (checkinHistory.length > 10) checkinHistory.pop();
+    localStorage.setItem('face_checkin_history', JSON.stringify(checkinHistory));
+    renderCheckinHistory();
+  }
 
-  if (mode === 'status') checkFaceStatus();
-}
+  function renderCheckinHistory() {
+    const log = document.getElementById('checkinLog');
+    const list = document.getElementById('checkinLogList');
+    if (checkinHistory.length === 0) { log.style.display = 'none'; return; }
+    log.style.display = 'block';
+    list.innerHTML = checkinHistory.slice(0, 5).map(e =>
+      '<div class="checkin-log-item">' +
+        '<div class="log-dot"></div>' +
+        '<div class="log-time">' + new Date(e.time).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) + '</div>' +
+        '<div style="font-size:11px;color:#64748B">' + new Date(e.time).toLocaleDateString() + '</div>' +
+        '<div class="log-conf">' + e.confidence + '%</div>' +
+      '</div>'
+    ).join('');
+  }
 
-function showResultModal(success, data) {
-  const modal = document.getElementById('resultModal');
-  const icon = document.getElementById('resultIcon');
-  const title = document.getElementById('resultTitle');
-  const msg = document.getElementById('resultMessage');
-  const details = document.getElementById('resultDetails');
+  function showResultModal(success, data) {
+    const modal = document.getElementById('resultModal');
+    const icon = document.getElementById('resultIcon');
+    const title = document.getElementById('resultTitle');
+    const msg = document.getElementById('resultMessage');
+    const details = document.getElementById('resultDetails');
+    const confSvg = document.getElementById('confRingSvg');
 
-  if (success) {
-    icon.innerHTML = '<i class="fas fa-check-circle" style="color:#10B981"></i>';
-    title.textContent = 'Check-In Successful';
-    title.style.color = '#059669';
-    msg.textContent = 'Your attendance has been recorded via Face ID verification.';
-    details.innerHTML = data.confidence ?
-      '<div style="display:flex;gap:16px;justify-content:center;margin-bottom:8px"><div style="text-align:center"><div style="font-size:24px;font-weight:900;color:#0EA5E9">' + data.confidence + '%</div><div style="font-size:10px;color:#64748B;font-weight:600">Confidence</div></div><div style="text-align:center"><div style="font-size:24px;font-weight:900;color:#10B981"><i class="fas fa-check"></i></div><div style="font-size:10px;color:#64748B;font-weight:600">Verified</div></div></div>' : '';
+    if (success) {
+      confSvg.style.display = 'block';
+      icon.style.display = 'none';
+      title.textContent = data.registered ? 'Registration Complete' : 'Check-In Successful';
+      title.style.color = '#059669';
+      msg.textContent = data.registered
+        ? 'Your face data has been securely stored. You can now use Face ID for attendance.'
+        : 'Your attendance has been recorded via Face ID verification.';
+
+      if (data.confidence && !data.registered) {
+        const circumference = 314.16;
+        const offset = circumference - (parseFloat(data.confidence) / 100) * circumference;
+        const fill = document.getElementById('confRingFill');
+        fill.setAttribute('stroke', '#10B981');
+        setTimeout(() => { fill.style.strokeDashoffset = offset; }, 100);
+        document.getElementById('confRingNum').textContent = data.confidence + '%';
+        details.innerHTML = '<div style="display:flex;gap:16px;justify-content:center;margin-top:8px">' +
+          '<div style="text-align:center"><div style="font-size:12px;font-weight:700;color:#10B981"><i class="fas fa-shield-halved"></i></div><div style="font-size:9px;color:#64748B;margin-top:2px">Verified</div></div>' +
+          '<div style="text-align:center"><div style="font-size:12px;font-weight:700;color:#0EA5E9"><i class="fas fa-bolt"></i></div><div style="font-size:9px;color:#64748B;margin-top:2px">Live</div></div>' +
+          '<div style="text-align:center"><div style="font-size:12px;font-weight:700;color:#8B5CF6"><i class="fas fa-lock"></i></div><div style="font-size:9px;color:#64748B;margin-top:2px">Secured</div></div>' +
+        '</div>';
+      } else {
+        details.innerHTML = '';
+      }
+    } else {
+      confSvg.style.display = 'none';
+      icon.style.display = 'block';
+      icon.innerHTML = '<i class="fas fa-times-circle" style="color:#EF4444;font-size:56px"></i>';
+      title.textContent = 'Check-In Failed';
+      title.style.color = '#DC2626';
+      msg.textContent = data.message || 'Verification failed. Please try again.';
+      details.innerHTML = '';
+    }
+
+    modal.classList.add('show');
+  }
+
+  function closeResultModal() {
+    document.getElementById('resultModal').classList.remove('show');
+    const fill = document.getElementById('confRingFill');
+    fill.style.strokeDashoffset = '314.16';
+    resetLiveness();
+  }
+
+  function resetLiveness() {
+    livenessState.blinkDetected = false;
+    livenessState.nodDetected = false;
+    livenessState.turnDetected = false;
+    livenessState.livenessScore = 0;
+    livenessState.motionHistory = [];
+    livenessState.verticalMotionHistory = [];
+    livenessState.eyeClosureHistory = [];
+    livenessState.textureScores = [];
+    livenessState.depthFrames = [];
+    livenessState.lastFaceBox = null;
+    livenessState.consecutiveNoFace = 0;
+    currentChallengeIndex = -1;
+    challengeRunning = false;
+
+    Object.keys(challengeTimers).forEach(k => { if (challengeTimers[k]) clearInterval(challengeTimers[k]); });
+
+    updateLivenessMeter(0);
+    document.querySelectorAll('.challenge-card').forEach((c, i) => { c.className = 'challenge-card waiting'; });
+    ['timerBlink', 'timerNod', 'timerTurn'].forEach(id => {
+      const el = document.getElementById(id);
+      el.textContent = '10';
+      el.style.borderColor = '#E2E8F0';
+      el.style.color = '#64748B';
+    });
+    document.getElementById('faceRing').className = 'face-ring-border';
+    document.getElementById('challengeOverlay').classList.remove('show');
+    document.getElementById('scanLine').classList.add('active');
+    document.getElementById('faceRing').classList.add('scanning');
+  }
+
+  window.startCamera = startCamera;
+  window.switchMode = switchMode;
+  window.startCheckInFlow = startCheckInFlow;
+  window.performCheckIn = performCheckIn;
+  window.captureSample = captureSample;
+  window.saveRegistration = saveRegistration;
+  window.deleteFaceData = deleteFaceData;
+  window.closeResultModal = closeResultModal;
+
+  document.getElementById('checkinBtn').addEventListener('click', function() {
+    const allPassed = livenessState.blinkDetected && livenessState.nodDetected && livenessState.turnDetected;
+    if (allPassed) {
+      performCheckIn();
+    } else if (!challengeRunning) {
+      startCheckInFlow();
+    }
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (stream) { stream.getTracks().forEach(t => t.stop()); }
+    if (detectionInterval) clearInterval(detectionInterval);
+  });
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
   } else {
-    icon.innerHTML = '<i class="fas fa-times-circle" style="color:#EF4444"></i>';
-    title.textContent = 'Check-In Failed';
-    title.style.color = '#DC2626';
-    msg.textContent = data.message || 'Verification failed. Please try again.';
-    details.innerHTML = '';
+    init();
   }
-
-  modal.classList.add('show');
-}
-
-function closeResultModal() {
-  document.getElementById('resultModal').classList.remove('show');
-  resetLiveness();
-}
-
-function resetLiveness() {
-  livenessState.blinkDetected = false;
-  livenessState.smileDetected = false;
-  livenessState.headTurnDetected = false;
-  livenessState.livenessScore = 0;
-  livenessState.motionHistory = [];
-  livenessState.eyeClosureHistory = [];
-  updateLivenessMeter(0);
-  document.querySelectorAll('.challenge-card').forEach(c => c.className = 'challenge-card');
-  document.getElementById('faceRing').className = 'face-ring-border';
-}
-
-function showToast(msg, type) {
-  const toast = document.createElement('div');
-  toast.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;background:white;border-radius:10px;padding:12px 18px;box-shadow:0 10px 30px rgba(0,0,0,0.15);border-left:4px solid ' + (type === 'success' ? '#10B981' : '#EF4444') + ';font-size:13px;font-weight:600;display:flex;align-items:center;gap:10px;animation:resultPop 0.3s ease';
-  const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
-  toast.innerHTML = '<i class="fas ' + icon + '" style="color:' + (type === 'success' ? '#10B981' : '#EF4444') + '"></i>' + msg;
-  document.body.appendChild(toast);
-  setTimeout(() => toast.remove(), 4000);
-}
-
-init();
+})();
 </script>
 </body>
 </html>
