@@ -201,6 +201,7 @@ app.use('/api/verification', require('./routes/verification'));
 app.use('/api/placements', require('./routes/placement'));
 app.use('/api/alumni', require('./routes/alumni'));
 app.use('/api/events', require('./routes/event'));
+app.use('/api/face', require('./routes/face'));
 
 // Fallback for frontend routing (SPA support)
 app.get('*', (req, res) => {

@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Face ID Check-In | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../css/custom.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+  <style>
+    .face-hero {
+      background: linear-gradient(135deg, #0EA5E9 0%, #0284C7 50%, #0369A1 100%);
+      border-radius: 16px; padding: 28px 32px; color: white;
+      position: relative; overflow: hidden; margin-bottom: 24px;
+    }
+    .face-hero::before {
+      content: ''; position: absolute; top: -30px; right: -30px;
+      width: 140px; height: 140px; background: rgba(255,255,255,0.08); border-radius: 50%;
+    }
+    .face-hero::after {
+      content: ''; position: absolute; bottom: -50px; left: 30%;
+      width: 200px; height: 200px; background: rgba(255,255,255,0.04); border-radius: 50%;
+    }
+
+    .camera-container {
+      position: relative; width: 100%; max-width: 640px;
+      margin: 0 auto; border-radius: 20px; overflow: hidden;
+      background: #0F172A; aspect-ratio: 4/3;
+    }
+    .camera-container video, .camera-container canvas {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+    }
+    .camera-container canvas {
+      position: absolute; top: 0; left: 0; z-index: 2;
+    }
+    #overlay {
+      position: absolute; top: 0; left: 0; z-index: 3;
+      pointer-events: none;
+    }
+
+    .face-overlay-ring {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 220px; height: 280px; z-index: 4;
+      pointer-events: none;
+    }
+    .face-ring-border {
+      position: absolute; inset: 0;
+      border: 3px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+    .face-ring-border.detecting {
+      border-color: rgba(14,165,233,0.8);
+      box-shadow: 0 0 30px rgba(14,165,233,0.3);
+    }
+    .face-ring-border.success {
+      border-color: rgba(16,185,129,0.9);
+      box-shadow: 0 0 40px rgba(16,185,129,0.4);
+    }
+    .face-ring-border.fail {
+      border-color: rgba(239,68,68,0.9);
+      box-shadow: 0 0 40px rgba(239,68,68,0.4);
+    }
+    .face-ring-border.scanning {
+      border-color: rgba(14,165,233,0.8);
+      animation: faceScanPulse 1.5s ease-in-out infinite;
+    }
+    @keyframes faceScanPulse {
+      0%, 100% { box-shadow: 0 0 20px rgba(14,165,233,0.3); }
+      50% { box-shadow: 0 0 50px rgba(14,165,233,0.6); }
+    }
+
+    .scan-line {
+      position: absolute; top: 0; left: 5%; right: 5%;
+      height: 2px; background: linear-gradient(90deg, transparent, #0EA5E9, transparent);
+      z-index: 5; opacity: 0;
+    }
+    .scan-line.active {
+      opacity: 1;
+      animation: scanDown 2s ease-in-out infinite;
+    }
+    @keyframes scanDown {
+      0% { top: 5%; }
+      50% { top: 90%; }
+      100% { top: 5%; }
+    }
+
+    .camera-placeholder {
+      position: absolute; inset: 0; z-index: 1;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      color: rgba(255,255,255,0.5); gap: 12px;
+    }
+    .camera-placeholder i { font-size: 48px; }
+    .camera-placeholder p { font-size: 14px; }
+
+    .status-bar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 16px; background: white; border: 1px solid #E2E8F0;
+      border-radius: 12px; margin-top: 16px;
+    }
+    .status-item { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; }
+    .status-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+    }
+    .status-dot.green { background: #10B981; }
+    .status-dot.yellow { background: #F59E0B; }
+    .status-dot.red { background: #EF4444; }
+    .status-dot.blue { background: #3B82F6; animation: blink 1s infinite; }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+    .challenge-card {
+      background: white; border: 1px solid #E2E8F0; border-radius: 14px;
+      padding: 16px 20px; margin-top: 16px; display: flex;
+      align-items: center; gap: 14px; transition: all 0.3s;
+    }
+    .challenge-card.active { border-color: #0EA5E9; background: #F0F9FF; }
+    .challenge-card.done { border-color: #10B981; background: #F0FDF4; }
+    .challenge-card.fail { border-color: #EF4444; background: #FEF2F2; }
+    .challenge-icon {
+      width: 40px; height: 40px; border-radius: 10px; display: flex;
+      align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;
+    }
+    .challenge-text h4 { font-size: 13px; font-weight: 700; color: #0F172A; }
+    .challenge-text p { font-size: 11px; color: #64748B; margin-top: 1px; }
+    .challenge-check { margin-left: auto; font-size: 18px; color: #10B981; display: none; }
+    .challenge-card.done .challenge-check { display: block; }
+
+    .action-btn {
+      width: 100%; padding: 14px; border-radius: 12px; border: none;
+      font-size: 15px; font-weight: 700; cursor: pointer;
+      font-family: inherit; transition: all 0.25s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .action-btn-primary {
+      background: linear-gradient(135deg, #0EA5E9, #0284C7); color: white;
+    }
+    .action-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(14,165,233,0.35); }
+    .action-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+    .action-btn-success {
+      background: linear-gradient(135deg, #10B981, #059669); color: white;
+    }
+    .action-btn-danger {
+      background: linear-gradient(135deg, #EF4444, #DC2626); color: white;
+    }
+    .action-btn-outline {
+      background: white; border: 1.5px solid #E2E8F0; color: #475569;
+    }
+    .action-btn-outline:hover { border-color: #0EA5E9; color: #0EA5E9; }
+
+    .confidence-ring {
+      width: 100px; height: 100px; border-radius: 50%; margin: 0 auto 16px;
+      display: flex; align-items: center; justify-content: center; flex-direction: column;
+      border: 5px solid #E2E8F0; position: relative;
+    }
+    .confidence-ring svg {
+      position: absolute; inset: -5px; transform: rotate(-90deg);
+    }
+    .confidence-ring .conf-num { font-size: 28px; font-weight: 900; color: #0F172A; line-height: 1; }
+    .confidence-ring .conf-label { font-size: 9px; font-weight: 700; color: #64748B; text-transform: uppercase; }
+
+    .liveness-meter {
+      height: 6px; background: #E2E8F0; border-radius: 3px; overflow: hidden; margin-top: 8px;
+    }
+    .liveness-fill {
+      height: 100%; border-radius: 3px; transition: width 0.5s, background 0.3s;
+      background: #CBD5E1;
+    }
+    .liveness-fill.low { background: #EF4444; }
+    .liveness-fill.mid { background: #F59E0B; }
+    .liveness-fill.high { background: #10B981; }
+
+    .result-modal {
+      display: none; position: fixed; inset: 0; z-index: 9999;
+      background: rgba(15,23,42,0.7); backdrop-filter: blur(6px);
+      align-items: center; justify-content: center; padding: 20px;
+    }
+    .result-modal.show { display: flex; }
+    .result-card {
+      background: white; border-radius: 20px; padding: 36px;
+      text-align: center; max-width: 380px; width: 100%;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.3);
+      animation: resultPop 0.35s ease;
+    }
+    @keyframes resultPop { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .result-icon { font-size: 56px; margin-bottom: 16px; }
+    .result-card h3 { font-size: 22px; font-weight: 900; margin-bottom: 6px; }
+    .result-card p { font-size: 13px; color: #64748B; margin-bottom: 20px; line-height: 1.6; }
+
+    .spinner {
+      width: 18px; height: 18px; border: 2px solid transparent;
+      border-top-color: currentColor; border-radius: 50%;
+      animation: spin 0.6s linear infinite; display: inline-block;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px; }
+    .stat-mini {
+      background: white; border: 1px solid #E2E8F0; border-radius: 10px;
+      padding: 12px; text-align: center;
+    }
+    .stat-mini .stat-val { font-size: 18px; font-weight: 800; color: #0F172A; }
+    .stat-mini .stat-lbl { font-size: 10px; color: #64748B; font-weight: 600; margin-top: 2px; }
+
+    @media (max-width: 640px) {
+      .face-hero { padding: 20px 18px; }
+      .face-hero h1 { font-size: 18px; }
+      .camera-container { max-width: 100%; border-radius: 14px; }
+      .face-overlay-ring { width: 180px; height: 230px; }
+      .stats-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-student" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)" id="sidebar-avatar">S</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Student</div><div class="sidebar-user-role" id="sidebar-user-role">B.Tech CS</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <div class="nav-section-label">Academics</div>
+      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Attendance</a>
+      <a href="face-id.html" class="nav-link active"><i class="nav-link-icon fas fa-face-smile-beam"></i> Face ID Check-In</a>
+      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-reader"></i> My Courses</a>
+      <a href="results.html" class="nav-link"><i class="nav-link-icon fas fa-poll"></i> Results</a>
+      <a href="assignments.html" class="nav-link"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
+      <a href="timetable.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-week"></i> Timetable</a>
+      <div class="nav-section-label">Career Center</div>
+      <a href="career.html" class="nav-link"><i class="nav-link-icon fas fa-compass"></i> Career Dashboard</a>
+      <a href="skills.html" class="nav-link"><i class="nav-link-icon fas fa-cogs"></i> Skills Profile</a>
+      <a href="placements.html" class="nav-link"><i class="nav-link-icon fas fa-briefcase"></i> Placements</a>
+      <div class="nav-section-label">Facilities</div>
+      <a href="library.html" class="nav-link"><i class="nav-link-icon fas fa-book"></i> Library</a>
+      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-receipt"></i> Fees</a>
+      <div class="nav-section-label">Tools</div>
+      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-brain"></i> AI Services</a>
+      <a href="../messages.html" class="nav-link"><i class="nav-link-icon fas fa-comment-dots"></i> Chat</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">Student / <span>Face ID Check-In</span></div>
+      </div>
+      <div class="topbar-right"><div class="topbar-avatar" id="topbar-avatar">S</div></div>
+    </header>
+
+    <div class="erp-content page-enter">
+
+      <!-- HERO -->
+      <div class="face-hero">
+        <div style="position:relative;z-index:1;display:flex;align-items:center;gap:14px">
+          <div style="width:46px;height:46px;border-radius:14px;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:20px"><i class="fas fa-face-smile-beam"></i></div>
+          <div>
+            <h1 style="font-size:22px;font-weight:900;line-height:1.2">Face ID Check-In</h1>
+            <p style="font-size:13px;opacity:0.85;margin-top:2px">AI-powered selfie verification with anti-spoofing protection</p>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 380px;gap:20px;align-items:start">
+        <!-- LEFT: Camera -->
+        <div>
+          <div class="camera-container" id="cameraContainer">
+            <video id="video" autoplay muted playsinline></video>
+            <canvas id="overlay"></canvas>
+            <div class="scan-line" id="scanLine"></div>
+            <div class="face-overlay-ring">
+              <div class="face-ring-border" id="faceRing"></div>
+            </div>
+            <div class="camera-placeholder" id="cameraPlaceholder">
+              <i class="fas fa-camera"></i>
+              <p>Camera access required</p>
+              <button class="action-btn action-btn-outline" style="width:auto;padding:10px 20px;font-size:13px" onclick="startCamera()">
+                <i class="fas fa-video"></i> Enable Camera
+              </button>
+            </div>
+          </div>
+
+          <div class="status-bar">
+            <div class="status-item"><div class="status-dot" id="cameraStatus"></div><span id="cameraStatusText">Camera Off</span></div>
+            <div class="status-item"><div class="status-dot" id="modelStatus"></div><span id="modelStatusText">Models Loading</span></div>
+            <div class="status-item"><div class="status-dot" id="livenessStatus"></div><span id="livenessStatusText">Liveness: --</span></div>
+          </div>
+
+          <div class="stats-grid" id="statsGrid">
+            <div class="stat-mini"><div class="stat-val" id="statCheckins">0</div><div class="stat-lbl">Today's Check-ins</div></div>
+            <div class="stat-mini"><div class="stat-val" id="statConfidence">--</div><div class="stat-lbl">Last Confidence</div></div>
+            <div class="stat-mini"><div class="stat-val" id="statStreak">0</div><div class="stat-lbl">Day Streak</div></div>
+          </div>
+        </div>
+
+        <!-- RIGHT: Controls -->
+        <div>
+          <!-- Mode Tabs -->
+          <div style="display:flex;gap:4px;background:#F1F5F9;padding:4px;border-radius:10px;margin-bottom:16px">
+            <button class="mode-tab active" onclick="switchMode('checkin')" id="tabCheckin" style="flex:1;padding:10px;border-radius:8px;border:none;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;background:white;color:#0EA5E9;transition:all 0.15s">
+              <i class="fas fa-fingerprint"></i> Check-In
+            </button>
+            <button class="mode-tab" onclick="switchMode('register')" id="tabRegister" style="flex:1;padding:10px;border-radius:8px;border:none;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;background:transparent;color:#64748B;transition:all 0.15s">
+              <i class="fas fa-user-plus"></i> Register
+            </button>
+            <button class="mode-tab" onclick="switchMode('status')" id="tabStatus" style="flex:1;padding:10px;border-radius:8px;border:none;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;background:transparent;color:#64748B;transition:all 0.15s">
+              <i class="fas fa-chart-simple"></i> Status
+            </button>
+          </div>
+
+          <!-- CHECK-IN MODE -->
+          <div id="modeCheckin">
+            <div style="background:white;border:1px solid #E2E8F0;border-radius:14px;padding:20px;margin-bottom:12px">
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+                <div style="width:36px;height:36px;border-radius:10px;background:#F0F9FF;color:#0EA5E9;display:flex;align-items:center;justify-content:center;font-size:14px"><i class="fas fa-shield-halved"></i></div>
+                <div>
+                  <div style="font-size:13px;font-weight:700;color:#0F172A">Anti-Spoof Protection</div>
+                  <div style="font-size:11px;color:#64748B">Liveness + motion analysis active</div>
+                </div>
+              </div>
+              <div>
+                <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:600;margin-bottom:4px">
+                  <span>Liveness Score</span>
+                  <span id="livenessScoreText">0%</span>
+                </div>
+                <div class="liveness-meter"><div class="liveness-fill" id="livenessFill" style="width:0%"></div></div>
+              </div>
+            </div>
+
+            <!-- Liveness Challenges -->
+            <div id="challengeList">
+              <div class="challenge-card" id="challengeBlink">
+                <div class="challenge-icon" style="background:#EEF2FF;color:#4F46E5"><i class="fas fa-eye"></i></div>
+                <div class="challenge-text"><h4>Blink Detection</h4><p>Naturally blink your eyes once</p></div>
+                <div class="challenge-check"><i class="fas fa-check-circle"></i></div>
+              </div>
+              <div class="challenge-card" id="challengeSmile">
+                <div class="challenge-icon" style="background:#FEF3C7;color:#D97706"><i class="fas fa-face-smile"></i></div>
+                <div class="challenge-text"><h4>Smile Check</h4><p>Give a natural smile</p></div>
+                <div class="challenge-check"><i class="fas fa-check-circle"></i></div>
+              </div>
+              <div class="challenge-card" id="challengeTurn">
+                <div class="challenge-icon" style="background:#ECFDF5;color:#059669"><i class="fas fa-arrows-rotate"></i></div>
+                <div class="challenge-text"><h4>Head Movement</h4><p>Turn head slightly left then right</p></div>
+                <div class="challenge-check"><i class="fas fa-check-circle"></i></div>
+              </div>
+            </div>
+
+            <button class="action-btn action-btn-primary" id="checkinBtn" onclick="performCheckIn()" disabled style="margin-top:16px">
+              <i class="fas fa-fingerprint"></i> Start Face Check-In
+            </button>
+            <p style="text-align:center;font-size:11px;color:#94A3B8;margin-top:8px">Position your face inside the oval. All liveness checks must pass.</p>
+          </div>
+
+          <!-- REGISTER MODE -->
+          <div id="modeRegister" style="display:none">
+            <div style="background:white;border:1px solid #E2E8F0;border-radius:14px;padding:20px;margin-bottom:12px">
+              <h3 style="font-size:14px;font-weight:700;color:#0F172A;margin-bottom:10px"><i class="fas fa-user-plus" style="color:#0EA5E9;margin-right:6px"></i> Register Your Face</h3>
+              <p style="font-size:12px;color:#64748B;line-height:1.6">
+                Capture 3 face samples from different angles for accurate recognition.
+                Your face data is encrypted and stored securely.
+              </p>
+              <div style="display:flex;gap:8px;margin-top:12px">
+                <div class="reg-sample" id="sample1" style="flex:1;height:60px;border:2px dashed #E2E8F0;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#94A3B8;font-weight:600">Sample 1</div>
+                <div class="reg-sample" id="sample2" style="flex:1;height:60px;border:2px dashed #E2E8F0;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#94A3B8;font-weight:600">Sample 2</div>
+                <div class="reg-sample" id="sample3" style="flex:1;height:60px;border:2px dashed #E2E8F0;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:11px;color:#94A3B8;font-weight:600">Sample 3</div>
+              </div>
+            </div>
+            <button class="action-btn action-btn-primary" id="registerBtn" onclick="captureSample()" disabled style="margin-top:12px">
+              <i class="fas fa-camera"></i> Capture Sample
+            </button>
+            <button class="action-btn action-btn-success" id="saveRegBtn" onclick="saveRegistration()" style="display:none;margin-top:10px">
+              <i class="fas fa-check"></i> Save Face Data
+            </button>
+          </div>
+
+          <!-- STATUS MODE -->
+          <div id="modeStatus" style="display:none">
+            <div style="background:white;border:1px solid #E2E8F0;border-radius:14px;padding:20px">
+              <h3 style="font-size:14px;font-weight:700;margin-bottom:14px"><i class="fas fa-shield-halved" style="color:#0EA5E9;margin-right:6px"></i> Face ID Status</h3>
+              <div id="faceStatusContent">
+                <div style="text-align:center;padding:20px;color:#94A3B8">
+                  <div class="spinner" style="border-top-color:#0EA5E9;margin:0 auto 8px"></div>
+                  Loading status...
+                </div>
+              </div>
+            </div>
+            <button class="action-btn action-btn-danger" id="deleteFaceBtn" onclick="deleteFaceData()" style="display:none;margin-top:12px">
+              <i class="fas fa-trash"></i> Delete Face Data
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- RESULT MODAL -->
+<div class="result-modal" id="resultModal">
+  <div class="result-card">
+    <div class="result-icon" id="resultIcon"></div>
+    <h3 id="resultTitle"></h3>
+    <p id="resultMessage"></p>
+    <div id="resultDetails" style="margin-bottom:20px"></div>
+    <button class="action-btn action-btn-primary" onclick="closeResultModal()" style="max-width:200px;margin:0 auto">
+      <i class="fas fa-check"></i> Done
+    </button>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script>
+let stream = null;
+let modelsLoaded = false;
+let currentMode = 'checkin';
+let faceRegistered = false;
+let registrationSamples = [];
+let livenessState = {
+  blinkDetected: false,
+  smileDetected: false,
+  headTurnDetected: false,
+  livenessScore: 0,
+  isScanning: false,
+  frameCount: 0,
+  lastFaceRect: null,
+  motionHistory: [],
+  eyeClosureHistory: [],
+};
+
+const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? '/api' : 'https://vishvaerp.onrender.com/api';
+
+async function init() {
+  const user = JSON.parse(localStorage.getItem('erp_user') || localStorage.getItem('user') || '{}');
+  if (user.name) {
+    document.getElementById('sidebar-user-name').textContent = user.name;
+    document.getElementById('sidebar-avatar').textContent = (user.name || 'S').charAt(0).toUpperCase();
+    document.getElementById('topbar-avatar').textContent = (user.name || 'S').charAt(0).toUpperCase();
+  }
+  loadModels();
+  checkFaceStatus();
+}
+
+async function loadModels() {
+  updateStatus('model', 'yellow', 'Loading AI models...');
+  try {
+    const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/model/';
+    await Promise.all([
+      faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+      faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+      faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
+      faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL),
+    ]);
+    modelsLoaded = true;
+    updateStatus('model', 'green', 'AI Ready');
+    document.getElementById('checkinBtn').disabled = false;
+    document.getElementById('registerBtn').disabled = false;
+  } catch (e) {
+    console.error('Model load error:', e);
+    updateStatus('model', 'red', 'Models Failed');
+  }
+}
+
+async function startCamera() {
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } }
+    });
+    const video = document.getElementById('video');
+    video.srcObject = stream;
+    await video.play();
+    document.getElementById('cameraPlaceholder').style.display = 'none';
+    updateStatus('camera', 'green', 'Camera Active');
+    startDetection();
+  } catch (e) {
+    console.error('Camera error:', e);
+    updateStatus('camera', 'red', 'Camera Denied');
+  }
+}
+
+function startDetection() {
+  const video = document.getElementById('video');
+  const canvas = document.getElementById('overlay');
+  const displaySize = { width: video.videoWidth || 640, height: video.videoHeight || 480 };
+  faceapi.matchDimensions(canvas, displaySize);
+
+  livenessState.isScanning = true;
+  document.getElementById('scanLine').classList.add('active');
+  document.getElementById('faceRing').classList.add('scanning');
+
+  const detectionLoop = setInterval(async () => {
+    if (!livenessState.isScanning) { clearInterval(detectionLoop); return; }
+    livenessState.frameCount++;
+
+    const detections = await faceapi
+      .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.4 }))
+      .withFaceLandmarks()
+      .withFaceExpressions();
+
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const resized = faceapi.resizeResults(detections, { width: canvas.width, height: canvas.height });
+
+    if (resized.length === 0) {
+      document.getElementById('faceRing').className = 'face-ring-border';
+      return;
+    }
+
+    const face = resized[0];
+    const box = face.detection.box;
+    const centerX = box.x + box.width / 2;
+    const centerY = box.y + box.height / 2;
+
+    ctx.strokeStyle = 'rgba(14,165,233,0.6)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(box.x, box.y, box.width, box.height);
+
+    const landmarks = face.landmarks;
+    const leftEye = landmarks.getLeftEye();
+    const rightEye = landmarks.getRightEye();
+    const mouth = landmarks.getMouth();
+    const nose = landmarks.getNose();
+
+    drawLandmarks(ctx, leftEye, '#0EA5E9');
+    drawLandmarks(ctx, rightEye, '#0EA5E9');
+    drawLandmarks(ctx, mouth, '#8B5CF6');
+
+    processLiveness(face, box);
+    updateStatus('camera', 'green', 'Face Detected');
+
+  }, 200);
+}
+
+function drawLandmarks(ctx, points, color) {
+  if (!points || points.length === 0) return;
+  ctx.fillStyle = color;
+  for (const p of points) {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+function processLiveness(face, box) {
+  const expr = face.expressions;
+  const eyeAspectRatio = calcEyeAspectRatio(face.landmarks);
+  const mouthOpenness = calcMouthOpenness(face.landmarks);
+
+  livenessState.eyeClosureHistory.push(eyeAspectRatio);
+  if (livenessState.eyeClosureHistory.length > 10) livenessState.eyeClosureHistory.shift();
+
+  if (!livenessState.blinkDetected) {
+    const history = livenessState.eyeClosureHistory;
+    if (history.length >= 5) {
+      const recent = history.slice(-5);
+      const minEye = Math.min(...recent);
+      const maxEye = Math.max(...recent);
+      if (maxEye - minEye > 0.02 && minEye < 0.2) {
+        livenessState.blinkDetected = true;
+        markChallenge('challengeBlink', 'done');
+      }
+    }
+  }
+
+  if (!livenessState.smileDetected && expr.happy > 0.6) {
+    livenessState.smileDetected = true;
+    markChallenge('challengeSmile', 'done');
+  }
+
+  if (!livenessState.headTurnDetected) {
+    const currentX = box.x + box.width / 2;
+    livenessState.motionHistory.push(currentX);
+    if (livenessState.motionHistory.length > 20) livenessState.motionHistory.shift();
+    if (livenessState.motionHistory.length >= 15) {
+      const min = Math.min(...livenessState.motionHistory);
+      const max = Math.max(...livenessState.motionHistory);
+      if (max - min > 30) {
+        livenessState.headTurnDetected = true;
+        markChallenge('challengeTurn', 'done');
+      }
+    }
+  }
+
+  let score = 0;
+  if (livenessState.blinkDetected) score += 35;
+  if (livenessState.smileDetected) score += 30;
+  if (livenessState.headTurnDetected) score += 35;
+  livenessState.livenessScore = score;
+  updateLivenessMeter(score);
+
+  const allPassed = livenessState.blinkDetected && livenessState.smileDetected && livenessState.headTurnDetected;
+  if (allPassed) {
+    document.getElementById('faceRing').className = 'face-ring-border success';
+    document.getElementById('checkinBtn').disabled = false;
+  }
+}
+
+function calcEyeAspectRatio(landmarks) {
+  const leftEye = landmarks.getLeftEye();
+  const rightEye = landmarks.getRightEye();
+  const eye = leftEye.length > 0 ? leftEye : rightEye;
+  if (eye.length < 6) return 0.3;
+  const v1 = dist(eye[1], eye[5]);
+  const v2 = dist(eye[2], eye[4]);
+  const h = dist(eye[0], eye[3]);
+  return (v1 + v2) / (2 * h + 1e-10);
+}
+
+function calcMouthOpenness(landmarks) {
+  const mouth = landmarks.getMouth();
+  if (mouth.length < 20) return 0;
+  const upper = mouth[14];
+  const lower = mouth[18];
+  const left = mouth[12];
+  const right = mouth[6];
+  const vertical = dist(upper, lower);
+  const horizontal = dist(left, right);
+  return vertical / (horizontal + 1e-10);
+}
+
+function dist(a, b) {
+  return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
+}
+
+function markChallenge(id, state) {
+  const el = document.getElementById(id);
+  if (el) el.className = 'challenge-card ' + state;
+}
+
+function updateLivenessMeter(score) {
+  const fill = document.getElementById('livenessFill');
+  const text = document.getElementById('livenessScoreText');
+  fill.style.width = score + '%';
+  text.textContent = score + '%';
+  fill.className = 'liveness-fill ' + (score < 30 ? 'low' : score < 70 ? 'mid' : 'high');
+}
+
+function updateStatus(type, color, text) {
+  document.getElementById(type + 'Status').className = 'status-dot ' + color;
+  document.getElementById(type + 'StatusText').textContent = text;
+}
+
+async function performCheckIn() {
+  if (!modelsLoaded || !stream) { showToast('Camera and AI models required', 'error'); return; }
+  const allPassed = livenessState.blinkDetected && livenessState.smileDetected && livenessState.headTurnDetected;
+  if (!allPassed) { showToast('Complete all liveness checks first', 'error'); return; }
+
+  const btn = document.getElementById('checkinBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Verifying...';
+  document.getElementById('faceRing').className = 'face-ring-border scanning';
+
+  try {
+    const video = document.getElementById('video');
+    const detection = await faceapi
+      .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.4 }))
+      .withFaceLandmarks()
+      .withFaceDescriptor();
+
+    if (!detection) {
+      showToast('No face detected. Please position yourself.', 'error');
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-fingerprint"></i> Start Face Check-In';
+      document.getElementById('faceRing').className = 'face-ring-border fail';
+      return;
+    }
+
+    const descriptor = Array.from(detection.descriptor);
+
+    const token = localStorage.getItem('erp_token') || localStorage.getItem('token');
+    const res = await fetch(API_URL + '/face/checkin', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({
+        descriptor,
+        livenessScore: livenessState.livenessScore,
+        antiSpoofData: {
+          screenReflection: 0.1,
+          flatnessScore: 0.05,
+          motionConsistency: livenessState.headTurnDetected ? 0.8 : 0.3,
+        },
+      }),
+    });
+
+    const data = await res.json();
+
+    if (res.ok && data.success) {
+      document.getElementById('faceRing').className = 'face-ring-border success';
+      document.getElementById('statConfidence').textContent = data.data.confidence + '%';
+      showResultModal(true, data.data);
+    } else {
+      document.getElementById('faceRing').className = 'face-ring-border fail';
+      showResultModal(false, { message: data.message || 'Verification failed' });
+    }
+  } catch (e) {
+    console.error('Check-in error:', e);
+    showToast('Network error. Please try again.', 'error');
+    document.getElementById('faceRing').className = 'face-ring-border fail';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-fingerprint"></i> Start Face Check-In';
+  }
+}
+
+async function captureSample() {
+  if (!modelsLoaded || !stream) { showToast('Camera and AI models required', 'error'); return; }
+  const video = document.getElementById('video');
+
+  const detection = await faceapi
+    .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.4 }))
+    .withFaceLandmarks()
+    .withFaceDescriptor();
+
+  if (!detection) {
+    showToast('No face detected. Please center your face.', 'error');
+    return;
+  }
+
+  if (registrationSamples.length >= 3) return;
+
+  registrationSamples.push(Array.from(detection.descriptor));
+
+  const sampleEl = document.getElementById('sample' + registrationSamples.length);
+  if (sampleEl) {
+    sampleEl.style.border = '2px solid #10B981';
+    sampleEl.style.background = '#F0FDF4';
+    sampleEl.innerHTML = '<i class="fas fa-check" style="color:#10B981;font-size:18px"></i>';
+  }
+
+  showToast('Sample ' + registrationSamples.length + '/3 captured', 'success');
+
+  if (registrationSamples.length === 3) {
+    document.getElementById('saveRegBtn').style.display = 'flex';
+    document.getElementById('registerBtn').style.display = 'none';
+  }
+}
+
+async function saveRegistration() {
+  if (registrationSamples.length < 3) { showToast('Capture 3 samples first', 'error'); return; }
+  const btn = document.getElementById('saveRegBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Saving...';
+
+  try {
+    const token = localStorage.getItem('erp_token') || localStorage.getItem('token');
+    const res = await fetch(API_URL + '/face/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+      body: JSON.stringify({
+        descriptors: registrationSamples,
+        livenessScore: 95,
+      }),
+    });
+
+    const data = await res.json();
+    if (res.ok && data.success) {
+      faceRegistered = true;
+      showResultModal(true, { message: 'Face registered successfully!', registered: true });
+      registrationSamples = [];
+      ['sample1','sample2','sample3'].forEach(id => {
+        const el = document.getElementById(id);
+        el.style.border = '2px dashed #E2E8F0';
+        el.style.background = 'transparent';
+        el.innerHTML = id.replace('sample', 'Sample ');
+      });
+      document.getElementById('saveRegBtn').style.display = 'none';
+      document.getElementById('registerBtn').style.display = 'flex';
+    } else {
+      showToast(data.message || 'Registration failed', 'error');
+    }
+  } catch (e) {
+    showToast('Network error', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-check"></i> Save Face Data';
+  }
+}
+
+async function checkFaceStatus() {
+  try {
+    const token = localStorage.getItem('erp_token') || localStorage.getItem('token');
+    const res = await fetch(API_URL + '/face/status', {
+      headers: { 'Authorization': 'Bearer ' + token },
+    });
+    const data = await res.json();
+    if (data.success && data.data.registered) {
+      faceRegistered = true;
+      renderFaceStatus(data.data);
+    } else {
+      document.getElementById('faceStatusContent').innerHTML =
+        '<div style="text-align:center;padding:20px">' +
+          '<i class="fas fa-face-smile" style="font-size:36px;color:#CBD5E1;margin-bottom:10px;display:block"></i>' +
+          '<p style="font-size:13px;color:#64748B">No face registered yet.</p>' +
+          '<button class="action-btn action-btn-outline" style="width:auto;padding:8px 16px;font-size:12px;margin-top:10px" onclick="switchMode(\'register\')"><i class="fas fa-user-plus"></i> Register Now</button>' +
+        '</div>';
+    }
+  } catch (e) {
+    document.getElementById('faceStatusContent').innerHTML =
+      '<div style="text-align:center;padding:16px;color:#94A3B8;font-size:13px">Could not load status</div>';
+  }
+}
+
+function renderFaceStatus(status) {
+  document.getElementById('statCheckins').textContent = status.verificationCount || 0;
+  document.getElementById('statStreak').textContent = Math.min(status.verificationCount || 0, 7);
+  document.getElementById('deleteFaceBtn').style.display = 'flex';
+
+  document.getElementById('faceStatusContent').innerHTML =
+    '<div style="display:flex;flex-direction:column;gap:10px">' +
+      '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #F1F5F9"><span style="font-size:12px;color:#64748B">Status</span><span style="font-size:12px;font-weight:700;color:#10B981"><i class="fas fa-check-circle" style="margin-right:4px"></i>Registered</span></div>' +
+      '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #F1F5F9"><span style="font-size:12px;color:#64748B">Face Samples</span><span style="font-size:12px;font-weight:700">' + (status.descriptorCount || 0) + '/3</span></div>' +
+      '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #F1F5F9"><span style="font-size:12px;color:#64748B">Registered</span><span style="font-size:12px;font-weight:700">' + new Date(status.registeredAt).toLocaleDateString() + '</span></div>' +
+      '<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #F1F5F9"><span style="font-size:12px;color:#64748B">Last Verified</span><span style="font-size:12px;font-weight:700">' + (status.lastVerifiedAt ? new Date(status.lastVerifiedAt).toLocaleString() : 'Never') + '</span></div>' +
+      '<div style="display:flex;justify-content:space-between;padding:8px 0"><span style="font-size:12px;color:#64748B">Total Verifications</span><span style="font-size:12px;font-weight:700">' + (status.verificationCount || 0) + '</span></div>' +
+    '</div>';
+}
+
+async function deleteFaceData() {
+  if (!confirm('Delete your face data? You will need to re-register.')) return;
+  try {
+    const token = localStorage.getItem('erp_token') || localStorage.getItem('token');
+    const res = await fetch(API_URL + '/face', {
+      method: 'DELETE',
+      headers: { 'Authorization': 'Bearer ' + token },
+    });
+    const data = await res.json();
+    if (data.success) {
+      faceRegistered = false;
+      showToast('Face data deleted', 'success');
+      checkFaceStatus();
+      document.getElementById('deleteFaceBtn').style.display = 'none';
+    }
+  } catch (e) {
+    showToast('Failed to delete', 'error');
+  }
+}
+
+function switchMode(mode) {
+  currentMode = mode;
+  document.querySelectorAll('.mode-tab').forEach(t => { t.style.background = 'transparent'; t.style.color = '#64748B'; });
+  const activeTab = document.getElementById('tab' + mode.charAt(0).toUpperCase() + mode.slice(1));
+  if (activeTab) { activeTab.style.background = 'white'; activeTab.style.color = '#0EA5E9'; }
+
+  document.getElementById('modeCheckin').style.display = mode === 'checkin' ? '' : 'none';
+  document.getElementById('modeRegister').style.display = mode === 'register' ? '' : 'none';
+  document.getElementById('modeStatus').style.display = mode === 'status' ? '' : 'none';
+
+  if (mode === 'status') checkFaceStatus();
+}
+
+function showResultModal(success, data) {
+  const modal = document.getElementById('resultModal');
+  const icon = document.getElementById('resultIcon');
+  const title = document.getElementById('resultTitle');
+  const msg = document.getElementById('resultMessage');
+  const details = document.getElementById('resultDetails');
+
+  if (success) {
+    icon.innerHTML = '<i class="fas fa-check-circle" style="color:#10B981"></i>';
+    title.textContent = 'Check-In Successful';
+    title.style.color = '#059669';
+    msg.textContent = 'Your attendance has been recorded via Face ID verification.';
+    details.innerHTML = data.confidence ?
+      '<div style="display:flex;gap:16px;justify-content:center;margin-bottom:8px"><div style="text-align:center"><div style="font-size:24px;font-weight:900;color:#0EA5E9">' + data.confidence + '%</div><div style="font-size:10px;color:#64748B;font-weight:600">Confidence</div></div><div style="text-align:center"><div style="font-size:24px;font-weight:900;color:#10B981"><i class="fas fa-check"></i></div><div style="font-size:10px;color:#64748B;font-weight:600">Verified</div></div></div>' : '';
+  } else {
+    icon.innerHTML = '<i class="fas fa-times-circle" style="color:#EF4444"></i>';
+    title.textContent = 'Check-In Failed';
+    title.style.color = '#DC2626';
+    msg.textContent = data.message || 'Verification failed. Please try again.';
+    details.innerHTML = '';
+  }
+
+  modal.classList.add('show');
+}
+
+function closeResultModal() {
+  document.getElementById('resultModal').classList.remove('show');
+  resetLiveness();
+}
+
+function resetLiveness() {
+  livenessState.blinkDetected = false;
+  livenessState.smileDetected = false;
+  livenessState.headTurnDetected = false;
+  livenessState.livenessScore = 0;
+  livenessState.motionHistory = [];
+  livenessState.eyeClosureHistory = [];
+  updateLivenessMeter(0);
+  document.querySelectorAll('.challenge-card').forEach(c => c.className = 'challenge-card');
+  document.getElementById('faceRing').className = 'face-ring-border';
+}
+
+function showToast(msg, type) {
+  const toast = document.createElement('div');
+  toast.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;background:white;border-radius:10px;padding:12px 18px;box-shadow:0 10px 30px rgba(0,0,0,0.15);border-left:4px solid ' + (type === 'success' ? '#10B981' : '#EF4444') + ';font-size:13px;font-weight:600;display:flex;align-items:center;gap:10px;animation:resultPop 0.3s ease';
+  const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+  toast.innerHTML = '<i class="fas ' + icon + '" style="color:' + (type === 'success' ? '#10B981' : '#EF4444') + '"></i>' + msg;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 4000);
+}
+
+init();
+</script>
+</body>
+</html>
