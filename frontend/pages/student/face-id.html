@@ -202,6 +202,9 @@
     .stat-mini .stat-val { font-size: 18px; font-weight: 800; color: #0F172A; }
     .stat-mini .stat-lbl { font-size: 10px; color: #64748B; font-weight: 600; margin-top: 2px; }
 
+    @media (max-width: 860px) {
+      .face-grid-layout { grid-template-columns: 1fr !important; }
+    }
     @media (max-width: 640px) {
       .face-hero { padding: 20px 18px; }
       .face-hero h1 { font-size: 18px; }
@@ -263,7 +266,7 @@
         </div>
       </div>
 
-      <div style="display:grid;grid-template-columns:1fr 380px;gap:20px;align-items:start">
+      <div class="face-grid-layout" style="display:grid;grid-template-columns:1fr 380px;gap:20px;align-items:start">
         <!-- LEFT: Camera -->
         <div>
           <div class="camera-container" id="cameraContainer">
