@@ -447,6 +447,7 @@
             <div class="lp-install-features">
               <div><div class="lp-install-icon"><i class="fas fa-bolt"></i></div><div><strong>Instant Updates</strong><span>One codebase means app and web always have the latest features.</span></div></div>
               <div><div class="lp-install-icon"><i class="fas fa-bell"></i></div><div><strong>Role-Based Notifications</strong><span>Native alerts for fee dues, exam results, and academic notices.</span></div></div>
+              <div><div class="lp-install-icon"><i class="fas fa-shield-halved"></i></div><div><strong>Secure &amp; Private</strong><span>End-to-end encryption with role-based access controls.</span></div></div>
             </div>
           </div>
           <div class="lp-install-card" data-tilt>
@@ -464,14 +465,23 @@
             </div>
             <div class="lp-install-option lp-install-apk" id="download-apk-card">
               <div class="lp-install-option-info">
-                <div class="lp-install-option-icon"><i class="fab fa-android"></i></div>
+                <div class="lp-install-option-icon apk-pulse"><i class="fab fa-android"></i></div>
                 <div><strong>Android APK</strong><span>Full native shell for power users.</span></div>
               </div>
-              <a href="/android/app/build/outputs/apk/debug/app-debug.apk" download class="lp-install-btn lp-install-btn-outline">Download</a>
+              <a href="https://github.com/Shivam852131/VishvaERP/releases/latest/download/VishvaERP.apk" download class="lp-install-btn lp-install-btn-glow" id="apkDownloadBtn">
+                <span class="apk-btn-text"><i class="fas fa-download"></i> Download APK</span>
+                <span class="apk-btn-progress" style="display:none"><span class="apk-progress-spinner"></span> Downloading...</span>
+                <span class="apk-btn-done" style="display:none"><i class="fas fa-check-circle"></i> Downloaded</span>
+              </a>
             </div>
             <div id="ios-instructions" class="lp-install-ios hidden">
               <i class="fas fa-circle-info"></i>
               <p><strong>iOS:</strong> Tap Share in Safari, then "Add to Home Screen" to install.</p>
+            </div>
+            <div class="lp-install-version">
+              <span><i class="fas fa-code-branch"></i> v2.1.0</span>
+              <span><i class="fas fa-file"></i> ~15 MB</span>
+              <span><i class="fas fa-clock"></i> Updated Jul 2026</span>
             </div>
             <div class="lp-install-platforms">
               <i class="fab fa-apple"></i>
@@ -604,5 +614,58 @@
   </footer>
 
   <script src="./js/shared.js"></script>
+  <script>
+  (function() {
+    var apkBtn = document.getElementById('apkDownloadBtn');
+    if (!apkBtn) return;
+
+    apkBtn.addEventListener('click', function(e) {
+      var textEl = apkBtn.querySelector('.apk-btn-text');
+      var progressEl = apkBtn.querySelector('.apk-btn-progress');
+      var doneEl = apkBtn.querySelector('.apk-btn-done');
+
+      apkBtn.classList.add('apk-ripple');
+      setTimeout(function() { apkBtn.classList.remove('apk-ripple'); }, 600);
+
+      textEl.style.display = 'none';
+      progressEl.style.display = 'inline-flex';
+      apkBtn.style.pointerEvents = 'none';
+
+      setTimeout(function() {
+        progressEl.style.display = 'none';
+        doneEl.style.display = 'inline-flex';
+        apkBtn.style.background = 'linear-gradient(135deg, #059669, #10B981)';
+        apkBtn.style.animation = 'none';
+
+        setTimeout(function() {
+          doneEl.style.display = 'none';
+          textEl.style.display = 'inline-flex';
+          apkBtn.style.pointerEvents = '';
+          apkBtn.style.animation = '';
+        }, 3000);
+      }, 2000);
+    });
+
+    var platformIcon = document.getElementById('platform-icon');
+    var platformName = document.getElementById('platform-name');
+    var ua = navigator.userAgent;
+    if (/android/i.test(ua)) {
+      if (platformIcon) platformIcon.className = 'fab fa-android';
+      if (platformName) platformName.textContent = 'Android Device';
+    } else if (/iPad|iPhone|iPod/.test(ua)) {
+      if (platformIcon) platformIcon.className = 'fab fa-apple';
+      if (platformName) platformName.textContent = 'iOS Device';
+    } else if (/Win/.test(ua)) {
+      if (platformIcon) platformIcon.className = 'fab fa-windows';
+      if (platformName) platformName.textContent = 'Windows PC';
+    } else if (/Mac/.test(ua)) {
+      if (platformIcon) platformIcon.className = 'fab fa-apple';
+      if (platformName) platformName.textContent = 'macOS';
+    } else if (/Linux/.test(ua)) {
+      if (platformIcon) platformIcon.className = 'fab fa-linux';
+      if (platformName) platformName.textContent = 'Linux';
+    }
+  })();
+  </script>
 </body>
 </html>

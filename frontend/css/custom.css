@@ -3046,6 +3046,164 @@ body.dark-mode .lp-insights > div { color: #CBD5E1; }
   display: flex; gap: 20px; justify-content: center; padding-top: 16px;
   border-top: 1px solid rgba(255,255,255,0.08); font-size: 22px; color: rgba(255,255,255,0.3);
 }
+
+/* ── APK Download Advanced Animations ── */
+.lp-install-version {
+  display: flex; gap: 16px; justify-content: center; padding: 12px 0 14px;
+  font-size: 11px; color: rgba(255,255,255,0.4); font-weight: 600;
+}
+.lp-install-version span { display: flex; align-items: center; gap: 5px; }
+
+.apk-pulse {
+  position: relative;
+}
+.apk-pulse::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 12px;
+  border: 2px solid rgba(16,185,129,0.4);
+  animation: apkPulseRing 2s ease-out infinite;
+}
+
+@keyframes apkPulseRing {
+  0% { transform: scale(0.85); opacity: 1; }
+  70% { transform: scale(1.15); opacity: 0; }
+  100% { transform: scale(1.15); opacity: 0; }
+}
+
+.lp-install-btn-glow {
+  position: relative;
+  background: linear-gradient(135deg, #059669, #10B981);
+  color: white;
+  border: none;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  animation: apkBtnBreathe 3s ease-in-out infinite;
+}
+.lp-install-btn-glow::before {
+  content: '';
+  position: absolute;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background: conic-gradient(from 0deg, transparent, rgba(255,255,255,0.15), transparent 30%);
+  animation: apkShine 4s linear infinite;
+}
+.lp-install-btn-glow::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: 0 0 20px rgba(16,185,129,0.4), 0 0 40px rgba(16,185,129,0.2);
+  animation: apkGlow 2s ease-in-out infinite alternate;
+}
+.lp-install-btn-glow:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 8px 30px rgba(16,185,129,0.5);
+}
+.lp-install-btn-glow:active {
+  transform: translateY(0) scale(0.98);
+}
+
+@keyframes apkBtnBreathe {
+  0%, 100% { box-shadow: 0 0 15px rgba(16,185,129,0.3); }
+  50% { box-shadow: 0 0 25px rgba(16,185,129,0.5); }
+}
+
+@keyframes apkShine {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes apkGlow {
+  0% { box-shadow: 0 0 15px rgba(16,185,129,0.3), 0 0 30px rgba(16,185,129,0.15); }
+  100% { box-shadow: 0 0 25px rgba(16,185,129,0.5), 0 0 50px rgba(16,185,129,0.25); }
+}
+
+.apk-btn-text, .apk-btn-progress, .apk-btn-done {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.apk-progress-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: apkSpin 0.7s linear infinite;
+}
+
+@keyframes apkSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* Download ripple on click */
+.lp-install-btn-glow.apk-ripple::before {
+  animation: apkRippleOut 0.6s ease-out;
+}
+
+@keyframes apkRippleOut {
+  0% { transform: scale(0); opacity: 1; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+
+/* Float particles around APK card */
+.lp-install-card {
+  position: relative;
+  overflow: hidden;
+}
+.lp-install-card::before {
+  content: '';
+  position: absolute;
+  top: -2px; right: -2px;
+  width: 80px; height: 80px;
+  background: radial-gradient(circle, rgba(16,185,129,0.2), transparent 70%);
+  border-radius: 50%;
+  animation: apkFloat1 6s ease-in-out infinite;
+  pointer-events: none;
+}
+.lp-install-card::after {
+  content: '';
+  position: absolute;
+  bottom: -2px; left: -2px;
+  width: 60px; height: 60px;
+  background: radial-gradient(circle, rgba(99,102,241,0.2), transparent 70%);
+  border-radius: 50%;
+  animation: apkFloat2 8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes apkFloat1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-20px, 20px) scale(1.2); }
+}
+@keyframes apkFloat2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(20px, -15px) scale(1.15); }
+}
+
+/* Badge glow animation */
+.lp-install-badge {
+  animation: apkBadgePulse 2s ease-in-out infinite;
+}
+@keyframes apkBadgePulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0.3); }
+  50% { box-shadow: 0 0 0 4px rgba(34,197,94,0); }
+}
+
+/* Stats bar float effect */
+.lp-install-version span {
+  transition: all 0.2s;
+}
+.lp-install-version span:hover {
+  color: rgba(255,255,255,0.7);
+  transform: translateY(-1px);
+}
+
 @media (max-width: 768px) { .lp-install-layout { grid-template-columns: 1fr; } }
 
 /* â”€â”€ STEPS â”€â”€ */
