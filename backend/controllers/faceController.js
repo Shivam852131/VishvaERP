@@ -1,4 +1,4 @@
-const asyncHandler = require('express-async-handler');
+const asyncHandler = require('../middleware/asyncHandler');
 const FaceData = require('../models/FaceData');
 const Attendance = require('../models/Attendance');
 
