@@ -68,7 +68,6 @@ const parentNotificationPreferenceSchema = new mongoose.Schema({
   emailAddresses: [{ type: String, trim: true, lowercase: true }],
 }, { timestamps: true });
 
-parentNotificationPreferenceSchema.index({ userId: 1 });
 parentNotificationPreferenceSchema.index({ collegeId: 1 });
 
 module.exports = mongoose.model('ParentNotificationPreference', parentNotificationPreferenceSchema);
