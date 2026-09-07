@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -113,12 +113,17 @@
     .brand { display: flex; align-items: center; gap: 12px; position: relative; z-index: 1; }
     .brand-icon {
       width: 44px; height: 44px; border-radius: 12px;
-      background: linear-gradient(135deg, #4F46E5, #7C3AED);
       display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 4px 12px rgba(79,70,229,0.4);
+      box-shadow: 0 4px 14px rgba(14,165,233,0.4);
+      overflow: hidden;
+      flex-shrink: 0;
+      background: #0B0F19;
     }
-    .brand-name { font-size: 22px; font-weight: 900; color: white; }
-    .brand-name span { color: #A5B4FC; }
+    .brand-icon img {
+      width: 100%; height: 100%; object-fit: cover; border-radius: 12px; display: block;
+    }
+    .brand-name { font-size: 22px; font-weight: 700; color: white; letter-spacing: -0.01em; }
+    .brand-name span { color: white; font-weight: 900; letter-spacing: -0.02em; }
 
     .left-hero { position: relative; z-index: 1; margin-top: auto; }
     .left-hero h1 { font-size: 28px; font-weight: 900; color: white; line-height: 1.2; margin-bottom: 12px; }
@@ -476,7 +481,7 @@
   <!-- ── Left Panel ── -->
   <div class="login-left">
     <div class="brand">
-      <div class="brand-icon"><img src="../icons/icon.svg" alt="VishvaERP" style="width:26px;height:26px"></div>
+      <div class="brand-icon"><img src="../icons/logo.png" alt="VishvaERP"></div>
       <div class="brand-name">Vishva<span>ERP</span></div>
     </div>
     <div class="left-hero">

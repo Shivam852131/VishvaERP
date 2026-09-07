@@ -3662,16 +3662,11 @@
       const sidebarIcon = q('.sidebar-logo .sidebar-logo-icon');
       const sidebarText = q('.sidebar-logo .sidebar-logo-text');
 
-      if (logoUrl) {
-        const imgTag = `<img src="${logoUrl}" alt="Logo" style="width:100%;height:100%;object-fit:cover;border-radius:10px">`;
-        if (darkIcon) darkIcon.innerHTML = imgTag;
-        if (lightIcon) lightIcon.innerHTML = imgTag;
-        if (sidebarIcon) sidebarIcon.innerHTML = imgTag;
-      } else {
-        if (darkIcon) darkIcon.textContent = 'V';
-        if (lightIcon) lightIcon.textContent = 'V';
-        if (sidebarIcon) sidebarIcon.textContent = 'V';
-      }
+      const effectiveLogo = logoUrl || '../../icons/logo.png';
+      const imgTag = `<img src="${effectiveLogo}" alt="Logo" style="width:100%;height:100%;object-fit:cover;border-radius:10px">`;
+      if (darkIcon) darkIcon.innerHTML = imgTag;
+      if (lightIcon) lightIcon.innerHTML = imgTag;
+      if (sidebarIcon) sidebarIcon.innerHTML = imgTag;
       if (sidebarText) {
         sidebarText.innerHTML = `${escapeHTML(brandName)}<span>ERP</span>`;
       }
@@ -3681,7 +3676,7 @@
       if (preset === 'default') {
         if (logoInput) logoInput.value = '';
         updateLiveLogoPreviews(platformInput?.value, '');
-        window.showToast?.('Switched to official [V] gradient brand mark', 'info');
+        window.showToast?.('Switched to official Vi brand logo', 'info');
       } else if (preset === 'vector') {
         const svgUrl = '../../icons/logo.svg';
         if (logoInput) logoInput.value = svgUrl;
@@ -7208,9 +7203,9 @@
 
   function applyStoredLogo() {
     try {
-      const storedLogo = localStorage.getItem('vishva_platform_logo');
+      const storedLogo = localStorage.getItem('vishva_platform_logo') || '../../icons/logo.png';
       const icon = q('.sidebar-logo .sidebar-logo-icon');
-      if (icon && storedLogo) {
+      if (icon) {
         icon.innerHTML = `<img src="${storedLogo}" alt="Logo" style="width:100%;height:100%;object-fit:cover;border-radius:10px">`;
       }
     } catch (_) {}

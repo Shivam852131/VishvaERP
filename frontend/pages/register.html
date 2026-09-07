@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -63,11 +63,19 @@
     }
     .brand-icon {
       width: 56px; height: 56px; border-radius: 16px;
-      background: linear-gradient(135deg, #4F46E5, #7C3AED);
       display: inline-flex; align-items: center; justify-content: center;
-      font-size: 26px; font-weight: 900; color: white;
-      box-shadow: 0 8px 24px rgba(79,70,229,0.35);
+      box-shadow: 0 8px 24px rgba(14,165,233,0.35);
       margin-bottom: 16px; cursor: pointer;
+      overflow: hidden;
+      background: #0B0F19;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .brand-icon:hover {
+      transform: scale(1.05);
+      box-shadow: 0 10px 28px rgba(14,165,233,0.45);
+    }
+    .brand-icon img {
+      width: 100%; height: 100%; object-fit: cover; border-radius: 16px; display: block;
     }
     .register-header h1 {
       font-size: 28px; font-weight: 900; color: white; margin-bottom: 6px;
@@ -400,8 +408,8 @@
 
 <div class="register-container">
   <div class="register-header">
-    <div class="brand-icon" onclick="window.location.href='../index.html'">
-      <img src="../icons/icon.svg" alt="VishvaERP" style="width:32px;height:32px">
+    <div class="brand-icon" onclick="window.location.href='../index.html'" title="VishvaERP Home">
+      <img src="../icons/logo.png" alt="VishvaERP">
     </div>
     <h1>Create Account</h1>
     <p>Join VishvaERP and transform your institution</p>
