@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Visitors | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../css/custom.css">
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-college" id="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo"><i class="fas fa-graduation-cap"></i> VishvaERP</div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section">
+        <div class="nav-section-title">Overview</div>
+        <a href="dashboard.html" class="nav-link"><i class="fas fa-th-large"></i> Dashboard</a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Academics</div>
+        <a href="students.html" class="nav-link"><i class="fas fa-user-graduate"></i> Students</a>
+        <a href="faculty.html" class="nav-link"><i class="fas fa-chalkboard-teacher"></i> Faculty</a>
+        <a href="courses-exams.html" class="nav-link"><i class="fas fa-book"></i> Courses &amp; Exams</a>
+        <a href="notice-board.html" class="nav-link"><i class="fas fa-bullhorn"></i> Notice Board</a>
+        <a href="attendance.html" class="nav-link"><i class="fas fa-check-double"></i> Attendance</a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Finance &amp; HR</div>
+        <a href="fee-management.html" class="nav-link"><i class="fas fa-money-bill-wave"></i> Fee Management</a>
+        <a href="hr-leave.html" class="nav-link"><i class="fas fa-users"></i> HR &amp; Leave</a>
+        <a href="subscription.html" class="nav-link"><i class="fas fa-credit-card"></i> Subscription</a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Campus Life</div>
+        <a href="events.html" class="nav-link"><i class="fas fa-calendar-alt"></i> Events</a>
+        <a href="grievances.html" class="nav-link"><i class="fas fa-exclamation-triangle"></i> Grievances</a>
+        <a href="feedback.html" class="nav-link"><i class="fas fa-star"></i> Feedback</a>
+        <a href="inventory.html" class="nav-link"><i class="fas fa-boxes"></i> Inventory</a>
+        <a href="visitors.html" class="nav-link active"><i class="fas fa-id-badge"></i> Visitors</a>
+        <a href="placement.html" class="nav-link"><i class="fas fa-briefcase"></i> Placement</a>
+        <a href="alumni.html" class="nav-link"><i class="fas fa-ribbon"></i> Alumni</a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Smart Campus</div>
+        <a href="iot-dashboard.html" class="nav-link"><i class="fas fa-microchip"></i> IoT Dashboard</a>
+        <a href="sustainability.html" class="nav-link"><i class="fas fa-leaf"></i> Sustainability</a>
+        <a href="ai-intelligence.html" class="nav-link"><i class="fas fa-brain"></i> AI Intelligence</a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Facilities</div>
+        <a href="logistics-hostel.html" class="nav-link"><i class="fas fa-bed"></i> Logistics &amp; Hostel</a>
+      </div>
+      <div class="nav-section">
+        <div class="nav-section-title">Tools</div>
+        <a href="ai-hub.html" class="nav-link"><i class="fas fa-robot"></i> AI Hub</a>
+      </div>
+    </nav>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">College Admin / <span>Visitors</span></div>
+      </div>
+      <div class="topbar-right"><div class="topbar-avatar" id="topbar-avatar">A</div></div>
+    </header>
+    <div class="erp-content page-enter">
+
+      <!-- Page Header -->
+      <div class="mb-6">
+        <h1 class="text-2xl font-bold text-gray-800">Visitor Management</h1>
+        <p class="text-gray-500 text-sm mt-1">Track and manage campus visitors</p>
+      </div>
+
+      <!-- Stats Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6" id="statsGrid">
+        <div class="stat-card bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Total Visitors</p>
+              <p class="text-2xl font-bold text-gray-800 mt-1" id="statTotal">0</p>
+            </div>
+            <div class="w-11 h-11 rounded-lg bg-blue-50 flex items-center justify-center"><i class="fas fa-id-badge text-blue-500"></i></div>
+          </div>
+        </div>
+        <div class="stat-card bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Currently Inside</p>
+              <p class="text-2xl font-bold text-gray-800 mt-1" id="statInside">0</p>
+            </div>
+            <div class="w-11 h-11 rounded-lg bg-green-50 flex items-center justify-center"><i class="fas fa-door-open text-green-500"></i></div>
+          </div>
+        </div>
+        <div class="stat-card bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Checked Out Today</p>
+              <p class="text-2xl font-bold text-gray-800 mt-1" id="statCheckedOut">0</p>
+            </div>
+            <div class="w-11 h-11 rounded-lg bg-amber-50 flex items-center justify-center"><i class="fas fa-sign-out-alt text-amber-500"></i></div>
+          </div>
+        </div>
+        <div class="stat-card bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-xs font-medium text-gray-400 uppercase tracking-wider">Blacklisted</p>
+              <p class="text-2xl font-bold text-gray-800 mt-1" id="statBlacklisted">0</p>
+            </div>
+            <div class="w-11 h-11 rounded-lg bg-red-50 flex items-center justify-center"><i class="fas fa-ban text-red-500"></i></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 mb-6">
+        <div class="flex flex-col md:flex-row md:items-center gap-3">
+          <div class="relative flex-1">
+            <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+            <input type="text" id="searchInput" placeholder="Search by name, phone, gate pass..." class="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+          </div>
+          <select id="filterStatus" class="px-3 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="">All Status</option>
+            <option value="checked-in">Checked In</option>
+            <option value="checked-out">Checked Out</option>
+            <option value="cancelled">Cancelled</option>
+            <option value="pre-registered">Pre-Registered</option>
+          </select>
+          <select id="filterCategory" class="px-3 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <option value="">All Categories</option>
+            <option value="parent">Parent</option>
+            <option value="vendor">Vendor</option>
+            <option value="contractor">Contractor</option>
+            <option value="interviewee">Interviewee</option>
+            <option value="guest">Guest</option>
+            <option value="delivery">Delivery</option>
+            <option value="other">Other</option>
+          </select>
+          <button onclick="openCheckInModal()" class="px-4 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition whitespace-nowrap"><i class="fas fa-plus mr-1.5"></i> Check In Visitor</button>
+        </div>
+      </div>
+
+      <!-- Visitors Table -->
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b border-gray-100 bg-gray-50">
+                <th class="text-left px-5 py-3 font-semibold text-gray-600">Gate Pass</th>
+                <th class="text-left px-5 py-3 font-semibold text-gray-600">Name</th>
+                <th class="text-left px-5 py-3 font-semibold text-gray-600">Purpose</th>
+                <th class="text-left px-5 py-3 font-semibold text-gray-600">Host</th>
+                <th class="text-left px-5 py-3 font-semibold text-gray-600">Status</th>
+                <th class="text-left px-5 py-3 font-semibold text-gray-600">Check-in</th>
+                <th class="text-left px-5 py-3 font-semibold text-gray-600">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="visitorsTableBody">
+            </tbody>
+          </table>
+        </div>
+        <!-- Empty State -->
+        <div id="emptyState" class="hidden py-16 text-center">
+          <div class="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4"><i class="fas fa-id-badge text-gray-300 text-2xl"></i></div>
+          <p class="text-gray-500 font-medium">No visitors found</p>
+          <p class="text-gray-400 text-sm mt-1">Check in a visitor to get started</p>
+        </div>
+        <!-- Loading -->
+        <div id="loadingState" class="py-16 text-center">
+          <div class="w-8 h-8 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-3"></div>
+          <p class="text-gray-400 text-sm">Loading visitors...</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Check In Visitor Modal -->
+<div id="checkInModal" class="fixed inset-0 z-50 hidden">
+  <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeCheckInModal()"></div>
+  <div class="absolute inset-0 flex items-start justify-center pt-10 px-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl relative mb-10">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <h3 class="text-lg font-bold text-gray-800">Check In Visitor</h3>
+        <button onclick="closeCheckInModal()" class="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition"><i class="fas fa-times"></i></button>
+      </div>
+      <form id="checkInForm" class="p-6 space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">Visitor Name *</label>
+            <input type="text" name="visitorName" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">Phone *</label>
+            <input type="tel" name="visitorPhone" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">Email</label>
+            <input type="email" name="visitorEmail" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">Purpose *</label>
+            <input type="text" name="purpose" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">Category *</label>
+            <select name="category" required class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="">Select category</option>
+              <option value="parent">Parent</option>
+              <option value="vendor">Vendor</option>
+              <option value="contractor">Contractor</option>
+              <option value="interviewee">Interviewee</option>
+              <option value="guest">Guest</option>
+              <option value="delivery">Delivery</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">Host (Roll / Name) *</label>
+            <input type="text" name="hostUserId" required placeholder="Search by roll or name" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">Department</label>
+            <input type="text" name="department" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">Meeting Room</label>
+            <input type="text" name="meetingRoom" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">Expected Duration</label>
+            <input type="text" name="expectedDuration" placeholder="e.g. 30 mins" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">Vehicle Number</label>
+            <input type="text" name="vehicleNumber" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">Vehicle Type</label>
+            <select name="vehicleType" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="">None</option>
+              <option value="car">Car</option>
+              <option value="bike">Bike</option>
+              <option value="auto">Auto</option>
+              <option value="truck">Truck</option>
+              <option value="bus">Bus</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">Items Carried</label>
+            <input type="text" name="itemsCarried" placeholder="e.g. Laptop, Documents" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">ID Type</label>
+            <select name="idType" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="">Select</option>
+              <option value="aadhaar">Aadhaar</option>
+              <option value="pan">PAN</option>
+              <option value="passport">Passport</option>
+              <option value="driving-license">Driving License</option>
+              <option value="voter-id">Voter ID</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-gray-500 mb-1">ID Number</label>
+            <input type="text" name="idNumber" class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          </div>
+        </div>
+        <div class="flex justify-end gap-3 pt-4 border-t border-gray-100">
+          <button type="button" onclick="closeCheckInModal()" class="px-4 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50 transition">Cancel</button>
+          <button type="submit" class="px-5 py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition">Check In</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Visitor Detail Modal -->
+<div id="detailModal" class="fixed inset-0 z-50 hidden">
+  <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="closeDetailModal()"></div>
+  <div class="absolute inset-0 flex items-start justify-center pt-10 px-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg relative mb-10">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <h3 class="text-lg font-bold text-gray-800">Visitor Details</h3>
+        <button onclick="closeDetailModal()" class="w-8 h-8 rounded-lg hover:bg-gray-100 flex items-center justify-center text-gray-400 hover:text-gray-600 transition"><i class="fas fa-times"></i></button>
+      </div>
+      <div id="detailContent" class="p-6"></div>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script>
+(function(){
+  const $ = s => document.querySelector(s);
+  const $$ = s => document.querySelectorAll(s);
+
+  // Sidebar toggle
+  $('#hamburger').addEventListener('click', () => {
+    $('#sidebar').classList.toggle('open');
+    $('#sidebarOverlay').classList.toggle('open');
+  });
+  $('#sidebarOverlay').addEventListener('click', () => {
+    $('#sidebar').classList.remove('open');
+    $('#sidebarOverlay').classList.remove('open');
+  });
+
+  let allVisitors = [];
+  let searchTimeout = null;
+
+  // Load stats
+  async function loadStats() {
+    try {
+      const res = await window.api.request('/visitors/stats');
+      if (res && res.data) {
+        $('#statTotal').textContent = res.data.total || 0;
+        $('#statInside').textContent = res.data.currentlyInside || res.data.checkedIn || 0;
+        $('#statCheckedOut').textContent = res.data.checkedOutToday || 0;
+        $('#statBlacklisted').textContent = res.data.blacklisted || 0;
+      }
+    } catch (e) {
+      console.error('Failed to load stats:', e);
+    }
+  }
+
+  // Load visitors
+  async function loadVisitors() {
+    try {
+      const search = $('#searchInput').value.trim();
+      const status = $('#filterStatus').value;
+      const category = $('#filterCategory').value;
+      let qs = 'limit=50';
+      if (search) qs += '&search=' + encodeURIComponent(search);
+      if (status) qs += '&status=' + encodeURIComponent(status);
+      if (category) qs += '&category=' + encodeURIComponent(category);
+
+      const res = await window.api.request('/visitors?' + qs);
+      allVisitors = (res && res.data) ? (Array.isArray(res.data) ? res.data : res.data.visitors || []) : [];
+      renderTable();
+    } catch (e) {
+      console.error('Failed to load visitors:', e);
+      allVisitors = [];
+      renderTable();
+    }
+  }
+
+  function renderTable() {
+    $('#loadingState').classList.add('hidden');
+    if (allVisitors.length === 0) {
+      $('#visitorsTableBody').innerHTML = '';
+      $('#emptyState').classList.remove('hidden');
+      return;
+    }
+    $('#emptyState').classList.add('hidden');
+    $('#visitorsTableBody').innerHTML = allVisitors.map(v => {
+      const statusBadge = getStatusBadge(v.status);
+      const checkinTime = v.checkInTime ? formatTime(v.checkInTime) : '—';
+      const actions = getActions(v);
+      return `<tr class="border-b border-gray-50 hover:bg-gray-50/50 cursor-pointer" onclick="openDetailModal('${v._id || v.id}')">
+        <td class="px-5 py-3.5 font-mono text-xs text-gray-500">${v.gatePass || '—'}</td>
+        <td class="px-5 py-3.5">
+          <div class="font-medium text-gray-800">${escapeHtml(v.visitorName || v.name || '—')}</div>
+          <div class="text-xs text-gray-400 mt-0.5">${escapeHtml(v.visitorPhone || v.phone || '')}</div>
+        </td>
+        <td class="px-5 py-3.5 text-gray-600">${escapeHtml(v.purpose || '—')}</td>
+        <td class="px-5 py-3.5 text-gray-600">${escapeHtml(v.hostUserId || v.host || '—')}</td>
+        <td class="px-5 py-3.5">${statusBadge}</td>
+        <td class="px-5 py-3.5 text-gray-500 text-xs">${checkinTime}</td>
+        <td class="px-5 py-3.5" onclick="event.stopPropagation()">${actions}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  function getStatusBadge(status) {
+    const map = {
+      'checked-in': '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700"><i class="fas fa-circle text-[6px] mr-1.5"></i>Checked In</span>',
+      'checked-out': '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600"><i class="fas fa-circle text-[6px] mr-1.5"></i>Checked Out</span>',
+      'cancelled': '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-600"><i class="fas fa-circle text-[6px] mr-1.5"></i>Cancelled</span>',
+      'pre-registered': '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-600"><i class="fas fa-circle text-[6px] mr-1.5"></i>Pre-Registered</span>'
+    };
+    return map[status] || `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-500">${escapeHtml(status || '—')}</span>`;
+  }
+
+  function getActions(v) {
+    const id = v._id || v.id;
+    if (v.status === 'checked-in') {
+      return `<button onclick="event.stopPropagation();doCheckout('${id}')" class="px-3 py-1.5 bg-amber-50 text-amber-700 text-xs font-medium rounded-lg hover:bg-amber-100 transition mr-1.5"><i class="fas fa-sign-out-alt mr-1"></i>Checkout</button>
+              <button onclick="event.stopPropagation();doCancel('${id}')" class="px-3 py-1.5 bg-red-50 text-red-600 text-xs font-medium rounded-lg hover:bg-red-100 transition"><i class="fas fa-times mr-1"></i>Cancel</button>`;
+    }
+    if (v.status === 'pre-registered') {
+      return `<button onclick="event.stopPropagation();doCancel('${id}')" class="px-3 py-1.5 bg-red-50 text-red-600 text-xs font-medium rounded-lg hover:bg-red-100 transition"><i class="fas fa-times mr-1"></i>Cancel</button>`;
+    }
+    return '—';
+  }
+
+  function formatTime(iso) {
+    if (!iso) return '—';
+    try {
+      const d = new Date(iso);
+      return d.toLocaleString('en-IN', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit', hour12:true });
+    } catch { return iso; }
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  // Checkout
+  window.doCheckout = async function(id) {
+    if (!confirm('Checkout this visitor?')) return;
+    try {
+      await window.api.request('/visitors/' + id + '/checkout', { method: 'POST' });
+      loadVisitors();
+      loadStats();
+    } catch (e) {
+      alert('Failed to checkout: ' + (e.message || 'Unknown error'));
+    }
+  };
+
+  // Cancel
+  window.doCancel = async function(id) {
+    if (!confirm('Cancel this visitor entry?')) return;
+    try {
+      await window.api.request('/visitors/' + id + '/cancel', { method: 'POST' });
+      loadVisitors();
+      loadStats();
+    } catch (e) {
+      alert('Failed to cancel: ' + (e.message || 'Unknown error'));
+    }
+  };
+
+  // Detail modal
+  window.openDetailModal = function(id) {
+    const v = allVisitors.find(x => (x._id || x.id) === id);
+    if (!v) return;
+    const html = `
+      <div class="space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <div><p class="text-xs text-gray-400 mb-0.5">Gate Pass</p><p class="font-mono text-sm text-gray-700">${v.gatePass || '—'}</p></div>
+          <div><p class="text-xs text-gray-400 mb-0.5">Status</p>${getStatusBadge(v.status)}</div>
+        </div>
+        <hr class="border-gray-100">
+        <div class="grid grid-cols-2 gap-4">
+          <div><p class="text-xs text-gray-400 mb-0.5">Name</p><p class="text-sm text-gray-700">${escapeHtml(v.visitorName || v.name || '—')}</p></div>
+          <div><p class="text-xs text-gray-400 mb-0.5">Phone</p><p class="text-sm text-gray-700">${escapeHtml(v.visitorPhone || v.phone || '—')}</p></div>
+          <div><p class="text-xs text-gray-400 mb-0.5">Email</p><p class="text-sm text-gray-700">${escapeHtml(v.visitorEmail || v.email || '—')}</p></div>
+          <div><p class="text-xs text-gray-400 mb-0.5">Category</p><p class="text-sm text-gray-700 capitalize">${escapeHtml(v.category || '—')}</p></div>
+        </div>
+        <hr class="border-gray-100">
+        <div class="grid grid-cols-2 gap-4">
+          <div><p class="text-xs text-gray-400 mb-0.5">Purpose</p><p class="text-sm text-gray-700">${escapeHtml(v.purpose || '—')}</p></div>
+          <div><p class="text-xs text-gray-400 mb-0.5">Host</p><p class="text-sm text-gray-700">${escapeHtml(v.hostUserId || v.host || '—')}</p></div>
+          <div><p class="text-xs text-gray-400 mb-0.5">Department</p><p class="text-sm text-gray-700">${escapeHtml(v.department || '—')}</p></div>
+          <div><p class="text-xs text-gray-400 mb-0.5">Meeting Room</p><p class="text-sm text-gray-700">${escapeHtml(v.meetingRoom || '—')}</p></div>
+          <div><p class="text-xs text-gray-400 mb-0.5">Expected Duration</p><p class="text-sm text-gray-700">${escapeHtml(v.expectedDuration || '—')}</p></div>
+        </div>
+        <hr class="border-gray-100">
+        <div class="grid grid-cols-2 gap-4">
+          <div><p class="text-xs text-gray-400 mb-0.5">Vehicle Number</p><p class="text-sm text-gray-700">${escapeHtml(v.vehicleNumber || '—')}</p></div>
+          <div><p class="text-xs text-gray-400 mb-0.5">Vehicle Type</p><p class="text-sm text-gray-700 capitalize">${escapeHtml(v.vehicleType || '—')}</p></div>
+          <div><p class="text-xs text-gray-400 mb-0.5">Items Carried</p><p class="text-sm text-gray-700">${escapeHtml(v.itemsCarried || '—')}</p></div>
+          <div><p class="text-xs text-gray-400 mb-0.5">ID Type</p><p class="text-sm text-gray-700 capitalize">${escapeHtml(v.idType || '—')}</p></div>
+          <div><p class="text-xs text-gray-400 mb-0.5">ID Number</p><p class="text-sm text-gray-700">${escapeHtml(v.idNumber || '—')}</p></div>
+        </div>
+        <hr class="border-gray-100">
+        <div class="grid grid-cols-2 gap-4">
+          <div><p class="text-xs text-gray-400 mb-0.5">Check-in Time</p><p class="text-sm text-gray-700">${formatTime(v.checkInTime)}</p></div>
+          <div><p class="text-xs text-gray-400 mb-0.5">Check-out Time</p><p class="text-sm text-gray-700">${formatTime(v.checkOutTime)}</p></div>
+          <div><p class="text-xs text-gray-400 mb-0.5">Created</p><p class="text-sm text-gray-700">${formatTime(v.createdAt)}</p></div>
+        </div>
+      </div>`;
+    $('#detailContent').innerHTML = html;
+    $('#detailModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  };
+
+  window.closeDetailModal = function() {
+    $('#detailModal').classList.add('hidden');
+    document.body.style.overflow = '';
+  };
+
+  // Check In modal
+  window.openCheckInModal = function() {
+    $('#checkInForm').reset();
+    $('#checkInModal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+  };
+
+  window.closeCheckInModal = function() {
+    $('#checkInModal').classList.add('hidden');
+    document.body.style.overflow = '';
+  };
+
+  // Form submit
+  $('#checkInForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const fd = new FormData(this);
+    const payload = {};
+    fd.forEach((val, key) => { if (val) payload[key] = val; });
+    try {
+      await window.api.request('/visitors', { method: 'POST', body: JSON.stringify(payload) });
+      closeCheckInModal();
+      loadVisitors();
+      loadStats();
+    } catch (err) {
+      alert('Failed to check in visitor: ' + (err.message || 'Unknown error'));
+    }
+  });
+
+  // Search & filter
+  $('#searchInput').addEventListener('input', function() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(loadVisitors, 400);
+  });
+  $('#filterStatus').addEventListener('change', loadVisitors);
+  $('#filterCategory').addEventListener('change', loadVisitors);
+
+  // Escape key closes modals
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      closeCheckInModal();
+      closeDetailModal();
+    }
+  });
+
+  // Init
+  loadStats();
+  loadVisitors();
+})();
+</script>
+</body>
+</html>

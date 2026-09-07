@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Database Studio | VishvaERP Super Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="../../css/custom.css">
+  <style>
+    /* ==========================================================================
+       VISHVA ERP — ADVANCED DATABASE STUDIO DESIGN SYSTEM
+       ========================================================================== */
+    :root {
+      --db-primary: #4F46E5;
+      --db-primary-hover: #4338CA;
+      --db-primary-soft: rgba(79, 70, 229, 0.08);
+      --db-accent: #7C3AED;
+      --db-emerald: #10B981;
+      --db-rose: #EF4444;
+      --db-amber: #F59E0B;
+      --db-sky: #0EA5E9;
+      --db-card-border: rgba(226, 232, 240, 0.85);
+      --db-card-bg: #FFFFFF;
+      --db-text-main: #0F172A;
+      --db-text-muted: #64748B;
+    }
+
+    /* Studio Hero Header */
+    .db-studio-header {
+      background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 60%, #EEF2FF 100%);
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      border-radius: 20px;
+      padding: 22px 28px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+      position: relative;
+      overflow: hidden;
+    }
+    .db-studio-header::after {
+      content: '';
+      position: absolute;
+      top: -40px;
+      right: -40px;
+      width: 180px;
+      height: 180px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, rgba(139, 92, 246, 0) 70%);
+      pointer-events: none;
+    }
+
+    .studio-logo-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      box-shadow: 0 8px 18px rgba(79, 70, 229, 0.28);
+      position: relative;
+    }
+    .studio-logo-icon::after {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: 18px;
+      border: 2px solid rgba(255, 255, 255, 0.4);
+      pointer-events: none;
+    }
+
+    /* Live Engine Telemetry Badge */
+    .telemetry-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 700;
+      background: #F0FDF4;
+      border: 1px solid #BBF7D0;
+      color: #15803D;
+      box-shadow: 0 2px 6px rgba(34, 197, 94, 0.08);
+      transition: all 0.2s ease;
+    }
+    .health-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .health-dot.healthy {
+      background: #10B981;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
+      animation: dbPulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+    .health-dot.degraded {
+      background: #EF4444;
+      box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25);
+    }
+    @keyframes dbPulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.85); }
+    }
+
+    /* Metric Cards Grid */
+    .db-metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .db-metric-card {
+      background: #FFFFFF;
+      border: 1px solid var(--db-card-border);
+      border-radius: 16px;
+      padding: 16px 18px;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .db-metric-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px -4px rgba(15, 23, 42, 0.08);
+      border-color: #C7D2FE;
+    }
+    .db-metric-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .db-metric-label {
+      font-size: 11px;
+      font-weight: 800;
+      color: #64748B;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .db-metric-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+    }
+    .db-metric-value {
+      font-size: 20px;
+      font-weight: 900;
+      color: #0F172A;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+    .db-metric-sub {
+      font-size: 11px;
+      font-weight: 600;
+      color: #94A3B8;
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Collections Sidebar */
+    .collections-sidebar-card {
+      background: #FFFFFF;
+      border: 1px solid var(--db-card-border);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 2px 10px rgba(15, 23, 42, 0.03);
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 340px);
+      min-height: 520px;
+      position: sticky;
+      top: 84px;
+    }
+    .col-search-wrap {
+      position: relative;
+      margin-bottom: 12px;
+    }
+    .col-search-input {
+      width: 100%;
+      height: 38px;
+      padding: 0 34px 0 34px;
+      font-size: 12.5px;
+      font-weight: 500;
+      border: 1px solid #E2E8F0;
+      border-radius: 10px;
+      background: #F8FAFC;
+      color: #0F172A;
+      transition: all 0.2s ease;
+    }
+    .col-search-input:focus {
+      background: #FFFFFF;
+      border-color: #6366F1;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+      outline: none;
+    }
+    .col-search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 12px;
+      color: #94A3B8;
+      pointer-events: none;
+    }
+    .col-search-clear {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 11px;
+      color: #94A3B8;
+      cursor: pointer;
+      display: none;
+      padding: 4px;
+    }
+
+    /* Filter Chips */
+    .col-filter-chips {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 12px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+    .col-filter-chip {
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      border: 1px solid #E2E8F0;
+      background: #F8FAFC;
+      color: #64748B;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+    .col-filter-chip:hover {
+      background: #F1F5F9;
+      color: #0F172A;
+    }
+    .col-filter-chip.active {
+      background: #4F46E5;
+      border-color: #4F46E5;
+      color: #FFFFFF;
+      box-shadow: 0 2px 6px rgba(79, 70, 229, 0.25);
+    }
+
+    /* Collection List & Cards */
+    .collections-scroll-area {
+      flex: 1;
+      overflow-y: auto;
+      padding-right: 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .collections-scroll-area::-webkit-scrollbar {
+      width: 5px;
+    }
+    .collections-scroll-area::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 4px;
+    }
+    .collections-scroll-area::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .collection-card {
+      border: 1px solid #E2E8F0;
+      border-radius: 12px;
+      padding: 11px 14px;
+      background: #FFFFFF;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      position: relative;
+    }
+    .collection-card:hover {
+      border-color: #C7D2FE;
+      background: #F8FAFC;
+      transform: translateX(2px);
+    }
+    .collection-card.active {
+      border-color: #6366F1;
+      background: linear-gradient(90deg, #EEF2FF 0%, #FAF5FF 100%);
+      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.12);
+    }
+    .collection-card.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 8px;
+      bottom: 8px;
+      width: 3.5px;
+      border-radius: 0 4px 4px 0;
+      background: #4F46E5;
+    }
+    .col-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 10px;
+      background: #F1F5F9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      color: #64748B;
+      flex-shrink: 0;
+      transition: all 0.2s ease;
+    }
+    .collection-card.active .col-icon {
+      background: #4F46E5;
+      color: #FFFFFF;
+      box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
+    }
+
+    /* Browser Workspace Card */
+    .browser-workspace-card {
+      background: #FFFFFF;
+      border: 1px solid var(--db-card-border);
+      border-radius: 18px;
+      box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-height: 600px;
+    }
+    .browser-toolbar {
+      padding: 16px 20px;
+      border-bottom: 1px solid #F1F5F9;
+      background: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    /* Segmented Control View Switcher */
+    .segmented-view-group {
+      display: inline-flex;
+      align-items: center;
+      background: #F1F5F9;
+      padding: 3px;
+      border-radius: 10px;
+      border: 1px solid #E2E8F0;
+    }
+    .segmented-view-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #64748B;
+      border-radius: 7px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .segmented-view-btn:hover {
+      color: #0F172A;
+    }
+    .segmented-view-btn.active {
+      background: #FFFFFF;
+      color: #4F46E5;
+      box-shadow: 0 1px 4px rgba(15, 23, 42, 0.08);
+    }
+
+    /* Document Search Input */
+    .doc-search-wrap {
+      position: relative;
+      flex: 1;
+      max-width: 280px;
+      min-width: 160px;
+    }
+    .doc-search-input {
+      width: 100%;
+      height: 36px;
+      padding: 0 30px 0 32px;
+      font-size: 12.5px;
+      border: 1px solid #E2E8F0;
+      border-radius: 9px;
+      background: #F8FAFC;
+      color: #0F172A;
+      transition: all 0.2s ease;
+    }
+    .doc-search-input:focus {
+      background: #FFFFFF;
+      border-color: #6366F1;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+      outline: none;
+    }
+    .doc-search-kbd {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 10px;
+      font-weight: 800;
+      color: #94A3B8;
+      background: #FFFFFF;
+      border: 1px solid #E2E8F0;
+      padding: 1px 5px;
+      border-radius: 4px;
+      pointer-events: none;
+    }
+
+    /* Data Table Styling */
+    .table-container {
+      overflow-x: auto;
+      max-height: calc(100vh - 420px);
+      min-height: 360px;
+    }
+    .table-container::-webkit-scrollbar {
+      height: 6px;
+      width: 6px;
+    }
+    .table-container::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 3px;
+    }
+    .table-container::-webkit-scrollbar-track {
+      background: #F8FAFC;
+    }
+
+    .db-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      text-align: left;
+    }
+    .db-table th {
+      background: #F8FAFC;
+      font-size: 11px;
+      font-weight: 800;
+      color: #64748B;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 12px 14px;
+      border-bottom: 1px solid #E2E8F0;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      white-space: nowrap;
+    }
+    .db-table td {
+      padding: 10px 14px;
+      font-size: 12px;
+      border-bottom: 1px solid #F1F5F9;
+      color: #1E293B;
+      vertical-align: middle;
+    }
+    .db-table tbody tr {
+      transition: background 0.15s ease;
+    }
+    .db-table tbody tr:hover {
+      background: #F8FAFC;
+    }
+    .db-table tbody tr.selected {
+      background: #EEF2FF;
+    }
+
+    /* Doc Row Code & Pills */
+    .doc-row {
+      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+      font-size: 11.5px;
+    }
+    .id-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #F1F5F9;
+      border: 1px solid #E2E8F0;
+      padding: 2px 7px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-family: monospace;
+      color: #334155;
+      font-weight: 600;
+      transition: all 0.15s ease;
+    }
+    .id-pill:hover {
+      background: #E2E8F0;
+      color: #0F172A;
+    }
+    .id-copy-btn {
+      opacity: 0.4;
+      cursor: pointer;
+      transition: opacity 0.15s ease;
+    }
+    .id-pill:hover .id-copy-btn {
+      opacity: 1;
+    }
+
+    /* Status Pills */
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 2px 9px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: capitalize;
+    }
+    .status-pill.success {
+      background: #ECFDF5;
+      border: 1px solid #A7F3D0;
+      color: #047857;
+    }
+    .status-pill.danger {
+      background: #FEF2F2;
+      border: 1px solid #FECACA;
+      color: #B91C1C;
+    }
+    .status-pill.warning {
+      background: #FFFBEB;
+      border: 1px solid #FDE68A;
+      color: #B45309;
+    }
+    .status-pill.neutral {
+      background: #F1F5F9;
+      border: 1px solid #E2E8F0;
+      color: #475569;
+    }
+
+    /* Action Buttons in Grid */
+    .action-icon-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 7px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11.5px;
+      border: 1px solid #E2E8F0;
+      background: #FFFFFF;
+      color: #64748B;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .action-icon-btn:hover {
+      background: #F8FAFC;
+      color: #0F172A;
+      border-color: #CBD5E1;
+      transform: translateY(-1px);
+    }
+    .action-icon-btn.btn-inspect:hover {
+      color: #4F46E5;
+      border-color: #A5B4FC;
+      background: #EEF2FF;
+    }
+    .action-icon-btn.btn-danger:hover {
+      color: #EF4444;
+      border-color: #FECACA;
+      background: #FEF2F2;
+    }
+
+    /* Floating Bulk Action Bar */
+    .bulk-action-bar {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(120px);
+      background: #1E1B4B;
+      color: #FFFFFF;
+      padding: 12px 24px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 16px 36px rgba(15, 23, 42, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(12px);
+      z-index: 1000;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .bulk-action-bar.visible {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Slide-Over Document Inspector Drawer */
+    .drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+      backdrop-filter: blur(3px);
+      z-index: 1050;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    .drawer-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .doc-inspector-drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 620px;
+      max-width: 90vw;
+      background: #FFFFFF;
+      box-shadow: -10px 0 35px rgba(15, 23, 42, 0.18);
+      z-index: 1060;
+      transform: translateX(100%);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+    }
+    .doc-inspector-drawer.active {
+      transform: translateX(0);
+    }
+    .drawer-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid #E2E8F0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #F8FAFC;
+    }
+    .drawer-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 24px;
+    }
+    .drawer-footer {
+      padding: 16px 24px;
+      border-top: 1px solid #E2E8F0;
+      background: #F8FAFC;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Inspector Tabs */
+    .drawer-tabs {
+      display: flex;
+      gap: 6px;
+      border-bottom: 1px solid #E2E8F0;
+      margin-bottom: 16px;
+    }
+    .drawer-tab {
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #64748B;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: all 0.15s ease;
+    }
+    .drawer-tab:hover {
+      color: #0F172A;
+    }
+    .drawer-tab.active {
+      color: #4F46E5;
+      border-bottom-color: #4F46E5;
+    }
+
+    /* Field Explorer Tree Table */
+    .field-tree-row {
+      display: flex;
+      align-items: flex-start;
+      padding: 8px 10px;
+      border-radius: 8px;
+      font-size: 12px;
+      transition: background 0.15s ease;
+    }
+    .field-tree-row:hover {
+      background: #F8FAFC;
+    }
+    .field-key {
+      width: 170px;
+      font-weight: 700;
+      color: #4F46E5;
+      font-family: monospace;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .field-type-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 5px;
+      border-radius: 4px;
+      background: #F1F5F9;
+      color: #64748B;
+      font-family: sans-serif;
+    }
+    .field-val {
+      flex: 1;
+      font-family: monospace;
+      color: #1E293B;
+      word-break: break-all;
+    }
+
+    /* Cards View Layout */
+    .cards-view-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 14px;
+      padding: 18px;
+      overflow-y: auto;
+      max-height: calc(100vh - 420px);
+    }
+    .doc-preview-card {
+      border: 1px solid #E2E8F0;
+      border-radius: 12px;
+      padding: 14px;
+      background: #FFFFFF;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .doc-preview-card:hover {
+      border-color: #C7D2FE;
+      box-shadow: 0 4px 14px rgba(15, 23, 42, 0.06);
+      transform: translateY(-2px);
+    }
+
+    /* JSON Viewer Studio */
+    .code-studio-area {
+      background: #0B0F19;
+      color: #E2E8F0;
+      border-radius: 12px;
+      padding: 18px;
+      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      overflow: auto;
+      max-height: 520px;
+      white-space: pre-wrap;
+      border: 1px solid #1E293B;
+      box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Responsive Queries */
+    @media (max-width: 1200px) {
+      .db-metrics-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+    @media (max-width: 900px) {
+      .db-metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .db-studio-layout {
+        grid-template-columns: 1fr !important;
+      }
+      .collections-sidebar-card {
+        height: auto;
+        max-height: 380px;
+        position: static;
+      }
+    }
+    @media (max-width: 640px) {
+      .db-metrics-grid {
+        grid-template-columns: 1fr;
+      }
+      .doc-inspector-drawer {
+        width: 100vw;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="erp-layout">
+  <!-- SIDEBAR -->
+  <aside class="erp-sidebar theme-superadmin" id="sidebar">
+    <div class="sidebar-header">
+      <a class="sidebar-logo" href="../../index.html">
+        <div class="sidebar-logo-icon">V</div>
+        <div class="sidebar-logo-text">Vishva<span>ERP</span></div>
+      </a>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" id="sidebar-avatar">S</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name" id="sidebar-user-name">Super Admin</div>
+        <div class="sidebar-user-role">Platform Administrator</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-tachometer-alt"></i> Dashboard</a>
+      <div class="nav-section-label">Management</div>
+      <a href="colleges.html" class="nav-link"><i class="nav-link-icon fas fa-university"></i> Colleges</a>
+      <a href="users.html" class="nav-link"><i class="nav-link-icon fas fa-users-cog"></i> All Users</a>
+      <a href="plans.html" class="nav-link"><i class="nav-link-icon fas fa-tags"></i> Subscription Plans</a>
+      <div class="nav-section-label">Database</div>
+      <a href="database.html" class="nav-link active"><i class="nav-link-icon fas fa-database"></i> DB Manager</a>
+      <a href="audit-logs.html" class="nav-link"><i class="nav-link-icon fas fa-history"></i> Audit Logs</a>
+      <div class="nav-section-label">Platform</div>
+      <a href="analytics.html" class="nav-link"><i class="nav-link-icon fas fa-chart-line"></i> Analytics</a>
+      <a href="system.html" class="nav-link"><i class="nav-link-icon fas fa-server"></i> System Health</a>
+      <a href="broadcast.html" class="nav-link"><i class="nav-link-icon fas fa-bullhorn"></i> Broadcast</a>
+      <a href="settings.html" class="nav-link"><i class="nav-link-icon fas fa-cog"></i> Settings</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <!-- TOPBAR -->
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">Super Admin / <span>Database Studio</span></div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-secondary btn-sm" onclick="refreshAll()"><i class="fas fa-sync-alt"></i> Refresh</button>
+        <div class="topbar-avatar" id="topbar-avatar">S</div>
+      </div>
+    </header>
+
+    <div class="erp-content">
+      <!-- STUDIO HERO HEADER -->
+      <div class="page-header db-studio-header">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div class="flex items-center gap-4">
+            <div class="studio-logo-icon">
+              <i class="fas fa-database"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-3">
+                <h1 class="page-title text-2xl font-black text-slate-900 tracking-tight" style="margin:0">Database Studio</h1>
+                <span class="text-xs font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/70">Cluster v7.0</span>
+              </div>
+              <p class="page-subtitle text-slate-500 font-medium text-xs mt-1">Live MongoDB cluster telemetry, schema exploration, and record-level management.</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-3 flex-wrap">
+            <div class="telemetry-chip" id="dbStatus">
+              <span class="health-dot healthy"></span>
+              <span>Connecting...</span>
+            </div>
+            <button class="btn btn-secondary btn-sm flex items-center gap-2" onclick="refreshAll()" title="Reload Stats and Collections">
+              <i class="fas fa-sync-alt"></i> <span>Sync</span>
+            </button>
+            <button class="btn btn-primary btn-sm flex items-center gap-2 shadow-sm" id="exportBtn" onclick="exportCollection()">
+              <i class="fas fa-download"></i> <span>Export JSON</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- DB METRICS ROW -->
+      <div class="db-metrics-grid" id="dbMetrics">
+        <!-- 1: DATABASE -->
+        <div class="db-metric-card">
+          <div class="db-metric-header">
+            <span class="db-metric-label">Database</span>
+            <div class="db-metric-icon bg-indigo-50 text-indigo-600">
+              <i class="fas fa-server"></i>
+            </div>
+          </div>
+          <div class="db-metric-value" id="dbName">—</div>
+          <div class="db-metric-sub"><i class="fas fa-check-circle text-emerald-500"></i> WiredTiger Engine</div>
+        </div>
+
+        <!-- 2: COLLECTIONS -->
+        <div class="db-metric-card">
+          <div class="db-metric-header">
+            <span class="db-metric-label">Collections</span>
+            <div class="db-metric-icon bg-purple-50 text-purple-600">
+              <i class="fas fa-layer-group"></i>
+            </div>
+          </div>
+          <div class="db-metric-value text-indigo-700" id="dbCollNum">—</div>
+          <div class="db-metric-sub"><i class="fas fa-cubes text-purple-500"></i> Schema Collections</div>
+        </div>
+
+        <!-- 3: TOTAL DOCS -->
+        <div class="db-metric-card">
+          <div class="db-metric-header">
+            <span class="db-metric-label">Total Docs</span>
+            <div class="db-metric-icon bg-emerald-50 text-emerald-600">
+              <i class="fas fa-file-invoice"></i>
+            </div>
+          </div>
+          <div class="db-metric-value text-emerald-600" id="dbDocs">—</div>
+          <div class="db-metric-sub"><i class="fas fa-bolt text-amber-500"></i> Live Objects</div>
+        </div>
+
+        <!-- 4: DATA SIZE -->
+        <div class="db-metric-card">
+          <div class="db-metric-header">
+            <span class="db-metric-label">Data Size</span>
+            <div class="db-metric-icon bg-amber-50 text-amber-600">
+              <i class="fas fa-chart-pie"></i>
+            </div>
+          </div>
+          <div class="db-metric-value text-amber-600" id="dbDataSize">—</div>
+          <div class="db-metric-sub"><i class="fas fa-database text-slate-400"></i> Uncompressed Size</div>
+        </div>
+
+        <!-- 5: STORAGE SIZE -->
+        <div class="db-metric-card">
+          <div class="db-metric-header">
+            <span class="db-metric-label">Storage Size</span>
+            <div class="db-metric-icon bg-sky-50 text-sky-600">
+              <i class="fas fa-hard-drive"></i>
+            </div>
+          </div>
+          <div class="db-metric-value text-sky-600" id="dbStorageSize">—</div>
+          <div class="db-metric-sub"><i class="fas fa-microchip text-sky-500"></i> Allocated on Disk</div>
+        </div>
+      </div>
+
+      <!-- MAIN STUDIO 2-COLUMN LAYOUT -->
+      <div class="grid db-studio-layout" style="grid-template-columns:310px 1fr;gap:20px;align-items:start">
+        <!-- LEFT: COLLECTIONS EXPLORER -->
+        <div class="collections-sidebar-card">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-black text-slate-700 tracking-wider uppercase">Collections</span>
+              <span class="text-xs font-extrabold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600" id="colCountBadge">0</span>
+            </div>
+            <div class="relative">
+              <select id="colSortSelect" class="text-xs font-semibold text-slate-500 bg-transparent border-none cursor-pointer focus:ring-0 p-0" onchange="sortCollections(this.value)">
+                <option value="count">Docs ↓</option>
+                <option value="name">Name A-Z</option>
+                <option value="size">Size ↓</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Instant Search -->
+          <div class="col-search-wrap">
+            <i class="fas fa-search col-search-icon"></i>
+            <input type="text" id="collectionSearch" class="col-search-input" placeholder="Search 100+ collections..." oninput="filterCollections(this.value)">
+            <i class="fas fa-times col-search-clear" id="colSearchClear" onclick="clearColSearch()"></i>
+          </div>
+
+          <!-- Filter Pills -->
+          <div class="col-filter-chips">
+            <button class="col-filter-chip active" data-filter="all" onclick="setCollectionFilter('all', this)">All</button>
+            <button class="col-filter-chip" data-filter="active" onclick="setCollectionFilter('active', this)">With Data</button>
+            <button class="col-filter-chip" data-filter="empty" onclick="setCollectionFilter('empty', this)">Empty</button>
+          </div>
+
+          <!-- Collections List Container -->
+          <div class="collections-scroll-area" id="collectionList">
+            <div class="skeleton skeleton-card" style="height:54px;border-radius:12px"></div>
+            <div class="skeleton skeleton-card" style="height:54px;border-radius:12px"></div>
+            <div class="skeleton skeleton-card" style="height:54px;border-radius:12px"></div>
+            <div class="skeleton skeleton-card" style="height:54px;border-radius:12px"></div>
+          </div>
+        </div>
+
+        <!-- RIGHT: COLLECTION BROWSER & DOCUMENT STUDIO -->
+        <div class="browser-workspace-card card">
+          <!-- TOOLBAR -->
+          <div class="browser-toolbar card-header">
+            <div class="flex items-center gap-3 flex-wrap">
+              <div class="card-title text-base font-extrabold text-slate-800 flex items-center gap-2" id="browserTitle">
+                <i class="fas fa-table" style="color:#4F46E5"></i>
+                <span>Select a collection</span>
+              </div>
+              <span class="badge-collection text-xs font-bold px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200" id="docCount" style="display:none">0 docs</span>
+            </div>
+
+            <!-- VIEW SWITCHER & SEARCH CONTROLS -->
+            <div class="flex items-center gap-2.5 flex-wrap">
+              <!-- Search Documents -->
+              <div class="doc-search-wrap">
+                <i class="fas fa-search col-search-icon"></i>
+                <input type="text" id="docSearch" class="doc-search-input" placeholder="Search in collection..." oninput="searchDocs()">
+                <span class="doc-search-kbd">/</span>
+              </div>
+
+              <!-- Segmented View Mode Switcher -->
+              <div class="segmented-view-group">
+                <button type="button" class="segmented-view-btn active" id="btnViewTable" onclick="switchView('table')">
+                  <i class="fas fa-table-cells"></i> <span>Table</span>
+                </button>
+                <button type="button" class="segmented-view-btn" id="btnViewCards" onclick="switchView('cards')">
+                  <i class="fas fa-grip"></i> <span>Cards</span>
+                </button>
+                <button type="button" class="segmented-view-btn" id="btnViewJSON" onclick="switchView('json')">
+                  <i class="fas fa-code"></i> <span>JSON</span>
+                </button>
+              </div>
+
+              <!-- Hidden Native ViewMode select for complete backward compatibility -->
+              <select id="viewMode" style="display:none" onchange="toggleView()">
+                <option value="table">Table View</option>
+                <option value="cards">Cards View</option>
+                <option value="json">JSON View</option>
+              </select>
+
+              <!-- Per-Page Selector -->
+              <select class="form-control text-xs font-semibold text-slate-600 bg-slate-50 border-slate-200 py-1.5 px-2.5 rounded-lg" id="perPageSelect" onchange="changeLimit(this.value)">
+                <option value="20">20 / page</option>
+                <option value="50">50 / page</option>
+                <option value="100">100 / page</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- TABLE VIEW -->
+          <div id="tableView" class="table-container">
+            <div id="tableArea" style="min-height:360px;display:flex;align-items:center;justify-content:center;color:#94A3B8;flex-direction:column;gap:10px">
+              <div class="w-16 h-16 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-400 text-2xl">
+                <i class="fas fa-database"></i>
+              </div>
+              <span class="text-sm font-semibold text-slate-500">Select a collection on the left to explore documents</span>
+            </div>
+          </div>
+
+          <!-- CARDS VIEW (Visual Document Grid) -->
+          <div id="cardsView" class="cards-view-grid" style="display:none">
+            <!-- Rendered by JS -->
+          </div>
+
+          <!-- JSON VIEW STUDIO -->
+          <div id="jsonView" style="display:none;padding:16px">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-bold text-slate-500 flex items-center gap-1.5"><i class="fas fa-terminal text-indigo-500"></i> Raw Collection JSON</span>
+              <button class="btn btn-xs btn-secondary flex items-center gap-1" onclick="copyJsonArea()"><i class="fas fa-copy"></i> <span>Copy JSON</span></button>
+            </div>
+            <pre id="jsonArea" class="code-studio-area"></pre>
+          </div>
+
+          <!-- PAGINATION TOOLBAR -->
+          <div id="paginationArea" style="padding:14px 20px;border-top:1px solid #F1F5F9;display:none;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+            <span style="font-size:12px;color:#64748B;font-weight:600" id="pageInfo">Page 1 of 1</span>
+            <div style="display:flex;gap:6px;align-items:center">
+              <button class="btn btn-sm btn-secondary" id="prevBtn" onclick="changePage(-1)"><i class="fas fa-chevron-left"></i> Previous</button>
+              <div id="pagePills" class="flex items-center gap-1"></div>
+              <button class="btn btn-sm btn-secondary" id="nextBtn" onclick="changePage(1)">Next <i class="fas fa-chevron-right"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FLOATING BULK ACTION BAR -->
+<div class="bulk-action-bar" id="bulkActionBar">
+  <div class="flex items-center gap-2 text-sm font-bold">
+    <i class="fas fa-check-circle text-indigo-400"></i>
+    <span><span id="selectedCount">0</span> selected</span>
+  </div>
+  <div class="h-4 w-px bg-white/20"></div>
+  <button class="btn btn-xs btn-light flex items-center gap-1.5" onclick="exportSelectedDocs()">
+    <i class="fas fa-file-export"></i> <span>Export</span>
+  </button>
+  <button class="btn btn-xs btn-danger flex items-center gap-1.5" onclick="bulkDeleteSelectedDocs()">
+    <i class="fas fa-trash-alt"></i> <span>Delete</span>
+  </button>
+  <button class="text-xs font-semibold text-slate-300 hover:text-white ml-1" onclick="clearSelection()">Cancel</button>
+</div>
+
+<!-- SLIDE-OVER DOCUMENT INSPECTOR DRAWER -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeInspector()"></div>
+<div class="doc-inspector-drawer" id="docInspectorDrawer">
+  <div class="drawer-header">
+    <div>
+      <div class="flex items-center gap-2">
+        <span class="text-xs font-extrabold uppercase px-2 py-0.5 rounded bg-indigo-50 text-indigo-700" id="drawerColName">Collection</span>
+        <h3 class="text-base font-black text-slate-900" id="drawerTitle">Document Inspector</h3>
+      </div>
+      <div class="text-xs text-slate-400 font-mono mt-1 flex items-center gap-2">
+        <span>_id: <strong id="drawerDocId" class="text-slate-600">—</strong></span>
+        <button class="text-indigo-600 hover:text-indigo-800" onclick="copyDrawerId()" title="Copy ID"><i class="fas fa-copy"></i></button>
+      </div>
+    </div>
+    <button class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition" onclick="closeInspector()">
+      <i class="fas fa-times text-base"></i>
+    </button>
+  </div>
+
+  <div class="px-6 pt-3 bg-slate-50/50">
+    <div class="drawer-tabs">
+      <div class="drawer-tab active" id="tabFieldExplorer" onclick="setDrawerTab('fields')"><i class="fas fa-list-tree mr-1"></i> Field Explorer</div>
+      <div class="drawer-tab" id="tabJsonCode" onclick="setDrawerTab('json')"><i class="fas fa-code mr-1"></i> JSON Code</div>
+    </div>
+  </div>
+
+  <div class="drawer-body">
+    <!-- FIELD EXPLORER TAB -->
+    <div id="drawerFieldTab">
+      <div id="drawerFieldsList" class="flex flex-col gap-1"></div>
+    </div>
+
+    <!-- JSON CODE TAB -->
+    <div id="drawerJsonTab" style="display:none">
+      <pre id="drawerJsonCode" class="code-studio-area"></pre>
+    </div>
+  </div>
+
+  <div class="drawer-footer">
+    <button class="btn btn-sm btn-secondary flex items-center gap-1.5" onclick="copyDrawerJson()">
+      <i class="fas fa-copy"></i> <span>Copy JSON</span>
+    </button>
+    <div class="flex items-center gap-2">
+      <button class="btn btn-sm btn-secondary flex items-center gap-1.5" onclick="exportDrawerDoc()">
+        <i class="fas fa-download"></i> <span>Download</span>
+      </button>
+      <button class="btn btn-sm btn-danger flex items-center gap-1.5" id="drawerDeleteBtn" style="display:none" onclick="deleteDrawerDoc()">
+        <i class="fas fa-trash"></i> <span>Delete</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script src="../../live/live-admin-pages.js"></script>
+</body>
+</html>

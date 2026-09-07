@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Library Management | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../css/custom.css">
+  <style>
+    .lib-hero {
+      background: linear-gradient(135deg, #7C3AED 0%, #6D28D9 50%, #4C1D95 100%);
+      border-radius: 16px; padding: 28px 32px; color: white;
+      position: relative; overflow: hidden; margin-bottom: 24px;
+    }
+    .lib-hero::before {
+      content: ''; position: absolute; top: -30px; right: -30px;
+      width: 140px; height: 140px; background: rgba(255,255,255,0.08); border-radius: 50%;
+    }
+    .lib-hero::after {
+      content: ''; position: absolute; bottom: -50px; left: 30%;
+      width: 200px; height: 200px; background: rgba(255,255,255,0.04); border-radius: 50%;
+    }
+    .stat-card {
+      background: white; border: 1px solid #E2E8F0; border-radius: 14px;
+      padding: 20px; display: flex; align-items: center; gap: 14px;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
+    .stat-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
+    .table-card { background: white; border: 1px solid #E2E8F0; border-radius: 14px; overflow: hidden; }
+    .table-card table { width: 100%; border-collapse: collapse; }
+    .table-card th { padding: 12px 16px; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #64748B; text-align: left; background: #F8FAFC; border-bottom: 1px solid #E2E8F0; }
+    .table-card td { padding: 12px 16px; font-size: 13px; border-bottom: 1px solid #F1F5F9; color: #334155; }
+    .table-card tr:hover td { background: #F8FAFC; }
+    .badge { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; }
+    .badge-green { background: #ECFDF5; color: #059669; }
+    .badge-yellow { background: #FEF3C7; color: #D97706; }
+    .badge-red { background: #FEF2F2; color: #DC2626; }
+    .badge-blue { background: #EFF6FF; color: #2563EB; }
+    .btn { padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 700; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; font-family: inherit; }
+    .btn-primary { background: linear-gradient(135deg, #7C3AED, #6D28D9); color: white; }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(124,58,237,0.3); }
+    .btn-outline { background: white; border: 1.5px solid #E2E8F0; color: #475569; }
+    .btn-outline:hover { border-color: #7C3AED; color: #7C3AED; }
+    .btn-danger { background: linear-gradient(135deg, #EF4444, #DC2626); color: white; }
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.6); backdrop-filter: blur(4px); z-index: 9999; align-items: center; justify-content: center; padding: 20px; }
+    .modal-overlay.show { display: flex; }
+    .modal-card { background: white; border-radius: 16px; padding: 28px; max-width: 480px; width: 100%; box-shadow: 0 25px 60px rgba(0,0,0,0.25); animation: modalPop 0.3s ease; }
+    @keyframes modalPop { from { transform: scale(0.9) translateY(10px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 4px; }
+    .form-group input, .form-group select { width: 100%; padding: 10px 12px; border: 1.5px solid #E2E8F0; border-radius: 8px; font-size: 13px; font-family: inherit; transition: border-color 0.2s; }
+    .form-group input:focus, .form-group select:focus { outline: none; border-color: #7C3AED; box-shadow: 0 0 0 3px rgba(124,58,237,0.1); }
+    @media (max-width: 768px) { .stats-grid { grid-template-columns: 1fr 1fr !important; } .hero-stats { grid-template-columns: 1fr !important; } }
+  </style>
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-admin" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon" style="background:linear-gradient(135deg,#7C3AED,#A78BFA)">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" style="background:linear-gradient(135deg,#7C3AED,#A78BFA)" id="sidebar-avatar">A</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Admin</div><div class="sidebar-user-role" id="sidebar-user-role">College Admin</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-tachometer-alt"></i> Dashboard</a>
+      <div class="nav-section-label">Academics</div>
+      <a href="students.html" class="nav-link"><i class="nav-link-icon fas fa-user-graduate"></i> Students</a>
+      <a href="faculty.html" class="nav-link"><i class="nav-link-icon fas fa-chalkboard-teacher"></i> Faculty</a>
+      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-open"></i> Courses & Exams</a>
+      <a href="notices.html" class="nav-link"><i class="nav-link-icon fas fa-bullhorn"></i> Notice Board</a>
+      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-check"></i> Attendance</a>
+      <div class="nav-section-label">Finance & HR</div>
+      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-file-invoice-dollar"></i> Fee Management</a>
+      <a href="hr.html" class="nav-link"><i class="nav-link-icon fas fa-user-md"></i> HR & Leave</a>
+      <a href="subscription.html" class="nav-link"><i class="nav-link-icon fas fa-credit-card"></i> Subscription</a>
+      <div class="nav-section-label">Campus Life</div>
+      <a href="events.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Events</a>
+      <a href="grievances.html" class="nav-link"><i class="nav-link-icon fas fa-exclamation-circle"></i> Grievances</a>
+      <a href="feedback.html" class="nav-link"><i class="nav-link-icon fas fa-star"></i> Feedback</a>
+      <a href="inventory.html" class="nav-link"><i class="nav-link-icon fas fa-boxes"></i> Inventory</a>
+      <a href="placement.html" class="nav-link"><i class="nav-link-icon fas fa-briefcase"></i> Placement</a>
+      <a href="alumni.html" class="nav-link"><i class="nav-link-icon fas fa-users"></i> Alumni</a>
+      <a href="visitors.html" class="nav-link"><i class="nav-link-icon fas fa-id-card-visitor"></i> Visitors</a>
+      <div class="nav-section-label">Smart Campus</div>
+      <a href="iot-dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-microchip"></i> IoT Dashboard</a>
+      <a href="sustainability.html" class="nav-link"><i class="nav-link-icon fas fa-leaf"></i> Sustainability</a>
+      <a href="ai-intelligence.html" class="nav-link"><i class="nav-link-icon fas fa-brain"></i> AI Intelligence</a>
+      <div class="nav-section-label">Facilities</div>
+      <a href="logistics.html" class="nav-link"><i class="nav-link-icon fas fa-bus"></i> Logistics & Hostel</a>
+      <a href="library.html" class="nav-link active"><i class="nav-link-icon fas fa-book"></i> Library</a>
+      <div class="nav-section-label">Tools</div>
+      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Hub</a>
+      <a href="../messages.html" class="nav-link"><i class="nav-link-icon fas fa-comments"></i> Messages</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">College Admin / <span>Library</span></div>
+      </div>
+      <div class="topbar-right"><div class="topbar-avatar" id="topbar-avatar">A</div></div>
+    </header>
+
+    <div class="erp-content page-enter">
+
+      <div class="lib-hero">
+        <div style="position:relative;z-index:1;display:flex;align-items:center;gap:14px">
+          <div style="width:46px;height:46px;border-radius:14px;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:20px"><i class="fas fa-book-open"></i></div>
+          <div>
+            <h1 style="font-size:22px;font-weight:900;line-height:1.2">Library Management</h1>
+            <p style="font-size:13px;opacity:0.85;margin-top:2px">Manage books, issue/return, and track inventory</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="stats-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#EDE9FE;color:#7C3AED"><i class="fas fa-book"></i></div>
+          <div><div style="font-size:22px;font-weight:900;color:#0F172A" id="totalBooks">1,248</div><div style="font-size:11px;color:#64748B;font-weight:600">Total Books</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#ECFDF5;color:#059669"><i class="fas fa-check-circle"></i></div>
+          <div><div style="font-size:22px;font-weight:900;color:#0F172A" id="availableBooks">986</div><div style="font-size:11px;color:#64748B;font-weight:600">Available</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#FEF3C7;color:#D97706"><i class="fas fa-hand-holding"></i></div>
+          <div><div style="font-size:22px;font-weight:900;color:#0F172A" id="issuedBooks">212</div><div style="font-size:11px;color:#64748B;font-weight:600">Issued</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#FEF2F2;color:#DC2626"><i class="fas fa-exclamation-triangle"></i></div>
+          <div><div style="font-size:22px;font-weight:900;color:#0F172A" id="overdueBooks">50</div><div style="font-size:11px;color:#64748B;font-weight:600">Overdue</div></div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;align-items:center">
+        <div style="flex:1;min-width:200px;position:relative">
+          <i class="fas fa-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94A3B8;font-size:13px"></i>
+          <input type="text" id="searchInput" placeholder="Search books by title, author, ISBN..." style="width:100%;padding:10px 12px 10px 36px;border:1.5px solid #E2E8F0;border-radius:10px;font-size:13px;font-family:inherit;transition:border-color 0.2s" oninput="filterBooks()">
+        </div>
+        <select id="filterCategory" onchange="filterBooks()" style="padding:10px 12px;border:1.5px solid #E2E8F0;border-radius:10px;font-size:13px;font-family:inherit;color:#475569">
+          <option value="">All Categories</option>
+          <option value="Computer Science">Computer Science</option>
+          <option value="Mathematics">Mathematics</option>
+          <option value="Physics">Physics</option>
+          <option value="Electronics">Electronics</option>
+          <option value="Management">Management</option>
+        </select>
+        <button class="btn btn-primary" onclick="openAddModal()"><i class="fas fa-plus"></i> Add Book</button>
+      </div>
+
+      <div class="table-card">
+        <table>
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>Author</th>
+              <th>ISBN</th>
+              <th>Category</th>
+              <th>Copies</th>
+              <th>Available</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="bookTableBody"></tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ADD BOOK MODAL -->
+<div class="modal-overlay" id="addBookModal">
+  <div class="modal-card">
+    <h3 style="font-size:18px;font-weight:800;color:#0F172A;margin-bottom:16px"><i class="fas fa-book" style="color:#7C3AED;margin-right:8px"></i>Add New Book</h3>
+    <div class="form-group"><label>Title</label><input type="text" id="bookTitle" placeholder="Enter book title"></div>
+    <div class="form-group"><label>Author</label><input type="text" id="bookAuthor" placeholder="Enter author name"></div>
+    <div class="form-group"><label>ISBN</label><input type="text" id="bookISBN" placeholder="Enter ISBN number"></div>
+    <div class="form-group"><label>Category</label>
+      <select id="bookCategory"><option>Computer Science</option><option>Mathematics</option><option>Physics</option><option>Electronics</option><option>Management</option></select>
+    </div>
+    <div class="form-group"><label>Total Copies</label><input type="number" id="bookCopies" min="1" value="1"></div>
+    <div style="display:flex;gap:10px;margin-top:16px">
+      <button class="btn btn-outline" onclick="closeModal('addBookModal')" style="flex:1">Cancel</button>
+      <button class="btn btn-primary" onclick="addBook()" style="flex:1"><i class="fas fa-plus"></i> Add Book</button>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script>
+const SAMPLE_BOOKS = [
+  { title: 'Introduction to Algorithms', author: 'Thomas H. Cormen', isbn: '978-0262033848', category: 'Computer Science', copies: 12, available: 8 },
+  { title: 'Clean Code', author: 'Robert C. Martin', isbn: '978-0132350884', category: 'Computer Science', copies: 8, available: 5 },
+  { title: 'Engineering Mathematics', author: 'Kreyzig', isbn: '978-1118093030', category: 'Mathematics', copies: 15, available: 12 },
+  { title: 'Fundamentals of Physics', author: 'Halliday, Resnick, Walker', isbn: '978-1118230718', category: 'Physics', copies: 10, available: 7 },
+  { title: 'Digital Electronics', author: 'Morris Mano', isbn: '978-0132543460', category: 'Electronics', copies: 9, available: 6 },
+  { title: 'Design Patterns', author: 'Gang of Four', isbn: '978-0201633610', category: 'Computer Science', copies: 6, available: 4 },
+  { title: 'Operating System Concepts', author: 'Silberschatz', isbn: '978-1118063330', category: 'Computer Science', copies: 11, available: 3 },
+  { title: 'Principles of Management', author: 'Koontz & Weihrich', isbn: '978-0071077897', category: 'Management', copies: 7, available: 7 },
+  { title: 'Signals and Systems', author: 'Oppenheim', isbn: '978-0138147570', category: 'Electronics', copies: 8, available: 2 },
+  { title: 'Data Structures Using C', author: 'Reema Thareja', isbn: '978-0198099307', category: 'Computer Science', copies: 14, available: 10 },
+];
+
+let books = [...SAMPLE_BOOKS];
+
+function renderBooks(list) {
+  const tbody = document.getElementById('bookTableBody');
+  if (!list || list.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:#94A3B8"><i class="fas fa-book" style="font-size:24px;display:block;margin-bottom:8px"></i>No books found</td></tr>';
+    return;
+  }
+  tbody.innerHTML = list.map((b, i) => {
+    const status = b.available === 0 ? 'unavailable' : b.available <= 2 ? 'low' : 'available';
+    const statusLabel = status === 'unavailable' ? '<span class="badge badge-red"><i class="fas fa-times-circle"></i> Unavailable</span>'
+      : status === 'low' ? '<span class="badge badge-yellow"><i class="fas fa-exclamation-circle"></i> Low Stock</span>'
+      : '<span class="badge badge-green"><i class="fas fa-check-circle"></i> Available</span>';
+    return '<tr>' +
+      '<td style="font-weight:700">' + b.title + '</td>' +
+      '<td>' + b.author + '</td>' +
+      '<td style="font-family:monospace;font-size:12px;color:#64748B">' + b.isbn + '</td>' +
+      '<td><span class="badge badge-blue">' + b.category + '</span></td>' +
+      '<td style="text-align:center">' + b.copies + '</td>' +
+      '<td style="text-align:center;font-weight:700;color:' + (b.available === 0 ? '#DC2626' : '#059669') + '">' + b.available + '</td>' +
+      '<td>' + statusLabel + '</td>' +
+      '<td><button class="btn btn-outline" style="padding:5px 10px;font-size:11px" onclick="deleteBook(' + i + ')"><i class="fas fa-trash" style="color:#EF4444"></i></button></td>' +
+    '</tr>';
+  }).join('');
+}
+
+function filterBooks() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const cat = document.getElementById('filterCategory').value;
+  let filtered = books;
+  if (q) filtered = filtered.filter(b => b.title.toLowerCase().includes(q) || b.author.toLowerCase().includes(q) || b.isbn.includes(q));
+  if (cat) filtered = filtered.filter(b => b.category === cat);
+  renderBooks(filtered);
+}
+
+function openAddModal() { document.getElementById('addBookModal').classList.add('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+function addBook() {
+  const title = document.getElementById('bookTitle').value.trim();
+  const author = document.getElementById('bookAuthor').value.trim();
+  const isbn = document.getElementById('bookISBN').value.trim();
+  const category = document.getElementById('bookCategory').value;
+  const copies = parseInt(document.getElementById('bookCopies').value) || 1;
+  if (!title || !author) { alert('Title and author are required'); return; }
+  books.unshift({ title, author, isbn, category, copies, available: copies });
+  filterBooks();
+  closeModal('addBookModal');
+  document.getElementById('bookTitle').value = '';
+  document.getElementById('bookAuthor').value = '';
+  document.getElementById('bookISBN').value = '';
+  document.getElementById('bookCopies').value = '1';
+}
+
+function deleteBook(i) {
+  if (!confirm('Delete this book?')) return;
+  books.splice(i, 1);
+  filterBooks();
+}
+
+const user = JSON.parse(localStorage.getItem('erp_user') || localStorage.getItem('user') || '{}');
+if (user.name) {
+  document.getElementById('sidebar-user-name').textContent = user.name;
+  const initial = (user.name || 'A').charAt(0).toUpperCase();
+  document.getElementById('sidebar-avatar').textContent = initial;
+  document.getElementById('topbar-avatar').textContent = initial;
+}
+
+renderBooks(books);
+</script>
+</body>
+</html>

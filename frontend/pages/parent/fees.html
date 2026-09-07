@@ -1,0 +1,183 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Ward Fees | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../css/custom.css">
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-parent" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" id="sidebar-avatar">P</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Parent</div><div class="sidebar-user-role">Ward: Priya Patel</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Ward Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <a href="child-profile.html" class="nav-link"><i class="nav-link-icon fas fa-id-card"></i> Child Profile</a>
+      <div class="nav-section-label">Academics</div>
+      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-user-check"></i> Attendance</a>
+      <a href="results.html" class="nav-link"><i class="nav-link-icon fas fa-poll"></i> Exam Results</a>
+      <div class="nav-section-label">Facilities</div>
+      <a href="fees.html" class="nav-link active"><i class="nav-link-icon fas fa-rupee-sign"></i> Fee Details</a>
+      <div class="nav-section-label">Communication</div>
+      <a href="notifications.html" class="nav-link"><i class="nav-link-icon fas fa-bell"></i> Notifications</a>
+      <a href="../messages.html" class="nav-link"><i class="nav-link-icon fas fa-envelope"></i> Teacher Messages</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">Parent / <span>Ward Fees</span></div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn btn-primary" onclick="openParentFeeModal()"><i class="fas fa-credit-card"></i> Pay Now</button>
+        <div class="topbar-avatar" id="topbar-avatar">P</div>
+      </div>
+    </header>
+
+    <div class="erp-content">
+      <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:16px">
+        <div>
+          <h1 class="page-title">💳 Fee Information</h1>
+          <p class="page-subtitle">Manage tuition, hostel, and miscellaneous fee payments.</p>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn btn-sm btn-primary" id="parentViewOverview" onclick="switchParentFeeView('overview')" style="background:linear-gradient(135deg,#10B981,#059669);border:none">Overview</button>
+          <button class="btn btn-sm btn-secondary" id="parentViewInstallments" onclick="switchParentFeeView('installments')"><i class="fas fa-list-ol"></i> Installments</button>
+          <button class="btn btn-primary" onclick="openParentFeeModal()"><i class="fas fa-credit-card"></i> Pay Outstanding Fees</button>
+        </div>
+      </div>
+
+      <!-- Outstanding Alert -->
+      <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:12px;padding:20px;display:flex;align-items:center;gap:20px;margin-bottom:24px">
+        <div style="width:48px;height:48px;background:#FEE2E2;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#EF4444;font-size:20px;flex-shrink:0"><i class="fas fa-exclamation-triangle"></i></div>
+        <div style="flex:1">
+          <div style="font-weight:800;font-size:18px;color:#991B1B">Outstanding Balance: ₹55,000</div>
+          <div style="font-size:13px;color:#B91C1C;margin-top:4px">Your ward's Semester 4 Tuition Fee is pending. Please pay before <strong>April 15, 2026</strong> to avoid late fines.</div>
+        </div>
+      </div>
+
+      <!-- Fee Breakdown & History -->
+      <div class="grid col-2">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Fee Breakdown (Current Semester)</div></div>
+          <div class="card-body" style="padding:0">
+             <table class="erp-table">
+               <tbody>
+               </tbody>
+             </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">Payment History</div></div>
+          <div class="card-body" style="padding:0">
+            <table class="erp-table">
+              <thead><tr><th>Date</th><th>Description</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead>
+              <tbody>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Installments Card (hidden by default) -->
+      <div class="card" id="parentInstCard" style="display:none">
+        <div class="card-header"><div class="card-title"><i class="fas fa-list-ol" style="color:#8B5CF6;margin-right:8px"></i>Installment Tracker</div></div>
+        <div class="table-wrap">
+          <table class="erp-table">
+            <thead><tr><th>#</th><th>Fee Type</th><th>Installment</th><th>Amount</th><th>Due Date</th><th>Late Fee</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="parentInstBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Payment Modal -->
+<div class="modal-backdrop" id="payModal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <div class="modal-title"><i class="fas fa-shield-halved" style="color:#10B981;margin-right:8px"></i>Secure Ward Fee Payment</div>
+      <button class="modal-close" onclick="closeModal('payModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body" style="padding:20px 24px">
+      <!-- Step Indicator -->
+      <div id="parentPaymentSteps"></div>
+
+      <!-- Fee Summary -->
+      <div style="background:linear-gradient(135deg,#EFF6FF,#DBEAFE);border-radius:14px;padding:20px;margin-bottom:16px;border:1px solid #BFDBFE">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <div style="width:36px;height:36px;background:#3B82F6;border-radius:8px;display:flex;align-items:center;justify-content:center"><i class="fas fa-user-graduate" style="color:white;font-size:14px"></i></div>
+          <div><div style="font-size:11px;font-weight:700;color:#1E40AF;text-transform:uppercase;letter-spacing:0.5px">Payment For</div><div style="font-size:13px;font-weight:600;color:#1E293B">Ward: Priya Patel</div></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:flex-end">
+          <div><div style="font-size:11px;font-weight:700;color:#1E40AF;text-transform:uppercase;letter-spacing:0.5px">Amount Due</div><div id="parentFeePaymentAmount" style="font-size:28px;font-weight:900;color:#1E40AF">₹55,000</div></div>
+          <div style="text-align:right"><div style="font-size:11px;color:#64748B">Fee Type</div><div id="parentFeePaymentMeta" style="font-size:12px;font-weight:600;color:#334155">Tuition Fee • Sem 4</div></div>
+        </div>
+      </div>
+
+      <!-- Amount Input -->
+      <div class="form-group">
+        <label class="form-label" style="font-weight:700;color:#1E293B">Amount to Pay</label>
+        <div style="position:relative">
+          <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:16px;font-weight:700;color:#64748B">₹</span>
+          <input class="form-control" type="number" id="parentPayAmount" style="padding-left:30px;font-size:18px;font-weight:700;border:2px solid #E2E8F0;border-radius:10px;height:48px">
+        </div>
+        <div style="font-size:11px;color:#64748B;margin-top:4px" id="parentPayAmountHint">Enter amount (full or partial payment)</div>
+      </div>
+
+      <!-- Payment Methods -->
+      <div class="form-group">
+        <label class="form-label" style="font-weight:700;color:#1E293B">Payment Method</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <label style="display:flex;align-items:center;gap:8px;padding:12px;border:2px solid #10B981;border-radius:10px;background:#ECFDF5;cursor:pointer;transition:all 0.15s"><input type="radio" name="payMode" value="UPI" checked style="accent-color:#10B981"> <span style="font-size:13px;font-weight:600;color:#1E293B">UPI</span></label>
+          <label style="display:flex;align-items:center;gap:8px;padding:12px;border:2px solid #E2E8F0;border-radius:10px;background:white;cursor:pointer;transition:all 0.15s" onmouseover="this.style.borderColor='#6EE7B7'" onmouseout="this.style.borderColor='#E2E8F0'"><input type="radio" name="payMode" value="Cards" style="accent-color:#10B981"> <span style="font-size:13px;font-weight:600;color:#1E293B">Cards</span></label>
+          <label style="display:flex;align-items:center;gap:8px;padding:12px;border:2px solid #E2E8F0;border-radius:10px;background:white;cursor:pointer;transition:all 0.15s" onmouseover="this.style.borderColor='#6EE7B7'" onmouseout="this.style.borderColor='#E2E8F0'"><input type="radio" name="payMode" value="Net Banking" style="accent-color:#10B981"> <span style="font-size:13px;font-weight:600;color:#1E293B">Net Banking</span></label>
+          <label style="display:flex;align-items:center;gap:8px;padding:12px;border:2px solid #E2E8F0;border-radius:10px;background:white;cursor:pointer;transition:all 0.15s" onmouseover="this.style.borderColor='#6EE7B7'" onmouseout="this.style.borderColor='#E2E8F0'"><input type="radio" name="payMode" value="Wallets" style="accent-color:#10B981"> <span style="font-size:13px;font-weight:600;color:#1E293B">Wallets</span></label>
+        </div>
+      </div>
+
+      <!-- Security -->
+      <div style="padding:12px 14px;border-radius:10px;background:#F8FAFC;border:1px solid #E2E8F0;color:#475569;margin-bottom:12px">
+        <div style="display:flex;align-items:center;gap:8px"><i class="fas fa-shield-halved" style="color:#10B981;font-size:14px"></i><span style="font-size:12px;font-weight:600;color:#0F172A">256-bit SSL encrypted • PCI DSS compliant</span></div>
+        <div style="font-size:11px;color:#94A3B8;margin-top:4px;padding-left:22px">Your payment syncs back to ward ledger after verification</div>
+      </div>
+
+      <!-- Payment Status -->
+      <div id="parentPaymentStatus" style="display:none;padding:12px 16px;border-radius:10px;margin-bottom:12px"></div>
+
+      <!-- Retry Button -->
+      <div id="parentRetrySection" style="display:none;text-align:center;margin-bottom:12px">
+        <button class="btn btn-primary" style="background:#EF4444;border-color:#EF4444" onclick="retryParentPayment()"><i class="fas fa-redo"></i> Retry Payment</button>
+      </div>
+    </div>
+    <div class="modal-footer" style="padding:16px 24px;border-top:1px solid #F1F5F9">
+      <button class="btn btn-secondary" onclick="closeModal('payModal')" style="flex:1">Cancel</button>
+      <button class="btn btn-primary" id="parentFeePayButton" onclick="processPayment()" style="flex:2;background:linear-gradient(135deg,#10B981,#059669);border:none;padding:12px 24px;font-weight:700">
+        <i class="fas fa-lock"></i> Proceed to Pay
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- RECEIPT MODAL -->
+<div class="modal-backdrop" id="receiptModal">
+  <div class="modal" style="max-width:440px">
+    <div class="modal-header"><div class="modal-title"><i class="fas fa-file-invoice" style="color:#10B981;margin-right:8px"></i>Payment Receipt</div><button class="modal-close" onclick="closeModal('receiptModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body" style="padding:24px"></div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script src="../../live/payment-gateway.js"></script>
+<script src="../../live/live-pages.js"></script>
+</body>
+</html>

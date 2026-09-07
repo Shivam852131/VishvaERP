@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Vishva ERP maskable icon">
+  <rect width="512" height="512" fill="#4F46E5"/>
+  <circle cx="430" cy="82" r="180" fill="#0EA5E9" opacity="0.45"/>
+  <circle cx="82" cy="430" r="170" fill="#10B981" opacity="0.48"/>
+  <rect x="84" y="84" width="344" height="344" rx="88" fill="#0F172A" opacity="0.92"/>
+  <path d="M136 145h72l49 153 49-153h70L290 369h-67L136 145Z" fill="#fff"/>
+  <path d="M328 279h58v90h-58v-90Z" fill="#fff" opacity="0.92"/>
+  <circle cx="357" cy="218" r="31" fill="#fff" opacity="0.92"/>
+</svg>

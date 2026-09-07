@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Grievances | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="../../css/custom.css">
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-college" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" id="sidebar-avatar">A</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Admin</div><div class="sidebar-user-role">College Administrator</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <div class="nav-section-label">Academics</div>
+      <a href="students.html" class="nav-link"><i class="nav-link-icon fas fa-user-graduate"></i> Students</a>
+      <a href="faculty.html" class="nav-link"><i class="nav-link-icon fas fa-chalkboard-teacher"></i> Faculty</a>
+      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-open"></i> Courses & Exams</a>
+      <a href="notices.html" class="nav-link"><i class="nav-link-icon fas fa-bullhorn"></i> Notice Board</a>
+      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-check"></i> Attendance</a>
+      <div class="nav-section-label">Finance & HR</div>
+      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-file-invoice-dollar"></i> Fee Management</a>
+      <a href="hr.html" class="nav-link"><i class="nav-link-icon fas fa-user-md"></i> HR & Leave</a>
+      <div class="nav-section-label">Campus Life</div>
+      <a href="events.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Events</a>
+      <a href="grievances.html" class="nav-link active"><i class="nav-link-icon fas fa-exclamation-circle"></i> Grievances</a>
+      <a href="feedback.html" class="nav-link"><i class="nav-link-icon fas fa-star"></i> Feedback</a>
+      <a href="inventory.html" class="nav-link"><i class="nav-link-icon fas fa-boxes"></i> Inventory</a>
+      <a href="placement.html" class="nav-link"><i class="nav-link-icon fas fa-briefcase"></i> Placement</a>
+      <a href="alumni.html" class="nav-link"><i class="nav-link-icon fas fa-users"></i> Alumni</a>
+      <a href="visitors.html" class="nav-link"><i class="nav-link-icon fas fa-id-card-visitor"></i> Visitors</a>
+      <div class="nav-section-label">Smart Campus</div>
+      <a href="iot-dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-microchip"></i> IoT Dashboard</a>
+      <a href="sustainability.html" class="nav-link"><i class="nav-link-icon fas fa-leaf"></i> Sustainability</a>
+      <a href="ai-intelligence.html" class="nav-link"><i class="nav-link-icon fas fa-brain"></i> AI Intelligence</a>
+      <div class="nav-section-label">Facilities</div>
+      <a href="logistics.html" class="nav-link"><i class="nav-link-icon fas fa-bus"></i> Logistics</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <div class="erp-main">
+    <header class="erp-topbar"><div class="topbar-left"><button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button><div class="topbar-breadcrumb">College Admin / <span>Grievances</span></div></div><div class="topbar-right"><div class="topbar-avatar" id="topbar-avatar">A</div></div></header>
+    <div class="erp-content page-enter">
+      <div class="page-header"><h1 class="page-title"><i class="fas fa-exclamation-circle"></i> Grievance Management</h1><p class="page-subtitle">Track and resolve student/faculty grievances</p></div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px" id="statsRow"></div>
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px">
+        <div class="card" style="padding:20px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+            <div style="display:flex;gap:8px">
+              <select class="form-control" id="filterStatus" style="width:auto" onchange="loadGrievances()"><option value="">All Status</option><option value="open">Open</option><option value="in-progress">In Progress</option><option value="resolved">Resolved</option><option value="closed">Closed</option></select>
+              <select class="form-control" id="filterCategory" style="width:auto" onchange="loadGrievances()"><option value="">All Categories</option><option value="academic">Academic</option><option value="infrastructure">Infrastructure</option><option value="harassment">Harassment</option><option value="fee">Fee</option><option value="exam">Exam</option><option value="hostel">Hostel</option><option value="other">Other</option></select>
+            </div>
+          </div>
+          <div id="grievanceList"></div>
+        </div>
+        <div>
+          <div class="card" style="padding:16px;margin-bottom:16px"><h3 style="font-weight:700;font-size:14px;margin-bottom:12px">By Category</h3><canvas id="catChart" height="200"></canvas></div>
+          <div class="card" style="padding:16px"><h3 style="font-weight:700;font-size:14px;margin-bottom:12px">By Priority</h3><canvas id="prioChart" height="200"></canvas></div>
+        </div>
+      </div>
+</div>
+</div>
+</div>
+
+<div id="grievanceModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:1000;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:12px;width:90%;max-width:680px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3)">
+    <div style="padding:20px 24px;border-bottom:1px solid #E2E8F0;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;border-radius:12px 12px 0 0;z-index:1">
+      <h2 style="font-size:18px;font-weight:700;margin:0" id="modalTitle">Grievance Details</h2>
+      <button onclick="closeGrievanceModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#64748B;padding:4px 8px"><i class="fas fa-times"></i></button>
+    </div>
+    <div style="padding:24px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+        <div><span style="font-size:11px;text-transform:uppercase;color:#94A3B8;font-weight:600">Tracking ID</span><div id="modalTrackingId" style="font-size:14px;font-weight:600;color:#1E293B;margin-top:2px"></div></div>
+        <div><span style="font-size:11px;text-transform:uppercase;color:#94A3B8;font-weight:600">Status</span><div id="modalStatus" style="margin-top:2px"></div></div>
+        <div><span style="font-size:11px;text-transform:uppercase;color:#94A3B8;font-weight:600">Category</span><div id="modalCategory" style="font-size:14px;color:#1E293B;margin-top:2px;text-transform:capitalize"></div></div>
+        <div><span style="font-size:11px;text-transform:uppercase;color:#94A3B8;font-weight:600">Priority</span><div id="modalPriority" style="margin-top:2px"></div></div>
+        <div><span style="font-size:11px;text-transform:uppercase;color:#94A3B8;font-weight:600">Raised By</span><div id="modalRaisedBy" style="font-size:14px;color:#1E293B;margin-top:2px"></div></div>
+        <div><span style="font-size:11px;text-transform:uppercase;color:#94A3B8;font-weight:600">Date</span><div id="modalDate" style="font-size:14px;color:#1E293B;margin-top:2px"></div></div>
+      </div>
+      <div style="margin-bottom:20px"><span style="font-size:11px;text-transform:uppercase;color:#94A3B8;font-weight:600">Subject</span><div id="modalSubject" style="font-size:16px;font-weight:600;color:#1E293B;margin-top:4px"></div></div>
+      <div style="margin-bottom:20px"><span style="font-size:11px;text-transform:uppercase;color:#94A3B8;font-weight:600">Description</span><div id="modalDescription" style="font-size:14px;color:#475569;margin-top:4px;line-height:1.6;white-space:pre-wrap"></div></div>
+      <div style="margin-bottom:20px">
+        <span style="font-size:11px;text-transform:uppercase;color:#94A3B8;font-weight:600">Responses</span>
+        <div id="modalResponses" style="margin-top:8px"></div>
+      </div>
+      <div style="border-top:1px solid #E2E8F0;padding-top:16px">
+        <label style="font-size:11px;text-transform:uppercase;color:#94A3B8;font-weight:600;display:block;margin-bottom:6px">Add Response</label>
+        <textarea id="responseText" class="form-control" rows="3" placeholder="Type your response..." style="width:100%;resize:vertical"></textarea>
+        <div style="margin-top:8px;display:flex;justify-content:flex-end;gap:8px">
+          <button class="btn btn-secondary" onclick="closeGrievanceModal()">Close</button>
+          <button class="btn btn-primary" onclick="submitResponse()"><i class="fas fa-paper-plane"></i> Send Response</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script>
+let catChartInst=null,prioChartInst=null;
+async function loadGrievances(){
+  const status=document.getElementById('filterStatus').value;
+  const category=document.getElementById('filterCategory').value;
+  let url='/grievances?limit=50';if(status)url+=`&status=${status}`;if(category)url+=`&category=${category}`;
+  const res=await window.api.request(url);
+  const grievances=res.grievances||[];
+  document.getElementById('grievanceList').innerHTML=grievances.map(g=>`<div style="padding:14px;border:1px solid #E2E8F0;border-radius:10px;margin-bottom:10px;border-left:4px solid ${g.priority==='urgent'?'#EF4444':g.priority==='high'?'#F59E0B':g.priority==='medium'?'#4F46E5':'#10B981'}">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+      <div><div style="font-weight:700;font-size:14px">${g.subject}</div><div style="font-size:11px;color:#64748B">${g.trackingId} • ${g.category} • by ${g.raisedBy?.name||'Anonymous'}</div></div>
+      <span class="badge" style="background:${g.status==='open'?'#FEE2E2':g.status==='in-progress'?'#FEF3C7':g.status==='resolved'?'#D1FAE5':'#F1F5F9'};color:${g.status==='open'?'#991B1B':g.status==='in-progress'?'#92400E':g.status==='resolved'?'#065F46':'#64748B'};font-size:11px">${g.status}</span>
+    </div>
+    <p style="font-size:13px;color:#475569;margin-bottom:8px">${g.description?.slice(0,120)||''}${g.description?.length>120?'...':''}</p>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-xs btn-secondary" onclick="viewGrievance('${g._id}')"><i class="fas fa-eye"></i> View</button>
+      ${g.status!=='resolved'&&g.status!=='closed'?`<button class="btn btn-xs btn-success" onclick="resolveGrievance('${g._id}')"><i class="fas fa-check"></i> Resolve</button>`:''}
+    </div>
+  </div>`).join('')||'<div class="empty-state"><div class="empty-state-title">No grievances found</div></div>';
+  loadStats();
+}
+async function loadStats(){
+  const res=await window.api.request('/grievances/stats');
+  document.getElementById('statsRow').innerHTML=[
+    {icon:'fas fa-exclamation-circle',bg:'#FEE2E2',color:'#EF4444',num:res.total||0,label:'Total'},
+    {icon:'fas fa-folder-open',bg:'#FEF3C7',color:'#D97706',num:res.byStatus?.open||0,label:'Open'},
+    {icon:'fas fa-spinner',bg:'#DBEAFE',color:'#2563EB',num:res.byStatus?.['in-progress']||0,label:'In Progress'},
+    {icon:'fas fa-check-circle',bg:'#D1FAE5',color:'#10B981',num:res.byStatus?.resolved||0,label:'Resolved'},
+  ].map(s=>`<div class="card stat-card"><div class="stat-icon" style="background:${s.bg};color:${s.color}"><i class="${s.icon}"></i></div><div class="stat-info"><div class="stat-number">${s.num}</div><div class="stat-label">${s.label}</div></div></div>`).join('');
+  const catLabels=Object.keys(res.byCategory||{});const catData=Object.values(res.byCategory||{});
+  if(catChartInst)catChartInst.destroy();
+  catChartInst=new Chart(document.getElementById('catChart'),{type:'bar',data:{labels:catLabels,datasets:[{data:catData,backgroundColor:['#4F46E5','#EC4899','#10B981','#F59E0B','#EF4444','#8B5CF6','#64748B'],borderRadius:4}]},options:{responsive:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}});
+  const prioLabels=Object.keys(res.byPriority||{});const prioData=Object.values(res.byPriority||{});
+  if(prioChartInst)prioChartInst.destroy();
+  prioChartInst=new Chart(document.getElementById('prioChart'),{type:'doughnut',data:{labels:prioLabels,datasets:[{data:prioData,backgroundColor:['#10B981','#4F46E5','#F59E0B','#EF4444'],borderWidth:0}]},options:{responsive:false,plugins:{legend:{position:'bottom',labels:{font:{size:10}}}}}});
+}
+async function resolveGrievance(id){
+  if(!confirm('Mark this grievance as resolved?'))return;
+  await window.api.request(`/grievances/${id}`,{method:'PUT',body:JSON.stringify({status:'resolved'})});
+  window.showToast('Grievance resolved','success');loadGrievances();
+}
+let currentGrievanceId=null;
+function viewGrievance(id){
+  currentGrievanceId=id;
+  document.getElementById('grievanceModal').style.display='flex';
+  document.getElementById('responseText').value='';
+  document.getElementById('modalResponses').innerHTML='<div style="text-align:center;padding:16px;color:#94A3B8"><i class="fas fa-spinner fa-spin"></i> Loading...</div>';
+  loadGrievanceDetail(id);
+}
+async function loadGrievanceDetail(id){
+  const g=await window.api.request(`/grievances/${id}`);
+  document.getElementById('modalTitle').textContent=g.subject||'Grievance Details';
+  document.getElementById('modalTrackingId').textContent=g.trackingId||'';
+  document.getElementById('modalSubject').textContent=g.subject||'';
+  document.getElementById('modalDescription').textContent=g.description||'';
+  document.getElementById('modalCategory').textContent=g.category||'';
+  document.getElementById('modalRaisedBy').textContent=g.raisedBy?.name||'Anonymous';
+  document.getElementById('modalDate').textContent=g.createdAt?new Date(g.createdAt).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric',hour:'2-digit',minute:'2-digit'}):'';
+  const prioColors={urgent:'#EF4444',high:'#F59E0B',medium:'#4F46E5',low:'#10B981'};
+  document.getElementById('modalPriority').innerHTML=`<span class="badge" style="background:${prioColors[g.priority]||'#64748B'}22;color:${prioColors[g.priority]||'#64748B'};font-size:12px;padding:3px 10px;border-radius:20px;text-transform:capitalize">${g.priority||'N/A'}</span>`;
+  const statusColors={open:'#EF4444',resolved:'#10B981','in-progress':'#F59E0B',closed:'#64748B'};
+  document.getElementById('modalStatus').innerHTML=`<span class="badge" style="background:${statusColors[g.status]||'#64748B'}22;color:${statusColors[g.status]||'#64748B'};font-size:12px;padding:3px 10px;border-radius:20px;text-transform:capitalize">${g.status||'N/A'}</span>`;
+  const responses=g.responses||[];
+  document.getElementById('modalResponses').innerHTML=responses.length?responses.map(r=>`<div style="padding:12px;background:#F8FAFC;border-radius:8px;margin-bottom:8px;border-left:3px solid ${r.isAdmin?'#4F46E5':'#10B981'}">
+    <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-weight:600;font-size:13px;color:#1E293B">${r.author||'Admin'}</span><span style="font-size:11px;color:#94A3B8">${r.createdAt?new Date(r.createdAt).toLocaleString():''}</span></div>
+    <div style="font-size:13px;color:#475569;line-height:1.5">${r.text||''}</div>
+  </div>`).join(''):'<div style="text-align:center;padding:12px;color:#94A3B8;font-size:13px">No responses yet</div>';
+}
+function closeGrievanceModal(){
+  document.getElementById('grievanceModal').style.display='none';
+  currentGrievanceId=null;
+}
+async function submitResponse(){
+  const text=document.getElementById('responseText').value.trim();
+  if(!text){window.showToast('Please enter a response','error');return;}
+  if(!currentGrievanceId)return;
+  await window.api.request(`/grievances/${currentGrievanceId}/respond`,{method:'POST',body:JSON.stringify({text})});
+  document.getElementById('responseText').value='';
+  window.showToast('Response sent','success');
+  loadGrievanceDetail(currentGrievanceId);
+  loadGrievances();
+}
+loadGrievances();
+</script>
+</body>
+</html>

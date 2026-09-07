@@ -1,0 +1,16 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://vishvaerp.onrender.com/api/:path*"
+    },
+    {
+      "source": "/uploads/:path*",
+      "destination": "https://vishvaerp.onrender.com/uploads/:path*"
+    },
+    {
+      "source": "/socket.io/:path*",
+      "destination": "https://vishvaerp.onrender.com/socket.io/:path*"
+    }
+  ]
+}
