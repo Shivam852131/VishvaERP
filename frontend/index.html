@@ -163,34 +163,473 @@
         </div>
       </div>
 
-      <!-- Live Console Preview -->
-      <div class="lp-console" data-reveal>
-        <div class="lp-console-header">
-          <div class="lp-console-dots"><span></span><span></span><span></span></div>
-          <span>Campus Command Center</span>
-          <em class="lp-console-live"><span class="lp-live-dot-sm"></span> Online</em>
-        </div>
-        <div class="lp-console-alert">
-          <i class="fas fa-satellite-dish"></i>
-          <div><strong><span data-count="37">0</span> live sessions active</strong><span>Attendance tracking and faculty monitoring are syncing.</span></div>
-        </div>
-        <div class="lp-console-kpis">
-          <div><span>Attendance Alerts</span><strong><span data-count="42">0</span></strong><em>students flagged</em></div>
-          <div><span>Fee Collection</span><strong><span data-count="91">0</span>%</strong><em>current cycle</em></div>
-          <div><span>Schedule Health</span><strong><span data-count="96">0</span>%</strong><em>conflict-free</em></div>
-          <div><span>AI Queries</span><strong><span data-count="1800">0</span></strong><em>resolved</em></div>
-        </div>
-        <div class="lp-console-bottom">
-          <div class="lp-console-queue">
-            <span>Action Queue</span>
-            <div><i class="fas fa-triangle-exclamation"></i> Attendance shortage notifications</div>
-            <div><i class="fas fa-calendar-week"></i> Room scheduling review</div>
-            <div><i class="fas fa-money-check-dollar"></i> Fee reminder batch</div>
+      <!-- ═══════════════ REAL ERP DASHBOARD PREVIEW ═══════════════ -->
+      <div class="lp-dashboard-showcase lp-console" data-reveal>
+        <!-- Window Chrome / Title Bar -->
+        <div class="lp-dash-window-bar">
+          <div class="lp-dash-window-controls">
+            <span class="lp-dot-close" title="Close"></span>
+            <span class="lp-dot-min" title="Minimize"></span>
+            <span class="lp-dot-max" title="Expand"></span>
           </div>
-          <div class="lp-console-health">
-            <span>Academic Health</span>
-            <strong><span data-count="88">0</span>%</strong>
-            <div class="lp-health-ring"><div></div></div>
+          <div class="lp-dash-window-title">
+            <i class="fas fa-shield-halved"></i>
+            <span>Vishva ERP Cloud &bull; Indian Institute of Technology &amp; Management &bull; AY 2026-27</span>
+          </div>
+          <div class="lp-dash-window-status">
+            <span class="lp-live-pulse-dot"></span>
+            <span>4,820 Active Sessions &bull; Real-time Sync</span>
+          </div>
+          <div class="lp-dash-window-user">
+            <span class="lp-dash-user-avatar">AS</span>
+            <span class="lp-dash-user-name">Dr. Arvind Sharma <small>(Dean of Academics)</small></span>
+          </div>
+        </div>
+
+        <!-- Dashboard Navigation & Perspective Tabs -->
+        <div class="lp-dash-subnav">
+          <div class="lp-dash-tabs" role="tablist">
+            <button class="lp-dash-tab active" id="tabBtn-overview" onclick="switchHeroDashboardTab('overview')" type="button">
+              <i class="fas fa-chart-pie"></i> Campus Overview
+            </button>
+            <button class="lp-dash-tab" id="tabBtn-attendance" onclick="switchHeroDashboardTab('attendance')" type="button">
+              <i class="fas fa-camera"></i> Smart Attendance &amp; FaceID
+            </button>
+            <button class="lp-dash-tab" id="tabBtn-finance" onclick="switchHeroDashboardTab('finance')" type="button">
+              <i class="fas fa-coins"></i> Fees &amp; Finance Engine
+            </button>
+            <button class="lp-dash-tab" id="tabBtn-ai" onclick="switchHeroDashboardTab('ai')" type="button">
+              <i class="fas fa-brain"></i> AI Risk Radar
+            </button>
+          </div>
+          <div class="lp-dash-quick-search">
+            <i class="fas fa-magnifying-glass"></i>
+            <span>Search student PRN, faculty ID, courses...</span>
+            <kbd>&ShortHtmlMeta;K</kbd>
+          </div>
+        </div>
+
+        <!-- Top Metric KPI Bar -->
+        <div class="lp-dash-kpis">
+          <div class="lp-dash-kpi-card">
+            <div class="lp-kpi-top">
+              <span class="lp-kpi-label">Active Learners</span>
+              <span class="lp-kpi-badge up"><i class="fas fa-arrow-trend-up"></i> +8.4%</span>
+            </div>
+            <div class="lp-kpi-val"><span data-count="18420">18,420</span></div>
+            <div class="lp-kpi-meta">
+              <span>Across 12 engineering &amp; management depts</span>
+              <div class="lp-kpi-sparkline"><span style="height:35%"></span><span style="height:55%"></span><span style="height:45%"></span><span style="height:70%"></span><span style="height:60%"></span><span style="height:85%"></span><span style="height:100%"></span></div>
+            </div>
+          </div>
+
+          <div class="lp-dash-kpi-card">
+            <div class="lp-kpi-top">
+              <span class="lp-kpi-label">Live Attendance</span>
+              <span class="lp-kpi-badge live"><span class="lp-pulse-sm"></span> Biometric Synced</span>
+            </div>
+            <div class="lp-kpi-val"><span data-count="94" data-suffix=".8%">94.8%</span></div>
+            <div class="lp-kpi-meta">
+              <span>17,462 students &bull; 486 faculty checked in</span>
+              <div class="lp-kpi-bar-track"><div class="lp-kpi-bar-fill" style="width:94.8%"></div></div>
+            </div>
+          </div>
+
+          <div class="lp-dash-kpi-card">
+            <div class="lp-kpi-top">
+              <span class="lp-kpi-label">Fee Collection Velocity</span>
+              <span class="lp-kpi-badge verified"><i class="fas fa-check-double"></i> 92.4% Clear</span>
+            </div>
+            <div class="lp-kpi-val">&#8377;<span data-count="4" data-suffix=".28 Cr">4.28 Cr</span></div>
+            <div class="lp-kpi-meta">
+              <span>Target: &#8377;4.63 Cr &bull; &#8377;35L overdue flagged</span>
+              <div class="lp-kpi-bar-track warning"><div class="lp-kpi-bar-fill" style="width:92.4%"></div></div>
+            </div>
+          </div>
+
+          <div class="lp-dash-kpi-card">
+            <div class="lp-kpi-top">
+              <span class="lp-kpi-label">Classroom &amp; Faculty Load</span>
+              <span class="lp-kpi-badge up"><i class="fas fa-chalkboard-user"></i> Active</span>
+            </div>
+            <div class="lp-kpi-val"><span data-count="96" data-suffix="%">96%</span></div>
+            <div class="lp-kpi-meta">
+              <span>64 Smart Labs in session &bull; 0 conflicts</span>
+              <div class="lp-kpi-sparkline purple"><span style="height:60%"></span><span style="height:75%"></span><span style="height:65%"></span><span style="height:80%"></span><span style="height:90%"></span><span style="height:85%"></span><span style="height:96%"></span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab Panels Container -->
+        <div class="lp-dash-panels">
+          <!-- PANEL 1: CAMPUS OVERVIEW -->
+          <div class="lp-dash-panel active" id="heroPanel-overview">
+            <div class="lp-dash-grid">
+              <!-- Left Column: Live Biometric Attendance Stream -->
+              <div class="lp-dash-stream-box">
+                <div class="lp-box-header">
+                  <div>
+                    <span class="lp-box-title"><i class="fas fa-fingerprint text-cyan"></i> Real-time Biometric &amp; Campus Stream</span>
+                    <span class="lp-box-subtitle">Live hardware telemetry from Gate FaceID terminals, turnstiles &amp; lecture halls</span>
+                  </div>
+                  <span class="lp-status-pill green"><span class="lp-pulse-sm"></span> Gates Live</span>
+                </div>
+                <div class="lp-dash-table-wrap">
+                  <table class="lp-dash-table">
+                    <thead>
+                      <tr>
+                        <th>Student / Faculty</th>
+                        <th>Department &amp; PRN</th>
+                        <th>Terminal Mode</th>
+                        <th>Room / Location</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>
+                          <div class="lp-user-cell">
+                            <span class="lp-avatar blue">AM</span>
+                            <div>
+                              <strong>Aarav Mehta</strong>
+                              <small>B.Tech CSE &bull; Year 2</small>
+                            </div>
+                          </div>
+                        </td>
+                        <td><span class="lp-tag">2024-CSE-108</span></td>
+                        <td><span class="lp-mode-badge"><i class="fas fa-camera"></i> FaceID Gate 2</span></td>
+                        <td><span class="lp-loc-cell"><i class="fas fa-location-dot"></i> Lab 401 (AI Lab) &bull; 09:14 AM</span></td>
+                        <td><span class="lp-badge-success"><i class="fas fa-check"></i> Present</span></td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <div class="lp-user-cell">
+                            <span class="lp-avatar purple">PS</span>
+                            <div>
+                              <strong>Priya Sharma</strong>
+                              <small>B.Tech ECE &bull; Year 2</small>
+                            </div>
+                          </div>
+                        </td>
+                        <td><span class="lp-tag">2024-ECE-045</span></td>
+                        <td><span class="lp-mode-badge"><i class="fas fa-id-card"></i> Smart RFID Swipe</span></td>
+                        <td><span class="lp-loc-cell"><i class="fas fa-location-dot"></i> Embedded Lab 102 &bull; 09:12 AM</span></td>
+                        <td><span class="lp-badge-success"><i class="fas fa-check"></i> Present</span></td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <div class="lp-user-cell">
+                            <span class="lp-avatar amber">RV</span>
+                            <div>
+                              <strong>Rohan Verma</strong>
+                              <small>B.Tech Mech &bull; Year 3</small>
+                            </div>
+                          </div>
+                        </td>
+                        <td><span class="lp-tag">2023-ME-019</span></td>
+                        <td><span class="lp-mode-badge"><i class="fas fa-qrcode"></i> Geofence QR</span></td>
+                        <td><span class="lp-loc-cell"><i class="fas fa-location-dot"></i> Robotics Center &bull; 09:08 AM</span></td>
+                        <td><span class="lp-badge-success"><i class="fas fa-check"></i> Present</span></td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <div class="lp-user-cell">
+                            <span class="lp-avatar teal">AI</span>
+                            <div>
+                              <strong>Ananya Iyer</strong>
+                              <small>B.Tech AI &amp; DS &bull; Year 1</small>
+                            </div>
+                          </div>
+                        </td>
+                        <td><span class="lp-tag">2025-AI-032</span></td>
+                        <td><span class="lp-mode-badge"><i class="fas fa-camera"></i> FaceID Gate 1</span></td>
+                        <td><span class="lp-loc-cell"><i class="fas fa-location-dot"></i> HPC Supercomputing &bull; 09:05 AM</span></td>
+                        <td><span class="lp-badge-success"><i class="fas fa-check"></i> Present</span></td>
+                      </tr>
+                      <tr>
+                        <td>
+                          <div class="lp-user-cell">
+                            <span class="lp-avatar indigo">KS</span>
+                            <div>
+                              <strong>Prof. K. Subramanian</strong>
+                              <small>Dean &bull; Computer Science</small>
+                            </div>
+                          </div>
+                        </td>
+                        <td><span class="lp-tag fac">FAC-CSE-01</span></td>
+                        <td><span class="lp-mode-badge"><i class="fas fa-shield-check"></i> Biometric Scan</span></td>
+                        <td><span class="lp-loc-cell"><i class="fas fa-location-dot"></i> Auditorium B &bull; 08:58 AM</span></td>
+                        <td><span class="lp-badge-info"><i class="fas fa-chalkboard-user"></i> Lecturing</span></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Right Column: AI Insights & Quick Action Stack -->
+              <div class="lp-dash-side-box">
+                <!-- AI Copilot Card -->
+                <div class="lp-ai-card">
+                  <div class="lp-ai-head">
+                    <div class="lp-ai-title">
+                      <span class="lp-ai-spark"><i class="fas fa-wand-magic-sparkles"></i></span>
+                      <strong>AI Campus Copilot</strong>
+                    </div>
+                    <span class="lp-ai-tag">Real-time Radar</span>
+                  </div>
+                  <div class="lp-ai-items">
+                    <div class="lp-ai-item danger">
+                      <i class="fas fa-triangle-exclamation"></i>
+                      <div>
+                        <strong>Low Attendance Threshold Alert</strong>
+                        <span>14 students approaching &lt;75% mandatory criteria in Applied Mathematics III. Advisory WhatsApp notices queued.</span>
+                      </div>
+                    </div>
+                    <div class="lp-ai-item warning">
+                      <i class="fas fa-calendar-check"></i>
+                      <div>
+                        <strong>Room Clash Auto-Resolved</strong>
+                        <span>Room 304 conflict automatically shifted to Seminar Hall A. Timetables updated for 120 students.</span>
+                      </div>
+                    </div>
+                    <div class="lp-ai-item info">
+                      <i class="fas fa-file-shield"></i>
+                      <div>
+                        <strong>NAAC SSR Evidence Compiled</strong>
+                        <span>Criterion 2.1 &amp; 3.2 data verified and ready for accreditation review export.</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Fast Actions -->
+                <div class="lp-dash-actions-box">
+                  <span class="lp-actions-title">Command Actions</span>
+                  <div class="lp-actions-grid">
+                    <a href="./pages/college-admin/students.html" class="lp-action-btn"><i class="fas fa-user-plus"></i> + Enroll Student</a>
+                    <a href="./pages/college-admin/attendance.html" class="lp-action-btn"><i class="fas fa-sync"></i> Sync Gates</a>
+                    <a href="./pages/college-admin/fees.html" class="lp-action-btn"><i class="fas fa-receipt"></i> Fee Notices</a>
+                    <a href="./pages/college-admin/ai-intelligence.html" class="lp-action-btn primary"><i class="fas fa-brain"></i> AI Studio &rarr;</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PANEL 2: SMART ATTENDANCE & FACEID -->
+          <div class="lp-dash-panel" id="heroPanel-attendance">
+            <div class="lp-dash-grid">
+              <div class="lp-dash-stream-box">
+                <div class="lp-box-header">
+                  <div>
+                    <span class="lp-box-title"><i class="fas fa-camera text-cyan"></i> Hardware Biometric Terminals Status</span>
+                    <span class="lp-box-subtitle">Hardware sensor telemetry across campus gates, hostels and laboratory corridors</span>
+                  </div>
+                  <span class="lp-status-pill green"><i class="fas fa-signal"></i> 18 Terminals Online</span>
+                </div>
+                <div class="lp-terminals-grid">
+                  <div class="lp-terminal-card online">
+                    <div class="lp-term-top">
+                      <strong>Gate 1 Main Entry &bull; 4 Turnstiles</strong>
+                      <span class="badge-online">Online</span>
+                    </div>
+                    <div class="lp-term-stats">
+                      <div><span>Scanned</span><strong>6,420</strong></div>
+                      <div><span>Speed</span><strong>0.4s avg</strong></div>
+                      <div><span>Success</span><strong>99.8%</strong></div>
+                    </div>
+                    <div class="lp-term-meter"><div style="width:99.8%"></div></div>
+                  </div>
+                  <div class="lp-terminal-card online">
+                    <div class="lp-term-top">
+                      <strong>Gate 2 Science &amp; Tech Block &bull; FaceID AI</strong>
+                      <span class="badge-online">Online</span>
+                    </div>
+                    <div class="lp-term-stats">
+                      <div><span>Scanned</span><strong>4,890</strong></div>
+                      <div><span>Speed</span><strong>0.3s avg</strong></div>
+                      <div><span>Success</span><strong>99.9%</strong></div>
+                    </div>
+                    <div class="lp-term-meter"><div style="width:99.9%"></div></div>
+                  </div>
+                  <div class="lp-terminal-card online">
+                    <div class="lp-term-top">
+                      <strong>Hostel A &amp; B Night Turnstile &bull; RFID</strong>
+                      <span class="badge-online">Online</span>
+                    </div>
+                    <div class="lp-term-stats">
+                      <div><span>Residents</span><strong>2,140</strong></div>
+                      <div><span>In Campus</span><strong>2,098</strong></div>
+                      <div><span>Curfew Log</span><strong>Synced</strong></div>
+                    </div>
+                    <div class="lp-term-meter"><div style="width:98%"></div></div>
+                  </div>
+                </div>
+              </div>
+              <div class="lp-dash-side-box">
+                <div class="lp-ai-card">
+                  <div class="lp-ai-head">
+                    <div class="lp-ai-title"><strong>Department Breakdown</strong></div>
+                    <span class="lp-status-pill green">94.8% Average</span>
+                  </div>
+                  <div class="lp-dept-bars">
+                    <div class="lp-dept-bar-item">
+                      <div><span>Computer Science (CSE)</span><strong>97.2%</strong></div>
+                      <div class="lp-kpi-bar-track"><div class="lp-kpi-bar-fill" style="width:97.2%"></div></div>
+                    </div>
+                    <div class="lp-dept-bar-item">
+                      <div><span>Electronics &amp; Comm (ECE)</span><strong>94.5%</strong></div>
+                      <div class="lp-kpi-bar-track"><div class="lp-kpi-bar-fill" style="width:94.5%"></div></div>
+                    </div>
+                    <div class="lp-dept-bar-item">
+                      <div><span>Mechanical Engineering</span><strong>91.8%</strong></div>
+                      <div class="lp-kpi-bar-track"><div class="lp-kpi-bar-fill" style="width:91.8%"></div></div>
+                    </div>
+                    <div class="lp-dept-bar-item">
+                      <div><span>MBA / Management Studies</span><strong>96.4%</strong></div>
+                      <div class="lp-kpi-bar-track"><div class="lp-kpi-bar-fill" style="width:96.4%"></div></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PANEL 3: FEES & FINANCE ENGINE -->
+          <div class="lp-dash-panel" id="heroPanel-finance">
+            <div class="lp-dash-grid">
+              <div class="lp-dash-stream-box">
+                <div class="lp-box-header">
+                  <div>
+                    <span class="lp-box-title"><i class="fas fa-indian-rupee-sign text-cyan"></i> Semester IV Fee Inflow Stream</span>
+                    <span class="lp-box-subtitle">Live payment gateway reconciliations via UPI, NetBanking, Demand Draft &amp; installments</span>
+                  </div>
+                  <span class="lp-status-pill green"><i class="fas fa-circle-check"></i> Gateway Sync 100%</span>
+                </div>
+                <div class="lp-finance-cards">
+                  <div class="lp-fin-card">
+                    <span>Tuition Collections</span>
+                    <strong>&#8377;3.12 Cr</strong>
+                    <em>94.2% collected (14,200 students)</em>
+                  </div>
+                  <div class="lp-fin-card">
+                    <span>Hostel &amp; Mess Fees</span>
+                    <strong>&#8377;78.4 L</strong>
+                    <em>91.0% collected (1,980 residents)</em>
+                  </div>
+                  <div class="lp-fin-card">
+                    <span>Transport &amp; Bus Fleet</span>
+                    <strong>&#8377;37.6 L</strong>
+                    <em>89.5% collected (850 bus passes)</em>
+                  </div>
+                </div>
+                <div class="lp-dash-table-wrap" style="margin-top:14px">
+                  <table class="lp-dash-table">
+                    <thead>
+                      <tr><th>Transaction ID</th><th>Student / Course</th><th>Category</th><th>Amount</th><th>Method</th><th>Status</th></tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><code>TXN-984218</code></td>
+                        <td><strong>Aditya Deshmukh</strong> <small>(B.Tech CSE)</small></td>
+                        <td>Sem IV Tuition</td>
+                        <td><strong>&#8377;75,000</strong></td>
+                        <td><span class="lp-mode-badge"><i class="fas fa-mobile-screen"></i> UPI Instant</span></td>
+                        <td><span class="lp-badge-success">Settled</span></td>
+                      </tr>
+                      <tr>
+                        <td><code>TXN-984217</code></td>
+                        <td><strong>Meera Nair</strong> <small>(MBA Finance)</small></td>
+                        <td>Hostel + Tuition</td>
+                        <td><strong>&#8377;1,20,000</strong></td>
+                        <td><span class="lp-mode-badge"><i class="fas fa-building-columns"></i> Net Banking</span></td>
+                        <td><span class="lp-badge-success">Settled</span></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="lp-dash-side-box">
+                <div class="lp-ai-card">
+                  <div class="lp-ai-head">
+                    <div class="lp-ai-title"><strong>Automated Dues Recovery</strong></div>
+                    <span class="lp-ai-tag">Smart Reminders</span>
+                  </div>
+                  <div class="lp-ai-items">
+                    <div class="lp-ai-item warning">
+                      <i class="fas fa-clock"></i>
+                      <div>
+                        <strong>Upcoming Grace Period Expiry</strong>
+                        <span>32 students with pending 2nd installment. Auto-reminder WhatsApp &amp; SMS sent today at 08:00 AM.</span>
+                      </div>
+                    </div>
+                    <div class="lp-ai-item info">
+                      <i class="fas fa-receipt"></i>
+                      <div>
+                        <strong>Auto-Receipt Generator</strong>
+                        <span>All 1,420 payments received yesterday have been issued digital GST compliant 80G tax receipts.</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PANEL 4: AI RISK RADAR -->
+          <div class="lp-dash-panel" id="heroPanel-ai">
+            <div class="lp-dash-grid">
+              <div class="lp-dash-stream-box">
+                <div class="lp-box-header">
+                  <div>
+                    <span class="lp-box-title"><i class="fas fa-brain text-cyan"></i> Campus Predictive Intelligence Model</span>
+                    <span class="lp-box-subtitle">Deep learning models tracking student retention, academic performance risk, and exam scheduling</span>
+                  </div>
+                  <span class="lp-status-pill purple"><i class="fas fa-microchip"></i> Model v4.2 Active</span>
+                </div>
+                <div class="lp-ai-radar-grid">
+                  <div class="lp-radar-metric">
+                    <i class="fas fa-user-shield text-blue"></i>
+                    <strong>Dropout Risk Prediction</strong>
+                    <p>Identifies multi-factor risks (attendance drops + test score declines + fee delays) 60 days before semester exams.</p>
+                    <span class="badge-success">96.4% Early Prediction Accuracy</span>
+                  </div>
+                  <div class="lp-radar-metric">
+                    <i class="fas fa-diagram-project text-teal"></i>
+                    <strong>Conflict-Free Exam Timetabler</strong>
+                    <p>Genetic algorithm schedules 480 examination courses, 140 invigilators, and 36 exam halls with zero overlap.</p>
+                    <span class="badge-success">100% Conflict Free</span>
+                  </div>
+                </div>
+              </div>
+              <div class="lp-dash-side-box">
+                <div class="lp-ai-card">
+                  <div class="lp-ai-head">
+                    <div class="lp-ai-title"><strong>Live AI Recommendations</strong></div>
+                  </div>
+                  <div class="lp-ai-items">
+                    <div class="lp-ai-item info">
+                      <i class="fas fa-robot"></i>
+                      <div>
+                        <strong>Remedial Class Suggestion</strong>
+                        <span>AI flagged 24 students needing extra support in Signal Processing before midterm evaluation.</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dashboard Bottom Bar / Security Stamp -->
+        <div class="lp-dash-footer-bar">
+          <div class="lp-dash-foot-left">
+            <span><i class="fas fa-lock text-green"></i> ISO 27001 &bull; SOC2 Type II Certified Campus Cloud</span>
+            <span><i class="fas fa-bolt text-amber"></i> Real-time WebSocket Telemetry &bull; 99.99% Uptime</span>
+          </div>
+          <div class="lp-dash-foot-right">
+            <a href="./pages/college-admin/dashboard.html" class="lp-dash-explore-link">Open Full Live College Admin Demo <i class="fas fa-arrow-right"></i></a>
           </div>
         </div>
       </div>
@@ -666,6 +1105,18 @@
       if (platformName) platformName.textContent = 'Linux';
     }
   })();
+
+  function switchHeroDashboardTab(tabName) {
+    var tabs = document.querySelectorAll('.lp-dash-tab');
+    var panels = document.querySelectorAll('.lp-dash-panel');
+    tabs.forEach(function(tab) { tab.classList.remove('active'); });
+    panels.forEach(function(panel) { panel.classList.remove('active'); });
+    var activeTab = document.getElementById('tabBtn-' + tabName);
+    var activePanel = document.getElementById('heroPanel-' + tabName);
+    if (activeTab) activeTab.classList.add('active');
+    if (activePanel) activePanel.classList.add('active');
+  }
+  window.switchHeroDashboardTab = switchHeroDashboardTab;
   </script>
 </body>
 </html>
