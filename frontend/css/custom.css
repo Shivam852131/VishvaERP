@@ -4083,24 +4083,71 @@ body.dark-mode .lp-security-row span { color: #94A3B8; }
 @media (max-width: 768px) { .lp-security-layout { grid-template-columns: 1fr; } }
 
 /* â”€â”€ PRICING â”€â”€ */
-.lp-plans-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-.lp-plan {
-  padding: 32px; border-radius: 16px; background: white;
-  border: 1px solid #E2E8F0; text-align: center;
-  transition: transform 0.2s, box-shadow 0.2s;
+.lp-plans-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  padding-top: 18px;
+  align-items: stretch;
 }
-body.dark-mode .lp-plan { background: #1E293B; border-color: rgba(255,255,255,0.08); }
-.lp-plan:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.08); }
-.lp-plan-featured { border-color: #6366F1; background: #EEF2FF; position: relative; }
-body.dark-mode .lp-plan-featured { background: rgba(99,102,241,0.1); }
+.lp-plan {
+  position: relative;
+  overflow: visible !important;
+  display: flex;
+  flex-direction: column;
+  padding: 36px 28px 30px;
+  border-radius: 16px;
+  background: white;
+  border: 1px solid #E2E8F0;
+  text-align: center;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+body.dark-mode .lp-plan {
+  background: #1E293B;
+  border-color: rgba(255,255,255,0.08);
+}
+.lp-plan:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 40px rgba(0,0,0,0.1);
+}
+.lp-plan-featured {
+  position: relative;
+  overflow: visible !important;
+  border: 2px solid #6366F1 !important;
+  background: #EEF2FF;
+  box-shadow: 0 8px 30px rgba(99, 102, 241, 0.12);
+}
+body.dark-mode .lp-plan-featured {
+  background: rgba(99,102,241,0.08);
+  border-color: #6366F1 !important;
+  box-shadow: 0 8px 30px rgba(99, 102, 241, 0.18);
+}
+.lp-plan.hover-shimmer,
+.lp-plan-featured.hover-shimmer {
+  overflow: visible !important;
+}
 .lp-plan-badge {
-  position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
-  padding: 4px 16px; border-radius: 999px; background: #6366F1;
-  color: white; font-size: 11px; font-weight: 700; white-space: nowrap;
+  position: absolute;
+  top: -14px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 5px 18px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #4F46E5, #7C3AED);
+  color: #FFFFFF;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.45);
+  z-index: 25;
+  pointer-events: none;
+  line-height: 1.2;
 }
 .lp-plan h3 { font-size: 20px; font-weight: 900; color: #0F172A; margin-bottom: 10px; }
 body.dark-mode .lp-plan h3 { color: white; }
-.lp-plan p { font-size: 14px; line-height: 1.6; color: #64748B; margin-bottom: 16px; }
+.lp-plan p { font-size: 14px; line-height: 1.6; color: #64748B; margin-bottom: 16px; flex-grow: 1; }
 body.dark-mode .lp-plan p { color: #94A3B8; }
 .lp-plan strong { display: block; font-size: 13px; font-weight: 700; color: #6366F1; margin-bottom: 20px; }
 .lp-plan-btn {
@@ -4108,7 +4155,8 @@ body.dark-mode .lp-plan p { color: #94A3B8; }
   min-height: 44px; padding: 0 24px; border-radius: 10px;
   border: 2px solid #E2E8F0; background: transparent; color: #0F172A;
   font-size: 14px; font-weight: 700; text-decoration: none;
-  transition: background 0.2s, border-color 0.2s;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  margin-top: auto;
 }
 body.dark-mode .lp-plan-btn { border-color: rgba(255,255,255,0.15); color: white; }
 .lp-plan-btn:hover { border-color: #6366F1; background: #EEF2FF; }
@@ -4117,7 +4165,7 @@ body.dark-mode .lp-plan-btn { border-color: rgba(255,255,255,0.15); color: white
   border: none; color: white;
 }
 .lp-plan-btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(79,70,229,0.3); background: linear-gradient(135deg, #4338CA, #6D28D9); }
-@media (max-width: 768px) { .lp-plans-grid { grid-template-columns: 1fr; } }
+@media (max-width: 768px) { .lp-plans-grid { grid-template-columns: 1fr; gap: 32px; padding-top: 24px; } }
 
 /* â”€â”€ CTA â”€â”€ */
 .lp-cta {

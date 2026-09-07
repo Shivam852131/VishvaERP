@@ -1228,7 +1228,7 @@ function initTiltCards() {
 
 /* ─── SHIMMER EFFECT FOR MODULE TILES ─── */
 function initModuleShimmer() {
-  document.querySelectorAll('.lp-module, .lp-role, .lp-plan, .lp-feature-card').forEach(el => {
+  document.querySelectorAll('.lp-module, .lp-role, .lp-feature-card').forEach(el => {
     el.classList.add('hover-shimmer');
   });
 }
