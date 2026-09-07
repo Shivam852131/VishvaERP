@@ -36,7 +36,7 @@ router.get('/live-overview', async (req, res) => {
     // 1. Fetch Primary College (Active)
     const college = await College.findOne({ isActive: true }).select('name code city state email departments phone').lean();
 
-    // 2. Aggregate Live Entity Counts
+    // 2. Aggregate Institutional Telemetry Counts
     const collegeFilter = college ? { collegeId: college._id } : {};
 
     const [
@@ -45,8 +45,6 @@ router.get('/live-overview', async (req, res) => {
       totalColleges,
       totalCourses,
       totalAttendance,
-      recentStudentsRaw,
-      adminUserRaw,
       feeAggregate,
       recentNotices,
     ] = await Promise.all([
@@ -55,14 +53,6 @@ router.get('/live-overview', async (req, res) => {
       College.countDocuments({ isActive: true }),
       Course.countDocuments({ ...(college ? { collegeId: college._id } : {}), isActive: true }),
       Attendance.countDocuments(collegeFilter),
-      User.find({ ...collegeFilter, role: 'student' })
-        .select('name rollNo department semester gender email createdAt isActive')
-        .sort({ createdAt: -1 })
-        .limit(6)
-        .lean(),
-      User.findOne({ ...collegeFilter, role: { $in: ['collegeAdmin', 'superadmin'] } })
-        .select('name email role')
-        .lean(),
       Fee.aggregate([
         { $match: collegeFilter },
         {
@@ -122,10 +112,16 @@ router.get('/live-overview', async (req, res) => {
     res.status(200).json({
       success: true,
       isLive: true,
-      college: college || {
-        name: 'Vishva ERP Main Campus',
+      college: college ? {
+        name: college.name,
+        code: college.code,
+        city: college.city,
+        state: college.state,
+        departments,
+      } : {
+        name: 'Enterprise Campus Cloud',
         code: 'CAMPUS01',
-        city: 'Institution Center',
+        city: 'Academic Center',
         state: '',
         departments,
       },
@@ -149,10 +145,12 @@ router.get('/live-overview', async (req, res) => {
         paidFormatted: formatINR(feeData.paidAmount),
         collectionRate: feeRate,
       },
-      recentStudents: recentStudentsRaw || [],
       recentNotices: recentNotices || [],
       departments: departments || [],
-      adminUser: adminUserRaw || { name: 'Dr. A. Sharma', role: 'collegeAdmin' },
+      adminConsole: {
+        title: 'Institutional Workspace',
+        role: 'College Administration',
+      },
       system: {
         status: 'healthy',
         uptimeSeconds: Math.round(process.uptime()),
