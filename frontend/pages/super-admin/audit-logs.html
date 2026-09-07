@@ -1,17 +1,224 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Audit Logs | VishvaERP Super Admin</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Security & Platform Audit Stream — Super Admin | VishvaERP</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="../../css/custom.css">
+  <style>
+    :root {
+      --aud-primary: #4F46E5;
+      --aud-primary-hover: #4338CA;
+      --aud-card-border: #E2E8F0;
+      --aud-text-dark: #0F172A;
+      --aud-text-muted: #64748B;
+    }
+
+    /* Security Studio Hero */
+    .studio-hero {
+      background: linear-gradient(135deg, #0F172A 0%, #1E1B4B 50%, #312E81 100%);
+      border-radius: 20px;
+      padding: 24px 28px;
+      color: #FFFFFF;
+      margin-bottom: 22px;
+      box-shadow: 0 12px 30px -8px rgba(15, 23, 42, 0.4);
+      position: relative;
+      overflow: hidden;
+    }
+    .studio-hero::after {
+      content: '';
+      position: absolute;
+      top: -40%;
+      right: -10%;
+      width: 420px;
+      height: 420px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.22) 0%, rgba(255, 255, 255, 0) 70%);
+      pointer-events: none;
+    }
+    .studio-hero-content {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 18px;
+    }
+    .studio-title-block {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .studio-avatar-icon {
+      width: 54px;
+      height: 54px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #38BDF8 0%, #4F46E5 100%);
+      border: 2px solid rgba(255, 255, 255, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      box-shadow: 0 8px 20px rgba(56, 189, 248, 0.3);
+    }
+    .audit-status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 11.5px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      background: rgba(16, 185, 129, 0.15);
+      color: #34D399;
+      border: 1px solid rgba(16, 185, 129, 0.35);
+    }
+    .audit-status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10B981;
+      box-shadow: 0 0 8px #10B981;
+      animation: pulse-dot 2s infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    /* 4 KPI Cards */
+    .aud-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+    .aud-metric-card {
+      background: #FFFFFF;
+      border: 1px solid var(--aud-card-border);
+      border-radius: 16px;
+      padding: 16px 18px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .aud-metric-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.08);
+    }
+    .aud-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .aud-label {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--aud-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .aud-icon-box {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+    }
+    .aud-value {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--aud-text-dark);
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+    .aud-footer {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 8px;
+      font-size: 11.5px;
+      font-weight: 600;
+    }
+
+    /* Filter Command Bar */
+    .aud-filter-card {
+      background: #FFFFFF;
+      border: 1px solid var(--aud-card-border);
+      border-radius: 16px;
+      padding: 14px 18px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    }
+
+    /* Slide-Over Drawer */
+    .drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.5);
+      backdrop-filter: blur(4px);
+      z-index: 9999;
+      display: none;
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+    .drawer-overlay.active {
+      display: flex;
+      opacity: 1;
+      justify-content: flex-end;
+    }
+    .drawer-content {
+      background: #FFFFFF;
+      width: 100%;
+      max-width: 580px;
+      height: 100%;
+      box-shadow: -10px 0 30px rgba(0, 0, 0, 0.15);
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .drawer-overlay.active .drawer-content {
+      transform: translateX(0);
+    }
+
+    @media (max-width: 1024px) {
+      .aud-stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+    @media (max-width: 640px) {
+      .aud-stats-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
 <body>
 <div class="erp-layout">
+  <!-- SIDEBAR (Full Standard 10-Item Super Admin Suite) -->
   <aside class="erp-sidebar theme-superadmin" id="sidebar">
-    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
-    <div class="sidebar-user"><div class="sidebar-avatar" id="sidebar-avatar">S</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Super Admin</div><div class="sidebar-user-role">Platform Administrator</div></div></div>
+    <div class="sidebar-header">
+      <a class="sidebar-logo" href="../../index.html">
+        <div class="sidebar-logo-icon">V</div>
+        <div class="sidebar-logo-text">Vishva<span>ERP</span></div>
+      </a>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" id="sidebar-avatar">S</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name" id="sidebar-user-name">Super Admin</div>
+        <div class="sidebar-user-role">Platform Administrator</div>
+      </div>
+    </div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Overview</div>
       <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-tachometer-alt"></i> Dashboard</a>
@@ -28,7 +235,9 @@
       <a href="broadcast.html" class="nav-link"><i class="nav-link-icon fas fa-bullhorn"></i> Broadcast</a>
       <a href="settings.html" class="nav-link"><i class="nav-link-icon fas fa-cog"></i> Settings</a>
     </nav>
-    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+    <div class="sidebar-footer">
+      <button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </div>
   </aside>
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
@@ -36,83 +245,210 @@
     <header class="erp-topbar">
       <div class="topbar-left">
         <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
-        <div class="topbar-breadcrumb">Super Admin / <span>Audit Logs</span></div>
+        <div class="topbar-breadcrumb">Super Admin / <span>Audit Logs & Security</span></div>
       </div>
       <div class="topbar-right">
-        <button class="btn btn-secondary btn-sm" onclick="exportLogs()"><i class="fas fa-download"></i> Export CSV</button>
+        <button class="btn btn-secondary btn-sm" onclick="exportLogs()" style="border-radius:10px;font-weight:700">
+          <i class="fas fa-download"></i> Export CSV
+        </button>
         <div class="topbar-avatar" id="topbar-avatar">S</div>
       </div>
     </header>
 
-    <div class="erp-content">
-      <div class="page-header">
-        <h1 class="page-title">🔍 Audit Logs</h1>
-        <p class="page-subtitle">Platform-wide activity tracking — who did what and when.</p>
-      </div>
+    <div class="erp-content page-enter" style="padding:24px">
+      <!-- AUDIT STUDIO HERO -->
+      <div class="studio-hero">
+        <div class="studio-hero-content">
+          <div class="studio-title-block">
+            <div class="studio-avatar-icon">
+              <i class="fas fa-shield-alt"></i>
+            </div>
+            <div>
+              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                <h1 style="font-size:22px;font-weight:800;letter-spacing:-0.02em;margin:0">Platform Security & Audit Stream</h1>
+                <div class="audit-status-pill">
+                  <span class="audit-status-dot"></span>
+                  <span>Audit Engine Active</span>
+                </div>
+              </div>
+              <p style="font-size:13px;color:#CBD5E1;margin:4px 0 0 0">
+                Tamper-evident activity trail — tracking authentication, user operations, multi-tenant state transitions, and security blocks.
+              </p>
+            </div>
+          </div>
 
-      <!-- Filters -->
-      <div class="card mb-4">
-        <div class="card-body" style="padding:14px 20px;display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end">
-          <div class="search-bar" style="flex:1;min-width:160px"><i class="fas fa-search"></i><input type="text" id="logSearch" placeholder="Search by user or email..." oninput="filterLogs()"></div>
-          <div class="form-group" style="margin:0;flex:0 0 auto">
-            <label class="form-label" style="font-size:11px">Role</label>
-            <select class="form-control" style="padding:7px 10px;font-size:13px" id="roleFilter" onchange="filterLogs()">
-              <option value="">All Roles</option>
-              <option value="superadmin">Super Admin</option>
-              <option value="collegeAdmin">College Admin</option>
-              <option value="faculty">Faculty</option>
-              <option value="student">Student</option>
-              <option value="parent">Parent</option>
-            </select>
+          <div style="display:flex;align-items:center;gap:10px">
+            <button class="btn btn-secondary btn-sm" onclick="if(window.__erpAdminPageRefresh) window.__erpAdminPageRefresh()" style="background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);color:#FFFFFF">
+              <i class="fas fa-sync-alt"></i> Sync Stream
+            </button>
           </div>
-          <div class="form-group" style="margin:0;flex:0 0 auto">
-            <label class="form-label" style="font-size:11px">Action</label>
-            <select class="form-control" style="padding:7px 10px;font-size:13px" id="actionFilter" onchange="filterLogs()">
-              <option value="">All Actions</option>
-              <option value="Login">Login</option>
-              <option value="Create">Create</option>
-              <option value="Update">Update</option>
-              <option value="Delete">Delete</option>
-            </select>
-          </div>
-          <div class="form-group" style="margin:0;flex:0 0 auto">
-            <label class="form-label" style="font-size:11px">Status</label>
-            <select class="form-control" style="padding:7px 10px;font-size:13px" id="statusFilter" onchange="filterLogs()">
-              <option value="">All</option>
-              <option value="success">Success</option>
-              <option value="blocked">Blocked</option>
-            </select>
-          </div>
-          <button class="btn btn-secondary btn-sm" onclick="resetFilters()"><i class="fas fa-times"></i> Clear</button>
         </div>
       </div>
 
-      <!-- Stats Row -->
-      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)" id="logStats">
-        <div class="stat-card"><div class="stat-icon" style="background:#D1FAE5;color:#065F46"><i class="fas fa-check-circle"></i></div><div class="stat-label">Successful Logins</div><div class="stat-value" id="successCount">—</div></div>
-        <div class="stat-card"><div class="stat-icon" style="background:#FEE2E2;color:#991B1B"><i class="fas fa-ban"></i></div><div class="stat-label">Blocked Access</div><div class="stat-value" id="blockedCount">—</div></div>
-        <div class="stat-card"><div class="stat-icon" style="background:#EDE9FE;color:#5B21B6"><i class="fas fa-user-clock"></i></div><div class="stat-label">Total Events</div><div class="stat-value" id="totalCount">—</div></div>
-        <div class="stat-card"><div class="stat-icon" style="background:#DBEAFE;color:#1E40AF"><i class="fas fa-university"></i></div><div class="stat-label">Colleges Active</div><div class="stat-value" id="collegeCount">—</div></div>
+      <!-- 4 TELEMETRY KPI CARDS (Preserving #successCount, #blockedCount, #totalCount, #collegeCount) -->
+      <div class="aud-stats-grid" id="logStats">
+        <!-- Card 1: Successful Logins -->
+        <div class="aud-metric-card">
+          <div>
+            <div class="aud-header">
+              <span class="aud-label">Successful Logins</span>
+              <div class="aud-icon-box" style="background:#ECFDF5;color:#059669">
+                <i class="fas fa-check-circle"></i>
+              </div>
+            </div>
+            <div class="aud-value" id="successCount">—</div>
+          </div>
+          <div class="aud-footer" style="color:#059669">
+            <i class="fas fa-user-shield"></i>
+            <span>Verified Sessions</span>
+          </div>
+        </div>
+
+        <!-- Card 2: Blocked Access -->
+        <div class="aud-metric-card">
+          <div>
+            <div class="aud-header">
+              <span class="aud-label">Blocked Attempts</span>
+              <div class="aud-icon-box" style="background:#FEE2E2;color:#DC2626">
+                <i class="fas fa-ban"></i>
+              </div>
+            </div>
+            <div class="aud-value" id="blockedCount" style="color:#DC2626">—</div>
+          </div>
+          <div class="aud-footer" style="color:#DC2626">
+            <i class="fas fa-triangle-exclamation"></i>
+            <span>Access Prevented</span>
+          </div>
+        </div>
+
+        <!-- Card 3: Total Recorded Events -->
+        <div class="aud-metric-card">
+          <div>
+            <div class="aud-header">
+              <span class="aud-label">Total Stream Events</span>
+              <div class="aud-icon-box" style="background:#EEF2FF;color:#4F46E5">
+                <i class="fas fa-list-check"></i>
+              </div>
+            </div>
+            <div class="aud-value" id="totalCount">—</div>
+          </div>
+          <div class="aud-footer" style="color:#4F46E5">
+            <i class="fas fa-clock-rotate-left"></i>
+            <span>Telemetry Buffer</span>
+          </div>
+        </div>
+
+        <!-- Card 4: Active Campuses -->
+        <div class="aud-metric-card">
+          <div>
+            <div class="aud-header">
+              <span class="aud-label">Active Campuses</span>
+              <div class="aud-icon-box" style="background:#E0F2FE;color:#0284C7">
+                <i class="fas fa-university"></i>
+              </div>
+            </div>
+            <div class="aud-value" id="collegeCount">—</div>
+          </div>
+          <div class="aud-footer" style="color:#0284C7">
+            <i class="fas fa-network-wired"></i>
+            <span>Institutional Tenants</span>
+          </div>
+        </div>
       </div>
 
-      <div class="card">
-        <div class="card-header">
-          <div class="card-title">Activity Timeline</div>
-          <span class="badge badge-info" id="showingCount">Loading...</span>
+      <!-- FILTER COMMAND TOOLBAR (Preserving #logSearch, #roleFilter, #actionFilter, #statusFilter, filterLogs(), resetFilters()) -->
+      <div class="aud-filter-card">
+        <div style="display:flex;gap:14px;flex-wrap:wrap;align-items:center;justify-content:space-between">
+          <!-- Search input with shortcut -->
+          <div class="search-bar" style="flex:1;min-width:240px;position:relative">
+            <i class="fas fa-search" style="color:#94A3B8;position:absolute;left:14px;top:50%;transform:translateY(-50%)"></i>
+            <input type="text" id="logSearch" placeholder="Search by user name, email, or campus... (Press / to focus)" oninput="filterLogs()" style="width:100%;padding:9px 38px 9px 38px;border:1px solid #CBD5E1;border-radius:10px;font-size:13px;outline:none;transition:border-color 0.2s">
+            <span style="position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:10px;color:#94A3B8;background:#F1F5F9;border:1px solid #CBD5E1;border-radius:4px;padding:2px 6px;font-weight:700">/</span>
+          </div>
+
+          <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+            <!-- Role Filter -->
+            <div class="form-group" style="margin:0">
+              <select class="form-control" id="roleFilter" onchange="filterLogs()" style="padding:8px 12px;font-size:13px;border-radius:10px;border-color:#CBD5E1;font-weight:600">
+                <option value="">All Roles</option>
+                <option value="superadmin">Super Admin</option>
+                <option value="collegeAdmin">College Admin</option>
+                <option value="faculty">Faculty</option>
+                <option value="student">Student</option>
+                <option value="parent">Parent</option>
+              </select>
+            </div>
+
+            <!-- Action Filter -->
+            <div class="form-group" style="margin:0">
+              <select class="form-control" id="actionFilter" onchange="filterLogs()" style="padding:8px 12px;font-size:13px;border-radius:10px;border-color:#CBD5E1;font-weight:600">
+                <option value="">All Actions</option>
+                <option value="Login">Login</option>
+                <option value="Create">Create</option>
+                <option value="Update">Update</option>
+                <option value="Delete">Delete</option>
+              </select>
+            </div>
+
+            <!-- Status Filter -->
+            <div class="form-group" style="margin:0">
+              <select class="form-control" id="statusFilter" onchange="filterLogs()" style="padding:8px 12px;font-size:13px;border-radius:10px;border-color:#CBD5E1;font-weight:600">
+                <option value="">All Statuses</option>
+                <option value="success">Success</option>
+                <option value="blocked">Blocked</option>
+              </select>
+            </div>
+
+            <!-- Clear Filter Button -->
+            <button class="btn btn-secondary btn-sm" onclick="resetFilters()" style="border-radius:10px">
+              <i class="fas fa-times"></i> Clear
+            </button>
+          </div>
         </div>
-        <div class="table-wrap">
-          <table class="erp-table">
+      </div>
+
+      <!-- AUDIT STREAM TABLE (Preserving #auditBody, #showingCount, #auditPageInfo, #logPrevBtn, #logNextBtn, changePage()) -->
+      <div class="card" style="border-radius:18px;border:1px solid var(--aud-card-border);box-shadow:0 2px 6px rgba(0,0,0,0.03);overflow:hidden">
+        <div class="card-header" style="background:#F8FAFC;border-bottom:1px solid #E2E8F0;padding:16px 22px;display:flex;align-items:center;justify-content:space-between">
+          <div class="card-title" style="font-weight:800;font-size:14px;color:#0F172A;display:flex;align-items:center;gap:8px">
+            <div style="width:28px;height:28px;border-radius:8px;background:#EEF2FF;color:#4F46E5;display:flex;align-items:center;justify-content:center;font-size:12px">
+              <i class="fas fa-list-timeline"></i>
+            </div>
+            Security Activity Stream
+          </div>
+          <span class="badge badge-info" id="showingCount" style="font-size:11.5px;padding:4px 10px">Loading...</span>
+        </div>
+
+        <div class="table-wrap" style="overflow-x:auto">
+          <table class="erp-table" style="width:100%;border-collapse:collapse">
             <thead>
-              <tr><th>#</th><th>User</th><th>Email</th><th>Role</th><th>College</th><th>Action</th><th>Status</th><th>Timestamp</th><th>Actions</th></tr>
+              <tr style="background:#F8FAFC;border-bottom:1px solid #E2E8F0;text-align:left">
+                <th style="padding:12px 18px;font-size:11.5px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.04em">#</th>
+                <th style="padding:12px 18px;font-size:11.5px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.04em">Actor & Identity</th>
+                <th style="padding:12px 18px;font-size:11.5px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.04em">Email Address</th>
+                <th style="padding:12px 18px;font-size:11.5px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.04em">Role</th>
+                <th style="padding:12px 18px;font-size:11.5px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.04em">Tenant College</th>
+                <th style="padding:12px 18px;font-size:11.5px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.04em">Action Executed</th>
+                <th style="padding:12px 18px;font-size:11.5px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.04em">Outcome</th>
+                <th style="padding:12px 18px;font-size:11.5px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.04em">Timestamp</th>
+                <th style="padding:12px 18px;font-size:11.5px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.04em;text-align:right">Inspect</th>
+              </tr>
             </thead>
-            <tbody id="auditBody"></tbody>
+            <tbody id="auditBody">
+              <!-- Dynamically populated rows -->
+            </tbody>
           </table>
         </div>
-        <div style="padding:12px 20px;border-top:1px solid #F1F5F9;display:flex;align-items:center;justify-content:space-between">
-          <span style="font-size:12px;color:#64748B" id="auditPageInfo">Page 1 of 1</span>
+
+        <div style="padding:14px 22px;border-top:1px solid #E2E8F0;background:#F8FAFC;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+          <span style="font-size:12.5px;color:#64748B;font-weight:600" id="auditPageInfo">Page 1 of 1</span>
           <div style="display:flex;gap:8px">
-            <button class="btn btn-sm btn-secondary" id="logPrevBtn" onclick="changePage(-1)"><i class="fas fa-chevron-left"></i></button>
-            <button class="btn btn-sm btn-secondary" id="logNextBtn" onclick="changePage(1)"><i class="fas fa-chevron-right"></i></button>
+            <button class="btn btn-sm btn-secondary" id="logPrevBtn" onclick="changePage(-1)" style="border-radius:8px">
+              <i class="fas fa-chevron-left"></i> Previous
+            </button>
+            <button class="btn btn-sm btn-secondary" id="logNextBtn" onclick="changePage(1)" style="border-radius:8px">
+              Next <i class="fas fa-chevron-right"></i>
+            </button>
           </div>
         </div>
       </div>
@@ -120,7 +456,120 @@
   </div>
 </div>
 
+<!-- SLIDE-OVER AUDIT LOG INSPECTOR DRAWER (#auditDrawer) -->
+<div class="drawer-overlay" id="auditDrawer" onclick="if(event.target===this) closeAuditDrawer()">
+  <div class="drawer-content">
+    <div style="background:#F8FAFC;border-bottom:1px solid #E2E8F0;padding:20px 24px;display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:40px;height:40px;border-radius:12px;background:#EEF2FF;color:#4F46E5;display:flex;align-items:center;justify-content:center;font-size:18px">
+          <i class="fas fa-shield-check"></i>
+        </div>
+        <div>
+          <h3 style="font-size:16px;font-weight:800;color:#0F172A;margin:0">Audit Event Inspector</h3>
+          <p style="font-size:12px;color:#64748B;margin:2px 0 0 0">Cryptographic audit log entry and actor metadata.</p>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeAuditDrawer()"><i class="fas fa-times"></i></button>
+    </div>
+
+    <div style="padding:24px;overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:18px" id="auditDrawerBody">
+      <!-- Dynamically filled on inspect -->
+    </div>
+
+    <div style="background:#F8FAFC;border-top:1px solid #E2E8F0;padding:16px 24px;display:flex;justify-content:space-between;align-items:center">
+      <button class="btn btn-secondary btn-sm" onclick="closeAuditDrawer()">Close</button>
+      <button class="btn btn-primary btn-sm" id="copyDrawerJsonBtn" onclick="copyDrawerJson()"><i class="fas fa-copy"></i> Copy Raw JSON</button>
+    </div>
+  </div>
+</div>
+
 <script src="../../js/shared.js"></script>
 <script src="../../live/live-admin-pages.js"></script>
+<script>
+  // Global drawer functions
+  let currentInspectedLog = null;
+
+  window.openAuditDrawer = function(id) {
+    const drawer = document.getElementById('auditDrawer');
+    const body = document.getElementById('auditDrawerBody');
+    if (!drawer || !body) return;
+
+    // Find log from allLogs in parent scope
+    const log = (window.__allLogsCache || []).find(e => String(e._id) === String(id));
+    if (!log) {
+      if (window.showToast) window.showToast('Log entry details unavailable', 'warn');
+      return;
+    }
+    currentInspectedLog = log;
+
+    const roleColors = { superadmin: '#5B21B6', collegeAdmin: '#1E40AF', faculty: '#065F46', student: '#0369A1', parent: '#92400E' };
+    const actionColors = { Login: '#4F46E5', Create: '#059669', Update: '#D97706', Delete: '#EF4444' };
+
+    body.innerHTML = `
+      <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:14px;padding:18px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="avatar avatar-md" style="background:#4F46E518;color:#4F46E5;font-weight:700;font-size:14px">
+              ${escapeHTML((log.user || 'U')[0])}
+            </div>
+            <div>
+              <div style="font-weight:800;font-size:15px;color:#0F172A">${escapeHTML(log.user || 'Unknown User')}</div>
+              <div style="font-size:12px;color:#64748B">${escapeHTML(log.email || '-')}</div>
+            </div>
+          </div>
+          <span class="badge ${log.status==='success'?'badge-success':'badge-danger'}">${log.status?.toUpperCase() || 'UNKNOWN'}</span>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px">
+          <div style="background:#FFFFFF;border:1px solid #E2E8F0;border-radius:10px;padding:10px">
+            <span style="font-size:11px;color:#64748B;display:block;font-weight:600">Assigned Role</span>
+            <span style="font-size:13px;font-weight:700;color:${roleColors[log.role]||'#0F172A'}">${escapeHTML(log.role || '-')}</span>
+          </div>
+          <div style="background:#FFFFFF;border:1px solid #E2E8F0;border-radius:10px;padding:10px">
+            <span style="font-size:11px;color:#64748B;display:block;font-weight:600">Action Type</span>
+            <span style="font-size:13px;font-weight:700;color:${actionColors[log.action]||'#4F46E5'}">${escapeHTML(log.action || '-')}</span>
+          </div>
+          <div style="background:#FFFFFF;border:1px solid #E2E8F0;border-radius:10px;padding:10px">
+            <span style="font-size:11px;color:#64748B;display:block;font-weight:600">College / Tenant</span>
+            <span style="font-size:13px;font-weight:700;color:#0F172A">${escapeHTML(log.college || 'Platform')}</span>
+          </div>
+          <div style="background:#FFFFFF;border:1px solid #E2E8F0;border-radius:10px;padding:10px">
+            <span style="font-size:11px;color:#64748B;display:block;font-weight:600">Timestamp</span>
+            <span style="font-size:12.5px;font-weight:700;color:#0F172A;font-family:monospace">${new Date(log.timestamp).toLocaleString()}</span>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div style="font-size:12px;font-weight:700;color:#64748B;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.04em">
+          Raw Audit Payload
+        </div>
+        <pre style="background:#0F172A;color:#38BDF8;padding:14px;border-radius:12px;font-family:monospace;font-size:11.5px;overflow-x:auto;max-height:260px;line-height:1.5">${JSON.stringify(log, null, 2)}</pre>
+      </div>
+    `;
+
+    drawer.classList.add('active');
+  };
+
+  window.closeAuditDrawer = function() {
+    const drawer = document.getElementById('auditDrawer');
+    if (drawer) drawer.classList.remove('active');
+    currentInspectedLog = null;
+  };
+
+  window.copyDrawerJson = function() {
+    if (!currentInspectedLog) return;
+    navigator.clipboard.writeText(JSON.stringify(currentInspectedLog, null, 2));
+    if (window.showToast) window.showToast('Audit payload copied to clipboard', 'success');
+  };
+
+  // Keyboard shortcut '/' to search
+  document.addEventListener('keydown', (e) => {
+    if (e.key === '/' && document.activeElement.tagName !== 'INPUT') {
+      e.preventDefault();
+      document.getElementById('logSearch')?.focus();
+    }
+  });
+</script>
 </body>
 </html>

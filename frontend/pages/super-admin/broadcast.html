@@ -1,17 +1,204 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Broadcast | VishvaERP Super Admin</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Platform Broadcast & Communications — Super Admin | VishvaERP</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="../../css/custom.css">
+  <style>
+    :root {
+      --bc-primary: #4F46E5;
+      --bc-primary-hover: #4338CA;
+      --bc-card-border: #E2E8F0;
+      --bc-text-dark: #0F172A;
+      --bc-text-muted: #64748B;
+    }
+
+    /* Broadcast Studio Hero */
+    .studio-hero {
+      background: linear-gradient(135deg, #1E1B4B 0%, #312E81 50%, #4338CA 100%);
+      border-radius: 20px;
+      padding: 24px 28px;
+      color: #FFFFFF;
+      margin-bottom: 22px;
+      box-shadow: 0 12px 30px -8px rgba(49, 46, 129, 0.4);
+      position: relative;
+      overflow: hidden;
+    }
+    .studio-hero::after {
+      content: '';
+      position: absolute;
+      top: -40%;
+      right: -10%;
+      width: 420px;
+      height: 420px;
+      background: radial-gradient(circle, rgba(129, 140, 248, 0.25) 0%, rgba(255, 255, 255, 0) 70%);
+      pointer-events: none;
+    }
+    .studio-hero-content {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 18px;
+    }
+    .studio-title-block {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .studio-avatar-icon {
+      width: 54px;
+      height: 54px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #F43F5E 0%, #E11D48 100%);
+      border: 2px solid rgba(255, 255, 255, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      box-shadow: 0 8px 20px rgba(244, 63, 94, 0.35);
+    }
+    .relay-status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 11.5px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      background: rgba(16, 185, 129, 0.15);
+      color: #34D399;
+      border: 1px solid rgba(16, 185, 129, 0.35);
+    }
+    .relay-status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10B981;
+      box-shadow: 0 0 8px #10B981;
+      animation: pulse-dot 2s infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    /* 4 Telemetry KPI Cards */
+    .bc-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+    .bc-metric-card {
+      background: #FFFFFF;
+      border: 1px solid var(--bc-card-border);
+      border-radius: 16px;
+      padding: 16px 18px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .bc-metric-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.08);
+    }
+    .bc-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .bc-label {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: var(--bc-text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .bc-icon-box {
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+    }
+    .bc-value {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--bc-text-dark);
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+    .bc-footer {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 8px;
+      font-size: 11.5px;
+      font-weight: 600;
+    }
+
+    /* Template Cards */
+    .template-item-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+      padding: 12px 14px;
+      border: 1px solid #E2E8F0;
+      border-radius: 12px;
+      background: #FFFFFF;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      width: 100%;
+    }
+    .template-item-btn:hover {
+      border-color: #CBD5E1;
+      background: #F8FAFC;
+      transform: translateY(-1px);
+    }
+
+    @media (max-width: 1024px) {
+      .bc-stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+    @media (max-width: 640px) {
+      .bc-stats-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
 <body>
 <div class="erp-layout">
+  <!-- SIDEBAR (Full Standard 10-Item Super Admin Suite) -->
   <aside class="erp-sidebar theme-superadmin" id="sidebar">
-    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
-    <div class="sidebar-user"><div class="sidebar-avatar" id="sidebar-avatar">S</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Super Admin</div><div class="sidebar-user-role">Platform Administrator</div></div></div>
+    <div class="sidebar-header">
+      <a class="sidebar-logo" href="../../index.html">
+        <div class="sidebar-logo-icon">V</div>
+        <div class="sidebar-logo-text">Vishva<span>ERP</span></div>
+      </a>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" id="sidebar-avatar">S</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name" id="sidebar-user-name">Super Admin</div>
+        <div class="sidebar-user-role">Platform Administrator</div>
+      </div>
+    </div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Overview</div>
       <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-tachometer-alt"></i> Dashboard</a>
@@ -28,7 +215,9 @@
       <a href="broadcast.html" class="nav-link active"><i class="nav-link-icon fas fa-bullhorn"></i> Broadcast</a>
       <a href="settings.html" class="nav-link"><i class="nav-link-icon fas fa-cog"></i> Settings</a>
     </nav>
-    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+    <div class="sidebar-footer">
+      <button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </div>
   </aside>
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
@@ -36,100 +225,236 @@
     <header class="erp-topbar">
       <div class="topbar-left">
         <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
-        <div class="topbar-breadcrumb">Super Admin / <span>Platform Broadcast</span></div>
+        <div class="topbar-breadcrumb">Super Admin / <span>Platform Broadcast Studio</span></div>
       </div>
-      <div class="topbar-right"><div class="topbar-avatar" id="topbar-avatar">S</div></div>
+      <div class="topbar-right">
+        <div class="topbar-avatar" id="topbar-avatar">S</div>
+      </div>
     </header>
 
-    <div class="erp-content">
-      <div class="page-header">
-        <h1 class="page-title">📢 Platform Broadcast</h1>
-        <p class="page-subtitle">Send real-time notices and alerts to users across all institutions.</p>
+    <div class="erp-content page-enter" style="padding:24px">
+      <!-- BROADCAST STUDIO HERO -->
+      <div class="studio-hero">
+        <div class="studio-hero-content">
+          <div class="studio-title-block">
+            <div class="studio-avatar-icon">
+              <i class="fas fa-bullhorn"></i>
+            </div>
+            <div>
+              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                <h1 style="font-size:22px;font-weight:800;letter-spacing:-0.02em;margin:0">Emergency & Platform Broadcast Studio</h1>
+                <div class="relay-status-pill">
+                  <span class="relay-status-dot"></span>
+                  <span>Push Relay Online</span>
+                </div>
+              </div>
+              <p style="font-size:13px;color:#CBD5E1;margin:4px 0 0 0">
+                Instant platform-wide dispatch via WebSockets & WebPush to students, faculty, and college administrators.
+              </p>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:10px">
+            <button class="btn btn-secondary btn-sm" onclick="if(window.__erpAdminPageRefresh) window.__erpAdminPageRefresh()" style="background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);color:#FFFFFF">
+              <i class="fas fa-sync-alt"></i> Refresh Feed
+            </button>
+          </div>
+        </div>
       </div>
 
-      <div class="grid col-2">
-        <!-- COMPOSE -->
-        <div class="card">
-          <div class="card-header"><div class="card-title"><i class="fas fa-pencil-alt" style="color:#4F46E5;margin-right:8px"></i>Compose Broadcast</div></div>
-          <div class="card-body">
-            <div class="form-group">
-              <label class="form-label">Notice Title *</label>
-              <input class="form-control" id="bTitle" placeholder="e.g. Scheduled Maintenance — April 20">
-            </div>
-            <div class="form-group">
-              <label class="form-label">Priority *</label>
-              <div style="display:flex;gap:8px">
-                ${[['info','Info','#4F46E5'],['warning','Warning','#D97706'],['urgent','Urgent','#EF4444']].map(([v,l,c])=>`
-                  <label style="flex:1;display:flex;align-items:center;gap:8px;padding:10px 12px;border:2px solid #E2E8F0;border-radius:10px;cursor:pointer" id="prio-label-${v}">
-                    <input type="radio" name="priority" value="${v}" ${v==='info'?'checked':''} onchange="setPriority('${v}','${c}')">
-                    <span style="font-size:13px;font-weight:700;color:${c}">${l}</span>
-                  </label>`).join('')}
+      <!-- 4 TELEMETRY KPI CARDS -->
+      <div class="bc-stats-grid">
+        <div class="bc-metric-card">
+          <div>
+            <div class="bc-header">
+              <span class="bc-label">Broadcast Engine</span>
+              <div class="bc-icon-box" style="background:#ECFDF5;color:#059669">
+                <i class="fas fa-tower-broadcast"></i>
               </div>
             </div>
+            <div class="bc-value" style="color:#059669">Socket.io</div>
+          </div>
+          <div class="bc-footer" style="color:#059669">
+            <i class="fas fa-circle-check"></i>
+            <span>Real-time Event Mesh</span>
+          </div>
+        </div>
+
+        <div class="bc-metric-card">
+          <div>
+            <div class="bc-header">
+              <span class="bc-label">Global Fleet Reach</span>
+              <div class="bc-icon-box" style="background:#EEF2FF;color:#4F46E5">
+                <i class="fas fa-users"></i>
+              </div>
+            </div>
+            <div class="bc-value">All Tenants</div>
+          </div>
+          <div class="bc-footer" style="color:#4F46E5">
+            <i class="fas fa-satellite"></i>
+            <span>Cross-Campus Delivery</span>
+          </div>
+        </div>
+
+        <div class="bc-metric-card">
+          <div>
+            <div class="bc-header">
+              <span class="bc-label">Delivery Latency</span>
+              <div class="bc-icon-box" style="background:#E0F2FE;color:#0284C7">
+                <i class="fas fa-bolt"></i>
+              </div>
+            </div>
+            <div class="bc-value">&lt; 50ms</div>
+          </div>
+          <div class="bc-footer" style="color:#0284C7">
+            <i class="fas fa-gauge-high"></i>
+            <span>Instant Socket Dispatch</span>
+          </div>
+        </div>
+
+        <div class="bc-metric-card">
+          <div>
+            <div class="bc-header">
+              <span class="bc-label">Urgent Channels</span>
+              <div class="bc-icon-box" style="background:#FEE2E2;color:#DC2626">
+                <i class="fas fa-triangle-exclamation"></i>
+              </div>
+            </div>
+            <div class="bc-value" style="color:#DC2626">Priority Modal</div>
+          </div>
+          <div class="bc-footer" style="color:#DC2626">
+            <i class="fas fa-shield-alt"></i>
+            <span>Banner & Push Guard</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- MAIN ROW: COMPOSE & TEMPLATES/HISTORY -->
+      <div class="grid col-2" style="display:grid;grid-template-columns:1.2fr 1fr;gap:20px">
+        <!-- COMPOSE BROADCAST (Preserving #bTitle, name="priority", .target-check, #bMessage, #bSchedule, #previewBox, #previewContent, #sendBtn) -->
+        <div class="card" style="border-radius:18px;border:1px solid var(--bc-card-border);box-shadow:0 2px 6px rgba(0,0,0,0.03)">
+          <div class="card-header" style="background:#F8FAFC;border-bottom:1px solid #E2E8F0;padding:16px 20px">
+            <div class="card-title" style="font-weight:800;font-size:14px;color:#0F172A;display:flex;align-items:center;gap:8px">
+              <i class="fas fa-pen-nib" style="color:#4F46E5"></i>
+              Compose System Broadcast
+            </div>
+          </div>
+          <div class="card-body" style="padding:20px">
             <div class="form-group">
-              <label class="form-label">Target Audience *</label>
+              <label class="form-label" style="font-weight:700;font-size:13px;color:#0F172A">Notice Title *</label>
+              <input class="form-control" id="bTitle" placeholder="e.g. Scheduled Maintenance — Tonight 11:00 PM IST" style="border-radius:10px;font-size:13.5px">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" style="font-weight:700;font-size:13px;color:#0F172A">Priority Level *</label>
+              <div style="display:flex;gap:10px">
+                <label style="flex:1;display:flex;align-items:center;gap:8px;padding:10px 12px;border:2px solid #4F46E5;border-radius:10px;cursor:pointer;background:#EEF2FF12" id="prio-label-info">
+                  <input type="radio" name="priority" value="info" checked onchange="setPriority('info','#4F46E5')">
+                  <span style="font-size:13px;font-weight:700;color:#4F46E5"><i class="fas fa-info-circle"></i> Info</span>
+                </label>
+                <label style="flex:1;display:flex;align-items:center;gap:8px;padding:10px 12px;border:2px solid #E2E8F0;border-radius:10px;cursor:pointer" id="prio-label-warning">
+                  <input type="radio" name="priority" value="warning" onchange="setPriority('warning','#D97706')">
+                  <span style="font-size:13px;font-weight:700;color:#D97706"><i class="fas fa-triangle-exclamation"></i> Warning</span>
+                </label>
+                <label style="flex:1;display:flex;align-items:center;gap:8px;padding:10px 12px;border:2px solid #E2E8F0;border-radius:10px;cursor:pointer" id="prio-label-urgent">
+                  <input type="radio" name="priority" value="urgent" onchange="setPriority('urgent','#EF4444')">
+                  <span style="font-size:13px;font-weight:700;color:#EF4444"><i class="fas fa-radiation"></i> Urgent</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" style="font-weight:700;font-size:13px;color:#0F172A">Target Audience *</label>
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-                ${[['all','All Users'],['student','Students Only'],['faculty','Faculty Only'],['collegeAdmin','College Admins'],['parent','Parents Only']].map(([v,l])=>`
-                  <label style="display:flex;align-items:center;gap:8px;padding:8px 12px;border:1.5px solid #E2E8F0;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600">
-                    <input type="checkbox" class="target-check" value="${v}" ${v==='all'?'checked':''}> ${l}
-                  </label>`).join('')}
+                <label style="display:flex;align-items:center;gap:8px;padding:9px 12px;border:1.5px solid #E2E8F0;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600">
+                  <input type="checkbox" class="target-check" value="all" checked> All Platform Users
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;padding:9px 12px;border:1.5px solid #E2E8F0;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600">
+                  <input type="checkbox" class="target-check" value="student"> Students Only
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;padding:9px 12px;border:1.5px solid #E2E8F0;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600">
+                  <input type="checkbox" class="target-check" value="faculty"> Academic Faculty
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;padding:9px 12px;border:1.5px solid #E2E8F0;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600">
+                  <input type="checkbox" class="target-check" value="collegeAdmin"> College Administrators
+                </label>
+                <label style="display:flex;align-items:center;gap:8px;padding:9px 12px;border:1.5px solid #E2E8F0;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600">
+                  <input type="checkbox" class="target-check" value="parent"> Parents & Guardians
+                </label>
               </div>
             </div>
+
             <div class="form-group">
-              <label class="form-label">Message Body *</label>
-              <textarea class="form-control" id="bMessage" rows="5" placeholder="Write your broadcast message here...&#10;&#10;This will be sent to all selected user types across every institution on the platform."></textarea>
+              <label class="form-label" style="font-weight:700;font-size:13px;color:#0F172A">Broadcast Message Body *</label>
+              <textarea class="form-control" id="bMessage" rows="5" placeholder="Write your broadcast announcement here... Supports markdown formatting and cross-campus bullet points." style="border-radius:10px;font-size:13.5px;line-height:1.5"></textarea>
             </div>
+
             <div class="form-group">
-              <label class="form-label">Schedule (optional — leave blank to send now)</label>
-              <input class="form-control" type="datetime-local" id="bSchedule">
+              <label class="form-label" style="font-weight:600;font-size:12.5px;color:#64748B">Schedule Dispatch (Optional — leave blank to broadcast immediately)</label>
+              <input class="form-control" type="datetime-local" id="bSchedule" style="border-radius:10px">
             </div>
+
+            <!-- Live Real-Time Preview Box -->
             <div id="previewBox" style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:12px;padding:16px;margin-bottom:16px;display:none">
-              <div style="font-size:11px;font-weight:700;color:#64748B;margin-bottom:8px">PREVIEW</div>
+              <div style="font-size:11px;font-weight:800;color:#64748B;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.04em">Live Notification Preview</div>
               <div id="previewContent"></div>
             </div>
-            <div style="display:flex;gap:10px">
-              <button class="btn btn-secondary" style="flex:1" onclick="previewBroadcast()"><i class="fas fa-eye"></i> Preview</button>
-              <button class="btn btn-primary" style="flex:2" id="sendBtn" onclick="sendBroadcast()"><i class="fas fa-paper-plane"></i> Send Broadcast</button>
+
+            <div style="display:flex;gap:10px;margin-top:20px">
+              <button class="btn btn-secondary" style="flex:1;border-radius:10px;font-weight:700" onclick="previewBroadcast()">
+                <i class="fas fa-eye"></i> Preview Box
+              </button>
+              <button class="btn btn-primary" style="flex:2;border-radius:10px;font-weight:700" id="sendBtn" onclick="sendBroadcast()">
+                <i class="fas fa-paper-plane"></i> Dispatch Broadcast
+              </button>
             </div>
           </div>
         </div>
 
-        <!-- HISTORY + TEMPLATES -->
+        <!-- TEMPLATES + SEND HISTORY (Preserving #broadcastHistory, useTemplate(title, msg)) -->
         <div style="display:flex;flex-direction:column;gap:20px">
-          <!-- Quick Templates -->
-          <div class="card">
-            <div class="card-header"><div class="card-title"><i class="fas fa-magic" style="color:#D97706;margin-right:8px"></i>Quick Templates</div></div>
-            <div class="card-body" style="display:flex;flex-direction:column;gap:8px">
-              ${[
-                ['🔧 Maintenance Notice', "The platform will undergo scheduled maintenance on [DATE] from 11 PM to 2 AM IST. Please save your work before this time."],
-                ['🎉 New Feature Announcement', "We're excited to announce a new feature: [FEATURE NAME]. Log in to explore it now!"],
-                ['⚠️ Fee Deadline Reminder', "This is a reminder that the fee payment deadline is approaching. Please pay before [DATE] to avoid penalties."],
-                ['📚 Exam Schedule Update', "The mid-semester examination schedule has been published. Please check your respective portals for timetable."],
-              ].map(([title, msg]) => `
-                <button class="btn btn-secondary" style="text-align:left;height:auto;padding:10px 14px;flex-direction:column;align-items:flex-start;gap:2px" onclick="useTemplate(${JSON.stringify(title)},${JSON.stringify(msg)})">
-                  <div style="font-weight:700;font-size:13px">${title}</div>
-                  <div style="font-size:11px;color:#94A3B8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%">${msg.substring(0,60)}...</div>
-                </button>`).join('')}
+          <!-- Quick Templates Card -->
+          <div class="card" style="border-radius:18px;border:1px solid var(--bc-card-border);box-shadow:0 2px 6px rgba(0,0,0,0.03)">
+            <div class="card-header" style="background:#F8FAFC;border-bottom:1px solid #E2E8F0;padding:16px 20px">
+              <div class="card-title" style="font-weight:800;font-size:14px;color:#0F172A;display:flex;align-items:center;gap:8px">
+                <i class="fas fa-magic" style="color:#D97706"></i>
+                Emergency & Notice Templates
+              </div>
+            </div>
+            <div class="card-body" style="padding:16px;display:flex;flex-direction:column;gap:8px">
+              <button class="template-item-btn" onclick="useTemplate('Scheduled Maintenance Notice', 'The platform will undergo scheduled maintenance tonight from 11:00 PM to 01:00 AM IST. Please ensure all unsaved grading, examination records, and attendance entries are submitted prior to this window.')">
+                <div style="font-weight:700;font-size:13px;color:#0F172A"><i class="fas fa-wrench" style="color:#4F46E5;margin-right:4px"></i> Scheduled Platform Maintenance</div>
+                <div style="font-size:11.5px;color:#64748B">Pre-configured maintenance warning with timestamp guidance.</div>
+              </button>
+
+              <button class="template-item-btn" onclick="useTemplate('Urgent Fee Payment Deadline Reminder', 'This is an important reminder that the current semester fee payment deadline is approaching. Please clear all outstanding dues via your student/parent portal before the due date to prevent late fees.')">
+                <div style="font-weight:700;font-size:13px;color:#0F172A"><i class="fas fa-receipt" style="color:#D97706;margin-right:4px"></i> Fee Deadline Reminder</div>
+                <div style="font-size:11.5px;color:#64748B">Multi-tenant payment reminder for parents and students.</div>
+              </button>
+
+              <button class="template-item-btn" onclick="useTemplate('New Platform Capabilities Released', 'We are thrilled to announce new enterprise AI tools, live attendance biometric sync, and improved timetable scheduling on VishvaERP. Log in to explore the enhancements!')">
+                <div style="font-weight:700;font-size:13px;color:#0F172A"><i class="fas fa-sparkles" style="color:#059669;margin-right:4px"></i> Feature Announcement</div>
+                <div style="font-size:11.5px;color:#64748B">Engaging announcement template for upcoming releases.</div>
+              </button>
+
+              <button class="template-item-btn" onclick="useTemplate('Examination Schedule & Hall Ticket Published', 'The upcoming semester examination schedule and digital hall tickets are now available for download in your academic portal. Please verify your subject codes and venue details.')">
+                <div style="font-weight:700;font-size:13px;color:#0F172A"><i class="fas fa-calendar-check" style="color:#7C3AED;margin-right:4px"></i> Examination Schedule Advisory</div>
+                <div style="font-size:11.5px;color:#64748B">Academic timetable notification for all enrolled campuses.</div>
+              </button>
             </div>
           </div>
 
-          <!-- Broadcast History -->
-          <div class="card">
-            <div class="card-header"><div class="card-title"><i class="fas fa-history" style="color:#64748B;margin-right:8px"></i>Send History</div></div>
-            <div style="padding:12px" id="broadcastHistory">
-              ${[
-                { title:'Platform Maintenance', sent:'Apr 10, 11:00 PM', to:'All Users', priority:'warning' },
-                { title:'New AI Tools Released', sent:'Apr 8, 10:00 AM', to:'All Users', priority:'info' },
-                { title:'Emergency: DB Backup', sent:'Apr 5, 6:00 PM', to:'College Admins', priority:'urgent' },
-              ].map(b=>`
-                <div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid #F1F5F9;align-items:flex-start">
-                  <div class="stat-icon" style="width:32px;height:32px;font-size:13px;background:${b.priority==='urgent'?'#FEE2E2':b.priority==='warning'?'#FEF3C7':'#EDE9FE'};color:${b.priority==='urgent'?'#EF4444':b.priority==='warning'?'#D97706':'#4F46E5'}"><i class="fas fa-bullhorn"></i></div>
-                  <div style="flex:1">
-                    <div style="font-size:13px;font-weight:700">${b.title}</div>
-                    <div style="font-size:11px;color:#94A3B8">${b.sent} • ${b.to}</div>
-                  </div>
-                  <span class="badge ${b.priority==='urgent'?'badge-danger':b.priority==='warning'?'badge-warning':'badge-info'}">${b.priority}</span>
-                </div>`).join('')}
+          <!-- Broadcast History Card -->
+          <div class="card" style="border-radius:18px;border:1px solid var(--bc-card-border);box-shadow:0 2px 6px rgba(0,0,0,0.03)">
+            <div class="card-header" style="background:#F8FAFC;border-bottom:1px solid #E2E8F0;padding:16px 20px;display:flex;align-items:center;justify-content:space-between">
+              <div class="card-title" style="font-weight:800;font-size:14px;color:#0F172A;display:flex;align-items:center;gap:8px">
+                <i class="fas fa-history" style="color:#64748B"></i>
+                Recent Broadcast History
+              </div>
+              <span class="badge badge-info" style="font-size:11px">Live Stream</span>
+            </div>
+            <div style="padding:16px;max-height:300px;overflow-y:auto" id="broadcastHistory">
+              <div class="empty-state"><div class="empty-state-title">Loading history...</div></div>
             </div>
           </div>
         </div>

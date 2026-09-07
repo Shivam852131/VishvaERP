@@ -1,11 +1,575 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Colleges — Super Admin | VishvaERP</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Multi-Tenant Campus Studio — Super Admin | VishvaERP</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="../../css/custom.css">
+  <style>
+    :root {
+      --clg-primary: #4F46E5;
+      --clg-primary-hover: #4338CA;
+      --clg-primary-light: #EEF2FF;
+      --clg-card-border: #E2E8F0;
+      --clg-card-bg: #FFFFFF;
+      --clg-text-dark: #0F172A;
+      --clg-text-muted: #64748B;
+    }
+
+    /* Studio Header */
+    .studio-hero {
+      background: linear-gradient(135deg, #1E1B4B 0%, #312E81 50%, #4338CA 100%);
+      border-radius: 20px;
+      padding: 24px 28px;
+      color: #FFFFFF;
+      margin-bottom: 22px;
+      box-shadow: 0 12px 30px -8px rgba(49, 46, 129, 0.35);
+      position: relative;
+      overflow: hidden;
+    }
+    .studio-hero::after {
+      content: '';
+      position: absolute;
+      top: -40%;
+      right: -10%;
+      width: 380px;
+      height: 380px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.25) 0%, rgba(255, 255, 255, 0) 70%);
+      pointer-events: none;
+    }
+    .studio-hero-content {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 18px;
+    }
+    .studio-title-block {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .studio-avatar-icon {
+      width: 54px;
+      height: 54px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #818CF8 0%, #4F46E5 100%);
+      border: 2px solid rgba(255, 255, 255, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      box-shadow: 0 8px 20px rgba(79, 70, 229, 0.32);
+      position: relative;
+    }
+    .fleet-status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 10px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      background: rgba(16, 185, 129, 0.15);
+      color: #34D399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .fleet-status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #10B981;
+      box-shadow: 0 0 8px #10B981;
+      animation: pulse-dot 2s infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    /* Metric Cards Grid */
+    .clg-metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+    .clg-metric-card {
+      background: #FFFFFF;
+      border: 1px solid var(--clg-card-border);
+      border-radius: 16px;
+      padding: 16px 18px;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .clg-metric-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px -4px rgba(15, 23, 42, 0.08);
+      border-color: #C7D2FE;
+    }
+    .clg-metric-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .clg-metric-label {
+      font-size: 11px;
+      font-weight: 800;
+      color: #64748B;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .clg-metric-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+    }
+    .clg-metric-value {
+      font-size: 22px;
+      font-weight: 900;
+      color: #0F172A;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+    .clg-metric-sub {
+      font-size: 11px;
+      font-weight: 600;
+      color: #94A3B8;
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Segmented Navigation Bar & View Switcher */
+    .clg-controls-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .clg-tab-pills {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #FFFFFF;
+      padding: 5px;
+      border-radius: 14px;
+      border: 1px solid var(--clg-card-border);
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+      overflow-x: auto;
+    }
+    .clg-tab-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 15px;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #64748B;
+      border-radius: 10px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+      background: transparent;
+      border: none;
+    }
+    .clg-tab-btn:hover {
+      color: #0F172A;
+      background: #F8FAFC;
+    }
+    .clg-tab-btn.active {
+      background: #4F46E5;
+      color: #FFFFFF;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.28);
+    }
+    .clg-count-pill {
+      font-size: 10.5px;
+      font-weight: 800;
+      padding: 1px 7px;
+      border-radius: 9999px;
+      background: rgba(15, 23, 42, 0.08);
+      color: inherit;
+    }
+    .clg-tab-btn.active .clg-count-pill {
+      background: rgba(255, 255, 255, 0.25);
+      color: #FFFFFF;
+    }
+
+    /* View Switcher Controls */
+    .view-switcher-group {
+      display: inline-flex;
+      align-items: center;
+      background: #FFFFFF;
+      border: 1px solid var(--clg-card-border);
+      border-radius: 12px;
+      padding: 4px;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+    }
+    .view-switch-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      color: #64748B;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .view-switch-btn.active {
+      background: #EEF2FF;
+      color: #4F46E5;
+      box-shadow: 0 1px 3px rgba(79, 70, 229, 0.15);
+    }
+
+    /* Unified Filter Card */
+    .clg-filter-card {
+      background: #FFFFFF;
+      border: 1px solid var(--clg-card-border);
+      border-radius: 16px;
+      padding: 12px 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .clg-search-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      border-radius: 10px;
+      padding: 8px 14px;
+      flex: 1;
+      min-width: 240px;
+      transition: all 0.2s ease;
+    }
+    .clg-search-box:focus-within {
+      background: #FFFFFF;
+      border-color: #6366F1;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+    }
+    .clg-search-box input {
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: 13px;
+      width: 100%;
+      color: #0F172A;
+    }
+    .kbd-shortcut {
+      font-size: 10px;
+      font-weight: 700;
+      background: #E2E8F0;
+      color: #64748B;
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid #CBD5E1;
+      line-height: 1;
+    }
+
+    /* Modern Table Card */
+    .clg-table-card {
+      background: #FFFFFF;
+      border: 1px solid var(--clg-card-border);
+      border-radius: 16px;
+      box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
+      overflow: hidden;
+    }
+    .clg-table-wrap {
+      overflow-x: auto;
+      min-height: 280px;
+    }
+    .clg-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      text-align: left;
+    }
+    .clg-table thead th {
+      background: #F8FAFC;
+      color: #475569;
+      font-size: 11.5px;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 13px 18px;
+      border-bottom: 1px solid #E2E8F0;
+      white-space: nowrap;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .clg-table tbody tr {
+      transition: background 0.15s ease;
+      cursor: pointer;
+    }
+    .clg-table tbody tr:hover {
+      background: #F8FAFC;
+    }
+    .clg-table tbody td {
+      padding: 14px 18px;
+      border-bottom: 1px solid #F1F5F9;
+      font-size: 13px;
+      color: #1E293B;
+      vertical-align: middle;
+    }
+    .clg-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    /* College Seal Avatar */
+    .college-seal-avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 15px;
+      color: #FFFFFF;
+      flex-shrink: 0;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.4);
+    }
+
+    /* Cards Grid View */
+    .campus-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 16px;
+    }
+    .campus-card-item {
+      background: #FFFFFF;
+      border: 1px solid var(--clg-card-border);
+      border-radius: 18px;
+      padding: 18px;
+      box-shadow: 0 2px 10px rgba(15, 23, 42, 0.03);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+    }
+    .campus-card-item:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 14px 28px -6px rgba(15, 23, 42, 0.09);
+      border-color: #C7D2FE;
+    }
+    .campus-card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .campus-card-metrics {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      border-radius: 12px;
+      padding: 10px;
+      margin-bottom: 14px;
+      text-align: center;
+    }
+    .campus-metric-box .metric-num {
+      font-size: 15px;
+      font-weight: 800;
+      color: #0F172A;
+    }
+    .campus-metric-box .metric-lbl {
+      font-size: 10px;
+      font-weight: 700;
+      color: #64748B;
+      text-transform: uppercase;
+    }
+
+    /* Plan Tier Badges */
+    .plan-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 9px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+    .plan-enterprise {
+      background: #FEF3C7;
+      color: #92400E;
+      border: 1px solid #FDE68A;
+    }
+    .plan-pro {
+      background: #EDE9FE;
+      color: #5B21B6;
+      border: 1px solid #DDD6FE;
+    }
+    .plan-basic {
+      background: #F1F5F9;
+      color: #475569;
+      border: 1px solid #E2E8F0;
+    }
+
+    /* One-Click Status Toggle Pill */
+    .status-toggle-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 11.5px;
+      font-weight: 700;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+    }
+    .status-toggle-pill.active {
+      background: #ECFDF5;
+      color: #065F46;
+      border-color: #A7F3D0;
+    }
+    .status-toggle-pill.active:hover {
+      background: #D1FAE5;
+      box-shadow: 0 2px 6px rgba(16, 185, 129, 0.2);
+    }
+    .status-toggle-pill.suspended {
+      background: #FEF2F2;
+      color: #991B1B;
+      border-color: #FECACA;
+    }
+    .status-toggle-pill.suspended:hover {
+      background: #FEE2E2;
+      box-shadow: 0 2px 6px rgba(239, 68, 68, 0.2);
+    }
+    .status-toggle-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+    .status-toggle-pill.active .status-toggle-dot {
+      background: #10B981;
+    }
+    .status-toggle-pill.suspended .status-toggle-dot {
+      background: #EF4444;
+    }
+
+    /* Slide-Over Drawer */
+    .drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.4);
+      backdrop-filter: blur(4px);
+      z-index: 9998;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    .drawer-overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .slide-drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 520px;
+      max-width: 90vw;
+      background: #FFFFFF;
+      box-shadow: -10px 0 35px -5px rgba(15, 23, 42, 0.18);
+      z-index: 9999;
+      transform: translateX(100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+    }
+    .slide-drawer.open {
+      transform: translateX(0);
+    }
+    .drawer-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid #E2E8F0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #F8FAFC;
+    }
+    .drawer-body {
+      padding: 24px;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .drawer-footer {
+      padding: 16px 24px;
+      border-top: 1px solid #E2E8F0;
+      background: #F8FAFC;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    /* Monospace ID chip */
+    .code-chip {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 11px;
+      background: #F1F5F9;
+      color: #334155;
+      padding: 2px 7px;
+      border-radius: 5px;
+      border: 1px solid #E2E8F0;
+      letter-spacing: -0.02em;
+    }
+
+    @media (max-width: 1150px) {
+      .clg-metrics-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+    @media (max-width: 768px) {
+      .clg-metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .slide-drawer {
+        width: 100vw;
+        max-width: 100vw;
+      }
+    }
+    @media (max-width: 540px) {
+      .clg-metrics-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
 <body>
 <div class="erp-layout">
@@ -47,175 +611,476 @@
     </header>
 
     <div class="erp-content">
-      <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:24px">
-        <div>
-          <h1 class="page-title">College Management</h1>
-          <p class="page-subtitle">Add, view, and manage all registered institutions.</p>
-        </div>
-        <div style="display:flex;gap:10px">
-          <button class="btn btn-secondary" id="exportCollegesBtn"><i class="fas fa-download"></i> Export</button>
-          <button class="btn btn-primary" onclick="openModal('addCollegeModal')"><i class="fas fa-plus"></i> Add College</button>
-        </div>
-      </div>
-
-      <!-- Stats -->
-      <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px">
-        <div class="stat-card"><div class="stat-icon" style="background:#EDE9FE;color:#5B21B6"><i class="fas fa-university"></i></div><div class="stat-label">Total Colleges</div><div class="stat-value" data-counter="12">12</div></div>
-        <div class="stat-card"><div class="stat-icon" style="background:#D1FAE5;color:#065F46"><i class="fas fa-check-circle"></i></div><div class="stat-label">Active</div><div class="stat-value" data-counter="11">11</div></div>
-        <div class="stat-card"><div class="stat-icon" style="background:#FEE2E2;color:#991B1B"><i class="fas fa-pause-circle"></i></div><div class="stat-label">Suspended</div><div class="stat-value" data-counter="1">1</div></div>
-      </div>
-
-      <!-- Filter Bar -->
-      <div class="card mb-4">
-        <div class="card-body" style="padding:14px 20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-          <div class="search-bar" style="flex:1;min-width:160px">
-            <i class="fas fa-search"></i>
-            <input type="text" placeholder="Search by name, email, code..." id="searchInput">
+      <!-- Studio Hero Banner -->
+      <div class="studio-hero">
+        <div class="studio-hero-content">
+          <div class="studio-title-block">
+            <div class="studio-avatar-icon">
+              <i class="fas fa-university"></i>
+            </div>
+            <div>
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px;flex-wrap:wrap">
+                <h1 style="font-size:22px;font-weight:900;letter-spacing:-0.02em;margin:0">Multi-Tenant Campus Studio</h1>
+                <span class="fleet-status-pill">
+                  <span class="fleet-status-dot"></span>
+                  Multi-Tenant Fleet Online
+                </span>
+              </div>
+              <p style="font-size:13px;color:#CBD5E1;margin:0">
+                Manage institutional tenants, provision campuses, inspect demographic telemetry, and control subscription plans.
+              </p>
+            </div>
           </div>
-          <select class="form-control" id="statusFilter">
-            <option value="">All Status</option>
-            <option value="active">Active</option>
-            <option value="suspended">Suspended</option>
-          </select>
-          <button class="btn btn-secondary btn-sm" id="clearFilter"><i class="fas fa-times"></i> Clear</button>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+            <button class="btn btn-secondary" id="exportCollegesBtn" style="background:rgba(255,255,255,0.12);color:#FFF;border:1px solid rgba(255,255,255,0.2)">
+              <i class="fas fa-download"></i> Export CSV
+            </button>
+            <button class="btn" style="background:#6366F1;color:#FFF;border:none;box-shadow:0 4px 12px rgba(99,102,241,0.35);font-weight:700" onclick="openModal('addCollegeModal')">
+              <i class="fas fa-plus"></i> Register College
+            </button>
+            <button class="btn btn-secondary" id="refreshCollegesBtn" style="background:rgba(255,255,255,0.12);color:#FFF;border:1px solid rgba(255,255,255,0.2)" title="Refresh Data">
+              <i class="fas fa-sync-alt"></i>
+            </button>
+          </div>
         </div>
       </div>
 
-      <!-- Table -->
-      <div class="card">
-        <div class="table-wrap">
-          <table class="erp-table">
+      <!-- 5 Glassmorphic KPI Metric Cards -->
+      <div class="clg-metrics-grid">
+        <!-- Card 1: Total Colleges -->
+        <div class="clg-metric-card">
+          <div class="clg-metric-header">
+            <span class="clg-metric-label">Institutions</span>
+            <div class="clg-metric-icon" style="background:#EDE9FE;color:#5B21B6"><i class="fas fa-university"></i></div>
+          </div>
+          <div class="clg-metric-value" id="totalCollegesCount">-</div>
+          <div class="clg-metric-sub"><i class="fas fa-globe text-indigo-500"></i> Registered Campuses</div>
+        </div>
+
+        <!-- Card 2: Active Status -->
+        <div class="clg-metric-card">
+          <div class="clg-metric-header">
+            <span class="clg-metric-label">Active Tenancies</span>
+            <div class="clg-metric-icon" style="background:#DCFCE7;color:#15803D"><i class="fas fa-check-circle"></i></div>
+          </div>
+          <div class="clg-metric-value" id="activeCollegesCount">-</div>
+          <div class="clg-metric-sub">
+            <span id="activeCollegesPercent" style="font-weight:700;color:#16A34A">-</span> operational health
+          </div>
+        </div>
+
+        <!-- Card 3: Total Students -->
+        <div class="clg-metric-card">
+          <div class="clg-metric-header">
+            <span class="clg-metric-label">Enrolled Students</span>
+            <div class="clg-metric-icon" style="background:#E0F2FE;color:#0369A1"><i class="fas fa-user-graduate"></i></div>
+          </div>
+          <div class="clg-metric-value" id="totalStudentsCount">-</div>
+          <div class="clg-metric-sub"><i class="fas fa-graduation-cap text-sky-500"></i> Across all colleges</div>
+        </div>
+
+        <!-- Card 4: Total Faculty -->
+        <div class="clg-metric-card">
+          <div class="clg-metric-header">
+            <span class="clg-metric-label">Academic Faculty</span>
+            <div class="clg-metric-icon" style="background:#F3E8FF;color:#7E22CE"><i class="fas fa-chalkboard-teacher"></i></div>
+          </div>
+          <div class="clg-metric-value" id="totalFacultyCount">-</div>
+          <div class="clg-metric-sub"><i class="fas fa-users-cog text-purple-500"></i> Teaching & Staff</div>
+        </div>
+
+        <!-- Card 5: Subscription Tiers -->
+        <div class="clg-metric-card">
+          <div class="clg-metric-header">
+            <span class="clg-metric-label">Premium Tiers</span>
+            <div class="clg-metric-icon" style="background:#FEF3C7;color:#B45309"><i class="fas fa-gem"></i></div>
+          </div>
+          <div class="clg-metric-value" id="premiumTiersCount">-</div>
+          <div class="clg-metric-sub"><i class="fas fa-star text-amber-500"></i> Enterprise & Pro</div>
+        </div>
+      </div>
+
+      <!-- Segmented Navigation Bar & View Switcher -->
+      <div class="clg-controls-bar">
+        <!-- Segmented Tab Pills -->
+        <div class="clg-tab-pills">
+          <button class="clg-tab-btn active" id="tab-all" onclick="filterCollegesByTab('all')">
+            <i class="fas fa-th-large"></i> All Campuses
+            <span class="clg-count-pill" id="count-all">0</span>
+          </button>
+          <button class="clg-tab-btn" id="tab-active" onclick="filterCollegesByTab('active')">
+            <i class="fas fa-check-circle" style="color:#10B981"></i> Active
+            <span class="clg-count-pill" id="count-active">0</span>
+          </button>
+          <button class="clg-tab-btn" id="tab-suspended" onclick="filterCollegesByTab('suspended')">
+            <i class="fas fa-ban" style="color:#EF4444"></i> Suspended
+            <span class="clg-count-pill" id="count-suspended">0</span>
+          </button>
+          <button class="clg-tab-btn" id="tab-enterprise" onclick="filterCollegesByTab('enterprise')">
+            <i class="fas fa-crown" style="color:#F59E0B"></i> Enterprise
+            <span class="clg-count-pill" id="count-enterprise">0</span>
+          </button>
+          <button class="clg-tab-btn" id="tab-pro" onclick="filterCollegesByTab('pro')">
+            <i class="fas fa-bolt" style="color:#8B5CF6"></i> Pro
+            <span class="clg-count-pill" id="count-pro">0</span>
+          </button>
+          <button class="clg-tab-btn" id="tab-basic" onclick="filterCollegesByTab('basic')">
+            <i class="fas fa-layer-group" style="color:#64748B"></i> Basic
+            <span class="clg-count-pill" id="count-basic">0</span>
+          </button>
+        </div>
+
+        <!-- Dual View Switcher (Table vs Cards) -->
+        <div class="view-switcher-group">
+          <button class="view-switch-btn active" id="viewModeTable" onclick="switchCollegeView('table')">
+            <i class="fas fa-table"></i> Table Grid
+          </button>
+          <button class="view-switch-btn" id="viewModeCards" onclick="switchCollegeView('cards')">
+            <i class="fas fa-th"></i> Campus Cards
+          </button>
+        </div>
+      </div>
+
+      <!-- Unified Filter Toolbar -->
+      <div class="clg-filter-card">
+        <div class="clg-search-box">
+          <i class="fas fa-search" style="color:#94A3B8"></i>
+          <input type="text" placeholder="Search institutions by name, code, city, admin email..." id="searchInput">
+          <span class="kbd-shortcut">/</span>
+          <button type="button" id="clearSearchBtn" style="display:none;background:none;border:none;color:#94A3B8;cursor:pointer;font-size:12px">
+            <i class="fas fa-times-circle"></i>
+          </button>
+        </div>
+
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <!-- Status Select (Preserved ID) -->
+          <select class="form-control" id="statusFilter" style="width:140px;font-size:12.5px;padding:7px 10px;border-radius:10px">
+            <option value="">All Status</option>
+            <option value="active">Active Only</option>
+            <option value="suspended">Suspended Only</option>
+          </select>
+
+          <!-- Plan Select -->
+          <select class="form-control" id="planFilter" style="width:140px;font-size:12.5px;padding:7px 10px;border-radius:10px">
+            <option value="">All Plans</option>
+            <option value="enterprise">Enterprise</option>
+            <option value="pro">Pro</option>
+            <option value="basic">Basic</option>
+          </select>
+
+          <!-- Per Page Selector -->
+          <select class="form-control" id="collegesPerPage" style="width:110px;font-size:12.5px;padding:7px 10px;border-radius:10px">
+            <option value="10">10 / page</option>
+            <option value="15" selected>15 / page</option>
+            <option value="25">25 / page</option>
+            <option value="50">50 / page</option>
+          </select>
+
+          <!-- Clear Filters (Preserved ID) -->
+          <button class="btn btn-secondary btn-sm" id="clearFilter" style="border-radius:10px">
+            <i class="fas fa-undo"></i> Reset
+          </button>
+        </div>
+      </div>
+
+      <!-- MAIN CONTENT AREA -->
+      <!-- 1. TABLE VIEW (Default) -->
+      <div id="collegesTableView" class="clg-table-card">
+        <div class="clg-table-wrap">
+          <table class="clg-table">
             <thead>
               <tr>
-                <th>#</th>
+                <th style="width:40px">#</th>
                 <th>Institution</th>
-                <th>Admin</th>
-                <th>Students</th>
-                <th>Faculty</th>
-                <th>Joined</th>
+                <th>Code & ID</th>
+                <th>Admin Authority</th>
+                <th>Demographics</th>
+                <th>Plan Tier</th>
                 <th>Status</th>
-                <th>Actions</th>
+                <th style="text-align:right">Actions</th>
               </tr>
             </thead>
             <tbody id="collegesBody">
-              <tr><td colspan="8" style="text-align:center;padding:40px"><i class="fas fa-spinner fa-spin" style="font-size:28px;color:#4F46E5"></i></td></tr>
+              <tr>
+                <td colspan="8" style="text-align:center;padding:50px">
+                  <i class="fas fa-circle-notch fa-spin" style="font-size:32px;color:#4F46E5"></i>
+                  <div style="font-size:13px;color:#64748B;margin-top:12px;font-weight:600">Connecting to Multi-Tenant Fleet...</div>
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>
       </div>
 
-      <!-- Pagination -->
-      <div class="pagination-wrap" style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding:12px 20px;background:#fff;border-radius:10px;border:1px solid #F1F5F9">
-        <div id="collegePageInfo" style="font-size:13px;color:#64748B"></div>
+      <!-- 2. CAMPUS CARDS VIEW -->
+      <div id="collegesCardsView" style="display:none">
+        <div class="campus-cards-grid" id="collegesCardsGrid">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <!-- Pagination Wrap (Preserved IDs) -->
+      <div class="pagination-wrap" style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding:12px 20px;background:#FFFFFF;border-radius:14px;border:1px solid #E2E8F0;box-shadow:0 2px 6px rgba(15,23,42,0.02)">
+        <div id="collegePageInfo" style="font-size:13px;color:#64748B;font-weight:600">Loading records...</div>
         <div style="display:flex;gap:8px">
-          <button class="btn btn-secondary btn-sm" id="collegePrevBtn" disabled><i class="fas fa-chevron-left"></i> Prev</button>
-          <button class="btn btn-secondary btn-sm" id="collegeNextBtn" disabled>Next <i class="fas fa-chevron-right"></i></button>
+          <button class="btn btn-secondary btn-sm" id="collegePrevBtn" disabled style="border-radius:8px">
+            <i class="fas fa-chevron-left"></i> Prev
+          </button>
+          <button class="btn btn-secondary btn-sm" id="collegeNextBtn" disabled style="border-radius:8px">
+            Next <i class="fas fa-chevron-right"></i>
+          </button>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ADD COLLEGE MODAL -->
+<!-- SLIDE-OVER CAMPUS INSPECTOR DRAWER -->
+<div class="drawer-overlay" id="collegeDrawerOverlay" onclick="closeCollegeDrawer()"></div>
+<div class="slide-drawer" id="collegeDrawer">
+  <div class="drawer-header">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="college-seal-avatar" id="drawerSealAvatar" style="background:linear-gradient(135deg,#6366F1,#4F46E5)">C</div>
+      <div>
+        <h2 style="font-size:16px;font-weight:800;color:#0F172A;margin:0" id="drawerCollegeName">Institution Details</h2>
+        <div style="font-size:11.5px;color:#64748B;display:flex;align-items:center;gap:6px;margin-top:2px">
+          <span class="code-chip" id="drawerCollegeCode">CODE</span>
+          <span id="drawerStatusBadge"></span>
+        </div>
+      </div>
+    </div>
+    <button style="background:none;border:none;color:#94A3B8;cursor:pointer;font-size:18px;padding:4px 8px" onclick="closeCollegeDrawer()">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+  <div class="drawer-body" id="drawerBody">
+    <!-- Populated by JS -->
+  </div>
+  <div class="drawer-footer" id="drawerFooter">
+    <button class="btn btn-secondary btn-sm" onclick="closeCollegeDrawer()">Close</button>
+  </div>
+</div>
+
+<!-- ADD COLLEGE MODAL (Preserved IDs) -->
 <div class="modal-backdrop" id="addCollegeModal">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title"><i class="fas fa-university" style="color:#4F46E5;margin-right:8px"></i>Register New College</div>
+  <div class="modal modal-lg" style="max-width:640px;border-radius:20px;overflow:hidden">
+    <div class="modal-header" style="background:#F8FAFC;border-bottom:1px solid #E2E8F0;padding:18px 24px">
+      <div class="modal-title" style="display:flex;align-items:center;gap:10px;font-weight:800;color:#0F172A">
+        <div style="width:34px;height:34px;border-radius:10px;background:#EEF2FF;color:#4F46E5;display:flex;align-items:center;justify-content:center;font-size:15px">
+          <i class="fas fa-university"></i>
+        </div>
+        Register New Campus
+      </div>
       <button class="modal-close" onclick="closeModal('addCollegeModal')"><i class="fas fa-times"></i></button>
     </div>
-    <div class="modal-body">
+    <div class="modal-body" style="padding:22px 24px">
       <form id="addCollegeForm">
-        <div class="form-group"><label class="form-label">College Name *</label><input class="form-control" id="cName" required placeholder="e.g. IIT Delhi"></div>
-        <div class="form-grid-2">
-          <div class="form-group"><label class="form-label">College Code</label><input class="form-control" id="cCode" placeholder="e.g. IITD"></div>
-          <div class="form-group"><label class="form-label">Phone</label><input class="form-control" id="cPhone" placeholder="+91 ..."></div>
+        <div style="font-size:11px;font-weight:800;letter-spacing:0.06em;color:#64748B;text-transform:uppercase;margin-bottom:12px">
+          1. Institutional Profile
         </div>
-        <div class="form-group"><label class="form-label">Address</label><input class="form-control" id="cAddress" placeholder="Full address"></div>
-        <div style="border-top:1px solid #F1F5F9;margin:16px 0;padding-top:16px;font-weight:700;font-size:13px;color:#64748B">ADMIN ACCOUNT</div>
-        <div class="form-group"><label class="form-label">Admin Full Name *</label><input class="form-control" id="aName" required placeholder="Admin's name"></div>
+        <div class="form-group">
+          <label class="form-label">College / Institution Name *</label>
+          <input class="form-control" id="cName" required placeholder="e.g. Indian Institute of Technology Delhi">
+        </div>
         <div class="form-grid-2">
-          <div class="form-group"><label class="form-label">Admin Email *</label><input class="form-control" type="email" id="aEmail" required placeholder="admin@college.com"></div>
-          <div class="form-group"><label class="form-label">Admin Password *</label><input class="form-control" type="password" id="aPass" required placeholder="Min. 8 chars"></div>
+          <div class="form-group">
+            <label class="form-label">College Code</label>
+            <input class="form-control" id="cCode" placeholder="e.g. IITD">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Contact Phone</label>
+            <input class="form-control" id="cPhone" placeholder="+91 98765 43210">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Campus Address</label>
+          <input class="form-control" id="cAddress" placeholder="e.g. Hauz Khas, New Delhi">
+        </div>
+
+        <div style="border-top:1px dashed #E2E8F0;margin:18px 0;padding-top:16px;font-size:11px;font-weight:800;letter-spacing:0.06em;color:#64748B;text-transform:uppercase">
+          2. Master College Administrator
+        </div>
+        <div class="form-group">
+          <label class="form-label">Admin Full Name *</label>
+          <input class="form-control" id="aName" required placeholder="e.g. Dr. Rajesh Sharma">
+        </div>
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label">Admin Official Email *</label>
+            <input class="form-control" type="email" id="aEmail" required placeholder="admin@iitd.ac.in">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Initial Password *</label>
+            <input class="form-control" type="password" id="aPass" required placeholder="Min. 8 characters">
+          </div>
         </div>
       </form>
     </div>
-    <div class="modal-footer">
+    <div class="modal-footer" style="background:#F8FAFC;border-top:1px solid #E2E8F0;padding:16px 24px">
       <button class="btn btn-secondary" onclick="closeModal('addCollegeModal')">Cancel</button>
-      <button class="btn btn-primary" id="addCollegeBtn" onclick="submitCollege()"><i class="fas fa-check"></i> Register College</button>
+      <button class="btn btn-primary" id="addCollegeBtn" onclick="submitCollege()">
+        <i class="fas fa-check"></i> Provision Campus
+      </button>
     </div>
   </div>
 </div>
 
-<!-- VIEW COLLEGE MODAL -->
-<div class="modal-backdrop" id="viewCollegeModal">
-  <div class="modal modal-lg">
-    <div class="modal-header">
-      <div class="modal-title" id="viewCollegeTitle">College Details</div>
-      <button class="modal-close" onclick="closeModal('viewCollegeModal')"><i class="fas fa-times"></i></button>
-    </div>
-    <div class="modal-body" id="viewCollegeBody" style="min-height:200px"></div>
-  </div>
-</div>
-
-<!-- EDIT COLLEGE MODAL -->
+<!-- EDIT COLLEGE MODAL (Preserved IDs) -->
 <div class="modal-backdrop" id="editCollegeModal">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title"><i class="fas fa-pen" style="color:#4F46E5;margin-right:8px"></i>Edit College</div>
+  <div class="modal" style="max-width:540px;border-radius:20px;overflow:hidden">
+    <div class="modal-header" style="background:#F8FAFC;border-bottom:1px solid #E2E8F0;padding:18px 24px">
+      <div class="modal-title" style="display:flex;align-items:center;gap:10px;font-weight:800;color:#0F172A">
+        <div style="width:34px;height:34px;border-radius:10px;background:#EEF2FF;color:#4F46E5;display:flex;align-items:center;justify-content:center;font-size:15px">
+          <i class="fas fa-pen"></i>
+        </div>
+        Edit Institutional Metadata
+      </div>
       <button class="modal-close" onclick="closeModal('editCollegeModal')"><i class="fas fa-times"></i></button>
     </div>
-    <div class="modal-body">
+    <div class="modal-body" style="padding:22px 24px">
       <form id="editCollegeForm">
-        <div class="form-group"><label class="form-label">College Name *</label><input class="form-control" id="ecName" required placeholder="e.g. IIT Delhi"></div>
-        <div class="form-grid-2">
-          <div class="form-group"><label class="form-label">College Code</label><input class="form-control" id="ecCode" placeholder="e.g. IITD"></div>
-          <div class="form-group"><label class="form-label">Phone</label><input class="form-control" id="ecPhone" placeholder="+91 ..."></div>
+        <div class="form-group">
+          <label class="form-label">College Name *</label>
+          <input class="form-control" id="ecName" required placeholder="e.g. IIT Delhi">
         </div>
-        <div class="form-group"><label class="form-label">Address</label><input class="form-control" id="ecAddress" placeholder="Full address"></div>
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label">College Code</label>
+            <input class="form-control" id="ecCode" placeholder="e.g. IITD">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Phone</label>
+            <input class="form-control" id="ecPhone" placeholder="+91 ...">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Address</label>
+          <input class="form-control" id="ecAddress" placeholder="Full campus address">
+        </div>
       </form>
     </div>
-    <div class="modal-footer">
+    <div class="modal-footer" style="background:#F8FAFC;border-top:1px solid #E2E8F0;padding:16px 24px">
       <button class="btn btn-secondary" onclick="closeModal('editCollegeModal')">Cancel</button>
-      <button class="btn btn-primary" id="updateCollegeBtn" onclick="updateCollege()"><i class="fas fa-check"></i> Save Changes</button>
+      <button class="btn btn-primary" id="updateCollegeBtn" onclick="updateCollege()">
+        <i class="fas fa-check"></i> Save Changes
+      </button>
     </div>
   </div>
 </div>
 
-<!-- ASSIGN ADMIN MODAL -->
+<!-- CHANGE PLAN MODAL -->
+<div class="modal-backdrop" id="changePlanModal">
+  <div class="modal" style="max-width:480px;border-radius:20px;overflow:hidden">
+    <div class="modal-header" style="background:#F8FAFC;border-bottom:1px solid #E2E8F0;padding:18px 24px">
+      <div class="modal-title" style="display:flex;align-items:center;gap:10px;font-weight:800;color:#0F172A">
+        <div style="width:34px;height:34px;border-radius:10px;background:#FEF3C7;color:#B45309;display:flex;align-items:center;justify-content:center;font-size:15px">
+          <i class="fas fa-gem"></i>
+        </div>
+        Manage Subscription Plan
+      </div>
+      <button class="modal-close" onclick="closeModal('changePlanModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body" style="padding:22px 24px">
+      <p style="font-size:13px;color:#64748B;margin-bottom:16px">
+        Update subscription tier and quota allocation for <strong id="cpCollegeName" style="color:#0F172A"></strong>.
+      </p>
+      <form id="changePlanForm">
+        <div class="form-group">
+          <label class="form-label">Subscription Tier *</label>
+          <select class="form-control" id="cpPlan" required style="border-radius:10px">
+            <option value="basic">Basic (Standard Quota)</option>
+            <option value="pro">Pro (Advanced AI Hub + Multi-Dept)</option>
+            <option value="enterprise">Enterprise (Unlimited + Dedicated SLA)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Plan Expiry Date</label>
+          <input class="form-control" type="date" id="cpExpiry" style="border-radius:10px">
+        </div>
+      </form>
+    </div>
+    <div class="modal-footer" style="background:#F8FAFC;border-top:1px solid #E2E8F0;padding:16px 24px">
+      <button class="btn btn-secondary" onclick="closeModal('changePlanModal')">Cancel</button>
+      <button class="btn btn-primary" id="savePlanBtn" onclick="saveCollegePlan()">
+        <i class="fas fa-check"></i> Apply Plan Update
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ASSIGN ADMIN MODAL (Preserved IDs) -->
 <div class="modal-backdrop" id="assignAdminModal">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title"><i class="fas fa-user-plus" style="color:#4F46E5;margin-right:8px"></i>Assign New Admin</div>
+  <div class="modal" style="max-width:480px;border-radius:20px;overflow:hidden">
+    <div class="modal-header" style="background:#F8FAFC;border-bottom:1px solid #E2E8F0;padding:18px 24px">
+      <div class="modal-title" style="display:flex;align-items:center;gap:10px;font-weight:800;color:#0F172A">
+        <div style="width:34px;height:34px;border-radius:10px;background:#EEF2FF;color:#4F46E5;display:flex;align-items:center;justify-content:center;font-size:15px">
+          <i class="fas fa-user-shield"></i>
+        </div>
+        Assign Campus Administrator
+      </div>
       <button class="modal-close" onclick="closeModal('assignAdminModal')"><i class="fas fa-times"></i></button>
     </div>
-    <div class="modal-body">
-      <p style="font-size:13px;color:#64748B;margin-bottom:16px">This will send an invitation email to the new admin for <strong id="assignAdminCollegeName"></strong>.</p>
+    <div class="modal-body" style="padding:22px 24px">
+      <p style="font-size:13px;color:#64748B;margin-bottom:16px">
+        Assign or transfer primary administrator credentials for <strong id="assignAdminCollegeName" style="color:#0F172A"></strong>.
+      </p>
       <form id="assignAdminForm">
-        <div class="form-group"><label class="form-label">Admin Email *</label><input class="form-control" type="email" id="aaEmail" required placeholder="admin@college.com"></div>
+        <div class="form-group">
+          <label class="form-label">College Admin Email Address *</label>
+          <input class="form-control" type="email" id="aaEmail" required placeholder="admin@college.edu">
+          <small style="color:#94A3B8;font-size:11px;margin-top:4px;display:block">
+            The user must already have a College Admin account in the platform directory.
+          </small>
+        </div>
       </form>
     </div>
-    <div class="modal-footer">
+    <div class="modal-footer" style="background:#F8FAFC;border-top:1px solid #E2E8F0;padding:16px 24px">
       <button class="btn btn-secondary" onclick="closeModal('assignAdminModal')">Cancel</button>
-      <button class="btn btn-primary" id="assignAdminBtn" onclick="submitAssignAdmin()"><i class="fas fa-paper-plane"></i> Send Invitation</button>
+      <button class="btn btn-primary" id="assignAdminBtn" onclick="submitAssignAdmin()">
+        <i class="fas fa-paper-plane"></i> Assign Authority
+      </button>
     </div>
   </div>
 </div>
 
-<!-- DELETE COLLEGE MODAL -->
+<!-- DELETE COLLEGE MODAL (Preserved IDs) -->
 <div class="modal-backdrop" id="deleteCollegeModal">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title"><i class="fas fa-exclamation-triangle" style="color:#DC2626;margin-right:8px"></i>Delete College</div>
+  <div class="modal" style="max-width:480px;border-radius:20px;overflow:hidden">
+    <div class="modal-header" style="background:#FEF2F2;border-bottom:1px solid #FEE2E2;padding:18px 24px">
+      <div class="modal-title" style="display:flex;align-items:center;gap:10px;font-weight:800;color:#991B1B">
+        <div style="width:34px;height:34px;border-radius:10px;background:#FEE2E2;color:#DC2626;display:flex;align-items:center;justify-content:center;font-size:15px">
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        Decommission Institution
+      </div>
       <button class="modal-close" onclick="closeModal('deleteCollegeModal')"><i class="fas fa-times"></i></button>
     </div>
-    <div class="modal-body">
-      <p style="font-size:14px;color:#334155">Are you sure you want to delete <strong id="deleteCollegeName"></strong>?</p>
-      <p style="font-size:13px;color:#94A3B8;margin-top:8px">This action cannot be undone. All associated data including admin accounts, students, and records will be permanently removed.</p>
+    <div class="modal-body" style="padding:22px 24px">
+      <p style="font-size:14px;color:#1E293B;font-weight:600">
+        Are you sure you want to permanently delete <strong id="deleteCollegeName" style="color:#DC2626"></strong>?
+      </p>
+      <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:12px;padding:12px;margin-top:12px;font-size:12px;color:#991B1B">
+        <i class="fas fa-radiation-alt" style="margin-right:6px"></i>
+        <strong>Irreversible Action:</strong> This will cascade deactivation across all faculty, students, and parent accounts associated with this institution.
+      </div>
     </div>
-    <div class="modal-footer">
+    <div class="modal-footer" style="background:#F8FAFC;border-top:1px solid #E2E8F0;padding:16px 24px">
       <button class="btn btn-secondary" onclick="closeModal('deleteCollegeModal')">Cancel</button>
-      <button class="btn btn-danger" id="confirmDeleteCollegeBtn" onclick="executeDeleteCollege()"><i class="fas fa-trash"></i> Delete College</button>
+      <button class="btn btn-danger" id="confirmDeleteCollegeBtn" onclick="executeDeleteCollege()">
+        <i class="fas fa-trash"></i> Permanently Decommission
+      </button>
     </div>
+  </div>
+</div>
+
+<!-- VIEW COLLEGE MODAL (Preserved for compatibility) -->
+<div class="modal-backdrop" id="viewCollegeModal">
+  <div class="modal modal-lg" style="max-width:600px;border-radius:20px;overflow:hidden">
+    <div class="modal-header" style="background:#F8FAFC;border-bottom:1px solid #E2E8F0;padding:18px 24px">
+      <div class="modal-title" id="viewCollegeTitle" style="font-weight:800">College Details</div>
+      <button class="modal-close" onclick="closeModal('viewCollegeModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body" id="viewCollegeBody" style="min-height:200px;padding:24px"></div>
   </div>
 </div>
 

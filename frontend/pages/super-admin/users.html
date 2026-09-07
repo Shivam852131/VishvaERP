@@ -1,17 +1,479 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Users — Super Admin | VishvaERP</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Platform Users | VishvaERP Super Admin</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="../../css/custom.css">
+  <style>
+    /* ==========================================================================
+       VISHVA ERP — ADVANCED USER DIRECTORY DESIGN SYSTEM
+       ========================================================================== */
+    :root {
+      --usr-primary: #4F46E5;
+      --usr-primary-hover: #4338CA;
+      --usr-card-border: rgba(226, 232, 240, 0.85);
+    }
+
+    /* Directory Studio Hero Header */
+    .usr-studio-header {
+      background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 60%, #EEF2FF 100%);
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      border-radius: 20px;
+      padding: 22px 28px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05);
+      position: relative;
+      overflow: hidden;
+    }
+    .usr-studio-header::after {
+      content: '';
+      position: absolute;
+      top: -40px;
+      right: -40px;
+      width: 180px;
+      height: 180px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.12) 0%, rgba(139, 92, 246, 0) 70%);
+      pointer-events: none;
+    }
+
+    .usr-logo-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      box-shadow: 0 8px 18px rgba(79, 70, 229, 0.28);
+      position: relative;
+    }
+
+    /* Metric Cards Grid */
+    .usr-metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+    .usr-metric-card {
+      background: #FFFFFF;
+      border: 1px solid var(--usr-card-border);
+      border-radius: 16px;
+      padding: 16px 18px;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .usr-metric-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px -4px rgba(15, 23, 42, 0.08);
+      border-color: #C7D2FE;
+    }
+    .usr-metric-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .usr-metric-label {
+      font-size: 11px;
+      font-weight: 800;
+      color: #64748B;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+    .usr-metric-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+    }
+    .usr-metric-value {
+      font-size: 22px;
+      font-weight: 900;
+      color: #0F172A;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+    .usr-metric-sub {
+      font-size: 11px;
+      font-weight: 600;
+      color: #94A3B8;
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    /* Role Segmented Tabs Bar */
+    .role-segmented-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: #FFFFFF;
+      padding: 6px;
+      border-radius: 14px;
+      border: 1px solid var(--usr-card-border);
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+      margin-bottom: 16px;
+      overflow-x: auto;
+    }
+    .role-segmented-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      font-size: 12.5px;
+      font-weight: 700;
+      color: #64748B;
+      border-radius: 10px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+      background: transparent;
+      border: none;
+    }
+    .role-segmented-btn:hover {
+      color: #0F172A;
+      background: #F8FAFC;
+    }
+    .role-segmented-btn.active {
+      background: #4F46E5;
+      color: #FFFFFF;
+      box-shadow: 0 4px 12px rgba(79, 70, 229, 0.28);
+    }
+    .role-count-pill {
+      font-size: 10.5px;
+      font-weight: 800;
+      padding: 1px 7px;
+      border-radius: 9999px;
+      background: rgba(15, 23, 42, 0.08);
+      color: inherit;
+    }
+    .role-segmented-btn.active .role-count-pill {
+      background: rgba(255, 255, 255, 0.25);
+      color: #FFFFFF;
+    }
+
+    /* Unified Filter Card */
+    .usr-filter-card {
+      background: #FFFFFF;
+      border: 1px solid var(--usr-card-border);
+      border-radius: 16px;
+      padding: 12px 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .usr-search-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 220px;
+    }
+    .usr-search-input {
+      width: 100%;
+      height: 38px;
+      padding: 0 34px 0 36px;
+      font-size: 12.5px;
+      border: 1px solid #E2E8F0;
+      border-radius: 10px;
+      background: #F8FAFC;
+      color: #0F172A;
+      transition: all 0.2s ease;
+    }
+    .usr-search-input:focus {
+      background: #FFFFFF;
+      border-color: #6366F1;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+      outline: none;
+    }
+    .usr-search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 12.5px;
+      color: #94A3B8;
+      pointer-events: none;
+    }
+    .usr-search-kbd {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 10px;
+      font-weight: 800;
+      color: #94A3B8;
+      background: #FFFFFF;
+      border: 1px solid #E2E8F0;
+      padding: 1px 5px;
+      border-radius: 4px;
+      pointer-events: none;
+    }
+
+    /* Table Container */
+    .usr-table-card {
+      background: #FFFFFF;
+      border: 1px solid var(--usr-card-border);
+      border-radius: 18px;
+      box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
+      overflow: hidden;
+    }
+    .usr-table-wrap {
+      overflow-x: auto;
+      min-height: 380px;
+    }
+    .usr-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      text-align: left;
+    }
+    .usr-table th {
+      background: #F8FAFC;
+      font-size: 11px;
+      font-weight: 800;
+      color: #64748B;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      padding: 13px 16px;
+      border-bottom: 1px solid #E2E8F0;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      white-space: nowrap;
+    }
+    .usr-table td {
+      padding: 12px 16px;
+      font-size: 12.5px;
+      border-bottom: 1px solid #F1F5F9;
+      color: #1E293B;
+      vertical-align: middle;
+    }
+    .usr-table tbody tr {
+      transition: background 0.15s ease;
+    }
+    .usr-table tbody tr:hover {
+      background: #F8FAFC;
+    }
+    .usr-table tbody tr.selected {
+      background: #EEF2FF;
+    }
+
+    /* Avatar Pill */
+    .user-avatar-circle {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 14px;
+      flex-shrink: 0;
+      color: #FFFFFF;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Role Badges */
+    .role-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+    }
+    .role-badge.admin {
+      background: #EEF2FF;
+      color: #4F46E5;
+      border: 1px solid #C7D2FE;
+    }
+    .role-badge.faculty {
+      background: #ECFDF5;
+      color: #047857;
+      border: 1px solid #A7F3D0;
+    }
+    .role-badge.student {
+      background: #F0F9FF;
+      color: #0284C7;
+      border: 1px solid #BAE6FD;
+    }
+    .role-badge.parent {
+      background: #FDF2F8;
+      color: #BE185D;
+      border: 1px solid #FBCFE8;
+    }
+    .role-badge.default {
+      background: #F1F5F9;
+      color: #475569;
+      border: 1px solid #E2E8F0;
+    }
+
+    /* Interactive Status Toggle Pill */
+    .status-toggle-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 10px;
+      border-radius: 9999px;
+      font-size: 11px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      border: 1px solid transparent;
+    }
+    .status-toggle-pill.active {
+      background: #ECFDF5;
+      color: #047857;
+      border-color: #A7F3D0;
+    }
+    .status-toggle-pill.active:hover {
+      background: #D1FAE5;
+    }
+    .status-toggle-pill.inactive {
+      background: #FEF2F2;
+      color: #B91C1C;
+      border-color: #FECACA;
+    }
+    .status-toggle-pill.inactive:hover {
+      background: #FEE2E2;
+    }
+
+    /* Action Icon Buttons */
+    .action-icon-btn {
+      width: 30px;
+      height: 30px;
+      border-radius: 8px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      border: 1px solid #E2E8F0;
+      background: #FFFFFF;
+      color: #64748B;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .action-icon-btn:hover {
+      background: #F8FAFC;
+      color: #0F172A;
+      border-color: #CBD5E1;
+      transform: translateY(-1px);
+    }
+    .action-icon-btn.btn-inspect:hover {
+      color: #4F46E5;
+      border-color: #A5B4FC;
+      background: #EEF2FF;
+    }
+    .action-icon-btn.btn-edit:hover {
+      color: #0EA5E9;
+      border-color: #BAE6FD;
+      background: #F0F9FF;
+    }
+    .action-icon-btn.btn-danger:hover {
+      color: #EF4444;
+      border-color: #FECACA;
+      background: #FEF2F2;
+    }
+
+    /* Floating Bulk Actions Bar */
+    .bulk-action-bar {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(120px);
+      background: #1E1B4B;
+      color: #FFFFFF;
+      padding: 12px 24px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 16px 36px rgba(15, 23, 42, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(12px);
+      z-index: 1000;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .bulk-action-bar.visible {
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* Slide-Over Profile Drawer */
+    .drawer-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.45);
+      backdrop-filter: blur(3px);
+      z-index: 1050;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+    }
+    .drawer-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .usr-profile-drawer {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 480px;
+      max-width: 90vw;
+      background: #FFFFFF;
+      box-shadow: -10px 0 35px rgba(15, 23, 42, 0.18);
+      z-index: 1060;
+      transform: translateX(100%);
+      transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      flex-direction: column;
+    }
+    .usr-profile-drawer.active {
+      transform: translateX(0);
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 1100px) {
+      .usr-metrics-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+    @media (max-width: 768px) {
+      .usr-metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    @media (max-width: 500px) {
+      .usr-metrics-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
 <body>
 <div class="erp-layout">
+  <!-- SIDEBAR -->
   <aside class="erp-sidebar theme-superadmin" id="sidebar">
     <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
-    <div class="sidebar-user"><div class="sidebar-avatar">S</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Super Admin</div><div class="sidebar-user-role">System Owner</div></div></div>
+    <div class="sidebar-user"><div class="sidebar-avatar">S</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Super Admin</div><div class="sidebar-user-role">Platform Administrator</div></div></div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Overview</div>
       <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-satellite-dish"></i> System Overview</a>
@@ -39,85 +501,311 @@
     <header class="erp-topbar">
       <div class="topbar-left">
         <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
-        <div class="topbar-breadcrumb">Super Admin / <span>Platform Users</span></div>
+        <div class="topbar-breadcrumb">Super Admin / <span>Platform Users Directory</span></div>
       </div>
       <div class="topbar-right">
+        <button class="btn btn-secondary btn-sm" onclick="loadUsers()"><i class="fas fa-sync-alt"></i> Refresh</button>
         <div class="topbar-avatar" id="topbar-avatar">S</div>
       </div>
     </header>
 
     <div class="erp-content">
-      <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
-        <div>
-          <h1 class="page-title">Platform Users</h1>
-          <p class="page-subtitle">Manage all users across every institution.</p>
-        </div>
-        <button class="btn btn-primary" onclick="openModal('addUserModal')"><i class="fas fa-user-plus"></i> Add User</button>
-      </div>
+      <!-- DIRECTORY STUDIO HERO HEADER -->
+      <div class="page-header usr-studio-header">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div class="flex items-center gap-4">
+            <div class="usr-logo-icon">
+              <i class="fas fa-users-gear"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-3">
+                <h1 class="page-title text-2xl font-black text-slate-900 tracking-tight" style="margin:0">Platform Users</h1>
+                <span class="text-xs font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/70">Enterprise RBAC</span>
+              </div>
+              <p class="page-subtitle text-slate-500 font-medium text-xs mt-1">Manage user identities, institutional roles, access permissions, and account statuses.</p>
+            </div>
+          </div>
 
-      <!-- Role Tabs -->
-      <div class="tab-bar mb-6" style="max-width:600px">
-        <button class="tab-btn active" data-role="all" onclick="filterByRole('all',this)">All Users</button>
-        <button class="tab-btn" data-role="collegeAdmin" onclick="filterByRole('collegeAdmin',this)">College Admins</button>
-        <button class="tab-btn" data-role="faculty" onclick="filterByRole('faculty',this)">Faculty</button>
-        <button class="tab-btn" data-role="student" onclick="filterByRole('student',this)">Students</button>
-        <button class="tab-btn" data-role="parent" onclick="filterByRole('parent',this)">Parents</button>
-      </div>
-
-      <!-- Filter Bar -->
-      <div class="card mb-4">
-        <div class="card-body" style="padding:12px 20px;display:flex;gap:12px;align-items:center;flex-wrap:wrap">
-          <div class="search-bar" style="flex:1;min-width:160px"><i class="fas fa-search"></i><input type="text" placeholder="Search by name or email..." id="userSearch"></div>
-          <select class="form-control" id="collegeFilter"><option value="">All Colleges</option></select>
-          <button class="btn btn-secondary btn-sm" onclick="loadUsers()"><i class="fas fa-refresh"></i> Refresh</button>
-        </div>
-      </div>
-
-      <!-- Bulk Actions Bar -->
-      <div id="bulkActionsBar" style="display:none;margin-bottom:12px;padding:10px 16px;background:#EEF2FF;border:1px solid #C7D2FE;border-radius:8px;align-items:center;justify-content:space-between">
-        <span style="font-size:14px;color:#3730A3"><strong id="selectedCount">0</strong> users selected</span>
-        <div style="display:flex;gap:8px">
-          <button class="btn btn-secondary btn-sm" onclick="bulkToggleStatus()"><i class="fas fa-toggle-on"></i> Toggle Status</button>
-          <button class="btn btn-danger btn-sm" onclick="openBulkDeleteConfirm()"><i class="fas fa-trash"></i> Delete Selected</button>
+          <div class="flex items-center gap-3 flex-wrap">
+            <button class="btn btn-secondary btn-sm flex items-center gap-2" onclick="exportUsersCSV()" title="Export Directory">
+              <i class="fas fa-file-export"></i> <span>Export CSV</span>
+            </button>
+            <button class="btn btn-primary btn-sm flex items-center gap-2 shadow-sm" onclick="openModal('addUserModal')">
+              <i class="fas fa-user-plus"></i> <span>Add User</span>
+            </button>
+          </div>
         </div>
       </div>
 
-      <div class="card">
-        <div class="table-wrap">
-          <table class="erp-table">
+      <!-- 5 KPI METRIC CARDS -->
+      <div class="usr-metrics-grid" id="userMetricsGrid">
+        <div class="usr-metric-card">
+          <div class="usr-metric-header">
+            <span class="usr-metric-label">Total Users</span>
+            <div class="usr-metric-icon bg-indigo-50 text-indigo-600"><i class="fas fa-users"></i></div>
+          </div>
+          <div class="usr-metric-value text-indigo-700" id="metricTotalUsers">0</div>
+          <div class="usr-metric-sub"><i class="fas fa-database text-slate-400"></i> Platform Accounts</div>
+        </div>
+
+        <div class="usr-metric-card">
+          <div class="usr-metric-header">
+            <span class="usr-metric-label">Active Status</span>
+            <div class="usr-metric-icon bg-emerald-50 text-emerald-600"><i class="fas fa-circle-check"></i></div>
+          </div>
+          <div class="usr-metric-value text-emerald-600" id="metricActiveUsers">0</div>
+          <div class="usr-metric-sub"><i class="fas fa-shield-check text-emerald-500"></i> <span id="metricActiveRate">100% active</span></div>
+        </div>
+
+        <div class="usr-metric-card">
+          <div class="usr-metric-header">
+            <span class="usr-metric-label">College Admins</span>
+            <div class="usr-metric-icon bg-purple-50 text-purple-600"><i class="fas fa-user-shield"></i></div>
+          </div>
+          <div class="usr-metric-value text-purple-700" id="metricAdmins">0</div>
+          <div class="usr-metric-sub"><i class="fas fa-university text-purple-400"></i> Institution Admins</div>
+        </div>
+
+        <div class="usr-metric-card">
+          <div class="usr-metric-header">
+            <span class="usr-metric-label">Faculty & Staff</span>
+            <div class="usr-metric-icon bg-emerald-50 text-emerald-600"><i class="fas fa-chalkboard-user"></i></div>
+          </div>
+          <div class="usr-metric-value text-emerald-700" id="metricFaculty">0</div>
+          <div class="usr-metric-sub"><i class="fas fa-graduation-cap text-emerald-500"></i> Academic Staff</div>
+        </div>
+
+        <div class="usr-metric-card">
+          <div class="usr-metric-header">
+            <span class="usr-metric-label">Students & Parents</span>
+            <div class="usr-metric-icon bg-sky-50 text-sky-600"><i class="fas fa-user-graduate"></i></div>
+          </div>
+          <div class="usr-metric-value text-sky-600" id="metricStudents">0</div>
+          <div class="usr-metric-sub"><i class="fas fa-book-open text-sky-400"></i> Learners & Guardians</div>
+        </div>
+      </div>
+
+      <!-- ROLE SEGMENTED TABS -->
+      <div class="role-segmented-bar tab-bar mb-4">
+        <button class="role-segmented-btn tab-btn active" data-role="all" onclick="filterByRole('all',this)">
+          <i class="fas fa-border-all"></i> <span>All Users</span>
+          <span class="role-count-pill" id="countRoleAll">0</span>
+        </button>
+        <button class="role-segmented-btn tab-btn" data-role="collegeAdmin" onclick="filterByRole('collegeAdmin',this)">
+          <i class="fas fa-user-shield"></i> <span>College Admins</span>
+          <span class="role-count-pill" id="countRoleAdmin">0</span>
+        </button>
+        <button class="role-segmented-btn tab-btn" data-role="faculty" onclick="filterByRole('faculty',this)">
+          <i class="fas fa-chalkboard-user"></i> <span>Faculty</span>
+          <span class="role-count-pill" id="countRoleFaculty">0</span>
+        </button>
+        <button class="role-segmented-btn tab-btn" data-role="student" onclick="filterByRole('student',this)">
+          <i class="fas fa-user-graduate"></i> <span>Students</span>
+          <span class="role-count-pill" id="countRoleStudent">0</span>
+        </button>
+        <button class="role-segmented-btn tab-btn" data-role="parent" onclick="filterByRole('parent',this)">
+          <i class="fas fa-users"></i> <span>Parents</span>
+          <span class="role-count-pill" id="countRoleParent">0</span>
+        </button>
+      </div>
+
+      <!-- UNIFIED FILTER TOOLBAR -->
+      <div class="usr-filter-card card mb-4">
+        <!-- Search input -->
+        <div class="usr-search-wrap">
+          <i class="fas fa-search usr-search-icon"></i>
+          <input type="text" class="usr-search-input" placeholder="Search users by name or email..." id="userSearch">
+          <span class="usr-search-kbd">/</span>
+        </div>
+
+        <div class="flex items-center gap-2.5 flex-wrap">
+          <!-- College Filter -->
+          <select class="form-control text-xs font-semibold text-slate-700 bg-slate-50 border-slate-200 py-2 px-3 rounded-lg min-w-[160px]" id="collegeFilter">
+            <option value="">All Colleges</option>
+          </select>
+
+          <!-- Status Filter -->
+          <select class="form-control text-xs font-semibold text-slate-700 bg-slate-50 border-slate-200 py-2 px-3 rounded-lg" id="statusFilter" onchange="applyUserStatusFilter(this.value)">
+            <option value="all">All Status</option>
+            <option value="active">Active Only</option>
+            <option value="inactive">Inactive Only</option>
+          </select>
+
+          <!-- Per Page Selector -->
+          <select class="form-control text-xs font-semibold text-slate-700 bg-slate-50 border-slate-200 py-2 px-3 rounded-lg" id="perPageSelect" onchange="changeUserLimit(this.value)">
+            <option value="10">10 / page</option>
+            <option value="25">25 / page</option>
+            <option value="50">50 / page</option>
+            <option value="100">100 / page</option>
+          </select>
+
+          <!-- Refresh Button -->
+          <button class="btn btn-secondary btn-sm flex items-center gap-1.5" onclick="loadUsers()">
+            <i class="fas fa-sync-alt"></i> <span>Refresh</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- BULK ACTIONS BAR (Visible when items selected) -->
+      <div id="bulkActionsBar" class="bulk-action-bar">
+        <div class="flex items-center gap-2 text-sm font-bold">
+          <i class="fas fa-check-circle text-indigo-400"></i>
+          <span><strong id="selectedCount">0</strong> users selected</span>
+        </div>
+        <div class="h-4 w-px bg-white/20"></div>
+        <button class="btn btn-xs btn-light flex items-center gap-1.5" onclick="bulkToggleStatus()">
+          <i class="fas fa-toggle-on"></i> <span>Toggle Status</span>
+        </button>
+        <button class="btn btn-xs btn-secondary text-white flex items-center gap-1.5" onclick="exportSelectedUsers()">
+          <i class="fas fa-file-export"></i> <span>Export</span>
+        </button>
+        <button class="btn btn-xs btn-danger flex items-center gap-1.5" onclick="openBulkDeleteConfirm()">
+          <i class="fas fa-trash-alt"></i> <span>Delete Selected</span>
+        </button>
+        <button class="text-xs font-semibold text-slate-300 hover:text-white ml-1" onclick="clearBulkSelection()">Cancel</button>
+      </div>
+
+      <!-- MAIN USERS DATA TABLE -->
+      <div class="usr-table-card card">
+        <div class="usr-table-wrap table-wrap">
+          <table class="usr-table erp-table">
             <thead>
               <tr>
-                <th style="width:40px"><input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)"></th>
-                <th>User</th><th>Role</th><th>College</th><th>Last Login</th><th>Status</th><th>Actions</th>
+                <th style="width:40px;text-align:center"><input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)" style="cursor:pointer"></th>
+                <th>User</th>
+                <th>Role</th>
+                <th>Institution / College</th>
+                <th>Last Login</th>
+                <th>Status</th>
+                <th style="text-align:right">Actions</th>
               </tr>
             </thead>
             <tbody id="usersBody">
-              <tr><td colspan="7" style="text-align:center;padding:40px"><i class="fas fa-spinner fa-spin" style="font-size:28px;color:#4F46E5"></i></td></tr>
+              <tr><td colspan="7" style="text-align:center;padding:50px"><i class="fas fa-spinner fa-spin" style="font-size:32px;color:#4F46E5"></i></td></tr>
             </tbody>
           </table>
         </div>
-        <div class="card-footer" style="display:flex;justify-content:space-between;align-items:center">
-          <span style="font-size:13px;color:#64748B">Showing <strong id="showingCount">0</strong> users</span>
+        <div class="card-footer" style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-top:1px solid #F1F5F9;flex-wrap:wrap;gap:10px">
+          <span style="font-size:12.5px;color:#64748B;font-weight:600">Showing <strong id="showingCount" class="text-slate-800">0</strong> users</span>
           <div style="display:flex;gap:6px;align-items:center">
-            <button class="btn btn-secondary btn-sm" id="userPrevBtn" onclick="prevPage()"><i class="fas fa-chevron-left"></i></button>
-            <span id="userPageInfo" style="font-size:13px;color:#475569">Page 1 of 1</span>
-            <button class="btn btn-secondary btn-sm" id="userNextBtn" onclick="nextPage()"><i class="fas fa-chevron-right"></i></button>
+            <button class="btn btn-secondary btn-sm" id="userPrevBtn" onclick="prevPage()"><i class="fas fa-chevron-left"></i> Previous</button>
+            <span id="userPageInfo" style="font-size:12.5px;color:#475569;font-weight:700;padding:0 8px">Page 1 of 1</span>
+            <div id="userPagePills" class="flex items-center gap-1"></div>
+            <button class="btn btn-secondary btn-sm" id="userNextBtn" onclick="nextPage()">Next <i class="fas fa-chevron-right"></i></button>
           </div>
         </div>
       </div>
     </div>
   </div>
-</div><!-- ADD USER MODAL -->
-<div class="modal-backdrop" id="addUserModal">
-  <div class="modal">
+</div>
+
+<!-- SLIDE-OVER USER PROFILE DRAWER -->
+<div class="drawer-overlay" id="userDrawerOverlay" onclick="closeUserDrawer()"></div>
+<div class="usr-profile-drawer" id="userProfileDrawer">
+  <div class="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+    <div class="flex items-center gap-3">
+      <div class="user-avatar-circle text-lg" id="udAvatar">U</div>
+      <div>
+        <h3 class="text-base font-extrabold text-slate-900" id="udName">User Profile</h3>
+        <p class="text-xs text-slate-500 font-mono" id="udEmail">user@example.com</p>
+      </div>
+    </div>
+    <button class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition" onclick="closeUserDrawer()">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+
+  <div class="p-6 flex-1 overflow-y-auto flex flex-col gap-5">
+    <!-- User Details Section -->
+    <div class="bg-slate-50 border border-slate-200/70 rounded-16 p-4 rounded-xl">
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Account Information</span>
+        <span id="udRoleBadge"></span>
+      </div>
+      <div class="flex flex-col gap-2.5 text-xs">
+        <div class="flex justify-between items-center">
+          <span class="text-slate-500 font-medium">User ID:</span>
+          <span class="font-mono font-bold text-slate-700 flex items-center gap-1.5">
+            <span id="udId">—</span>
+            <button class="text-indigo-600 hover:text-indigo-800" onclick="copyDrawerUserId()" title="Copy ID"><i class="fas fa-copy"></i></button>
+          </span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-slate-500 font-medium">Institution:</span>
+          <span class="font-bold text-slate-800" id="udCollege">—</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-slate-500 font-medium">Account Status:</span>
+          <span id="udStatus">—</span>
+        </div>
+        <div class="flex justify-between items-center">
+          <span class="text-slate-500 font-medium">Last Login:</span>
+          <span class="font-semibold text-slate-700" id="udLastLogin">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Operations -->
+    <div class="flex flex-col gap-2">
+      <span class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Administrative Actions</span>
+      <button class="btn btn-secondary w-full justify-start text-xs font-bold py-2.5" onclick="drawerToggleStatus()">
+        <i class="fas fa-toggle-on text-indigo-500 mr-2"></i> Toggle Active Status
+      </button>
+      <button class="btn btn-secondary w-full justify-start text-xs font-bold py-2.5" onclick="drawerOpenResetPass()">
+        <i class="fas fa-key text-amber-500 mr-2"></i> Reset User Password
+      </button>
+      <button class="btn btn-secondary w-full justify-start text-xs font-bold py-2.5" onclick="drawerOpenEdit()">
+        <i class="fas fa-pen text-sky-500 mr-2"></i> Edit Account Details
+      </button>
+      <button class="btn btn-danger w-full justify-start text-xs font-bold py-2.5" onclick="drawerDeleteUser()">
+        <i class="fas fa-trash-alt mr-2"></i> Delete Account
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- RESET PASSWORD MODAL -->
+<div class="modal-backdrop" id="resetPasswordModal">
+  <div class="modal" style="max-width:440px">
     <div class="modal-header">
-      <div class="modal-title">Add Platform User</div>
+      <div class="modal-title flex items-center gap-2">
+        <i class="fas fa-key text-amber-500"></i>
+        <span>Reset User Password</span>
+      </div>
+      <button class="modal-close" onclick="closeModal('resetPasswordModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="rpUserId">
+      <p class="text-xs text-slate-600 mb-3">Set a new password for <strong id="rpUserName" class="text-slate-900">User</strong>:</p>
+      <div class="form-group">
+        <label class="form-label text-xs font-bold">New Password *</label>
+        <div class="relative">
+          <input class="form-control" type="text" id="rpNewPass" placeholder="Min. 8 characters">
+          <button type="button" class="absolute right-2 top-1/2 -translate-y-1/2 text-xs font-bold text-indigo-600 hover:text-indigo-800" onclick="generateRandomPass()">Generate</button>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('resetPasswordModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitResetPassword()"><i class="fas fa-check"></i> Update Password</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD USER MODAL -->
+<div class="modal-backdrop" id="addUserModal">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <div class="modal-title flex items-center gap-2">
+        <i class="fas fa-user-plus text-indigo-600"></i>
+        <span>Add Platform User</span>
+      </div>
       <button class="modal-close" onclick="closeModal('addUserModal')"><i class="fas fa-times"></i></button>
     </div>
     <div class="modal-body">
-      <div class="form-group"><label class="form-label">Full Name *</label><input class="form-control" id="uName" placeholder="Full name"></div>
-      <div class="form-group"><label class="form-label">Email *</label><input class="form-control" type="email" id="uEmail" placeholder="user@example.com"></div>
-      <div class="form-group"><label class="form-label">Role *</label>
+      <div class="form-group"><label class="form-label text-xs font-bold">Full Name *</label><input class="form-control" id="uName" placeholder="Full name"></div>
+      <div class="form-group"><label class="form-label text-xs font-bold">Email Address *</label><input class="form-control" type="email" id="uEmail" placeholder="user@example.com"></div>
+      <div class="form-group"><label class="form-label text-xs font-bold">Institutional Role *</label>
         <select class="form-control" id="uRole">
           <option value="collegeAdmin">College Admin</option>
           <option value="faculty">Faculty</option>
@@ -125,10 +813,10 @@
           <option value="parent">Parent</option>
         </select>
       </div>
-      <div class="form-group"><label class="form-label">College</label>
+      <div class="form-group"><label class="form-label text-xs font-bold">Associated College</label>
         <select class="form-control" id="uCollege"><option value="">Select College</option></select>
       </div>
-      <div class="form-group"><label class="form-label">Password *</label><input class="form-control" type="password" id="uPass" placeholder="Min. 8 characters"></div>
+      <div class="form-group"><label class="form-label text-xs font-bold">Initial Password *</label><input class="form-control" type="password" id="uPass" placeholder="Min. 8 characters"></div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('addUserModal')">Cancel</button>
@@ -139,16 +827,19 @@
 
 <!-- EDIT USER MODAL -->
 <div class="modal-backdrop" id="editUserModal">
-  <div class="modal">
+  <div class="modal" style="max-width:480px">
     <div class="modal-header">
-      <div class="modal-title">Edit User</div>
+      <div class="modal-title flex items-center gap-2">
+        <i class="fas fa-user-pen text-sky-600"></i>
+        <span>Edit Account Details</span>
+      </div>
       <button class="modal-close" onclick="closeModal('editUserModal')"><i class="fas fa-times"></i></button>
     </div>
     <div class="modal-body">
       <input type="hidden" id="euUserId">
-      <div class="form-group"><label class="form-label">Full Name *</label><input class="form-control" id="euName" placeholder="Full name"></div>
-      <div class="form-group"><label class="form-label">Email *</label><input class="form-control" type="email" id="euEmail" placeholder="user@example.com"></div>
-      <div class="form-group"><label class="form-label">Role *</label>
+      <div class="form-group"><label class="form-label text-xs font-bold">Full Name *</label><input class="form-control" id="euName" placeholder="Full name"></div>
+      <div class="form-group"><label class="form-label text-xs font-bold">Email Address *</label><input class="form-control" type="email" id="euEmail" placeholder="user@example.com"></div>
+      <div class="form-group"><label class="form-label text-xs font-bold">Institutional Role *</label>
         <select class="form-control" id="euRole">
           <option value="collegeAdmin">College Admin</option>
           <option value="faculty">Faculty</option>
@@ -156,7 +847,7 @@
           <option value="parent">Parent</option>
         </select>
       </div>
-      <div class="form-group"><label class="form-label">College</label>
+      <div class="form-group"><label class="form-label text-xs font-bold">Associated College</label>
         <select class="form-control" id="euCollege"><option value="">Select College</option></select>
       </div>
     </div>
@@ -171,13 +862,13 @@
 <div class="modal-backdrop" id="deleteUserModal">
   <div class="modal" style="max-width:420px">
     <div class="modal-header">
-      <div class="modal-title">Delete User</div>
+      <div class="modal-title text-rose-600 flex items-center gap-2"><i class="fas fa-triangle-exclamation"></i> Delete User</div>
       <button class="modal-close" onclick="closeModal('deleteUserModal')"><i class="fas fa-times"></i></button>
     </div>
     <div class="modal-body">
       <input type="hidden" id="duUserId">
-      <p style="font-size:15px;color:#334155;margin:0">Are you sure you want to delete <strong id="duUserName"></strong>?</p>
-      <p style="font-size:13px;color:#94A3B8;margin:8px 0 0">This action cannot be undone.</p>
+      <p style="font-size:14px;color:#334155;margin:0">Are you sure you want to permanently delete <strong id="duUserName" class="text-slate-900"></strong>?</p>
+      <p style="font-size:12px;color:#94A3B8;margin:8px 0 0">All associated data access and institutional credentials will be revoked.</p>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('deleteUserModal')">Cancel</button>
@@ -190,12 +881,12 @@
 <div class="modal-backdrop" id="bulkDeleteModal">
   <div class="modal" style="max-width:420px">
     <div class="modal-header">
-      <div class="modal-title">Delete Selected Users</div>
+      <div class="modal-title text-rose-600 flex items-center gap-2"><i class="fas fa-trash-can"></i> Delete Selected Users</div>
       <button class="modal-close" onclick="closeModal('bulkDeleteModal')"><i class="fas fa-times"></i></button>
     </div>
     <div class="modal-body">
-      <p style="font-size:15px;color:#334155;margin:0">Are you sure you want to delete <strong id="bulkDeleteCount">0</strong> selected users?</p>
-      <p style="font-size:13px;color:#94A3B8;margin:8px 0 0">This action cannot be undone.</p>
+      <p style="font-size:14px;color:#334155;margin:0">Are you sure you want to delete <strong id="bulkDeleteCount">0</strong> selected users?</p>
+      <p style="font-size:12px;color:#94A3B8;margin:8px 0 0">This bulk action cannot be undone.</p>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('bulkDeleteModal')">Cancel</button>
@@ -203,6 +894,7 @@
     </div>
   </div>
 </div>
+
 <script src="../../js/shared.js"></script>
 <script src="../../live/live-admin-pages.js"></script>
 </body>

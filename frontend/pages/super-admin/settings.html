@@ -1,31 +1,198 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Platform Settings | VishvaERP Super Admin</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Platform Settings & Configuration — Super Admin | VishvaERP</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="../../css/custom.css">
   <style>
-    .settings-nav { display: flex; flex-direction: column; gap: 4px; }
-    .settings-link { padding: 10px 16px; border-radius: 10px; font-size: 13.5px; font-weight: 600; color: #64748B; cursor: pointer; transition: all 0.2s; border: 1px solid transparent; }
-    .settings-link:hover { background: #F8FAFC; color: #0F172A; }
-    .settings-link.active { background: #EEF2FF; color: #4F46E5; border-color: #C7D2FE; font-weight: 700; }
-    .settings-section { display: none; }
-    .settings-section.active { display: block; animation: fadeIn 0.3s ease; }
-    .toggle-switch { position: relative; display: inline-block; width: 44px; height: 24px; }
-    .toggle-switch input { opacity: 0; width: 0; height: 0; }
-    .toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #CBD5E1; transition: .3s; border-radius: 34px; }
-    .toggle-slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-    input:checked + .toggle-slider { background-color: #4F46E5; }
-    input:checked + .toggle-slider:before { transform: translateX(20px); }
+    :root {
+      --set-primary: #4F46E5;
+      --set-primary-hover: #4338CA;
+      --set-card-border: #E2E8F0;
+      --set-text-dark: #0F172A;
+      --set-text-muted: #64748B;
+    }
+
+    /* Settings Studio Hero */
+    .studio-hero {
+      background: linear-gradient(135deg, #0F172A 0%, #1E1B4B 50%, #312E81 100%);
+      border-radius: 20px;
+      padding: 24px 28px;
+      color: #FFFFFF;
+      margin-bottom: 24px;
+      box-shadow: 0 12px 30px -8px rgba(15, 23, 42, 0.4);
+      position: relative;
+      overflow: hidden;
+    }
+    .studio-hero::after {
+      content: '';
+      position: absolute;
+      top: -40%;
+      right: -10%;
+      width: 420px;
+      height: 420px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.22) 0%, rgba(255, 255, 255, 0) 70%);
+      pointer-events: none;
+    }
+    .studio-hero-content {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 18px;
+    }
+    .studio-title-block {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .studio-avatar-icon {
+      width: 54px;
+      height: 54px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%);
+      border: 2px solid rgba(255, 255, 255, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      box-shadow: 0 8px 20px rgba(99, 102, 241, 0.35);
+    }
+    .settings-status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 11.5px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      background: rgba(16, 185, 129, 0.15);
+      color: #34D399;
+      border: 1px solid rgba(16, 185, 129, 0.35);
+    }
+    .settings-status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10B981;
+      box-shadow: 0 0 8px #10B981;
+      animation: pulse-dot 2s infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    /* Tab Navigation */
+    .settings-nav {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .settings-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 13.5px;
+      font-weight: 600;
+      color: #64748B;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 1px solid transparent;
+      text-decoration: none;
+    }
+    .settings-link:hover {
+      background: #F8FAFC;
+      color: #0F172A;
+    }
+    .settings-link.active {
+      background: #EEF2FF;
+      color: #4F46E5;
+      border-color: #C7D2FE;
+      font-weight: 700;
+      box-shadow: 0 1px 3px rgba(79, 70, 229, 0.08);
+    }
+    .settings-section {
+      display: none;
+    }
+    .settings-section.active {
+      display: block;
+      animation: fadeIn 0.25s ease;
+    }
+
+    /* Toggle Switch */
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 46px;
+      height: 26px;
+    }
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .toggle-slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #CBD5E1;
+      transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius: 34px;
+    }
+    .toggle-slider:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius: 50%;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+    }
+    input:checked + .toggle-slider {
+      background-color: #4F46E5;
+    }
+    input:checked + .toggle-slider:before {
+      transform: translateX(20px);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
   </style>
 </head>
 <body>
 <div class="erp-layout">
+  <!-- SIDEBAR (Full Standard 10-Item Super Admin Suite) -->
   <aside class="erp-sidebar theme-superadmin" id="sidebar">
-    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon">V</div><div class="sidebar-logo-text">Vishva<span>ERP</span></div></a></div>
-    <div class="sidebar-user"><div class="sidebar-avatar" id="sidebar-avatar">S</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Super Admin</div><div class="sidebar-user-role">Platform Administrator</div></div></div>
+    <div class="sidebar-header">
+      <a class="sidebar-logo" href="../../index.html">
+        <div class="sidebar-logo-icon">V</div>
+        <div class="sidebar-logo-text">Vishva<span>ERP</span></div>
+      </a>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" id="sidebar-avatar">S</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name" id="sidebar-user-name">Super Admin</div>
+        <div class="sidebar-user-role">Platform Administrator</div>
+      </div>
+    </div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Overview</div>
       <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-tachometer-alt"></i> Dashboard</a>
@@ -42,7 +209,9 @@
       <a href="broadcast.html" class="nav-link"><i class="nav-link-icon fas fa-bullhorn"></i> Broadcast</a>
       <a href="settings.html" class="nav-link active"><i class="nav-link-icon fas fa-cog"></i> Settings</a>
     </nav>
-    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+    <div class="sidebar-footer">
+      <button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </div>
   </aside>
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
@@ -50,143 +219,332 @@
     <header class="erp-topbar">
       <div class="topbar-left">
         <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
-        <div class="topbar-breadcrumb">Super Admin / <span>Platform Settings</span></div>
+        <div class="topbar-breadcrumb">Super Admin / <span>Platform Configuration & Settings</span></div>
       </div>
-      <div class="topbar-right"><div class="topbar-avatar" id="topbar-avatar">S</div></div>
+      <div class="topbar-right">
+        <div class="topbar-avatar" id="topbar-avatar">S</div>
+      </div>
     </header>
 
-    <div class="erp-content">
-      <div class="page-header">
-        <h1 class="page-title">⚙️ Platform Settings</h1>
-        <p class="page-subtitle">Configure global parameters, security policies, and integrations.</p>
+    <div class="erp-content page-enter" style="padding:24px">
+      <!-- SETTINGS STUDIO HERO -->
+      <div class="studio-hero">
+        <div class="studio-hero-content">
+          <div class="studio-title-block">
+            <div class="studio-avatar-icon">
+              <i class="fas fa-sliders-h"></i>
+            </div>
+            <div>
+              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                <h1 style="font-size:22px;font-weight:800;letter-spacing:-0.02em;margin:0">Platform Parameters & Integration Studio</h1>
+                <div class="settings-status-pill">
+                  <span class="settings-status-dot"></span>
+                  <span>Parameters Active</span>
+                </div>
+              </div>
+              <p style="font-size:13px;color:#CBD5E1;margin:4px 0 0 0">
+                Configure global multi-tenant settings, authentication security policies, SMTP mail relay, and AI engine integrations.
+              </p>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:10px">
+            <button class="btn btn-secondary btn-sm" onclick="if(window.__erpAdminPageRefresh) window.__erpAdminPageRefresh()" style="background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);color:#FFFFFF">
+              <i class="fas fa-sync-alt"></i> Reload Config
+            </button>
+          </div>
+        </div>
       </div>
 
-      <div class="grid" style="grid-template-columns:240px 1fr;gap:24px;align-items:start">
-        
-        <!-- Navigation -->
-        <div class="card">
+      <!-- MAIN SETTINGS GRID -->
+      <div class="grid" style="display:grid;grid-template-columns:260px 1fr;gap:24px;align-items:start">
+        <!-- Settings Sidebar Navigation (Preserving #tab-general, #tab-security, etc.) -->
+        <div class="card" style="border-radius:18px;border:1px solid var(--set-card-border);box-shadow:0 2px 6px rgba(0,0,0,0.03)">
           <div class="card-body" style="padding:16px">
             <div class="settings-nav">
-              <a class="settings-link active" onclick="switchTab('general')" id="tab-general"><i class="fas fa-sliders-h" style="width:20px"></i> General</a>
-              <a class="settings-link" onclick="switchTab('security')" id="tab-security"><i class="fas fa-shield-alt" style="width:20px"></i> Security</a>
-              <a class="settings-link" onclick="switchTab('email')" id="tab-email"><i class="fas fa-envelope" style="width:20px"></i> Email & SMTP</a>
-              <a class="settings-link" onclick="switchTab('storage')" id="tab-storage"><i class="fas fa-cloud" style="width:20px"></i> Cloud Storage</a>
-              <a class="settings-link" onclick="switchTab('ai')" id="tab-ai"><i class="fas fa-brain" style="width:20px"></i> AI Engine</a>
-              <a class="settings-link" onclick="switchTab('native')" id="tab-native"><i class="fas fa-mobile-screen" style="width:20px"></i> Native & PWA</a>
+              <a class="settings-link active" onclick="switchTab('general')" id="tab-general">
+                <i class="fas fa-sliders-h" style="width:20px;font-size:15px"></i> General Platform
+              </a>
+              <a class="settings-link" onclick="switchTab('security')" id="tab-security">
+                <i class="fas fa-shield-alt" style="width:20px;font-size:15px"></i> Security & 2FA
+              </a>
+              <a class="settings-link" onclick="switchTab('email')" id="tab-email">
+                <i class="fas fa-envelope" style="width:20px;font-size:15px"></i> Email & SMTP Relay
+              </a>
+              <a class="settings-link" onclick="switchTab('storage')" id="tab-storage">
+                <i class="fas fa-cloud" style="width:20px;font-size:15px"></i> Cloud Storage
+              </a>
+              <a class="settings-link" onclick="switchTab('ai')" id="tab-ai">
+                <i class="fas fa-brain" style="width:20px;font-size:15px"></i> AI Engine
+              </a>
+              <a class="settings-link" onclick="switchTab('native')" id="tab-native">
+                <i class="fas fa-mobile-screen" style="width:20px;font-size:15px"></i> Native App & PWA
+              </a>
             </div>
           </div>
         </div>
 
         <!-- Content Area -->
-        <div class="card">
-          
-          <!-- GENERAL SETTINGS -->
+        <div class="card" style="border-radius:18px;border:1px solid var(--set-card-border);box-shadow:0 2px 6px rgba(0,0,0,0.03);overflow:hidden">
+          <!-- 1. GENERAL SETTINGS (#sec-general) -->
           <div class="settings-section active" id="sec-general">
-            <div class="card-header"><div class="card-title">General Platform Settings</div></div>
-            <div class="card-body">
+            <div class="card-header" style="background:#F8FAFC;border-bottom:1px solid #E2E8F0;padding:18px 24px">
+              <div class="card-title" style="font-weight:800;font-size:15px;color:#0F172A;display:flex;align-items:center;gap:8px">
+                <i class="fas fa-sliders-h" style="color:#4F46E5"></i> General Platform Parameters
+              </div>
+            </div>
+            <div class="card-body" style="padding:24px">
               <div class="form-grid-2">
                 <div class="form-group">
-                  <label class="form-label">Platform Name</label>
-                  <input type="text" class="form-control" value="VishvaERP">
+                  <label class="form-label" style="font-weight:700;font-size:13px;color:#0F172A">Platform Name</label>
+                  <input type="text" class="form-control" id="settingsPlatformName" value="VishvaERP" style="border-radius:10px">
                 </div>
                 <div class="form-group">
-                  <label class="form-label">Support Email</label>
-                  <input type="email" class="form-control" value="support@vishvaerp.com">
+                  <label class="form-label" style="font-weight:700;font-size:13px;color:#0F172A">Support Email</label>
+                  <input type="email" class="form-control" id="settingsSupportEmail" value="support@vishvaerp.com" style="border-radius:10px">
                 </div>
                 <div class="form-group">
-                  <label class="form-label">Default Timezone</label>
-                  <select class="form-control"><option>Asia/Kolkata (IST)</option><option>UTC</option></select>
+                  <label class="form-label" style="font-weight:700;font-size:13px;color:#0F172A">Default Timezone</label>
+                  <select class="form-control" id="settingsTimezone" style="border-radius:10px">
+                    <option value="Asia/Kolkata">Asia/Kolkata (IST +5:30)</option>
+                    <option value="UTC">UTC (Universal Coordinated Time)</option>
+                    <option value="America/New_York">America/New_York (EST)</option>
+                  </select>
                 </div>
                 <div class="form-group">
-                  <label class="form-label">Currency</label>
-                  <select class="form-control"><option>INR (₹)</option><option>USD ($)</option></select>
+                  <label class="form-label" style="font-weight:700;font-size:13px;color:#0F172A">Currency Symbol</label>
+                  <select class="form-control" id="settingsCurrency" style="border-radius:10px">
+                    <option value="INR">INR (₹)</option>
+                    <option value="USD">USD ($)</option>
+                    <option value="EUR">EUR (€)</option>
+                  </select>
                 </div>
               </div>
-              <hr style="border:none;border-top:1px solid #E2E8F0;margin:20px 0">
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-                <div><div style="font-weight:700;font-size:14px">Maintenance Mode</div><div style="font-size:12px;color:#64748B">Block all non-admin logins</div></div>
-                <label class="toggle-switch"><input type="checkbox"><span class="toggle-slider"></span></label>
+              <hr style="border:none;border-top:1px solid #E2E8F0;margin:22px 0">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #F1F5F9">
+                <div>
+                  <div style="font-weight:700;font-size:14px;color:#0F172A">Maintenance Mode</div>
+                  <div style="font-size:12px;color:#64748B">Temporarily restrict access exclusively to Super Administrators.</div>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="settingsMaintenanceMode">
+                  <span class="toggle-slider"></span>
+                </label>
               </div>
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-                <div><div style="font-weight:700;font-size:14px">Public Registration</div><div style="font-size:12px;color:#64748B">Allow colleges to self-register</div></div>
-                <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
-              </div>
-            </div>
-            <div class="card-footer" style="text-align:right"><button class="btn btn-primary" onclick="saveSettings()"><i class="fas fa-save"></i> Save Changes</button></div>
-          </div>
-
-          <!-- SECURITY SETTINGS -->
-          <div class="settings-section" id="sec-security">
-            <div class="card-header"><div class="card-title">Security & Authentication</div></div>
-            <div class="card-body">
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-                <div><div style="font-weight:700;font-size:14px">Require Two-Factor Auth (2FA)</div><div style="font-size:12px;color:#64748B">Force 2FA for all Super Admins</div></div>
-                <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
-              </div>
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-                <div><div style="font-weight:700;font-size:14px">Enforce Strong Passwords</div><div style="font-size:12px;color:#64748B">Min 8 chars, 1 uppercase, 1 symbol</div></div>
-                <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
-              </div>
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-                <div><div style="font-weight:700;font-size:14px">Biometric Login (Native App)</div><div style="font-size:12px;color:#64748B">Allow FaceID / Fingerprint on mobile</div></div>
-                <label class="toggle-switch"><input type="checkbox" id="biometric-toggle"><span class="toggle-slider"></span></label>
-              </div>
-              <div class="form-group" style="margin-top:20px">
-                <label class="form-label">Session Timeout (minutes)</label>
-                <input type="number" class="form-control" value="120" style="max-width:150px">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0">
+                <div>
+                  <div style="font-weight:700;font-size:14px;color:#0F172A">Self-Service Institution Registration</div>
+                  <div style="font-size:12px;color:#64748B">Allow colleges to register and preview portals without manual pre-approval.</div>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="settingsPublicRegistration" checked>
+                  <span class="toggle-slider"></span>
+                </label>
               </div>
             </div>
-            <div class="card-footer" style="text-align:right"><button class="btn btn-primary" onclick="saveSettings()"><i class="fas fa-save"></i> Save Changes</button></div>
-          </div>
-
-          <div class="settings-section" id="sec-ai">
-            <div class="card-header"><div class="card-title">AI Engine Configuration</div></div>
-            <div class="card-body">
-              <div class="form-group">
-                <label class="form-label">Gemini API Key</label>
-                <input type="password" class="form-control" value="" placeholder="Not configured">
-                <p style="font-size:11px;color:#64748B;margin-top:4px">Used for AI Tutor, Question Generator, and Summarizer.</p>
-              </div>
-              <div class="form-group">
-                <label class="form-label">Default Model</label>
-                <select class="form-control"><option>gemini-1.5-pro</option><option>gemini-1.5-flash</option></select>
-              </div>
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-top:20px">
-                <div><div style="font-weight:700;font-size:14px">Enable AI Features</div><div style="font-size:12px;color:#64748B">Global toggle for all AI tools</div></div>
-                <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
-              </div>
-            </div>
-            <div class="card-footer" style="text-align:right"><button class="btn btn-primary" onclick="saveSettings()"><i class="fas fa-save"></i> Save Changes</button></div>
-          </div>
-
-          <!-- NATIVE SETTINGS -->
-          <div class="settings-section" id="sec-native">
-            <div class="card-header"><div class="card-title">Native App & PWA Performance</div></div>
-            <div class="card-body">
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-                <div><div style="font-weight:700;font-size:14px">Offline Content Caching</div><div style="font-size:12px;color:#64748B">Automatically cache academic PDFs for offline use</div></div>
-                <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
-              </div>
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-                <div><div style="font-weight:700;font-size:14px">Push Notification Badges</div><div style="font-size:12px;color:#64748B">Show unread count on app icon</div></div>
-                <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
-              </div>
-              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-                <div><div style="font-weight:700;font-size:14px">Haptic Feedback</div><div style="font-size:12px;color:#64748B">Vibrate on button clicks in native app</div></div>
-                <label class="toggle-switch"><input type="checkbox" checked><span class="toggle-slider"></span></label>
-              </div>
-              <hr style="border:none;border-top:1px solid #E2E8F0;margin:20px 0">
-              <div class="form-group">
-                <label class="form-label">App Store Version</label>
-                <input type="text" class="form-control" value="2.4.0 (Enterprise)" disabled>
-              </div>
-            </div>
-            <div class="card-footer" style="text-align:right">
-              <button class="btn btn-secondary" onclick="testPush()"><i class="fas fa-paper-plane"></i> Test Notification</button>
+            <div class="card-footer" style="background:#F8FAFC;border-top:1px solid #E2E8F0;padding:16px 24px;text-align:right">
               <button class="btn btn-primary" onclick="saveSettings()"><i class="fas fa-save"></i> Save Changes</button>
             </div>
           </div>
 
+          <!-- 2. SECURITY SETTINGS (#sec-security) -->
+          <div class="settings-section" id="sec-security">
+            <div class="card-header" style="background:#F8FAFC;border-bottom:1px solid #E2E8F0;padding:18px 24px">
+              <div class="card-title" style="font-weight:800;font-size:15px;color:#0F172A;display:flex;align-items:center;gap:8px">
+                <i class="fas fa-shield-alt" style="color:#10B981"></i> Security & Authentication Policies
+              </div>
+            </div>
+            <div class="card-body" style="padding:24px">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #F1F5F9">
+                <div>
+                  <div style="font-weight:700;font-size:14px;color:#0F172A">Require Two-Factor Authentication (2FA)</div>
+                  <div style="font-size:12px;color:#64748B">Mandate TOTP authenticator app tokens for all Super and College Admin logins.</div>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="settingsRequire2FA" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #F1F5F9">
+                <div>
+                  <div style="font-weight:700;font-size:14px;color:#0F172A">Enforce Strong Password Complexity</div>
+                  <div style="font-size:12px;color:#64748B">Require 8+ chars, uppercase letter, number, and special symbol.</div>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="settingsStrongPasswords" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div style="margin-top:20px">
+                <div class="form-group" style="max-width:320px">
+                  <label class="form-label" style="font-weight:700;font-size:13px;color:#0F172A">Session Inactivity Timeout (minutes)</label>
+                  <input type="number" class="form-control" id="settingsSessionTimeout" value="120" style="border-radius:10px">
+                  <span style="font-size:11.5px;color:#64748B;margin-top:4px;display:block">Automatically expire tokens after idle duration.</span>
+                </div>
+              </div>
+            </div>
+            <div class="card-footer" style="background:#F8FAFC;border-top:1px solid #E2E8F0;padding:16px 24px;text-align:right">
+              <button class="btn btn-primary" onclick="saveSettings()"><i class="fas fa-save"></i> Save Changes</button>
+            </div>
+          </div>
+
+          <!-- 3. EMAIL & SMTP RELAY (#sec-email) -->
+          <div class="settings-section" id="sec-email">
+            <div class="card-header" style="background:#F8FAFC;border-bottom:1px solid #E2E8F0;padding:18px 24px">
+              <div class="card-title" style="font-weight:800;font-size:15px;color:#0F172A;display:flex;align-items:center;gap:8px">
+                <i class="fas fa-envelope" style="color:#0284C7"></i> Email & SMTP Relay Gateway
+              </div>
+            </div>
+            <div class="card-body" style="padding:24px">
+              <div class="form-grid-2">
+                <div class="form-group">
+                  <label class="form-label" style="font-weight:700;font-size:13px;color:#0F172A">Default Sender Name</label>
+                  <input class="form-control" id="settingsEmailFromName" placeholder="VishvaERP Notifications" style="border-radius:10px">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" style="font-weight:700;font-size:13px;color:#0F172A">Default Sender Email</label>
+                  <input class="form-control" id="settingsEmailFromEmail" placeholder="noreply@vishvaerp.com" style="border-radius:10px">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" style="font-weight:700;font-size:13px;color:#0F172A">SMTP Server Host</label>
+                  <input class="form-control" id="settingsSmtpHost" placeholder="smtp.mailgun.org" style="border-radius:10px">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" style="font-weight:700;font-size:13px;color:#0F172A">SMTP Username</label>
+                  <input class="form-control" id="settingsSmtpUser" placeholder="postmaster@vishvaerp.com" style="border-radius:10px">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" style="font-weight:700;font-size:13px;color:#0F172A">SMTP Port</label>
+                  <input class="form-control" type="number" id="settingsSmtpPort" value="587" style="border-radius:10px">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" style="font-weight:700;font-size:13px;color:#0F172A">Enforce TLS / SSL</label>
+                  <select class="form-control" id="settingsSmtpSecure" style="border-radius:10px">
+                    <option value="false">STARTTLS (Port 587)</option>
+                    <option value="true">SSL/TLS Direct (Port 465)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="card-footer" style="background:#F8FAFC;border-top:1px solid #E2E8F0;padding:16px 24px;text-align:right">
+              <button class="btn btn-primary" onclick="saveSettings()"><i class="fas fa-save"></i> Save Changes</button>
+            </div>
+          </div>
+
+          <!-- 4. CLOUD STORAGE (#sec-storage) -->
+          <div class="settings-section" id="sec-storage">
+            <div class="card-header" style="background:#F8FAFC;border-bottom:1px solid #E2E8F0;padding:18px 24px">
+              <div class="card-title" style="font-weight:800;font-size:15px;color:#0F172A;display:flex;align-items:center;gap:8px">
+                <i class="fas fa-cloud" style="color:#059669"></i> Object Storage & Media CDN
+              </div>
+            </div>
+            <div class="card-body" style="padding:24px">
+              <div class="form-grid-2">
+                <div class="form-group">
+                  <label class="form-label" style="font-weight:700;font-size:13px;color:#0F172A">Storage Provider</label>
+                  <select class="form-control" id="settingsStorageProvider" style="border-radius:10px">
+                    <option value="local">Local Storage Cluster</option>
+                    <option value="s3">Amazon Web Services (S3)</option>
+                    <option value="gcs">Google Cloud Storage (GCS)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" style="font-weight:700;font-size:13px;color:#0F172A">Storage Bucket Name</label>
+                  <input class="form-control" id="settingsStorageBucket" placeholder="vishva-erp-assets" style="border-radius:10px">
+                </div>
+                <div class="form-group" style="grid-column:1/-1">
+                  <label class="form-label" style="font-weight:700;font-size:13px;color:#0F172A">Public CDN Base URL</label>
+                  <input class="form-control" id="settingsStorageBaseUrl" placeholder="https://cdn.vishvaerp.com" style="border-radius:10px">
+                </div>
+              </div>
+            </div>
+            <div class="card-footer" style="background:#F8FAFC;border-top:1px solid #E2E8F0;padding:16px 24px;text-align:right">
+              <button class="btn btn-primary" onclick="saveSettings()"><i class="fas fa-save"></i> Save Changes</button>
+            </div>
+          </div>
+
+          <!-- 5. AI ENGINE CONFIG (#sec-ai) -->
+          <div class="settings-section" id="sec-ai">
+            <div class="card-header" style="background:#F8FAFC;border-bottom:1px solid #E2E8F0;padding:18px 24px">
+              <div class="card-title" style="font-weight:800;font-size:15px;color:#0F172A;display:flex;align-items:center;gap:8px">
+                <i class="fas fa-brain" style="color:#7C3AED"></i> AI Inference Engine Configuration
+              </div>
+            </div>
+            <div class="card-body" style="padding:24px">
+              <div class="form-group">
+                <label class="form-label" style="font-weight:700;font-size:13px;color:#0F172A">Gemini / OpenAI API Key</label>
+                <input type="password" class="form-control" id="settingsAiApiKey" placeholder="Not configured" style="border-radius:10px">
+                <p style="font-size:11.5px;color:#64748B;margin-top:6px">Powers AI Tutor, Examination Generator, Academic Summarizer, and Analytics Insights.</p>
+              </div>
+              <div class="form-group">
+                <label class="form-label" style="font-weight:700;font-size:13px;color:#0F172A">Default Inference Model</label>
+                <select class="form-control" id="settingsAiModel" style="border-radius:10px">
+                  <option value="gemini-1.5-pro">Google Gemini 1.5 Pro (High Reasoning)</option>
+                  <option value="gemini-1.5-flash">Google Gemini 1.5 Flash (Ultra Fast)</option>
+                </select>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;margin-top:14px;border-top:1px solid #F1F5F9">
+                <div>
+                  <div style="font-weight:700;font-size:14px;color:#0F172A">Enable Generative AI Features</div>
+                  <div style="font-size:12px;color:#64748B">Master platform switch for student tutoring and faculty question generators.</div>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="settingsAiEnabled" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+            </div>
+            <div class="card-footer" style="background:#F8FAFC;border-top:1px solid #E2E8F0;padding:16px 24px;text-align:right">
+              <button class="btn btn-primary" onclick="saveSettings()"><i class="fas fa-save"></i> Save Changes</button>
+            </div>
+          </div>
+
+          <!-- 6. NATIVE APP & PWA (#sec-native) -->
+          <div class="settings-section" id="sec-native">
+            <div class="card-header" style="background:#F8FAFC;border-bottom:1px solid #E2E8F0;padding:18px 24px">
+              <div class="card-title" style="font-weight:800;font-size:15px;color:#0F172A;display:flex;align-items:center;gap:8px">
+                <i class="fas fa-mobile-screen" style="color:#EC4899"></i> Native Mobile & Progressive Web App (PWA)
+              </div>
+            </div>
+            <div class="card-body" style="padding:24px">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #F1F5F9">
+                <div>
+                  <div style="font-weight:700;font-size:14px;color:#0F172A">Biometric FaceID / TouchID Authentication</div>
+                  <div style="font-size:12px;color:#64748B">Allow instant biometric unlocking on iOS and Android client applications.</div>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="biometric-toggle" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #F1F5F9">
+                <div>
+                  <div style="font-weight:700;font-size:14px;color:#0F172A">Offline Academic Content Sync</div>
+                  <div style="font-size:12px;color:#64748B">Automatically cache course materials and fee receipts locally.</div>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid #F1F5F9">
+                <div>
+                  <div style="font-weight:700;font-size:14px;color:#0F172A">Live Badge Counters</div>
+                  <div style="font-size:12px;color:#64748B">Display unread notices and fee reminders on app launcher icon.</div>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
+              <div style="margin-top:20px;display:flex;align-items:center;gap:12px">
+                <button class="btn btn-secondary btn-sm" onclick="testPush()"><i class="fas fa-paper-plane"></i> Test Push Ping</button>
+              </div>
+            </div>
+            <div class="card-footer" style="background:#F8FAFC;border-top:1px solid #E2E8F0;padding:16px 24px;text-align:right">
+              <button class="btn btn-primary" onclick="saveSettings()"><i class="fas fa-save"></i> Save Changes</button>
+            </div>
+          </div>
         </div>
       </div>
     </div>

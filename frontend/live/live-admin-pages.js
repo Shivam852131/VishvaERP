@@ -240,14 +240,75 @@
   async function initSuperAdminCollegesPage() {
     const searchInput = cloneById('searchInput');
     const statusFilter = cloneById('statusFilter');
+    const planFilter = cloneById('planFilter');
+    const perPageSelect = cloneById('collegesPerPage');
     const clearFilter = cloneElement(q('#clearFilter'));
     const exportBtn = cloneById('exportCollegesBtn');
+    const refreshBtn = cloneById('refreshCollegesBtn');
+    const clearSearchBtn = cloneById('clearSearchBtn');
+
     let colleges = [];
     let currentPage = 1;
-    const perPage = 15;
+    let perPage = 15;
+    let currentTab = 'all';
+    let viewMode = 'table';
     let editingCollegeId = null;
     let deletingCollegeId = null;
     let assigningCollegeId = null;
+    let managingPlanCollegeId = null;
+    let activeDrawerCollegeId = null;
+
+    const SEAL_GRADIENTS = [
+      'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
+      'linear-gradient(135deg, #2563EB 0%, #38BDF8 100%)',
+      'linear-gradient(135deg, #059669 0%, #34D399 100%)',
+      'linear-gradient(135deg, #D97706 0%, #FBBF24 100%)',
+      'linear-gradient(135deg, #DC2626 0%, #F87171 100%)',
+      'linear-gradient(135deg, #7C2D12 0%, #EA580C 100%)',
+      'linear-gradient(135deg, #4338CA 0%, #6366F1 100%)',
+    ];
+
+    function getSealGradient(str = '') {
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        hash = (hash << 5) - hash + str.charCodeAt(i);
+        hash |= 0;
+      }
+      return SEAL_GRADIENTS[Math.abs(hash) % SEAL_GRADIENTS.length];
+    }
+
+    function getFilteredColleges() {
+      const searchTerm = searchInput?.value.trim().toLowerCase() || '';
+      const statusVal = statusFilter?.value || '';
+      const planVal = planFilter?.value || '';
+
+      return colleges.filter((c) => {
+        // Tab filtering
+        if (currentTab === 'active' && !(c.status === 'active' || c.isActive === true)) return false;
+        if (currentTab === 'suspended' && (c.status === 'active' || c.isActive === true)) return false;
+        if (currentTab === 'enterprise' && String(c.plan).toLowerCase() !== 'enterprise') return false;
+        if (currentTab === 'pro' && String(c.plan).toLowerCase() !== 'pro') return false;
+        if (currentTab === 'basic' && (c.plan && String(c.plan).toLowerCase() !== 'basic')) return false;
+
+        // Dropdown status filter
+        if (statusVal === 'active' && !(c.status === 'active' || c.isActive === true)) return false;
+        if (statusVal === 'suspended' && (c.status === 'active' || c.isActive === true)) return false;
+
+        // Dropdown plan filter
+        if (planVal && String(c.plan).toLowerCase() !== planVal.toLowerCase()) return false;
+
+        // Text search
+        if (searchTerm) {
+          const matchName = (c.name || '').toLowerCase().includes(searchTerm);
+          const matchCode = (c.code || '').toLowerCase().includes(searchTerm);
+          const matchCity = (c.city || '').toLowerCase().includes(searchTerm);
+          const matchAdmin = (c.adminName || '').toLowerCase().includes(searchTerm) || (c.adminEmail || '').toLowerCase().includes(searchTerm);
+          if (!matchName && !matchCode && !matchCity && !matchAdmin) return false;
+        }
+
+        return true;
+      });
+    }
 
     function paginate(items) {
       const totalPages = Math.max(1, Math.ceil(items.length / perPage));
@@ -260,87 +321,525 @@
       const info = byId('collegePageInfo');
       const prev = byId('collegePrevBtn');
       const next = byId('collegeNextBtn');
-      if (info) info.textContent = `Page ${currentPage} of ${totalPages} (${total} colleges)`;
+      if (info) {
+        const start = total ? (currentPage - 1) * perPage + 1 : 0;
+        const end = Math.min(currentPage * perPage, total);
+        info.textContent = `Showing ${start}-${end} of ${total} institutions (Page ${currentPage} of ${totalPages})`;
+      }
       if (prev) prev.disabled = currentPage <= 1;
       if (next) next.disabled = currentPage >= totalPages;
     }
 
-    async function loadColleges() {
-      const query = {
-        limit: 200,
-        search: searchInput?.value.trim(),
-        isActive: statusFilter?.value === 'active' ? 'true' : statusFilter?.value === 'suspended' ? 'false' : '',
-      };
-      const res = await window.api.request(`/super-admin/colleges${routeParams(query)}`, { silent: true });
-      colleges = res.colleges || [];
-
-      const active = colleges.filter((item) => item.status === 'active').length;
-      setStatCard(0, 'Total Colleges', String(colleges.length));
-      setStatCard(1, 'Active', String(active));
-      setStatCard(2, 'Suspended', String(colleges.length - active));
-
-      if (!colleges.length) {
-        renderEmptyTable('collegesBody', 8, 'No colleges found', 'fa-university');
-        renderPagination(0, 1);
-        return;
+    function renderPlanBadge(plan = 'basic') {
+      const p = String(plan).toLowerCase();
+      if (p === 'enterprise') {
+        return `<span class="plan-badge plan-enterprise"><i class="fas fa-crown"></i> Enterprise</span>`;
       }
-
-      const { pageItems, totalPages } = paginate(colleges);
-      setHTML('collegesBody', pageItems.map((college, index) => `
-        <tr>
-          <td style="color:#94A3B8;font-size:12px">${(currentPage - 1) * perPage + index + 1}</td>
-          <td>
-            <div style="display:flex;align-items:center;gap:10px">
-              <div class="avatar avatar-sm" style="border-radius:8px">${escapeHTML((college.name || 'C')[0])}</div>
-              <div>
-                <div style="font-weight:600">${escapeHTML(college.name)}</div>
-                <div style="font-size:11px;color:#94A3B8">${escapeHTML(college.code || '-')}</div>
-              </div>
-            </div>
-          </td>
-          <td>
-            <div style="font-size:13px">${escapeHTML(college.adminName || '-')}</div>
-            <div style="font-size:11px;color:#94A3B8">${escapeHTML(college.adminEmail || '-')}</div>
-          </td>
-          <td><span class="badge badge-info">${college.students || 0}</span></td>
-          <td><span class="badge badge-gray">${college.faculty || 0}</span></td>
-          <td style="font-size:12px;color:#94A3B8">${formatDate(college.createdAt)}</td>
-          <td><span class="badge ${college.status === 'active' ? 'badge-success' : 'badge-danger'}">${escapeHTML(college.status || 'unknown')}</span></td>
-          <td>
-            <div style="display:flex;gap:4px;flex-wrap:wrap">
-              <button class="btn btn-xs btn-secondary" title="View" onclick="viewCollege('${college._id}')"><i class="fas fa-eye"></i></button>
-              <button class="btn btn-xs btn-primary" title="Edit" onclick="editCollege('${college._id}')"><i class="fas fa-pen"></i></button>
-              <button class="btn btn-xs btn-info" title="Assign Admin" onclick="openAssignAdmin('${college._id}','${escapeHTML(college.name)}')"><i class="fas fa-user-plus"></i></button>
-              <button class="btn btn-xs ${college.status === 'active' ? 'btn-warning' : 'btn-success'}" title="${college.status === 'active' ? 'Suspend' : 'Activate'}" onclick="toggleStatus('${college._id}')"><i class="fas ${college.status === 'active' ? 'fa-ban' : 'fa-check'}"></i></button>
-              <button class="btn btn-xs btn-danger" title="Delete" onclick="confirmDeleteCollege('${college._id}','${escapeHTML(college.name)}')"><i class="fas fa-trash"></i></button>
-            </div>
-          </td>
-        </tr>
-      `).join(''));
-      renderPagination(colleges.length, totalPages);
+      if (p === 'pro') {
+        return `<span class="plan-badge plan-pro"><i class="fas fa-bolt"></i> Pro</span>`;
+      }
+      return `<span class="plan-badge plan-basic"><i class="fas fa-layer-group"></i> Basic</span>`;
     }
 
-    window.viewCollege = async function viewCollege(id) {
-      const res = await window.api.request(`/super-admin/colleges/${id}`, { silent: true });
-      const college = res.college;
-      const stats = res.stats || {};
-      setText('viewCollegeTitle', college.name || 'College Details');
-      setHTML('viewCollegeBody', `
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-          <div><div class="stat-label">College Name</div><div style="font-weight:700;margin-top:4px">${escapeHTML(college.name || '-')}</div></div>
-          <div><div class="stat-label">Code</div><div style="font-weight:700;margin-top:4px">${escapeHTML(college.code || '-')}</div></div>
-          <div><div class="stat-label">Admin</div><div style="font-weight:700;margin-top:4px">${escapeHTML(college.adminId?.name || '-')}</div></div>
-          <div><div class="stat-label">Email</div><div style="font-weight:700;margin-top:4px">${escapeHTML(college.adminId?.email || college.email || '-')}</div></div>
-          <div><div class="stat-label">Students</div><div style="font-weight:800;font-size:20px;margin-top:4px">${stats.students || 0}</div></div>
-          <div><div class="stat-label">Faculty</div><div style="font-weight:800;font-size:20px;margin-top:4px">${stats.faculty || 0}</div></div>
-          <div><div class="stat-label">Parents</div><div style="font-weight:800;font-size:20px;margin-top:4px">${stats.parents || 0}</div></div>
-          <div><div class="stat-label">Plan</div><div style="margin-top:4px"><span class="badge badge-info">${escapeHTML(college.plan || 'basic')}</span></div></div>
-          <div style="grid-column:1/-1"><div class="stat-label">Address</div><div style="font-weight:600;margin-top:4px">${escapeHTML(college.address || '-')}</div></div>
-        </div>
-      `);
-      window.openModal?.('viewCollegeModal');
+    function updateTelemetry() {
+      const total = colleges.length;
+      const active = colleges.filter((c) => c.status === 'active' || c.isActive === true).length;
+      const suspended = total - active;
+      const enterprise = colleges.filter((c) => String(c.plan).toLowerCase() === 'enterprise').length;
+      const pro = colleges.filter((c) => String(c.plan).toLowerCase() === 'pro').length;
+      const basic = colleges.filter((c) => !c.plan || String(c.plan).toLowerCase() === 'basic').length;
+
+      let totalStudents = 0;
+      let totalFaculty = 0;
+      colleges.forEach((c) => {
+        totalStudents += (Number(c.students) || Number(c.studentsCount) || 0);
+        totalFaculty += (Number(c.faculty) || 0);
+      });
+
+      // Update KPI Cards
+      const totalEl = byId('totalCollegesCount');
+      if (totalEl) totalEl.textContent = String(total);
+
+      const activeEl = byId('activeCollegesCount');
+      if (activeEl) activeEl.textContent = String(active);
+
+      const pctEl = byId('activeCollegesPercent');
+      if (pctEl) {
+        const pct = total ? Math.round((active / total) * 100) : 100;
+        pctEl.textContent = `${pct}%`;
+      }
+
+      const studentsEl = byId('totalStudentsCount');
+      if (studentsEl) studentsEl.textContent = totalStudents.toLocaleString();
+
+      const facultyEl = byId('totalFacultyCount');
+      if (facultyEl) facultyEl.textContent = totalFaculty.toLocaleString();
+
+      const premiumEl = byId('premiumTiersCount');
+      if (premiumEl) premiumEl.textContent = String(enterprise + pro);
+
+      // Tab badges
+      setText('count-all', String(total));
+      setText('count-active', String(active));
+      setText('count-suspended', String(suspended));
+      setText('count-enterprise', String(enterprise));
+      setText('count-pro', String(pro));
+      setText('count-basic', String(basic));
+
+      // Backward compatible stat cards
+      setStatCard(0, 'Total Colleges', String(total));
+      setStatCard(1, 'Active', String(active));
+      setStatCard(2, 'Suspended', String(suspended));
+    }
+
+    function renderView() {
+      const filtered = getFilteredColleges();
+      const { pageItems, totalPages } = paginate(filtered);
+
+      // Render Table View
+      const tbody = byId('collegesBody');
+      if (tbody) {
+        if (!pageItems.length) {
+          renderEmptyTable('collegesBody', 8, 'No institutions matching current filter criteria', 'fa-university');
+        } else {
+          tbody.innerHTML = pageItems.map((college, index) => {
+            const isAct = college.status === 'active' || college.isActive === true;
+            const sealGrad = getSealGradient(college.name || 'College');
+            const initial = (college.name || 'C').trim().charAt(0).toUpperCase();
+            const students = college.students || college.studentsCount || 0;
+            const faculty = college.faculty || 0;
+            const planBadge = renderPlanBadge(college.plan);
+            const oid = college._id || '';
+            const shortOid = oid.length > 8 ? `${oid.slice(0, 6)}...` : oid;
+
+            return `
+              <tr onclick="openCollegeDrawer('${college._id}')">
+                <td style="color:#94A3B8;font-size:12px">${(currentPage - 1) * perPage + index + 1}</td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:12px">
+                    <div class="college-seal-avatar" style="background:${sealGrad}">${initial}</div>
+                    <div>
+                      <div style="font-weight:700;color:#0F172A;font-size:13.5px">${escapeHTML(college.name || 'Unnamed Institution')}</div>
+                      <div style="font-size:11.5px;color:#64748B;display:flex;align-items:center;gap:6px;margin-top:2px">
+                        ${college.city ? `<span><i class="fas fa-map-marker-alt" style="color:#94A3B8;font-size:10px"></i> ${escapeHTML(college.city)}</span>` : ''}
+                        <span>• Reg: ${formatDate(college.createdAt)}</span>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div style="display:flex;flex-direction:column;gap:4px">
+                    <span class="code-chip" style="font-weight:700">${escapeHTML(college.code || '-')}</span>
+                    <span class="code-chip" style="font-size:10px;color:#64748B" title="${oid}">ID: ${shortOid}</span>
+                  </div>
+                </td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <div style="width:28px;height:28px;border-radius:8px;background:#F1F5F9;display:flex;align-items:center;justify-content:center;font-size:11px;color:#475569">
+                      <i class="fas fa-user-tie"></i>
+                    </div>
+                    <div>
+                      <div style="font-weight:600;font-size:12.5px;color:#1E293B">${escapeHTML(college.adminName || 'Unassigned')}</div>
+                      <div style="font-size:11px;color:#64748B">${escapeHTML(college.adminEmail || college.email || '-')}</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <div style="display:flex;gap:6px;flex-wrap:wrap">
+                    <span class="badge badge-info" title="Students"><i class="fas fa-user-graduate"></i> ${students}</span>
+                    <span class="badge badge-gray" title="Faculty"><i class="fas fa-chalkboard-teacher"></i> ${faculty}</span>
+                  </div>
+                </td>
+                <td>
+                  ${planBadge}
+                </td>
+                <td>
+                  <span class="status-toggle-pill ${isAct ? 'active' : 'suspended'}" onclick="event.stopPropagation(); toggleStatus('${college._id}')" title="Click to ${isAct ? 'Suspend' : 'Activate'}">
+                    <span class="status-toggle-dot"></span>
+                    ${isAct ? 'Active' : 'Suspended'}
+                  </span>
+                </td>
+                <td style="text-align:right" onclick="event.stopPropagation()">
+                  <div style="display:inline-flex;gap:4px;align-items:center">
+                    <button class="btn btn-xs btn-secondary" title="Inspect Campus" onclick="openCollegeDrawer('${college._id}')">
+                      <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn btn-xs btn-secondary" title="Edit Metadata" onclick="editCollege('${college._id}')">
+                      <i class="fas fa-pen"></i>
+                    </button>
+                    <button class="btn btn-xs btn-secondary" title="Change Plan" onclick="openChangePlan('${college._id}')" style="color:#B45309">
+                      <i class="fas fa-gem"></i>
+                    </button>
+                    <button class="btn btn-xs btn-secondary" title="Assign Admin" onclick="openAssignAdmin('${college._id}','${escapeHTML(college.name)}')">
+                      <i class="fas fa-user-shield"></i>
+                    </button>
+                    <button class="btn btn-xs btn-danger" title="Delete College" onclick="confirmDeleteCollege('${college._id}','${escapeHTML(college.name)}')">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join('');
+        }
+      }
+
+      // Render Cards View
+      const cardsGrid = byId('collegesCardsGrid');
+      if (cardsGrid) {
+        if (!pageItems.length) {
+          cardsGrid.innerHTML = `
+            <div style="grid-column:1/-1;text-align:center;padding:60px;background:#FFF;border-radius:18px;border:1px solid #E2E8F0">
+              <i class="fas fa-university" style="font-size:36px;color:#CBD5E1;margin-bottom:12px"></i>
+              <div style="font-weight:700;color:#0F172A;font-size:15px">No institutions found</div>
+              <p style="font-size:13px;color:#64748B;margin-top:4px">Try adjusting your filters or search keywords</p>
+            </div>
+          `;
+        } else {
+          cardsGrid.innerHTML = pageItems.map((college) => {
+            const isAct = college.status === 'active' || college.isActive === true;
+            const sealGrad = getSealGradient(college.name || 'College');
+            const initial = (college.name || 'C').trim().charAt(0).toUpperCase();
+            const students = college.students || college.studentsCount || 0;
+            const faculty = college.faculty || 0;
+            const parents = college.parents || 0;
+            const planBadge = renderPlanBadge(college.plan);
+
+            return `
+              <div class="campus-card-item" onclick="openCollegeDrawer('${college._id}')">
+                <div>
+                  <div class="campus-card-header">
+                    <div style="display:flex;align-items:center;gap:12px">
+                      <div class="college-seal-avatar" style="background:${sealGrad}">${initial}</div>
+                      <div>
+                        <div style="font-weight:800;color:#0F172A;font-size:14.5px;line-height:1.3">${escapeHTML(college.name || 'Unnamed Institution')}</div>
+                        <div style="display:flex;align-items:center;gap:6px;margin-top:4px">
+                          <span class="code-chip">${escapeHTML(college.code || 'NO-CODE')}</span>
+                          ${planBadge}
+                        </div>
+                      </div>
+                    </div>
+                    <span class="status-toggle-pill ${isAct ? 'active' : 'suspended'}" onclick="event.stopPropagation(); toggleStatus('${college._id}')" title="Click to ${isAct ? 'Suspend' : 'Activate'}">
+                      <span class="status-toggle-dot"></span>
+                      ${isAct ? 'Active' : 'Suspended'}
+                    </span>
+                  </div>
+
+                  <div style="font-size:12px;color:#64748B;display:flex;align-items:center;gap:6px;margin-bottom:12px">
+                    <i class="fas fa-map-marker-alt text-indigo-500"></i>
+                    <span>${escapeHTML(college.address || college.city || 'Address on file')}</span>
+                  </div>
+
+                  <div class="campus-card-metrics">
+                    <div class="campus-metric-box">
+                      <div class="metric-num">${students}</div>
+                      <div class="metric-lbl">Students</div>
+                    </div>
+                    <div class="campus-metric-box">
+                      <div class="metric-num">${faculty}</div>
+                      <div class="metric-lbl">Faculty</div>
+                    </div>
+                    <div class="campus-metric-box">
+                      <div class="metric-num">${parents}</div>
+                      <div class="metric-lbl">Parents</div>
+                    </div>
+                  </div>
+
+                  <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:8px 12px;display:flex;align-items:center;gap:10px;margin-bottom:14px">
+                    <div style="width:28px;height:28px;border-radius:7px;background:#EEF2FF;color:#4F46E5;display:flex;align-items:center;justify-content:center;font-size:11px">
+                      <i class="fas fa-user-shield"></i>
+                    </div>
+                    <div style="overflow:hidden">
+                      <div style="font-size:12px;font-weight:700;color:#1E293B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHTML(college.adminName || 'Unassigned Admin')}</div>
+                      <div style="font-size:11px;color:#64748B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHTML(college.adminEmail || college.email || '-')}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="display:flex;align-items:center;justify-content:space-between;border-top:1px solid #F1F5F9;padding-top:12px" onclick="event.stopPropagation()">
+                  <span style="font-size:11px;color:#94A3B8">Joined ${formatDate(college.createdAt)}</span>
+                  <div style="display:flex;gap:4px">
+                    <button class="btn btn-xs btn-secondary" title="Inspect" onclick="openCollegeDrawer('${college._id}')"><i class="fas fa-eye"></i></button>
+                    <button class="btn btn-xs btn-secondary" title="Edit" onclick="editCollege('${college._id}')"><i class="fas fa-pen"></i></button>
+                    <button class="btn btn-xs btn-secondary" title="Plan" onclick="openChangePlan('${college._id}')"><i class="fas fa-gem text-amber-500"></i></button>
+                    <button class="btn btn-xs btn-secondary" title="Admin" onclick="openAssignAdmin('${college._id}','${escapeHTML(college.name)}')"><i class="fas fa-user-plus"></i></button>
+                    <button class="btn btn-xs btn-danger" title="Delete" onclick="confirmDeleteCollege('${college._id}','${escapeHTML(college.name)}')"><i class="fas fa-trash"></i></button>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('');
+        }
+      }
+
+      renderPagination(filtered.length, totalPages);
+    }
+
+    async function loadColleges() {
+      try {
+        const res = await window.api.request('/super-admin/colleges?limit=250', { silent: true });
+        colleges = res.colleges || [];
+        updateTelemetry();
+        renderView();
+      } catch (err) {
+        console.error('Failed to load colleges:', err);
+        renderEmptyTable('collegesBody', 8, 'Error connecting to multi-tenant service', 'fa-exclamation-triangle');
+      }
+    }
+
+    // Slide-Over Drawer
+    window.openCollegeDrawer = async function openCollegeDrawer(id) {
+      activeDrawerCollegeId = id;
+      const overlay = byId('collegeDrawerOverlay');
+      const drawer = byId('collegeDrawer');
+      if (overlay) overlay.classList.add('open');
+      if (drawer) drawer.classList.add('open');
+
+      const body = byId('drawerBody');
+      if (body) {
+        body.innerHTML = `
+          <div style="text-align:center;padding:50px">
+            <i class="fas fa-circle-notch fa-spin" style="font-size:28px;color:#4F46E5"></i>
+            <div style="font-size:12.5px;color:#64748B;margin-top:10px">Retrieving institutional telemetry...</div>
+          </div>
+        `;
+      }
+
+      try {
+        const res = await window.api.request(`/super-admin/colleges/${id}`, { silent: true });
+        const college = res.college || {};
+        const stats = res.stats || {};
+        const isAct = college.status === 'active' || college.isActive === true;
+        const sealGrad = getSealGradient(college.name || 'College');
+        const initial = (college.name || 'C').trim().charAt(0).toUpperCase();
+
+        const sealAvatar = byId('drawerSealAvatar');
+        if (sealAvatar) {
+          sealAvatar.style.background = sealGrad;
+          sealAvatar.textContent = initial;
+        }
+
+        setText('drawerCollegeName', college.name || 'Institution');
+        setText('drawerCollegeCode', college.code || 'NO-CODE');
+
+        const statusBadge = byId('drawerStatusBadge');
+        if (statusBadge) {
+          statusBadge.innerHTML = `
+            <span class="status-toggle-pill ${isAct ? 'active' : 'suspended'}" style="font-size:10px;padding:2px 8px">
+              <span class="status-toggle-dot"></span> ${isAct ? 'Active' : 'Suspended'}
+            </span>
+          `;
+        }
+
+        if (body) {
+          body.innerHTML = `
+            <div style="display:flex;flex-direction:column;gap:18px">
+              <!-- Demographic Stats Strip -->
+              <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:14px;padding:14px">
+                <div style="font-size:11px;font-weight:800;color:#64748B;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:10px">
+                  Campus Demographics
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(3, 1fr);gap:10px;text-align:center">
+                  <div style="background:#FFF;border:1px solid #E2E8F0;border-radius:10px;padding:10px">
+                    <div style="font-size:18px;font-weight:900;color:#4F46E5">${stats.students || 0}</div>
+                    <div style="font-size:10.5px;font-weight:700;color:#64748B">Students</div>
+                  </div>
+                  <div style="background:#FFF;border:1px solid #E2E8F0;border-radius:10px;padding:10px">
+                    <div style="font-size:18px;font-weight:900;color:#7C3AED">${stats.faculty || 0}</div>
+                    <div style="font-size:10.5px;font-weight:700;color:#64748B">Faculty</div>
+                  </div>
+                  <div style="background:#FFF;border:1px solid #E2E8F0;border-radius:10px;padding:10px">
+                    <div style="font-size:18px;font-weight:900;color:#059669">${stats.parents || 0}</div>
+                    <div style="font-size:10.5px;font-weight:700;color:#64748B">Parents</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Institutional Details -->
+              <div style="background:#FFF;border:1px solid #E2E8F0;border-radius:14px;padding:16px">
+                <div style="font-size:11px;font-weight:800;color:#64748B;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px">
+                  Institutional Profile
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                  <div>
+                    <div style="font-size:11px;color:#94A3B8;font-weight:600">COLLEGE CODE</div>
+                    <div style="font-weight:700;color:#0F172A;font-size:13px;margin-top:2px">${escapeHTML(college.code || '-')}</div>
+                  </div>
+                  <div>
+                    <div style="font-size:11px;color:#94A3B8;font-weight:600">SUBSCRIPTION PLAN</div>
+                    <div style="margin-top:2px">${renderPlanBadge(college.plan)}</div>
+                  </div>
+                  <div>
+                    <div style="font-size:11px;color:#94A3B8;font-weight:600">PHONE</div>
+                    <div style="font-weight:600;color:#0F172A;font-size:13px;margin-top:2px">${escapeHTML(college.phone || '-')}</div>
+                  </div>
+                  <div>
+                    <div style="font-size:11px;color:#94A3B8;font-weight:600">ENROLLMENT DATE</div>
+                    <div style="font-weight:600;color:#0F172A;font-size:13px;margin-top:2px">${formatDate(college.createdAt)}</div>
+                  </div>
+                  <div style="grid-column:1/-1">
+                    <div style="font-size:11px;color:#94A3B8;font-weight:600">CAMPUS ADDRESS</div>
+                    <div style="font-weight:600;color:#0F172A;font-size:13px;margin-top:2px">${escapeHTML(college.address || college.city || 'No address specified')}</div>
+                  </div>
+                  <div style="grid-column:1/-1">
+                    <div style="font-size:11px;color:#94A3B8;font-weight:600">MONGODB TENANT ID</div>
+                    <div class="code-chip" style="margin-top:4px;display:inline-block">${escapeHTML(college._id || '-')}</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Admin Authority Section -->
+              <div style="background:#FFF;border:1px solid #E2E8F0;border-radius:14px;padding:16px">
+                <div style="font-size:11px;font-weight:800;color:#64748B;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px">
+                  Primary Campus Administrator
+                </div>
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+                  <div style="width:38px;height:38px;border-radius:10px;background:#EEF2FF;color:#4F46E5;display:flex;align-items:center;justify-content:center;font-size:16px">
+                    <i class="fas fa-user-shield"></i>
+                  </div>
+                  <div>
+                    <div style="font-weight:800;color:#0F172A;font-size:14px">${escapeHTML(college.adminId?.name || college.adminName || 'Unassigned')}</div>
+                    <div style="font-size:12px;color:#64748B">${escapeHTML(college.adminId?.email || college.email || 'No email')}</div>
+                  </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;font-size:12px">
+                  <div>
+                    <span style="color:#94A3B8">Admin Phone:</span>
+                    <strong style="color:#0F172A">${escapeHTML(college.adminId?.phone || '-')}</strong>
+                  </div>
+                  <div>
+                    <span style="color:#94A3B8">Last Active:</span>
+                    <strong style="color:#0F172A">${college.adminId?.lastLogin ? formatDate(college.adminId.lastLogin) : 'Never'}</strong>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Quick Action Dock -->
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                <button class="btn btn-secondary btn-sm" onclick="editCollege('${college._id}')" style="justify-content:center">
+                  <i class="fas fa-pen"></i> Edit Details
+                </button>
+                <button class="btn btn-secondary btn-sm" onclick="openChangePlan('${college._id}')" style="justify-content:center;color:#B45309">
+                  <i class="fas fa-gem"></i> Change Plan
+                </button>
+                <button class="btn btn-secondary btn-sm" onclick="openAssignAdmin('${college._id}','${escapeHTML(college.name)}')" style="justify-content:center">
+                  <i class="fas fa-user-plus"></i> Assign Admin
+                </button>
+                <button class="btn btn-sm ${isAct ? 'btn-warning' : 'btn-success'}" onclick="toggleStatus('${college._id}')" style="justify-content:center">
+                  <i class="fas ${isAct ? 'fa-ban' : 'fa-check'}"></i> ${isAct ? 'Suspend' : 'Activate'}
+                </button>
+              </div>
+            </div>
+          `;
+        }
+      } catch (err) {
+        console.error('Failed to load college detail:', err);
+        if (body) {
+          body.innerHTML = `
+            <div style="text-align:center;padding:40px;color:#EF4444">
+              <i class="fas fa-exclamation-triangle" style="font-size:24px;margin-bottom:8px"></i>
+              <div>Failed to load institutional details</div>
+            </div>
+          `;
+        }
+      }
     };
 
+    window.closeCollegeDrawer = function closeCollegeDrawer() {
+      const overlay = byId('collegeDrawerOverlay');
+      const drawer = byId('collegeDrawer');
+      if (overlay) overlay.classList.remove('open');
+      if (drawer) drawer.classList.remove('open');
+      activeDrawerCollegeId = null;
+    };
+
+    // Dual-View Switcher
+    window.switchCollegeView = function switchCollegeView(mode) {
+      viewMode = mode;
+      const tableBtn = byId('viewModeTable');
+      const cardsBtn = byId('viewModeCards');
+      const tableView = byId('collegesTableView');
+      const cardsView = byId('collegesCardsView');
+
+      if (mode === 'cards') {
+        if (tableBtn) tableBtn.classList.remove('active');
+        if (cardsBtn) cardsBtn.classList.add('active');
+        if (tableView) tableView.style.display = 'none';
+        if (cardsView) cardsView.style.display = 'block';
+      } else {
+        if (tableBtn) tableBtn.classList.add('active');
+        if (cardsBtn) cardsBtn.classList.remove('active');
+        if (tableView) tableView.style.display = 'block';
+        if (cardsView) cardsView.style.display = 'none';
+      }
+      renderView();
+    };
+
+    // Tab Filtering
+    window.filterCollegesByTab = function filterCollegesByTab(tab) {
+      currentTab = tab;
+      const tabs = ['all', 'active', 'suspended', 'enterprise', 'pro', 'basic'];
+      tabs.forEach((t) => {
+        const btn = byId(`tab-${t}`);
+        if (btn) {
+          if (t === tab) btn.classList.add('active');
+          else btn.classList.remove('active');
+        }
+      });
+      currentPage = 1;
+      renderView();
+    };
+
+    // Change Plan Modal
+    window.openChangePlan = function openChangePlan(id) {
+      const college = colleges.find((c) => c._id === id);
+      if (!college) return;
+      managingPlanCollegeId = id;
+      setText('cpCollegeName', college.name || 'Institution');
+      const planSelect = byId('cpPlan');
+      if (planSelect) planSelect.value = String(college.plan || 'basic').toLowerCase();
+      const expiryInput = byId('cpExpiry');
+      if (expiryInput && college.planExpiry) {
+        expiryInput.value = new Date(college.planExpiry).toISOString().split('T')[0];
+      } else if (expiryInput) {
+        expiryInput.value = '';
+      }
+      window.openModal?.('changePlanModal');
+    };
+
+    window.saveCollegePlan = async function saveCollegePlan() {
+      if (!managingPlanCollegeId) return;
+      const button = byId('savePlanBtn');
+      const plan = byId('cpPlan')?.value || 'basic';
+      const expiry = byId('cpExpiry')?.value || null;
+
+      window.setLoading?.(button, true);
+      try {
+        await window.api.request(`/super-admin/colleges/${managingPlanCollegeId}/plan`, {
+          method: 'PUT',
+          body: JSON.stringify({ plan, planExpiry: expiry }),
+        });
+        window.closeModal?.('changePlanModal');
+        window.showToast?.(`Plan tier updated to ${plan.toUpperCase()}`, 'success');
+        managingPlanCollegeId = null;
+        await loadColleges();
+        if (activeDrawerCollegeId) {
+          openCollegeDrawer(activeDrawerCollegeId);
+        }
+      } catch (err) {
+        console.error('Failed to update plan:', err);
+        window.showToast?.(err.message || 'Failed to update plan', 'error');
+      } finally {
+        window.setLoading?.(button, false);
+      }
+    };
+
+    // View College Modal (Backward compatibility)
+    window.viewCollege = async function viewCollege(id) {
+      openCollegeDrawer(id);
+    };
+
+    // Edit College
     window.editCollege = function editCollege(id) {
       const college = colleges.find((c) => c._id === id);
       if (!college) return;
@@ -369,14 +868,18 @@
       try {
         await window.api.request(`/super-admin/colleges/${editingCollegeId}`, { method: 'PUT', body: JSON.stringify(payload) });
         window.closeModal?.('editCollegeModal');
-        window.showToast?.('College updated successfully', 'success');
+        window.showToast?.('Institutional metadata updated', 'success');
         editingCollegeId = null;
         await loadColleges();
+        if (activeDrawerCollegeId) {
+          openCollegeDrawer(activeDrawerCollegeId);
+        }
       } finally {
         window.setLoading?.(button, false);
       }
     };
 
+    // Assign Admin
     window.openAssignAdmin = function openAssignAdmin(id, name) {
       assigningCollegeId = id;
       if (byId('assignAdminCollegeName')) byId('assignAdminCollegeName').textContent = name;
@@ -391,12 +894,25 @@
         window.showToast?.('Enter admin email', 'error');
         return;
       }
-      await window.api.request(`/super-admin/colleges/${assigningCollegeId}/assign-admin`, { method: 'PUT', body: JSON.stringify({ email }) });
-      window.closeModal?.('assignAdminModal');
-      window.showToast?.('Admin invitation sent', 'success');
-      assigningCollegeId = null;
+      const button = byId('assignAdminBtn');
+      window.setLoading?.(button, true);
+      try {
+        await window.api.request(`/super-admin/colleges/${assigningCollegeId}/assign-admin`, { method: 'PUT', body: JSON.stringify({ email }) });
+        window.closeModal?.('assignAdminModal');
+        window.showToast?.('Admin credentials assigned', 'success');
+        assigningCollegeId = null;
+        await loadColleges();
+        if (activeDrawerCollegeId) {
+          openCollegeDrawer(activeDrawerCollegeId);
+        }
+      } catch (err) {
+        window.showToast?.(err.message || 'Failed to assign admin', 'error');
+      } finally {
+        window.setLoading?.(button, false);
+      }
     };
 
+    // Delete College
     window.confirmDeleteCollege = function confirmDeleteCollege(id, name) {
       deletingCollegeId = id;
       if (byId('deleteCollegeName')) byId('deleteCollegeName').textContent = name;
@@ -405,19 +921,39 @@
 
     window.executeDeleteCollege = async function executeDeleteCollege() {
       if (!deletingCollegeId) return;
-      await window.api.request(`/super-admin/colleges/${deletingCollegeId}`, { method: 'DELETE' });
-      window.closeModal?.('deleteCollegeModal');
-      window.showToast?.('College deleted', 'success');
-      deletingCollegeId = null;
-      await loadColleges();
+      const button = byId('confirmDeleteCollegeBtn');
+      window.setLoading?.(button, true);
+      try {
+        await window.api.request(`/super-admin/colleges/${deletingCollegeId}`, { method: 'DELETE' });
+        window.closeModal?.('deleteCollegeModal');
+        window.showToast?.('Institution decommissioned', 'success');
+        if (activeDrawerCollegeId === deletingCollegeId) {
+          closeCollegeDrawer();
+        }
+        deletingCollegeId = null;
+        await loadColleges();
+      } finally {
+        window.setLoading?.(button, false);
+      }
     };
 
+    // Toggle Status
     window.toggleStatus = async function toggleStatus(id) {
-      await window.api.request(`/super-admin/colleges/${id}/toggle`, { method: 'PATCH' });
-      window.showToast?.('College status updated', 'success');
-      await loadColleges();
+      try {
+        const res = await window.api.request(`/super-admin/colleges/${id}/toggle`, { method: 'PATCH' });
+        const isAct = res.college?.isActive;
+        window.showToast?.(`Institution ${isAct ? 'activated' : 'suspended'} successfully`, 'success');
+        await loadColleges();
+        if (activeDrawerCollegeId === id) {
+          openCollegeDrawer(id);
+        }
+      } catch (err) {
+        console.error('Failed to toggle status:', err);
+        window.showToast?.(err.message || 'Failed to update status', 'error');
+      }
     };
 
+    // Register College
     window.submitCollege = async function submitCollege() {
       const button = byId('addCollegeBtn');
       const payload = {
@@ -430,7 +966,7 @@
         adminPassword: byId('aPass')?.value,
       };
       if (!payload.name || !payload.adminName || !payload.adminEmail || !payload.adminPassword) {
-        window.showToast?.('Fill all required fields', 'error');
+        window.showToast?.('Please fill all required fields', 'error');
         return;
       }
       window.setLoading?.(button, true);
@@ -438,38 +974,122 @@
         await window.api.request('/super-admin/register-college', { method: 'POST', body: JSON.stringify(payload) });
         byId('addCollegeForm')?.reset();
         window.closeModal?.('addCollegeModal');
-        window.showToast?.('College registered successfully', 'success');
+        window.showToast?.('Campus registered and provisioned successfully', 'success');
         await loadColleges();
+      } catch (err) {
+        console.error('Registration failed:', err);
+        window.showToast?.(err.message || 'Registration failed', 'error');
       } finally {
         window.setLoading?.(button, false);
       }
     };
 
+    // Page navigation
     window.changePage = function changePageCollege(direction) {
-      const totalPages = Math.max(1, Math.ceil(colleges.length / perPage));
+      const filtered = getFilteredColleges();
+      const totalPages = Math.max(1, Math.ceil(filtered.length / perPage));
       currentPage = Math.max(1, Math.min(totalPages, currentPage + direction));
-      loadColleges();
+      renderView();
     };
 
-    if (searchInput) searchInput.oninput = debounce(loadColleges, 250);
-    if (statusFilter) statusFilter.onchange = loadColleges;
+    const prevBtn = byId('collegePrevBtn');
+    const nextBtn = byId('collegeNextBtn');
+    if (prevBtn) prevBtn.onclick = () => window.changePage(-1);
+    if (nextBtn) nextBtn.onclick = () => window.changePage(1);
+
+    // Filter listeners
+    if (searchInput) {
+      searchInput.oninput = debounce(() => {
+        currentPage = 1;
+        if (clearSearchBtn) clearSearchBtn.style.display = searchInput.value ? 'inline-block' : 'none';
+        renderView();
+      }, 200);
+    }
+    if (clearSearchBtn) {
+      clearSearchBtn.onclick = () => {
+        if (searchInput) searchInput.value = '';
+        clearSearchBtn.style.display = 'none';
+        currentPage = 1;
+        renderView();
+      };
+    }
+    if (statusFilter) {
+      statusFilter.onchange = () => {
+        currentPage = 1;
+        renderView();
+      };
+    }
+    if (planFilter) {
+      planFilter.onchange = () => {
+        currentPage = 1;
+        renderView();
+      };
+    }
+    if (perPageSelect) {
+      perPageSelect.onchange = () => {
+        perPage = parseInt(perPageSelect.value, 10) || 15;
+        currentPage = 1;
+        renderView();
+      };
+    }
     if (clearFilter) {
       clearFilter.onclick = async function clearFilters() {
         if (searchInput) searchInput.value = '';
         if (statusFilter) statusFilter.value = '';
+        if (planFilter) planFilter.value = '';
+        if (clearSearchBtn) clearSearchBtn.style.display = 'none';
+        currentTab = 'all';
+        const tabs = ['all', 'active', 'suspended', 'enterprise', 'pro', 'basic'];
+        tabs.forEach((t) => {
+          const btn = byId(`tab-${t}`);
+          if (btn) {
+            if (t === 'all') btn.classList.add('active');
+            else btn.classList.remove('active');
+          }
+        });
         currentPage = 1;
-        await loadColleges();
+        renderView();
       };
     }
     if (exportBtn) {
       exportBtn.onclick = function exportColleges() {
-        downloadCsv('colleges.csv', [
-          ['College', 'Code', 'Admin', 'Admin Email', 'Students', 'Faculty', 'Status'],
-          ...colleges.map((item) => [item.name, item.code, item.adminName, item.adminEmail, item.students, item.faculty, item.status]),
+        downloadCsv('institutions-export.csv', [
+          ['College Name', 'Code', 'Admin Name', 'Admin Email', 'Students', 'Faculty', 'Parents', 'Plan', 'Status', 'Registered Date'],
+          ...colleges.map((item) => [
+            item.name,
+            item.code,
+            item.adminName,
+            item.adminEmail,
+            item.students || 0,
+            item.faculty || 0,
+            item.parents || 0,
+            item.plan || 'basic',
+            item.status || (item.isActive ? 'active' : 'suspended'),
+            formatDate(item.createdAt),
+          ]),
         ]);
-        window.showToast?.('College list exported', 'success');
+        window.showToast?.('Campus directory exported as CSV', 'success');
       };
     }
+    if (refreshBtn) {
+      refreshBtn.onclick = async function () {
+        refreshBtn.querySelector('i')?.classList.add('fa-spin');
+        await loadColleges();
+        setTimeout(() => refreshBtn.querySelector('i')?.classList.remove('fa-spin'), 600);
+        window.showToast?.('Campus data synchronized', 'info');
+      };
+    }
+
+    // Keyboard shortcut for search
+    document.addEventListener('keydown', (e) => {
+      if (e.key === '/' && document.activeElement !== searchInput && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+        e.preventDefault();
+        searchInput?.focus();
+      }
+      if (e.key === 'Escape') {
+        closeCollegeDrawer();
+      }
+    });
 
     window.__erpAdminPageRefresh = loadColleges;
     await loadColleges();
@@ -478,15 +1098,17 @@
   async function initSuperAdminUsersPage() {
     const searchInput = cloneById('userSearch');
     const collegeFilter = cloneById('collegeFilter');
-    const refreshButton = cloneElement(q('.card .btn.btn-secondary.btn-sm'));
+    const refreshButton = cloneElement(q('.usr-filter-card .btn.btn-secondary.btn-sm, .card .btn.btn-secondary.btn-sm'));
     let currentRole = 'all';
+    let currentStatus = 'all';
     let allUsers = [];
     let filteredUsers = [];
     let colleges = [];
     let currentPage = 1;
-    const perPage = 10;
+    let perPage = 10;
     let editingUserId = null;
     let deletingUserId = null;
+    let activeDrawerUserId = null;
 
     function paginate(items) {
       const totalPages = Math.max(1, Math.ceil(items.length / perPage));
@@ -502,44 +1124,103 @@
       if (info) info.textContent = `Page ${currentPage} of ${totalPages}`;
       if (prev) prev.disabled = currentPage <= 1;
       if (next) next.disabled = currentPage >= totalPages;
+
+      const pillsContainer = byId('userPagePills');
+      if (pillsContainer) {
+        if (totalPages <= 1) {
+          pillsContainer.innerHTML = '';
+          return;
+        }
+        let html = '';
+        const start = Math.max(1, currentPage - 2);
+        const end = Math.min(totalPages, currentPage + 2);
+        for (let i = start; i <= end; i++) {
+          html += `<button class="btn btn-xs ${i === currentPage ? 'btn-primary' : 'btn-secondary'}" style="min-width:28px;font-weight:700" onclick="window.goToPage(${i})">${i}</button>`;
+        }
+        pillsContainer.innerHTML = html;
+      }
     }
 
     function clearBulkSelection() {
       const selectAll = byId('selectAll');
       if (selectAll) selectAll.checked = false;
       const bar = byId('bulkActionsBar');
-      if (bar) bar.style.display = 'none';
+      if (bar) bar.classList.remove('visible');
       const count = byId('selectedCount');
       if (count) count.textContent = '0';
     }
 
     function getCollegeName(userId) {
       const user = allUsers.find((u) => (u._id || u.id) === userId);
-      if (!user) return '-';
+      if (!user) return 'Platform';
       if (user.college_name || user.collegeName) return user.college_name || user.collegeName;
       if (user.college_id || user.collegeId) {
         const cid = user.college_id || user.collegeId;
         const col = colleges.find((c) => (c._id || c.id) === cid);
-        if (col) return col.name || '-';
+        if (col) return col.name || 'Platform';
       }
       return user.college || 'Platform';
+    }
+
+    function updateDirectoryMetrics() {
+      const total = allUsers.length;
+      const active = allUsers.filter((u) => u.is_active !== false && u.active !== false).length;
+      const admins = allUsers.filter((u) => u.role === 'collegeAdmin' || u.role === 'superadmin').length;
+      const faculty = allUsers.filter((u) => u.role === 'faculty').length;
+      const students = allUsers.filter((u) => u.role === 'student' || u.role === 'parent').length;
+
+      setText('metricTotalUsers', String(total));
+      setText('metricActiveUsers', String(active));
+      setText('metricActiveRate', total > 0 ? `${Math.round((active / total) * 100)}% active` : '100% active');
+      setText('metricAdmins', String(admins));
+      setText('metricFaculty', String(faculty));
+      setText('metricStudents', String(students));
+
+      // Update role tab counts
+      setText('countRoleAll', String(total));
+      setText('countRoleAdmin', String(allUsers.filter((u) => u.role === 'collegeAdmin').length));
+      setText('countRoleFaculty', String(faculty));
+      setText('countRoleStudent', String(allUsers.filter((u) => u.role === 'student').length));
+      setText('countRoleParent', String(allUsers.filter((u) => u.role === 'parent').length));
     }
 
     function applyFilters() {
       const search = (searchInput?.value || '').toLowerCase().trim();
       const collegeId = collegeFilter?.value;
+
       filteredUsers = allUsers.filter((u) => {
         if (currentRole !== 'all' && u.role !== currentRole) return false;
         if (collegeId && (u.college_id !== collegeId && u.collegeId !== collegeId)) return false;
+
+        const isActive = u.is_active !== false && u.active !== false;
+        if (currentStatus === 'active' && !isActive) return false;
+        if (currentStatus === 'inactive' && isActive) return false;
+
         if (search) {
           const name = (u.name || u.full_name || '').toLowerCase();
           const email = (u.email || '').toLowerCase();
-          if (!name.includes(search) && !email.includes(search)) return false;
+          const uid = String(u._id || u.id || '').toLowerCase();
+          if (!name.includes(search) && !email.includes(search) && !uid.includes(search)) return false;
         }
         return true;
       });
+
       currentPage = 1;
       renderTable();
+    }
+
+    function getAvatarColor(name = 'U') {
+      const colors = [
+        'linear-gradient(135deg,#4F46E5,#7C3AED)',
+        'linear-gradient(135deg,#059669,#10B981)',
+        'linear-gradient(135deg,#0284C7,#38BDF8)',
+        'linear-gradient(135deg,#D97706,#F59E0B)',
+        'linear-gradient(135deg,#DB2777,#F43F5E)',
+        'linear-gradient(135deg,#7C3AED,#A855F7)',
+      ];
+      let hash = 0;
+      for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+      return colors[Math.abs(hash) % colors.length];
     }
 
     function renderTable() {
@@ -548,7 +1229,17 @@
       setText('showingCount', String(filteredUsers.length));
 
       if (!filteredUsers.length) {
-        renderEmptyTable('usersBody', 7, 'No users found', 'fa-users');
+        body.innerHTML = `
+          <tr>
+            <td colspan="7" style="text-align:center;padding:50px 20px">
+              <div style="width:54px;height:54px;border-radius:16px;background:#F1F5F9;display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:22px;color:#94A3B8">
+                <i class="fas fa-users-slash"></i>
+              </div>
+              <div style="font-size:14px;font-weight:800;color:#334155">No users found</div>
+              <div style="font-size:12px;color:#64748B;margin-top:2px">No accounts match the selected role or filter criteria.</div>
+            </td>
+          </tr>
+        `;
         renderPagination(0, 1);
         return;
       }
@@ -559,27 +1250,60 @@
         const name = u.name || u.full_name || 'Unknown';
         const email = u.email || '';
         const role = u.role || '';
-        const roleName = { collegeAdmin: 'College Admin', faculty: 'Faculty', student: 'Student', parent: 'Parent' }[role] || role;
+        const roleLabels = { collegeAdmin: 'College Admin', faculty: 'Faculty', student: 'Student', parent: 'Parent', superadmin: 'Super Admin' };
+        const roleIcons = { collegeAdmin: 'fa-shield-halved', faculty: 'fa-chalkboard-user', student: 'fa-graduation-cap', parent: 'fa-users', superadmin: 'fa-crown' };
+        const roleClass = { collegeAdmin: 'admin', faculty: 'faculty', student: 'student', parent: 'parent', superadmin: 'admin' }[role] || 'default';
+
         const collegeName = getCollegeName(uid);
         const lastLogin = u.last_login || u.lastLogin;
         const isActive = u.is_active !== false && u.active !== false;
+
         return `
-          <tr>
-            <td><input type="checkbox" class="row-check" data-id="${uid}" onchange="onRowCheckChange()"></td>
+          <tr onclick="window.openUserDrawer('${uid}')" style="cursor:pointer">
+            <td style="text-align:center" onclick="event.stopPropagation()">
+              <input type="checkbox" class="row-check" data-id="${uid}" onchange="window.onRowCheckChange()" style="cursor:pointer">
+            </td>
             <td>
-              <div style="display:flex;align-items:center;gap:10px">
-                <div class="avatar avatar-sm">${escapeHTML(name[0])}</div>
-                <div><div style="font-weight:600">${escapeHTML(name)}</div><div style="font-size:11px;color:#94A3B8">${escapeHTML(email)}</div></div>
+              <div style="display:flex;align-items:center;gap:12px">
+                <div class="user-avatar-circle" style="background:${getAvatarColor(name)}">${escapeHTML(name[0] || 'U')}</div>
+                <div>
+                  <div style="font-weight:700;font-size:13px;color:#0F172A">${escapeHTML(name)}</div>
+                  <div style="font-size:11.5px;color:#64748B;display:flex;align-items:center;gap:4px">
+                    <span>${escapeHTML(email)}</span>
+                    <button class="text-slate-400 hover:text-indigo-600" onclick="event.stopPropagation();window.copyToClipboard('${escapeHTML(email)}','Email copied')" title="Copy email"><i class="fas fa-copy text-[10px]"></i></button>
+                  </div>
+                </div>
               </div>
             </td>
-            <td><span class="badge badge-info">${escapeHTML(roleName)}</span></td>
-            <td style="font-size:13px;color:#64748B">${escapeHTML(collegeName)}</td>
-            <td style="font-size:12px;color:#94A3B8">${lastLogin ? formatDate(lastLogin, true) : '-'}</td>
-            <td><span class="badge ${isActive ? 'badge-success' : 'badge-danger'}">${isActive ? 'Active' : 'Inactive'}</span></td>
             <td>
-              <div style="display:flex;gap:4px">
-                <button class="btn btn-xs btn-secondary" title="Edit" onclick="openEditUser('${uid}')"><i class="fas fa-pen"></i></button>
-                <button class="btn btn-xs btn-danger" title="Delete" onclick="confirmDeleteUser('${uid}','${escapeHTML(name).replace(/'/g, "\\'")}')"><i class="fas fa-trash"></i></button>
+              <span class="role-badge ${roleClass}">
+                <i class="fas ${roleIcons[role] || 'fa-user'} text-[10px]"></i>
+                <span>${escapeHTML(roleLabels[role] || role)}</span>
+              </span>
+            </td>
+            <td>
+              <div class="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
+                <i class="fas fa-university text-slate-400 text-xs"></i>
+                <span class="truncate max-w-[200px]" title="${escapeHTML(collegeName)}">${escapeHTML(collegeName)}</span>
+              </div>
+            </td>
+            <td>
+              <div style="font-size:11.5px;color:#475569;font-weight:500">
+                ${lastLogin ? formatDate(lastLogin, true) : '<span style="color:#CBD5E1;font-style:italic">Never logged in</span>'}
+              </div>
+            </td>
+            <td onclick="event.stopPropagation()">
+              <span class="status-toggle-pill ${isActive ? 'active' : 'inactive'}" onclick="window.toggleUserStatus('${uid}')" title="Click to toggle status">
+                <span class="health-dot ${isActive ? 'healthy' : 'degraded'}" style="width:6px;height:6px"></span>
+                <span>${isActive ? 'Active' : 'Inactive'}</span>
+              </span>
+            </td>
+            <td style="text-align:right" onclick="event.stopPropagation()">
+              <div style="display:flex;gap:4px;justify-content:flex-end">
+                <button class="action-icon-btn btn-inspect" title="Inspect Profile" onclick="window.openUserDrawer('${uid}')"><i class="fas fa-eye"></i></button>
+                <button class="action-icon-btn btn-edit" title="Edit User" onclick="window.openEditUser('${uid}')"><i class="fas fa-pen"></i></button>
+                <button class="action-icon-btn" title="Reset Password" onclick="window.openResetPassword('${uid}')"><i class="fas fa-key text-amber-500"></i></button>
+                <button class="action-icon-btn btn-danger" title="Delete User" onclick="window.confirmDeleteUser('${uid}','${escapeHTML(name).replace(/'/g, "\\'")}')"><i class="fas fa-trash"></i></button>
               </div>
             </td>
           </tr>
@@ -601,32 +1325,61 @@
     }
 
     async function loadColleges() {
-      const res = await window.api.request('/super-admin/colleges?limit=200', { silent: true });
-      colleges = res.colleges || [];
-      fillCollegeOptions();
+      try {
+        const res = await window.api.request('/super-admin/colleges?limit=200', { silent: true });
+        colleges = res.colleges || [];
+        fillCollegeOptions();
+      } catch (err) {
+        colleges = [];
+      }
     }
 
     async function loadUsers() {
       const body = byId('usersBody');
-      if (body) body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px"><i class="fas fa-spinner fa-spin" style="font-size:28px;color:#4F46E5"></i></td></tr>';
+      if (body) body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:50px"><i class="fas fa-spinner fa-spin" style="font-size:32px;color:#4F46E5"></i></td></tr>';
       const params = {
-        limit: 300,
+        limit: 500,
         search: searchInput?.value.trim(),
         collegeId: collegeFilter?.value,
         role: currentRole === 'all' ? '' : currentRole,
       };
-      const res = await window.api.request(`/super-admin/users${routeParams(params)}`, { silent: true });
-      allUsers = res.users || [];
-      applyFilters();
+      try {
+        const res = await window.api.request(`/super-admin/users${routeParams(params)}`, { silent: true });
+        allUsers = res.users || [];
+        updateDirectoryMetrics();
+        applyFilters();
+      } catch (err) {
+        allUsers = [];
+        if (body) body.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#EF4444">Failed to load platform users</td></tr>';
+      }
     }
 
+    // Role Filtering
     window.filterByRole = function filterByRole(role, button) {
       currentRole = role;
-      qa('.tab-btn').forEach((item) => item.classList.remove('active'));
+      qa('.role-segmented-btn, .tab-btn').forEach((item) => item.classList.remove('active'));
       if (button) button.classList.add('active');
       applyFilters();
     };
 
+    // Status Filtering
+    window.applyUserStatusFilter = function applyUserStatusFilter(val) {
+      currentStatus = val || 'all';
+      applyFilters();
+    };
+
+    window.changeUserLimit = function changeUserLimit(val) {
+      perPage = parseInt(val) || 10;
+      currentPage = 1;
+      renderTable();
+    };
+
+    window.goToPage = function goToPage(page) {
+      currentPage = page;
+      renderTable();
+    };
+
+    // Selection & Bulk Actions
     window.toggleSelectAll = function toggleSelectAll(el) {
       qa('.row-check').forEach((cb) => { cb.checked = el.checked; });
       onRowCheckChange();
@@ -639,9 +1392,193 @@
       if (selectAll) selectAll.checked = boxes.length > 0 && checked.length === boxes.length;
       setText('selectedCount', String(checked.length));
       const bar = byId('bulkActionsBar');
-      if (bar) bar.style.display = checked.length > 0 ? 'flex' : 'none';
+      if (bar) {
+        if (checked.length > 0) bar.classList.add('visible');
+        else bar.classList.remove('visible');
+      }
     };
 
+    window.clearBulkSelection = clearBulkSelection;
+
+    // Single Status Toggle
+    window.toggleUserStatus = async function toggleUserStatus(uid) {
+      try {
+        await window.api.request(`/super-admin/users/${uid}/toggle`, { method: 'PATCH' });
+        const user = allUsers.find((u) => (u._id || u.id) === uid);
+        if (user) {
+          const current = user.is_active !== false && user.active !== false;
+          user.is_active = !current;
+          user.active = !current;
+        }
+        window.showToast?.('User status toggled', 'success');
+        updateDirectoryMetrics();
+        renderTable();
+
+        if (activeDrawerUserId === uid) {
+          updateDrawerUserContent(user);
+        }
+      } catch (err) {
+        window.showToast?.(err.message || 'Status toggle failed', 'error');
+      }
+    };
+
+    // Profile Drawer
+    function openUserDrawer(uid) {
+      const user = allUsers.find((u) => (u._id || u.id) === uid);
+      if (!user) return;
+      activeDrawerUserId = uid;
+
+      updateDrawerUserContent(user);
+      byId('userDrawerOverlay')?.classList.add('active');
+      byId('userProfileDrawer')?.classList.add('active');
+    }
+
+    function updateDrawerUserContent(user) {
+      const name = user.name || user.full_name || 'Unknown';
+      const email = user.email || '';
+      const uid = user._id || user.id || '';
+      const collegeName = getCollegeName(uid);
+      const role = user.role || 'student';
+      const isActive = user.is_active !== false && user.active !== false;
+      const lastLogin = user.last_login || user.lastLogin;
+
+      setText('udName', name);
+      setText('udEmail', email);
+      setText('udId', uid);
+      setText('udCollege', collegeName);
+      setText('udLastLogin', lastLogin ? formatDate(lastLogin, true) : 'Never');
+
+      const avatarEl = byId('udAvatar');
+      if (avatarEl) {
+        avatarEl.textContent = name[0] || 'U';
+        avatarEl.style.background = getAvatarColor(name);
+      }
+
+      const roleBadgeEl = byId('udRoleBadge');
+      if (roleBadgeEl) {
+        roleBadgeEl.innerHTML = `<span class="role-badge ${role === 'collegeAdmin' ? 'admin' : role}"><i class="fas fa-id-badge text-[10px]"></i> ${escapeHTML(role)}</span>`;
+      }
+
+      const statusEl = byId('udStatus');
+      if (statusEl) {
+        statusEl.innerHTML = `<span class="status-toggle-pill ${isActive ? 'active' : 'inactive'}"><span class="health-dot ${isActive ? 'healthy' : 'degraded'}"></span>${isActive ? 'Active' : 'Inactive'}</span>`;
+      }
+    }
+
+    function closeUserDrawer() {
+      byId('userDrawerOverlay')?.classList.remove('active');
+      byId('userProfileDrawer')?.classList.remove('active');
+      activeDrawerUserId = null;
+    }
+
+    window.openUserDrawer = openUserDrawer;
+    window.closeUserDrawer = closeUserDrawer;
+    window.copyDrawerUserId = function copyDrawerUserId() {
+      if (activeDrawerUserId) window.copyToClipboard(activeDrawerUserId, 'User ID copied');
+    };
+
+    window.drawerToggleStatus = async function drawerToggleStatus() {
+      if (activeDrawerUserId) await window.toggleUserStatus(activeDrawerUserId);
+    };
+
+    window.drawerOpenResetPass = function drawerOpenResetPass() {
+      if (activeDrawerUserId) {
+        closeUserDrawer();
+        window.openResetPassword(activeDrawerUserId);
+      }
+    };
+
+    window.drawerOpenEdit = function drawerOpenEdit() {
+      if (activeDrawerUserId) {
+        closeUserDrawer();
+        window.openEditUser(activeDrawerUserId);
+      }
+    };
+
+    window.drawerDeleteUser = function drawerDeleteUser() {
+      if (activeDrawerUserId) {
+        const user = allUsers.find((u) => (u._id || u.id) === activeDrawerUserId);
+        const name = user ? (user.name || user.full_name || 'User') : 'User';
+        closeUserDrawer();
+        window.confirmDeleteUser(activeDrawerUserId, name);
+      }
+    };
+
+    // Password Reset
+    window.openResetPassword = function openResetPassword(uid) {
+      const user = allUsers.find((u) => (u._id || u.id) === uid);
+      if (!user) return;
+      if (byId('rpUserId')) byId('rpUserId').value = uid;
+      if (byId('rpUserName')) byId('rpUserName').textContent = user.name || user.full_name || user.email;
+      if (byId('rpNewPass')) byId('rpNewPass').value = '';
+      window.openModal?.('resetPasswordModal');
+    };
+
+    window.generateRandomPass = function generateRandomPass() {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%';
+      let pass = '';
+      for (let i = 0; i < 12; i++) pass += chars.charAt(Math.floor(Math.random() * chars.length));
+      if (byId('rpNewPass')) byId('rpNewPass').value = pass;
+    };
+
+    window.submitResetPassword = async function submitResetPassword() {
+      const uid = byId('rpUserId')?.value;
+      const newPassword = byId('rpNewPass')?.value.trim();
+      if (!newPassword || newPassword.length < 6) {
+        window.showToast?.('Password must be at least 6 characters', 'error');
+        return;
+      }
+      try {
+        await window.api.request(`/super-admin/users/${uid}/reset-password`, {
+          method: 'POST',
+          body: JSON.stringify({ newPassword }),
+        });
+        window.closeModal?.('resetPasswordModal');
+        window.showToast?.('Password updated successfully', 'success');
+      } catch (err) {
+        window.showToast?.(err.message || 'Password reset failed', 'error');
+      }
+    };
+
+    // Exports
+    window.exportUsersCSV = function exportUsersCSV() {
+      if (!filteredUsers.length) {
+        window.showToast?.('No users to export', 'warning');
+        return;
+      }
+      const headers = ['ID', 'Name', 'Email', 'Role', 'College', 'Last Login', 'Status'];
+      const rows = filteredUsers.map((u) => [
+        u._id || u.id,
+        u.name || u.full_name || '',
+        u.email || '',
+        u.role || '',
+        getCollegeName(u._id || u.id),
+        u.last_login || u.lastLogin || '',
+        u.is_active !== false && u.active !== false ? 'Active' : 'Inactive',
+      ]);
+      downloadCsv(`platform-users-${Date.now()}.csv`, [headers, ...rows]);
+      window.showToast?.(`Exported ${filteredUsers.length} users to CSV`, 'success');
+    };
+
+    window.exportSelectedUsers = function exportSelectedUsers() {
+      const ids = new Set(qa('.row-check:checked').map((cb) => cb.getAttribute('data-id')));
+      const selected = allUsers.filter((u) => ids.has(String(u._id || u.id)));
+      if (!selected.length) return;
+      const headers = ['ID', 'Name', 'Email', 'Role', 'College', 'Last Login', 'Status'];
+      const rows = selected.map((u) => [
+        u._id || u.id,
+        u.name || u.full_name || '',
+        u.email || '',
+        u.role || '',
+        getCollegeName(u._id || u.id),
+        u.last_login || u.lastLogin || '',
+        u.is_active !== false && u.active !== false ? 'Active' : 'Inactive',
+      ]);
+      downloadCsv(`selected-users-${Date.now()}.csv`, [headers, ...rows]);
+      window.showToast?.(`Exported ${selected.length} selected users`, 'success');
+    };
+
+    // Edit User
     window.openEditUser = function openEditUser(uid) {
       const user = allUsers.find((u) => (u._id || u.id) === uid);
       if (!user) return;
@@ -674,6 +1611,7 @@
       await loadUsers();
     };
 
+    // Delete User
     window.confirmDeleteUser = function confirmDeleteUser(uid, name) {
       deletingUserId = uid;
       if (byId('duUserName')) byId('duUserName').textContent = name;
@@ -684,11 +1622,12 @@
       if (!deletingUserId) return;
       await window.api.request(`/super-admin/users/${deletingUserId}`, { method: 'DELETE' });
       window.closeModal?.('deleteUserModal');
-      window.showToast?.('User deleted', 'success');
+      window.showToast?.('User deleted successfully', 'success');
       deletingUserId = null;
       await loadUsers();
     };
 
+    // Bulk Operations
     window.bulkToggleStatus = async function bulkToggleStatus() {
       const ids = qa('.row-check:checked').map((cb) => cb.getAttribute('data-id'));
       if (!ids.length) return;
@@ -712,6 +1651,7 @@
       await loadUsers();
     };
 
+    // Add User
     window.addUser = async function addUser() {
       const payload = {
         name: byId('uName')?.value.trim(),
@@ -741,6 +1681,17 @@
       const totalPages = Math.ceil(filteredUsers.length / perPage);
       if (currentPage < totalPages) { currentPage++; renderTable(); }
     };
+
+    // Keyboard Shortcuts
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeUserDrawer();
+      }
+      if (e.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) {
+        e.preventDefault();
+        searchInput?.focus();
+      }
+    });
 
     if (searchInput) searchInput.oninput = debounce(applyFilters, 250);
     if (collegeFilter) collegeFilter.onchange = applyFilters;
@@ -779,14 +1730,15 @@
 
     async function loadSystemHealth() {
       try {
-        const res = await window.api.request('/super-admin/health', { silent: true });
-        const ok = res.status === 'ok' || res.healthy === true;
+        const res = await window.api.request('/super-admin/system-health', { silent: true });
+        const h = res.health || {};
+        const ok = h.status === 'healthy' || h.database?.status === 'connected';
         const dot = byId('healthDot');
         const status = byId('healthStatus');
         const detail = byId('healthDetail');
         if (dot) dot.style.background = ok ? '#10B981' : '#EF4444';
         if (status) status.textContent = ok ? 'All Systems Operational' : 'Degraded';
-        if (detail) detail.textContent = `Uptime: ${res.uptime || 'N/A'} | DB: ${res.db || 'ok'} | API: ${res.apiLatency || '<100ms'}`;
+        if (detail) detail.textContent = `Uptime: ${h.server?.uptimeFormatted || 'Active'} | DB: ${h.database?.status || 'ok'} | Node: ${h.server?.nodeVersion || 'v18.x'}`;
       } catch {
         const dot = byId('healthDot');
         const status = byId('healthStatus');
@@ -1058,18 +2010,30 @@
       const actionColors = { Login: '#4F46E5', Create: '#059669', Update: '#D97706', Delete: '#EF4444' };
 
       setHTML('auditBody', paged.map((item, index) => `
-        <tr>
-          <td style="color:#94A3B8;font-size:11px">${start + index + 1}</td>
-          <td><div style="display:flex;align-items:center;gap:8px"><div class="avatar avatar-sm" style="background:${roleColors[item.role] || '#64748B'}22;color:${roleColors[item.role] || '#64748B'};font-size:11px">${escapeHTML((item.user || 'U')[0])}</div><span style="font-weight:600;font-size:13px">${escapeHTML(item.user || '-')}</span></div></td>
-          <td style="font-size:12px;color:#64748B">${escapeHTML(item.email || '-')}</td>
-          <td><span style="font-size:11px;font-weight:700;color:${roleColors[item.role] || '#64748B'}">${escapeHTML(item.role || '-')}</span></td>
-          <td style="font-size:12px">${escapeHTML(item.college || '-')}</td>
-          <td><span style="font-size:11px;font-weight:700;background:${actionColors[item.action] || '#64748B'}18;color:${actionColors[item.action] || '#64748B'};padding:2px 8px;border-radius:6px">${escapeHTML(item.action || '-')}</span></td>
-          <td><span class="badge ${item.status === 'success' ? 'badge-success' : 'badge-danger'}">${escapeHTML(item.status || 'unknown')}</span></td>
-          <td style="font-size:11px;color:#64748B;white-space:nowrap">${formatDate(item.timestamp, true)}</td>
-          <td><button class="btn btn-xs btn-secondary" onclick="copyAuditLog('${item._id}')"><i class="fas fa-copy"></i></button></td>
+        <tr style="border-bottom:1px solid #F1F5F9;transition:background 0.15s" class="hover:bg-slate-50">
+          <td style="padding:12px 18px;color:#94A3B8;font-size:11px;font-family:monospace">${start + index + 1}</td>
+          <td style="padding:12px 18px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div class="avatar avatar-sm" style="background:${roleColors[item.role] || '#64748B'}18;color:${roleColors[item.role] || '#64748B'};font-weight:700;font-size:12px">
+                ${escapeHTML((item.user || 'U')[0])}
+              </div>
+              <span style="font-weight:700;font-size:13px;color:#0F172A">${escapeHTML(item.user || '-')}</span>
+            </div>
+          </td>
+          <td style="padding:12px 18px;font-size:12.5px;color:#64748B">${escapeHTML(item.email || '-')}</td>
+          <td style="padding:12px 18px"><span style="font-size:11px;font-weight:700;color:${roleColors[item.role] || '#64748B'};background:${roleColors[item.role] || '#64748B'}12;padding:3px 8px;border-radius:6px">${escapeHTML(item.role || '-')}</span></td>
+          <td style="padding:12px 18px;font-size:12.5px;color:#334155;font-weight:600">${escapeHTML(item.college || 'Platform')}</td>
+          <td style="padding:12px 18px"><span style="font-size:11px;font-weight:700;background:${actionColors[item.action] || '#64748B'}15;color:${actionColors[item.action] || '#64748B'};padding:3px 10px;border-radius:6px;border:1px solid ${actionColors[item.action] || '#64748B'}30">${escapeHTML(item.action || '-')}</span></td>
+          <td style="padding:12px 18px"><span class="badge ${item.status === 'success' ? 'badge-success' : 'badge-danger'}" style="font-size:10.5px;padding:3px 8px">${escapeHTML(item.status || 'unknown')}</span></td>
+          <td style="padding:12px 18px;font-size:11.5px;color:#64748B;white-space:nowrap;font-family:monospace">${formatDate(item.timestamp, true)}</td>
+          <td style="padding:12px 18px;text-align:right">
+            <div style="display:inline-flex;gap:6px">
+              <button class="btn btn-xs btn-primary" onclick="openAuditDrawer('${item._id}')" title="Inspect Event"><i class="fas fa-eye"></i></button>
+              <button class="btn btn-xs btn-secondary" onclick="copyAuditLog('${item._id}')" title="Copy JSON"><i class="fas fa-copy"></i></button>
+            </div>
+          </td>
         </tr>
-      `).join('') || '<tr><td colspan="9"><div class="empty-state"><div class="empty-state-title">No audit logs found</div></div></td></tr>');
+      `).join('') || '<tr><td colspan="9" style="text-align:center;padding:30px;color:#94A3B8"><div class="empty-state"><div class="empty-state-title">No audit logs matching criteria</div></div></td></tr>');
     }
 
     async function loadLogs() {
@@ -1078,13 +2042,14 @@
           window.api.request('/super-admin/audit-logs?limit=200', { silent: true }),
           window.api.request('/super-admin/analytics', { silent: true }),
         ]);
-        allLogs = logsRes.logs || [];
+        allLogs = logsRes.logs || logsRes.data || [];
         activeColleges = analyticsRes.analytics?.activeColleges || 0;
       } catch {
         allLogs = [];
         activeColleges = 0;
       }
 
+      window.__allLogsCache = allLogs;
       filteredLogs = [...allLogs];
       currentPage = 1;
       updateStats();
@@ -1900,39 +2865,111 @@
 
   async function initSuperAdminPlansPage() {
     const planCosts = { basic: 5000, pro: 15000, enterprise: 40000 };
+    const planQuotas = { basic: 'Up to 500 Students', pro: 'Up to 2,000 Students', enterprise: 'Unlimited Students' };
     let colleges = [];
     let bulkSelectedColleges = [];
+    let activeDrawerCollegeId = null;
+    let currentPage = 1;
+    let perPage = 15;
 
-    const planDetails = {
-      basic: {
-        label: 'BASIC',
-        price: '₹5,000',
-        subtitle: 'Up to 500 students',
-        features: ['Student & Faculty portals', 'Fee management', 'Attendance tracking', 'Basic reports', 'Email support'],
-      },
-      pro: {
-        label: 'PRO',
-        price: '₹15,000',
-        subtitle: 'Up to 2,000 students',
-        features: ['Everything in Basic', 'AI exam generator', 'Advanced analytics', 'Multi-department', 'HR & Leave module', 'Hostel & Transport', 'Priority support'],
-      },
-      enterprise: {
-        label: 'ENTERPRISE',
-        price: '₹40,000',
-        subtitle: 'Unlimited students',
-        features: ['Everything in Pro', 'Unlimited users', 'Custom branding', 'API access', 'SLA guarantee', 'Dedicated CSM', 'On-premise option', 'Custom modules'],
-      },
-    };
+    const SEAL_GRADIENTS = [
+      'linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%)',
+      'linear-gradient(135deg, #2563EB 0%, #38BDF8 100%)',
+      'linear-gradient(135deg, #059669 0%, #34D399 100%)',
+      'linear-gradient(135deg, #D97706 0%, #FBBF24 100%)',
+      'linear-gradient(135deg, #DC2626 0%, #F87171 100%)',
+      'linear-gradient(135deg, #7C2D12 0%, #EA580C 100%)',
+      'linear-gradient(135deg, #4338CA 0%, #6366F1 100%)',
+    ];
 
-    function renderUsageOverview() {
+    function getSealGradient(str = '') {
+      let hash = 0;
+      for (let i = 0; i < str.length; i++) {
+        hash = (hash << 5) - hash + str.charCodeAt(i);
+        hash |= 0;
+      }
+      return SEAL_GRADIENTS[Math.abs(hash) % SEAL_GRADIENTS.length];
+    }
+
+    const searchInput = cloneById('planSearchInput');
+    const planFilterSelect = cloneById('planFilterSelect');
+    const planExpiryFilter = cloneById('planExpiryFilter');
+    const plansPerPage = cloneById('plansPerPage');
+    const clearPlansFilterBtn = cloneById('clearPlansFilterBtn');
+    const exportBtn = cloneById('exportPlansBtn');
+    const refreshBtn = cloneById('refreshPlansBtn');
+    const clearSearchBtn = cloneById('clearSearchBtn');
+
+    function renderPlanBadge(plan = 'basic') {
+      const p = String(plan).toLowerCase();
+      if (p === 'enterprise') return `<span class="plan-badge plan-enterprise"><i class="fas fa-crown"></i> Enterprise</span>`;
+      if (p === 'pro') return `<span class="plan-badge plan-pro"><i class="fas fa-bolt"></i> Pro</span>`;
+      return `<span class="plan-badge plan-basic"><i class="fas fa-layer-group"></i> Basic</span>`;
+    }
+
+    function getFilteredColleges() {
+      const search = searchInput?.value.trim().toLowerCase() || '';
+      const planVal = planFilterSelect?.value.toLowerCase() || '';
+      const expiryVal = planExpiryFilter?.value || '';
+      const now = Date.now();
+
+      return colleges.filter((c) => {
+        const cPlan = String(c.plan || 'basic').toLowerCase();
+        if (planVal && cPlan !== planVal) return false;
+
+        const expiry = c.planExpiry ? new Date(c.planExpiry).getTime() : null;
+        const daysLeft = expiry ? Math.ceil((expiry - now) / 86400000) : null;
+
+        if (expiryVal === 'expiring' && (daysLeft === null || daysLeft > 30 || daysLeft < 0)) return false;
+        if (expiryVal === 'expired' && (daysLeft === null || daysLeft >= 0)) return false;
+        if (expiryVal === 'healthy' && (daysLeft !== null && daysLeft <= 30)) return false;
+
+        if (search) {
+          const matchName = (c.name || '').toLowerCase().includes(search);
+          const matchCode = (c.code || '').toLowerCase().includes(search);
+          const matchEmail = (c.adminEmail || c.email || '').toLowerCase().includes(search);
+          const matchAdmin = (c.adminName || '').toLowerCase().includes(search);
+          if (!matchName && !matchCode && !matchEmail && !matchAdmin) return false;
+        }
+
+        return true;
+      });
+    }
+
+    function updateTelemetry() {
       const total = colleges.length || 1;
-      const basicCount = colleges.filter((c) => (c.plan || 'basic') === 'basic').length;
-      const proCount = colleges.filter((c) => c.plan === 'pro').length;
-      const enterpriseCount = colleges.filter((c) => c.plan === 'enterprise').length;
+      const basicCount = colleges.filter((c) => (c.plan || 'basic').toLowerCase() === 'basic').length;
+      const proCount = colleges.filter((c) => String(c.plan).toLowerCase() === 'pro').length;
+      const enterpriseCount = colleges.filter((c) => String(c.plan).toLowerCase() === 'enterprise').length;
 
-      setText('basicUsageCount', `${basicCount} colleges`);
-      setText('proUsageCount', `${proCount} colleges`);
-      setText('enterpriseUsageCount', `${enterpriseCount} colleges`);
+      const now = Date.now();
+      const expiring = colleges.filter((item) => {
+        if (!item.planExpiry) return false;
+        const days = Math.ceil((new Date(item.planExpiry).getTime() - now) / 86400000);
+        return days >= 0 && days <= 30;
+      }).length;
+
+      const revenue = colleges.reduce((sum, item) => sum + (planCosts[String(item.plan || 'basic').toLowerCase()] || planCosts.basic), 0);
+      const arr = revenue * 12;
+
+      // Revenue Display
+      setText('mrrValue', formatMoney(revenue));
+      setText('arrValue', formatMoney(arr));
+
+      // Client Counts (Preserved IDs)
+      setText('basicCount', String(enterpriseCount));
+      setText('proCount', String(proCount));
+      setText('enterpriseCount', String(expiring));
+
+      // Tier Showcase counts
+      setText('basicTierClientCount', `${basicCount} campus(es) on Basic`);
+      setText('proTierClientCount', `${proCount} campus(es) on Pro`);
+      setText('enterpriseTierClientCount', `${enterpriseCount} campus(es) on Enterprise`);
+
+      // Usage Overview Distribution
+      setText('basicUsageCount', `${basicCount} colleges (${Math.round((basicCount / total) * 100)}%)`);
+      setText('proUsageCount', `${proCount} colleges (${Math.round((proCount / total) * 100)}%)`);
+      setText('enterpriseUsageCount', `${enterpriseCount} colleges (${Math.round((enterpriseCount / total) * 100)}%)`);
 
       const basicBar = byId('basicUsageBar');
       const proBar = byId('proUsageBar');
@@ -1940,62 +2977,250 @@
       if (basicBar) basicBar.style.width = `${Math.round((basicCount / total) * 100)}%`;
       if (proBar) proBar.style.width = `${Math.round((proCount / total) * 100)}%`;
       if (enterpriseBar) enterpriseBar.style.width = `${Math.round((enterpriseCount / total) * 100)}%`;
-    }
 
-    function renderPlanCards() {
-      const cards = qa('.plan-card');
-      ['basic', 'pro', 'enterprise'].forEach((key, index) => {
-        const card = cards[index];
-        const details = planDetails[key];
-        if (!card || !details) return;
-        const featureHtml = details.features.map((feature) => `<div class="plan-feature"><i class="fas fa-check-circle" style="color:${key === 'enterprise' ? '#F59E0B' : key === 'pro' ? '#34D399' : '#059669'}"></i>${escapeHTML(feature)}</div>`).join('');
-        card.innerHTML = `
-          <div style="font-size:12px;font-weight:700;letter-spacing:1px;margin-bottom:8px">${details.label}</div>
-          <div style="font-size:32px;font-weight:900;margin-bottom:4px">${details.price}<span style="font-size:14px;font-weight:500">/month</span></div>
-          <div style="font-size:12px;margin-bottom:16px">${details.subtitle}</div>
-          <div style="border-top:1px solid rgba(255,255,255,0.2);padding-top:14px">${featureHtml}</div>
-        `;
-      });
+      // Backward compatible stat card updates
+      setStatCard(0, 'Monthly Revenue', formatMoney(revenue));
+      setStatCard(1, 'Enterprise Clients', String(enterpriseCount));
+      setStatCard(2, 'Pro Clients', String(proCount));
+      setStatCard(3, 'Expiring Soon', String(expiring), '<i class="fas fa-clock"></i> Within 30 days');
     }
 
     function renderTable() {
       const now = Date.now();
-      setHTML('planTableBody', colleges.map((item) => {
-        const expiry = item.planExpiry ? new Date(item.planExpiry) : null;
-        const daysLeft = expiry ? Math.ceil((expiry.getTime() - now) / 86400000) : null;
-        return `
+      const filtered = getFilteredColleges();
+      const tbody = byId('planTableBody');
+      if (!tbody) return;
+
+      if (!filtered.length) {
+        tbody.innerHTML = `
           <tr>
-            <td><div style="font-weight:700;font-size:14px">${escapeHTML(item.name)}</div></td>
-            <td><span style="font-weight:800;font-size:13px;text-transform:uppercase;color:#4F46E5">${escapeHTML(item.plan || 'basic')}</span></td>
-            <td><div style="font-size:12px">${expiry ? formatDate(expiry) : '-'}</div><div style="font-size:11px;color:${daysLeft !== null && daysLeft <= 30 ? '#D97706' : '#059669'};font-weight:600">${daysLeft === null ? 'No expiry' : `${daysLeft}d left`}</div></td>
-            <td>${item.students || 0}</td>
-            <td style="font-weight:700">${formatMoney(planCosts[item.plan] || planCosts.basic)}</td>
-            <td><span class="badge ${item.status === 'active' ? 'badge-success' : 'badge-danger'}">${escapeHTML(item.status)}</span></td>
-            <td><div style="display:flex;gap:4px"><button class="btn btn-xs btn-primary" onclick="openUpgrade('${item._id}', '${escapeHTML(item.name).replace(/'/g, "\\'")}', '${item.plan || 'basic'}')"><i class="fas fa-arrow-up"></i> Change Plan</button></div></td>
+            <td colspan="8" style="text-align:center;padding:50px">
+              <div class="empty-state">
+                <i class="fas fa-tags" style="font-size:28px;color:#CBD5E1;margin-bottom:8px"></i>
+                <div class="empty-state-title" style="font-weight:700;color:#0F172A">No institutional plans found</div>
+                <div style="font-size:12px;color:#64748B;margin-top:4px">Try adjusting your filters or search query</div>
+              </div>
+            </td>
           </tr>
         `;
-      }).join('') || '<tr><td colspan="7"><div class="empty-state"><div class="empty-state-title">No colleges found</div></div></td></tr>');
+        return;
+      }
 
+      const start = (currentPage - 1) * perPage;
+      const pageItems = filtered.slice(start, start + perPage);
+
+      tbody.innerHTML = pageItems.map((item, index) => {
+        const expiry = item.planExpiry ? new Date(item.planExpiry) : null;
+        const daysLeft = expiry ? Math.ceil((expiry.getTime() - now) / 86400000) : null;
+        const pKey = String(item.plan || 'basic').toLowerCase();
+        const cost = planCosts[pKey] || planCosts.basic;
+        const sealGrad = getSealGradient(item.name || 'College');
+        const initial = (item.name || 'C').trim().charAt(0).toUpperCase();
+        const isAct = item.status === 'active' || item.isActive === true;
+
+        let expiryChip = `<span class="expiry-chip expiry-healthy"><i class="fas fa-infinity"></i> No Expiry</span>`;
+        if (daysLeft !== null) {
+          if (daysLeft < 0) {
+            expiryChip = `<span class="expiry-chip expiry-expired"><i class="fas fa-exclamation-circle"></i> Expired (${Math.abs(daysLeft)}d ago)</span>`;
+          } else if (daysLeft <= 30) {
+            expiryChip = `<span class="expiry-chip expiry-soon"><i class="fas fa-clock"></i> ${daysLeft} days left</span>`;
+          } else {
+            expiryChip = `<span class="expiry-chip expiry-healthy"><i class="fas fa-shield-alt"></i> ${daysLeft} days left</span>`;
+          }
+        }
+
+        return `
+          <tr onclick="openPlanDrawer('${item._id}')">
+            <td style="color:#94A3B8;font-size:12px">${start + index + 1}</td>
+            <td>
+              <div style="display:flex;align-items:center;gap:12px">
+                <div class="college-seal-sm" style="background:${sealGrad}">${initial}</div>
+                <div>
+                  <div style="font-weight:800;color:#0F172A;font-size:13.5px">${escapeHTML(item.name)}</div>
+                  <div style="display:flex;align-items:center;gap:6px;margin-top:2px">
+                    <span class="code-chip">${escapeHTML(item.code || '-')}</span>
+                    <span style="font-size:11px;color:#64748B">${escapeHTML(item.adminEmail || item.email || '')}</span>
+                  </div>
+                </div>
+              </div>
+            </td>
+            <td>${renderPlanBadge(pKey)}</td>
+            <td>
+              <div>
+                <div style="font-size:12.5px;font-weight:600;color:#1E293B">${expiry ? formatDate(expiry) : 'Perpetual'}</div>
+                <div style="margin-top:2px">${expiryChip}</div>
+              </div>
+            </td>
+            <td>
+              <div style="font-size:12.5px;font-weight:700;color:#0F172A">
+                <i class="fas fa-user-graduate text-indigo-500" style="margin-right:4px"></i> ${item.students || item.studentsCount || 0} students
+              </div>
+              <div style="font-size:11px;color:#64748B;margin-top:2px">${planQuotas[pKey] || 'Custom Quota'}</div>
+            </td>
+            <td>
+              <div style="font-weight:900;font-size:13.5px;color:#0F172A">${formatMoney(cost)}</div>
+              <div style="font-size:10.5px;color:#94A3B8;font-weight:600">Billed monthly</div>
+            </td>
+            <td>
+              <span class="status-toggle-pill ${isAct ? 'active' : 'suspended'}" style="font-size:11px;padding:3px 9px">
+                <span class="status-toggle-dot"></span>
+                ${isAct ? 'Active' : 'Suspended'}
+              </span>
+            </td>
+            <td style="text-align:right" onclick="event.stopPropagation()">
+              <div style="display:inline-flex;gap:4px">
+                <button class="btn btn-xs btn-secondary" title="Inspect Billing" onclick="openPlanDrawer('${item._id}')">
+                  <i class="fas fa-eye"></i>
+                </button>
+                <button class="btn btn-xs btn-primary" title="Change Plan" onclick="openUpgrade('${item._id}', '${escapeHTML(item.name).replace(/'/g, "\\'")}', '${pKey}')">
+                  <i class="fas fa-edit"></i> Change Plan
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      // Populate Modal Select
       const select = byId('planCollegeSelect');
       if (select) {
-        select.innerHTML = '<option value="">Choose institution...</option>' + colleges.map((item) => `<option value="${item._id}">${escapeHTML(item.name)}</option>`).join('');
+        select.innerHTML = '<option value="">Choose institution...</option>' + colleges.map((item) => `
+          <option value="${item._id}">${escapeHTML(item.name)} (${String(item.plan || 'basic').toUpperCase()})</option>
+        `).join('');
       }
     }
 
     async function loadPlans() {
-      const res = await window.api.request('/super-admin/colleges?limit=200', { silent: true });
-      colleges = res.colleges || [];
-      const expiring = colleges.filter((item) => item.planExpiry && ((new Date(item.planExpiry).getTime() - Date.now()) / 86400000) <= 30).length;
-      const revenue = colleges.reduce((sum, item) => sum + (planCosts[item.plan] || planCosts.basic), 0);
-      setStatCard(0, 'Monthly Revenue', formatMoney(revenue));
-      setStatCard(1, 'Enterprise Clients', String(colleges.filter((item) => item.plan === 'enterprise').length));
-      setStatCard(2, 'Pro Clients', String(colleges.filter((item) => item.plan === 'pro').length));
-      setStatCard(3, 'Expiring Soon', String(expiring), '<i class="fas fa-clock"></i> Within 30 days');
-      renderPlanCards();
-      renderUsageOverview();
-      renderTable();
+      try {
+        const res = await window.api.request('/super-admin/colleges?limit=250', { silent: true });
+        colleges = res.colleges || [];
+        updateTelemetry();
+        renderTable();
+      } catch (err) {
+        console.error('Failed to load plan subscriptions:', err);
+      }
     }
 
+    // Slide-Over Drawer
+    window.openPlanDrawer = function openPlanDrawer(id) {
+      const item = colleges.find((c) => c._id === id);
+      if (!item) return;
+      activeDrawerCollegeId = id;
+
+      const overlay = byId('planDrawerOverlay');
+      const drawer = byId('planDrawer');
+      if (overlay) overlay.classList.add('open');
+      if (drawer) drawer.classList.add('open');
+
+      const initial = (item.name || 'C').trim().charAt(0).toUpperCase();
+      const sealGrad = getSealGradient(item.name || 'College');
+      const pKey = String(item.plan || 'basic').toLowerCase();
+      const cost = planCosts[pKey] || planCosts.basic;
+      const now = Date.now();
+      const expiry = item.planExpiry ? new Date(item.planExpiry) : null;
+      const daysLeft = expiry ? Math.ceil((expiry.getTime() - now) / 86400000) : null;
+
+      const sealEl = byId('planDrawerSeal');
+      if (sealEl) {
+        sealEl.style.background = sealGrad;
+        sealEl.textContent = initial;
+      }
+
+      setText('planDrawerCollegeName', item.name || 'Institution');
+      setText('planDrawerCollegeCode', item.code || 'NO-CODE');
+
+      const badgeEl = byId('planDrawerBadge');
+      if (badgeEl) badgeEl.innerHTML = renderPlanBadge(pKey);
+
+      const body = byId('planDrawerBody');
+      if (body) {
+        body.innerHTML = `
+          <div style="display:flex;flex-direction:column;gap:18px">
+            <!-- Financial Card -->
+            <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:14px;padding:16px">
+              <div style="font-size:11px;font-weight:800;color:#64748B;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px">
+                Recurring Billing Overview
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+                <div style="background:#FFF;border:1px solid #E2E8F0;border-radius:10px;padding:12px">
+                  <div style="font-size:11px;color:#94A3B8;font-weight:600">MONTHLY MRR</div>
+                  <div style="font-size:18px;font-weight:900;color:#0F172A;margin-top:2px">${formatMoney(cost)}</div>
+                </div>
+                <div style="background:#FFF;border:1px solid #E2E8F0;border-radius:10px;padding:12px">
+                  <div style="font-size:11px;color:#94A3B8;font-weight:600">ANNUAL VALUE</div>
+                  <div style="font-size:18px;font-weight:900;color:#4F46E5;margin-top:2px">${formatMoney(cost * 12)}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Plan Quotas & Limits -->
+            <div style="background:#FFF;border:1px solid #E2E8F0;border-radius:14px;padding:16px">
+              <div style="font-size:11px;font-weight:800;color:#64748B;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:12px">
+                Quota & Entitlements
+              </div>
+              <div style="display:flex;flex-direction:column;gap:10px;font-size:13px">
+                <div style="display:flex;justify-content:space-between;border-bottom:1px solid #F1F5F9;padding-bottom:6px">
+                  <span style="color:#64748B">Active Tier</span>
+                  <strong style="color:#0F172A;text-transform:uppercase">${pKey}</strong>
+                </div>
+                <div style="display:flex;justify-content:space-between;border-bottom:1px solid #F1F5F9;padding-bottom:6px">
+                  <span style="color:#64748B">Enrolled Students</span>
+                  <strong style="color:#0F172A">${item.students || item.studentsCount || 0} students</strong>
+                </div>
+                <div style="display:flex;justify-content:space-between;border-bottom:1px solid #F1F5F9;padding-bottom:6px">
+                  <span style="color:#64748B">Tier Quota Ceiling</span>
+                  <strong style="color:#4F46E5">${planQuotas[pKey] || 'Custom'}</strong>
+                </div>
+                <div style="display:flex;justify-content:space-between;border-bottom:1px solid #F1F5F9;padding-bottom:6px">
+                  <span style="color:#64748B">Plan Expiration</span>
+                  <strong style="color:#0F172A">${expiry ? formatDate(expiry) : 'Perpetual'}</strong>
+                </div>
+                <div style="display:flex;justify-content:space-between">
+                  <span style="color:#64748B">Days Remaining</span>
+                  <strong style="color:${daysLeft !== null && daysLeft <= 30 ? '#DC2626' : '#16A34A'}">
+                    ${daysLeft !== null ? `${daysLeft} days` : 'Unlimited'}
+                  </strong>
+                </div>
+              </div>
+            </div>
+
+            <!-- Administrator Authority -->
+            <div style="background:#FFF;border:1px solid #E2E8F0;border-radius:14px;padding:16px">
+              <div style="font-size:11px;font-weight:800;color:#64748B;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:10px">
+                Billing Contact
+              </div>
+              <div style="font-weight:800;color:#0F172A;font-size:14px">${escapeHTML(item.adminName || 'Unassigned')}</div>
+              <div style="font-size:12px;color:#64748B;margin-top:2px">${escapeHTML(item.adminEmail || item.email || 'No email')}</div>
+            </div>
+
+            <!-- In-Drawer Action Dock -->
+            <div style="display:grid;grid-template-columns:1fr;gap:10px">
+              <button class="btn btn-primary" onclick="closePlanDrawer(); openUpgrade('${item._id}', '${escapeHTML(item.name).replace(/'/g, "\\'")}', '${pKey}')" style="justify-content:center">
+                <i class="fas fa-edit"></i> Modify Subscription Tier
+              </button>
+            </div>
+          </div>
+        `;
+      }
+    };
+
+    window.closePlanDrawer = function closePlanDrawer() {
+      const overlay = byId('planDrawerOverlay');
+      const drawer = byId('planDrawer');
+      if (overlay) overlay.classList.remove('open');
+      if (drawer) drawer.classList.remove('open');
+      activeDrawerCollegeId = null;
+    };
+
+    // Quick filter by tier from showcase cards
+    window.filterPlansByTier = function filterPlansByTier(tier) {
+      if (planFilterSelect) {
+        planFilterSelect.value = tier;
+        renderTable();
+      }
+    };
+
+    // Open upgrade modal (Preserved)
     window.openUpgrade = function openUpgrade(id, _name, currentPlan) {
       if (byId('planCollegeSelect')) byId('planCollegeSelect').value = id;
       if (byId('newPlanSelect')) byId('newPlanSelect').value = currentPlan || 'basic';
@@ -2005,20 +3230,33 @@
       window.openModal?.('upgradePlanModal');
     };
 
+    // Update Plan (Preserved)
     window.updatePlan = async function updatePlan() {
       const collegeId = byId('planCollegeSelect')?.value;
       const plan = byId('newPlanSelect')?.value;
       const planExpiry = byId('planExpiry')?.value;
       if (!collegeId || !plan || !planExpiry) {
-        window.showToast?.('Fill all fields', 'error');
+        window.showToast?.('Please fill all required fields', 'error');
         return;
       }
-      await window.api.request(`/super-admin/colleges/${collegeId}/plan`, { method: 'PUT', body: JSON.stringify({ plan, planExpiry }) });
-      window.closeModal?.('upgradePlanModal');
-      window.showToast?.('Plan updated successfully', 'success');
-      await loadPlans();
+      try {
+        await window.api.request(`/super-admin/colleges/${collegeId}/plan`, {
+          method: 'PUT',
+          body: JSON.stringify({ plan, planExpiry }),
+        });
+        window.closeModal?.('upgradePlanModal');
+        window.showToast?.('Subscription plan updated successfully', 'success');
+        await loadPlans();
+        if (activeDrawerCollegeId) {
+          openPlanDrawer(activeDrawerCollegeId);
+        }
+      } catch (err) {
+        console.error('Failed to update plan:', err);
+        window.showToast?.(err.message || 'Failed to update plan', 'error');
+      }
     };
 
+    // Bulk college selection chips & dropdown
     function renderBulkCollegeDropdown() {
       const dropdown = byId('collegeSearchDropdown');
       if (!dropdown) return;
@@ -2028,11 +3266,13 @@
         if (search && !c.name.toLowerCase().includes(search)) return false;
         return true;
       }).slice(0, 10);
+
       dropdown.innerHTML = available.map((c) => `
-        <div style="padding:8px 12px;cursor:pointer;border-bottom:1px solid #F1F5F9;font-size:13px" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='white'" onclick="addBulkCollege('${c._id}','${escapeHTML(c.name).replace(/'/g, "\\'")}')">
-          ${escapeHTML(c.name)}
+        <div style="padding:10px 14px;cursor:pointer;border-bottom:1px solid #F1F5F9;font-size:13px;display:flex;align-items:center;justify-content:space-between" onmouseover="this.style.background='#F8FAFC'" onmouseout="this.style.background='white'" onclick="addBulkCollege('${c._id}','${escapeHTML(c.name).replace(/'/g, "\\'")}')">
+          <span style="font-weight:700;color:#0F172A">${escapeHTML(c.name)}</span>
+          <span class="code-chip">${escapeHTML(c.code || '-')}</span>
         </div>
-      `).join('') || '<div style="padding:8px 12px;color:#94A3B8;font-size:13px">No matching colleges</div>';
+      `).join('') || '<div style="padding:12px 14px;color:#94A3B8;font-size:13px">No matching institutions found</div>';
       dropdown.style.display = 'block';
     }
 
@@ -2041,9 +3281,9 @@
       if (!container) return;
       const input = byId('bulkCollegeSearch');
       const chips = bulkSelectedColleges.map((c) => `
-        <span style="display:inline-flex;align-items:center;gap:4px;background:#EEF2FF;color:#4F46E5;padding:3px 8px;border-radius:6px;font-size:12px;font-weight:600">
+        <span class="college-chip">
           ${escapeHTML(c.name)}
-          <span style="cursor:pointer;color:#6366F1" onclick="removeBulkCollege('${c._id}')">&times;</span>
+          <span class="remove-chip" onclick="removeBulkCollege('${c._id}')">&times;</span>
         </span>
       `).join('');
       if (input) {
@@ -2057,8 +3297,8 @@
       if (bulkSelectedColleges.some((c) => c._id === id)) return;
       bulkSelectedColleges.push({ _id: id, name });
       renderBulkSelectedChips();
-      byId('bulkCollegeSearch').value = '';
-      byId('collegeSearchDropdown').style.display = 'none';
+      if (byId('bulkCollegeSearch')) byId('bulkCollegeSearch').value = '';
+      if (byId('collegeSearchDropdown')) byId('collegeSearchDropdown').style.display = 'none';
     };
 
     window.removeBulkCollege = function removeBulkCollege(id) {
@@ -2074,9 +3314,10 @@
       if (dropdown) dropdown.style.display = 'none';
     };
 
+    // Bulk plan assignment with reliable parallel updates
     window.bulkAssignPlan = async function bulkAssignPlan() {
       if (!bulkSelectedColleges.length) {
-        window.showToast?.('Select at least one college', 'error');
+        window.showToast?.('Please select at least one institution', 'error');
         return;
       }
       const plan = byId('bulkPlanSelect')?.value;
@@ -2085,18 +3326,116 @@
         window.showToast?.('Select plan and expiry date', 'error');
         return;
       }
-      const ids = bulkSelectedColleges.map((c) => c._id);
-      await window.api.request('/super-admin/colleges/bulk/plan', { method: 'POST', body: JSON.stringify({ collegeIds: ids, plan, planExpiry }) });
-      window.closeBulkAssignModal();
-      window.showToast?.(`Plan assigned to ${ids.length} college(s)`, 'success');
-      await loadPlans();
+
+      const count = bulkSelectedColleges.length;
+      try {
+        await Promise.all(bulkSelectedColleges.map((c) =>
+          window.api.request(`/super-admin/colleges/${c._id}/plan`, {
+            method: 'PUT',
+            body: JSON.stringify({ plan, planExpiry }),
+          })
+        ));
+        window.closeBulkAssignModal();
+        window.showToast?.(`Tier successfully updated for ${count} institution(s)`, 'success');
+        await loadPlans();
+      } catch (err) {
+        console.error('Bulk plan assignment error:', err);
+        window.showToast?.('Some updates failed during bulk assignment', 'error');
+        await loadPlans();
+      }
     };
+
+    // Listeners
+    if (searchInput) {
+      searchInput.oninput = debounce(() => {
+        currentPage = 1;
+        if (clearSearchBtn) clearSearchBtn.style.display = searchInput.value ? 'inline-block' : 'none';
+        renderTable();
+      }, 200);
+    }
+    if (clearSearchBtn) {
+      clearSearchBtn.onclick = () => {
+        if (searchInput) searchInput.value = '';
+        clearSearchBtn.style.display = 'none';
+        currentPage = 1;
+        renderTable();
+      };
+    }
+    if (planFilterSelect) {
+      planFilterSelect.onchange = () => {
+        currentPage = 1;
+        renderTable();
+      };
+    }
+    if (planExpiryFilter) {
+      planExpiryFilter.onchange = () => {
+        currentPage = 1;
+        renderTable();
+      };
+    }
+    if (plansPerPage) {
+      plansPerPage.onchange = () => {
+        perPage = parseInt(plansPerPage.value, 10) || 15;
+        currentPage = 1;
+        renderTable();
+      };
+    }
+    if (clearPlansFilterBtn) {
+      clearPlansFilterBtn.onclick = () => {
+        if (searchInput) searchInput.value = '';
+        if (planFilterSelect) planFilterSelect.value = '';
+        if (planExpiryFilter) planExpiryFilter.value = '';
+        if (clearSearchBtn) clearSearchBtn.style.display = 'none';
+        currentPage = 1;
+        renderTable();
+      };
+    }
+    if (exportBtn) {
+      exportBtn.onclick = function exportBillingData() {
+        downloadCsv('billing-plans-export.csv', [
+          ['Institution', 'Code', 'Admin Email', 'Plan', 'Monthly Fee (INR)', 'Expiry Date', 'Enrolled Students', 'Status'],
+          ...colleges.map((item) => {
+            const p = String(item.plan || 'basic').toLowerCase();
+            return [
+              item.name,
+              item.code,
+              item.adminEmail || item.email || '',
+              p.toUpperCase(),
+              planCosts[p] || planCosts.basic,
+              item.planExpiry ? formatDate(item.planExpiry) : 'Perpetual',
+              item.students || item.studentsCount || 0,
+              item.status || (item.isActive ? 'active' : 'suspended'),
+            ];
+          }),
+        ]);
+        window.showToast?.('Billing & plan export downloaded', 'success');
+      };
+    }
+    if (refreshBtn) {
+      refreshBtn.onclick = async function () {
+        refreshBtn.querySelector('i')?.classList.add('fa-spin');
+        await loadPlans();
+        setTimeout(() => refreshBtn.querySelector('i')?.classList.remove('fa-spin'), 600);
+        window.showToast?.('Billing telemetry refreshed', 'info');
+      };
+    }
 
     const bulkSearch = cloneById('bulkCollegeSearch');
     if (bulkSearch) {
       bulkSearch.oninput = debounce(renderBulkCollegeDropdown, 150);
       bulkSearch.onfocus = renderBulkCollegeDropdown;
     }
+
+    // Keyboard shortcut '/'
+    document.addEventListener('keydown', (e) => {
+      if (e.key === '/' && document.activeElement !== searchInput && !['INPUT', 'TEXTAREA'].includes(document.activeElement.tagName)) {
+        e.preventDefault();
+        searchInput?.focus();
+      }
+      if (e.key === 'Escape') {
+        closePlanDrawer();
+      }
+    });
 
     window.__erpAdminPageRefresh = loadPlans;
     await loadPlans();
@@ -2384,24 +3723,9 @@
   }
 
   async function initSuperAdminSystemPage() {
-    const services = [
-      ['Express Server', 'HTTP/REST API handling', 'ok'],
-      ['MongoDB', 'Primary database connection', 'ok'],
-      ['Socket.io', 'Real-time event engine', 'ok'],
-      ['JWT Auth', 'Token validation service', 'ok'],
-      ['Rate Limiter', 'API protection layer', 'ok'],
-      ['File Server', 'Static asset serving', 'ok'],
-    ];
-
-    const grid = byId('servicesGrid');
-    if (grid) {
-      grid.innerHTML = services.map(([name, description, status]) => `
-        <div class="service-card">
-          <div class="service-status status-${status === 'ok' ? 'ok' : 'warn'}"></div>
-          <div style="flex:1"><div style="font-weight:700;font-size:13px">${escapeHTML(name)}</div><div style="font-size:11px;color:#64748B">${escapeHTML(description)}</div></div>
-          <span class="badge ${status === 'ok' ? 'badge-success' : 'badge-warning'}">${status === 'ok' ? 'Operational' : 'Degraded'}</span>
-        </div>
-      `).join('');
+    if (typeof window.fetchHealth === 'function') {
+      window.__erpAdminPageRefresh = window.fetchHealth;
+      await window.fetchHealth();
     }
   }
 
