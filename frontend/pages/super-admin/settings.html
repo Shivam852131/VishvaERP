@@ -294,6 +294,74 @@
               </div>
             </div>
             <div class="card-body" style="padding:24px">
+              <!-- Platform Branding & Logo Banner -->
+              <div style="background: linear-gradient(135deg, #0B0F19 0%, #171B2F 100%); border-radius: 16px; padding: 20px 24px; margin-bottom: 24px; border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 4px 20px rgba(0,0,0,0.15)">
+                <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;margin-bottom:18px">
+                  <div>
+                    <div style="font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:#818CF8;display:flex;align-items:center;gap:6px">
+                      <i class="fas fa-shield-cat"></i> Official Brand Asset &amp; System Logo
+                    </div>
+                    <h3 style="font-size:16px;font-weight:800;color:#FFFFFF;margin:4px 0 0 0">Platform Brand Identity &amp; Logo Mark</h3>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px">
+                    <span class="badge" style="background:rgba(99,102,241,0.2);color:#A5B4FC;border:1px solid rgba(99,102,241,0.3);padding:4px 10px;border-radius:9999px;font-size:11.5px;font-weight:700">
+                      <i class="fas fa-check-circle" style="color:#10B981"></i> Active Brand Mark
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Live Logo Previews -->
+                <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:14px;margin-bottom:18px">
+                  <!-- Dark Canvas Preview (Matches Landing Page) -->
+                  <div style="background:#070913;border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:8px">
+                    <div style="font-size:10px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.06em">Dark Canvas Preview (Landing &amp; Sidebars)</div>
+                    <div id="liveLogoPreviewDark" style="display:flex;align-items:center;gap:12px;padding:8px 0">
+                      <div class="sidebar-logo-icon" id="previewLogoIconDark" style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#6366F1,#8B5CF6);display:flex;align-items:center;justify-content:center;color:#FFFFFF;font-weight:800;font-size:19px;box-shadow:0 4px 14px rgba(99,102,241,0.4)">V</div>
+                      <div class="sidebar-logo-text" id="previewLogoTextDark" style="color:#FFFFFF;font-weight:700;font-size:18px;letter-spacing:-0.01em;display:flex;align-items:baseline;gap:1px">
+                        Vishva<span style="color:#FFFFFF;font-weight:900;letter-spacing:-0.02em">ERP</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Light Canvas Preview -->
+                  <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:8px">
+                    <div style="font-size:10px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.06em">Light Canvas Preview (Documents &amp; Reports)</div>
+                    <div id="liveLogoPreviewLight" style="display:flex;align-items:center;gap:12px;padding:8px 0">
+                      <div class="sidebar-logo-icon" id="previewLogoIconLight" style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#6366F1,#8B5CF6);display:flex;align-items:center;justify-content:center;color:#FFFFFF;font-weight:800;font-size:19px;box-shadow:0 4px 14px rgba(99,102,241,0.3)">V</div>
+                      <div style="color:#0F172A;font-weight:700;font-size:18px;letter-spacing:-0.01em;display:flex;align-items:baseline;gap:1px">
+                        Vishva<span style="color:#4F46E5;font-weight:900;letter-spacing:-0.02em">ERP</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Logo Controls -->
+                <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:12px;padding:14px 16px">
+                  <div class="form-grid-2" style="align-items:end">
+                    <div class="form-group" style="margin-bottom:0">
+                      <label class="form-label" style="font-weight:700;font-size:12px;color:#CBD5E1">Custom Logo Asset URL / Path</label>
+                      <input type="text" class="form-control" id="settingsLogoUrl" placeholder="Default: Official [V] Gradient Mark" style="background:rgba(15,23,42,0.6);border-color:rgba(255,255,255,0.15);color:#FFFFFF;border-radius:10px">
+                    </div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap">
+                      <input type="file" id="settingsLogoFileInput" accept="image/*" style="display:none">
+                      <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('settingsLogoFileInput').click()" style="background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);color:#FFFFFF">
+                        <i class="fas fa-upload"></i> Upload Image
+                      </button>
+                      <button type="button" class="btn btn-secondary btn-sm" onclick="setLogoPreset('default')" style="background:rgba(99,102,241,0.2);border-color:rgba(99,102,241,0.4);color:#C7D2FE">
+                        <i class="fas fa-sparkles"></i> Official [V] Mark
+                      </button>
+                      <button type="button" class="btn btn-secondary btn-sm" onclick="setLogoPreset('vector')" style="background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);color:#FFFFFF">
+                        <i class="fas fa-vector-square"></i> Vector SVG
+                      </button>
+                    </div>
+                  </div>
+                  <div style="font-size:11.5px;color:#94A3B8;margin-top:8px;display:flex;align-items:center;gap:6px">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Selecting or uploading a logo updates the sidebar mark across all portals and persistence stores.</span>
+                  </div>
+                </div>
+              </div>
+
               <div class="form-grid-2">
                 <div class="form-group">
                   <label class="form-label" style="font-weight:700;font-size:13px;color:#0F172A">Platform Name</label>

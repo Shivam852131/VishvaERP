@@ -4,6 +4,7 @@ const platformSettingSchema = new mongoose.Schema({
   key: { type: String, unique: true, default: 'platform' },
   general: {
     platformName: { type: String, default: 'VishvaERP' },
+    logoUrl: { type: String, default: '' },
     supportEmail: { type: String, default: 'support@vishvaerp.com' },
     timezone: { type: String, default: 'Asia/Kolkata' },
     currency: { type: String, default: 'INR' },

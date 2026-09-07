@@ -3642,10 +3642,84 @@
     if (aiSelect) aiSelect.id = 'settingsAiModel';
     if (aiCheck) aiCheck.id = 'settingsAiEnabled';
 
+    const logoInput = byId('settingsLogoUrl');
+    const fileInput = byId('settingsLogoFileInput');
+    const platformInput = byId('settingsPlatformName');
+
+    function updateLiveLogoPreviews(name, logoUrl) {
+      const brandName = (name || 'Vishva').trim() || 'Vishva';
+      const darkText = byId('previewLogoTextDark');
+      if (darkText) {
+        darkText.innerHTML = `${escapeHTML(brandName)}<span style="color:#FFFFFF;font-weight:900;letter-spacing:-0.02em">ERP</span>`;
+      }
+      const lightBrandContainer = q('#liveLogoPreviewLight > div:nth-child(2)');
+      if (lightBrandContainer) {
+        lightBrandContainer.innerHTML = `${escapeHTML(brandName)}<span style="color:#4F46E5;font-weight:900;letter-spacing:-0.02em">ERP</span>`;
+      }
+
+      const darkIcon = byId('previewLogoIconDark');
+      const lightIcon = byId('previewLogoIconLight');
+      const sidebarIcon = q('.sidebar-logo .sidebar-logo-icon');
+      const sidebarText = q('.sidebar-logo .sidebar-logo-text');
+
+      if (logoUrl) {
+        const imgTag = `<img src="${logoUrl}" alt="Logo" style="width:100%;height:100%;object-fit:cover;border-radius:10px">`;
+        if (darkIcon) darkIcon.innerHTML = imgTag;
+        if (lightIcon) lightIcon.innerHTML = imgTag;
+        if (sidebarIcon) sidebarIcon.innerHTML = imgTag;
+      } else {
+        if (darkIcon) darkIcon.textContent = 'V';
+        if (lightIcon) lightIcon.textContent = 'V';
+        if (sidebarIcon) sidebarIcon.textContent = 'V';
+      }
+      if (sidebarText) {
+        sidebarText.innerHTML = `${escapeHTML(brandName)}<span>ERP</span>`;
+      }
+    }
+
+    window.setLogoPreset = function(preset) {
+      if (preset === 'default') {
+        if (logoInput) logoInput.value = '';
+        updateLiveLogoPreviews(platformInput?.value, '');
+        window.showToast?.('Switched to official [V] gradient brand mark', 'info');
+      } else if (preset === 'vector') {
+        const svgUrl = '../../icons/logo.svg';
+        if (logoInput) logoInput.value = svgUrl;
+        updateLiveLogoPreviews(platformInput?.value, svgUrl);
+        window.showToast?.('Loaded official vector SVG logo asset', 'info');
+      }
+    };
+
+    if (platformInput) {
+      platformInput.addEventListener('input', () => updateLiveLogoPreviews(platformInput.value, logoInput?.value));
+    }
+    if (logoInput) {
+      logoInput.addEventListener('input', () => updateLiveLogoPreviews(platformInput?.value, logoInput.value));
+    }
+    if (fileInput) {
+      fileInput.addEventListener('change', () => {
+        const file = fileInput.files?.[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            const dataUrl = e.target.result;
+            if (logoInput) logoInput.value = dataUrl;
+            updateLiveLogoPreviews(platformInput?.value, dataUrl);
+            window.showToast?.('Logo image loaded. Click "Save Changes" to apply.', 'info');
+          };
+          reader.readAsDataURL(file);
+        }
+      });
+    }
+
     async function loadSettings() {
       const res = await window.api.request('/super-admin/settings', { silent: true });
       const settings = res.settings || {};
-      if (byId('settingsPlatformName')) byId('settingsPlatformName').value = settings.general?.platformName || '';
+      const savedLogo = settings.general?.logoUrl || localStorage.getItem('vishva_platform_logo') || '';
+      if (logoInput) logoInput.value = savedLogo;
+      if (byId('settingsPlatformName')) byId('settingsPlatformName').value = settings.general?.platformName || 'VishvaERP';
+      updateLiveLogoPreviews(settings.general?.platformName || 'VishvaERP', savedLogo);
+
       if (byId('settingsSupportEmail')) byId('settingsSupportEmail').value = settings.general?.supportEmail || '';
       if (byId('settingsTimezone')) byId('settingsTimezone').value = settings.general?.timezone || 'Asia/Kolkata';
       if (byId('settingsCurrency')) byId('settingsCurrency').value = settings.general?.currency || 'INR';
@@ -3676,9 +3750,11 @@
       const button = currentEvent?.target?.closest('button');
       window.setLoading?.(button, true);
       try {
+        const logoVal = byId('settingsLogoUrl')?.value.trim() || '';
         const payload = {
           general: {
-            platformName: byId('settingsPlatformName')?.value.trim(),
+            platformName: byId('settingsPlatformName')?.value.trim() || 'VishvaERP',
+            logoUrl: logoVal,
             supportEmail: byId('settingsSupportEmail')?.value.trim(),
             timezone: byId('settingsTimezone')?.value,
             currency: byId('settingsCurrency')?.value,
@@ -3711,6 +3787,14 @@
         const nextKey = byId('settingsAiApiKey')?.value.trim();
         if (nextKey) payload.ai.apiKey = nextKey;
         await window.api.request('/super-admin/settings', { method: 'PUT', body: JSON.stringify(payload) });
+
+        if (logoVal) {
+          localStorage.setItem('vishva_platform_logo', logoVal);
+        } else {
+          localStorage.removeItem('vishva_platform_logo');
+        }
+        updateLiveLogoPreviews(payload.general.platformName, logoVal);
+
         window.showToast?.('Settings saved successfully', 'success');
         await loadSettings();
       } finally {
@@ -7122,7 +7206,18 @@
     await loadClasses();
   }
 
+  function applyStoredLogo() {
+    try {
+      const storedLogo = localStorage.getItem('vishva_platform_logo');
+      const icon = q('.sidebar-logo .sidebar-logo-icon');
+      if (icon && storedLogo) {
+        icon.innerHTML = `<img src="${storedLogo}" alt="Logo" style="width:100%;height:100%;object-fit:cover;border-radius:10px">`;
+      }
+    } catch (_) {}
+  }
+
   async function init() {
+    applyStoredLogo();
     const user = getUser();
     if (!user) return;
     await ensureRealtime();
