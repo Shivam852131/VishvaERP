@@ -3650,11 +3650,11 @@
       const brandName = (name || 'Vishva').trim() || 'Vishva';
       const darkText = byId('previewLogoTextDark');
       if (darkText) {
-        darkText.innerHTML = `${escapeHTML(brandName)}<span style="color:#FFFFFF;font-weight:900;letter-spacing:-0.02em">ERP</span>`;
+        darkText.innerHTML = `${escapeHTML(brandName)} <span style="color:#FFFFFF;font-weight:900;letter-spacing:-0.02em">ERP</span>`;
       }
       const lightBrandContainer = q('#liveLogoPreviewLight > div:nth-child(2)');
       if (lightBrandContainer) {
-        lightBrandContainer.innerHTML = `${escapeHTML(brandName)}<span style="color:#4F46E5;font-weight:900;letter-spacing:-0.02em">ERP</span>`;
+        lightBrandContainer.innerHTML = `${escapeHTML(brandName)} <span style="color:#4F46E5;font-weight:900;letter-spacing:-0.02em">ERP</span>`;
       }
 
       const darkIcon = byId('previewLogoIconDark');
@@ -3668,7 +3668,7 @@
       if (lightIcon) lightIcon.innerHTML = imgTag;
       if (sidebarIcon) sidebarIcon.innerHTML = imgTag;
       if (sidebarText) {
-        sidebarText.innerHTML = `${escapeHTML(brandName)}<span>ERP</span>`;
+        sidebarText.innerHTML = `${escapeHTML(brandName)} <span>ERP</span>`;
       }
     }
 

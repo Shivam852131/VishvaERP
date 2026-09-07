@@ -9,7 +9,6 @@ function updateDir(dir, prefix) {
     let content = fs.readFileSync(fp, 'utf8');
     let changed = false;
 
-    // Pattern 1: <div class="sidebar-logo-icon">V</div>
     if (content.includes('<div class="sidebar-logo-icon">V</div>')) {
       content = content.replace(
         /<div class="sidebar-logo-icon">V<\/div>/g,
@@ -18,9 +17,19 @@ function updateDir(dir, prefix) {
       changed = true;
     }
 
+    if (content.includes('Vishva<span>ERP</span>')) {
+      content = content.replace(/Vishva<span>ERP<\/span>/g, 'Vishva <span>ERP</span>');
+      changed = true;
+    }
+
+    if (content.includes('Vishva<strong>ERP</strong>')) {
+      content = content.replace(/Vishva<strong>ERP<\/strong>/g, 'Vishva <strong>ERP</strong>');
+      changed = true;
+    }
+
     if (changed) {
       fs.writeFileSync(fp, content, 'utf8');
-      console.log(`Updated logo in ${file}`);
+      console.log(`Updated logo & text gap in ${file}`);
     }
   });
 }

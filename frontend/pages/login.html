@@ -122,8 +122,11 @@
     .brand-icon img {
       width: 100%; height: 100%; object-fit: cover; border-radius: 12px; display: block;
     }
-    .brand-name { font-size: 22px; font-weight: 700; color: white; letter-spacing: -0.01em; }
-    .brand-name span { color: white; font-weight: 900; letter-spacing: -0.02em; }
+    .brand-name {
+      font-size: 22px; font-weight: 700; color: white; letter-spacing: -0.01em;
+      display: inline-flex; align-items: baseline; gap: 6px;
+    }
+    .brand-name span { color: white; font-weight: 900; letter-spacing: -0.02em; margin-left: 2px; }
 
     .left-hero { position: relative; z-index: 1; margin-top: auto; }
     .left-hero h1 { font-size: 28px; font-weight: 900; color: white; line-height: 1.2; margin-bottom: 12px; }
@@ -482,7 +485,7 @@
   <div class="login-left">
     <div class="brand">
       <div class="brand-icon"><img src="../icons/logo.png" alt="VishvaERP"></div>
-      <div class="brand-name">Vishva<span>ERP</span></div>
+      <div class="brand-name">Vishva <span>ERP</span></div>
     </div>
     <div class="left-hero">
       <h1>Enterprise Academic Platform</h1>
