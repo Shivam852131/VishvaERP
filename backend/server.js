@@ -171,6 +171,7 @@ app.get('/sitemap.xml', (req, res) => {
 app.use('/api/v1', require('./routes/v1'));
 
 // ── Legacy /api/ routes (backward-compatible, with deprecation headers) ──
+app.use('/api/public', require('./routes/public'));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/super-admin', require('./routes/superAdmin'));
 app.use('/api/college-admin', require('./routes/collegeAdmin'));
