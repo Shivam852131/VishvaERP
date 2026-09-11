@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Campus Complaints & Grievance Redressal | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../css/custom.css">
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-college" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon"><img src="../../icons/logo.png" alt="Vi"></div><div class="sidebar-logo-text">Vishva <span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" id="sidebar-avatar">A</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Admin</div><div class="sidebar-user-role">College Administrator</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <div class="nav-section-label">Academics</div>
+      <a href="students.html" class="nav-link"><i class="nav-link-icon fas fa-user-graduate"></i> Students</a>
+      <a href="faculty.html" class="nav-link"><i class="nav-link-icon fas fa-chalkboard-teacher"></i> Faculty</a>
+      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-open"></i> Courses & Exams</a>
+      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-check"></i> Attendance</a>
+      <div class="nav-section-label">Finance & HR</div>
+      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-file-invoice-dollar"></i> Fee Management</a>
+      <a href="hr.html" class="nav-link"><i class="nav-link-icon fas fa-user-md"></i> HR & Leave</a>
+      <div class="nav-section-label">Campus Life</div>
+      <a href="transport.html" class="nav-link"><i class="nav-link-icon fas fa-bus"></i> Transport Fleet</a>
+      <a href="hostel.html" class="nav-link"><i class="nav-link-icon fas fa-building"></i> Hostel Living</a>
+      <a href="complaints.html" class="nav-link active"><i class="nav-link-icon fas fa-exclamation-circle"></i> Complaints & Grievances</a>
+      <a href="logistics.html" class="nav-link"><i class="nav-link-icon fas fa-truck"></i> All Logistics</a>
+      <a href="library.html" class="nav-link"><i class="nav-link-icon fas fa-book"></i> Library</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">College Admin / <span>Complaints & Grievances</span></div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-avatar" id="topbar-avatar">A</div>
+      </div>
+    </header>
+
+    <div class="erp-content">
+      <div class="page-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:20px">
+        <div>
+          <h1 class="page-title"><i class="fas fa-exclamation-circle text-danger" style="margin-right:10px;color:#EF4444"></i>Grievance Redressal & SLA Tracking</h1>
+          <p class="page-subtitle">Track, investigate, escalate, and resolve student, faculty, and campus facility complaints.</p>
+        </div>
+        <div style="display:flex;gap:10px">
+          <a href="grievances.html" class="btn btn-secondary"><i class="fas fa-chart-pie" style="margin-right:6px"></i> Analytics & Graphs</a>
+        </div>
+      </div>
+
+      <!-- KPI ROW -->
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#EEF2FF;color:#4F46E5"><i class="fas fa-ticket-alt"></i></div>
+          <div class="stat-info"><div class="stat-label">Total Grievances</div><div class="stat-value" id="kpiTotal">—</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#FEF3C7;color:#D97706"><i class="fas fa-clock"></i></div>
+          <div class="stat-info"><div class="stat-label">Pending Review</div><div class="stat-value" id="kpiOpen">—</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#FEE2E2;color:#DC2626"><i class="fas fa-level-up-alt"></i></div>
+          <div class="stat-info"><div class="stat-label">Tier 2/3 Escalated</div><div class="stat-value" id="kpiEscalated">—</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#D1FAE5;color:#059669"><i class="fas fa-check-double"></i></div>
+          <div class="stat-info"><div class="stat-label">Resolved / Closed</div><div class="stat-value" id="kpiResolved">—</div></div>
+        </div>
+      </div>
+
+      <!-- COMPLAINTS LIST TABLE -->
+      <div class="card">
+        <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+          <div class="card-title"><i class="fas fa-list-ul text-primary" style="margin-right:8px"></i>Complaint Tickets Ledger</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <select id="filterStatus" class="form-control" style="width:auto;font-size:12px" onchange="loadComplaints()">
+              <option value="">All Statuses</option>
+              <option value="open">Open</option>
+              <option value="in-progress">In Progress</option>
+              <option value="under-review">Under Review</option>
+              <option value="resolved">Resolved</option>
+              <option value="closed">Closed</option>
+            </select>
+            <select id="filterCategory" class="form-control" style="width:auto;font-size:12px" onchange="loadComplaints()">
+              <option value="">All Categories</option>
+              <option value="hostel">Hostel & Living</option>
+              <option value="transport">Transport & Transit</option>
+              <option value="infrastructure">Infrastructure</option>
+              <option value="academic">Academic</option>
+              <option value="facilities">Facilities</option>
+            </select>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="erp-table">
+            <thead>
+              <tr>
+                <th>Tracking ID</th>
+                <th>Category</th>
+                <th>Subject & Description</th>
+                <th>Priority</th>
+                <th>Tier</th>
+                <th>Status</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="complaintsBody">
+              <tr><td colspan="8" style="text-align:center;padding:30px;color:#94A3B8"><i class="fas fa-spinner fa-spin" style="margin-right:8px"></i>Loading complaints...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TICKET DETAIL & ACTION MODAL -->
+<div class="modal-backdrop" id="ticketModal" style="display:none">
+  <div class="modal" style="max-width:640px">
+    <div class="modal-header">
+      <div class="modal-title" id="ticketModalTitle">Ticket Details</div>
+      <button class="modal-close" onclick="closeModal('ticketModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body" id="ticketModalBody">
+      <!-- Injected by JS -->
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script>
+let complaintsList = [];
+
+document.addEventListener('DOMContentLoaded', function () {
+  const user = api.getUser();
+  if (user) {
+    if (document.getElementById('sidebar-user-name')) document.getElementById('sidebar-user-name').textContent = user.name || 'Admin';
+  }
+  loadComplaints();
+});
+
+async function loadComplaints() {
+  const status = document.getElementById('filterStatus').value;
+  const category = document.getElementById('filterCategory').value;
+  let q = [];
+  if (status) q.push(`status=${status}`);
+  if (category) q.push(`category=${category}`);
+  const queryStr = q.length ? `?${q.join('&')}` : '';
+
+  try {
+    const [res, statsRes] = await Promise.all([
+      window.api.request(`/complaints${queryStr}`),
+      window.api.request('/complaints/stats').catch(() => null)
+    ]);
+    complaintsList = res.grievances || [];
+    renderTable(complaintsList);
+    if (statsRes) updateKPIs(statsRes);
+  } catch (err) {
+    showToast('Failed to load complaints', 'error');
+  }
+}
+
+function updateKPIs(stats) {
+  document.getElementById('kpiTotal').textContent = stats.total || 0;
+  document.getElementById('kpiOpen').textContent = (stats.byStatus?.open || 0) + (stats.byStatus?.['in-progress'] || 0);
+  document.getElementById('kpiEscalated').textContent = (stats.byTier?.[2] || 0) + (stats.byTier?.[3] || 0);
+  document.getElementById('kpiResolved').textContent = (stats.byStatus?.resolved || 0) + (stats.byStatus?.closed || 0);
+}
+
+function renderTable(list) {
+  const body = document.getElementById('complaintsBody');
+  if (!list.length) {
+    body.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:36px;color:#94A3B8">No complaint tickets matching filter.</td></tr>';
+    return;
+  }
+
+  body.innerHTML = list.map(g => {
+    const isUrgent = g.priority === 'urgent' || g.priority === 'high';
+    const tierBadge = g.escalationTier > 1 ? `<span class="badge badge-danger">Tier ${g.escalationTier}</span>` : `<span class="badge badge-secondary">Tier 1</span>`;
+
+    return `
+      <tr>
+        <td><code style="font-size:11px;font-weight:700;background:#F1F5F9;padding:2px 6px;border-radius:4px">${escapeHTML(g.trackingId || 'GRV')}</code></td>
+        <td style="text-transform:capitalize;font-weight:600;font-size:12px">${escapeHTML(g.category)}</td>
+        <td style="max-width:280px">
+          <div style="font-weight:700;font-size:13px;color:#0F172A">${escapeHTML(g.subject)}</div>
+          <div style="font-size:11px;color:#64748B;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHTML(g.description)}</div>
+        </td>
+        <td><span class="badge ${isUrgent ? 'badge-danger' : 'badge-warning'}">${escapeHTML(g.priority)}</span></td>
+        <td>${tierBadge}</td>
+        <td><span class="badge ${g.status === 'resolved' || g.status === 'closed' ? 'badge-success' : 'badge-info'}">${escapeHTML(g.status)}</span></td>
+        <td style="font-size:11px;color:#64748B">${new Date(g.createdAt).toLocaleDateString()}</td>
+        <td>
+          <button class="btn btn-xs btn-primary" onclick="viewTicket('${g._id}')"><i class="fas fa-eye"></i> Review</button>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+async function viewTicket(id) {
+  try {
+    const res = await window.api.request(`/complaints/${id}`);
+    const g = res.grievance;
+
+    document.getElementById('ticketModalTitle').textContent = `Ticket: ${g.trackingId} (${g.status.toUpperCase()})`;
+    document.getElementById('ticketModalBody').innerHTML = `
+      <div style="margin-bottom:16px">
+        <div style="font-size:16px;font-weight:800;color:#0F172A;margin-bottom:4px">${escapeHTML(g.subject)}</div>
+        <div style="font-size:13px;color:#475569;line-height:1.5;background:#F8FAFC;padding:12px;border-radius:8px">${escapeHTML(g.description)}</div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px;font-size:12px">
+        <div><strong>Category:</strong> <span style="text-transform:capitalize">${escapeHTML(g.category)}</span></div>
+        <div><strong>Priority:</strong> ${escapeHTML(g.priority)}</div>
+        <div><strong>Escalation:</strong> Tier ${g.escalationTier || 1}</div>
+      </div>
+
+      ${g.resolution ? `
+        <div style="background:#F0FDF4;border:1px solid #86EFAC;padding:12px;border-radius:8px;margin-bottom:16px">
+          <div style="font-weight:700;color:#166534;font-size:12px">OFFICIAL RESOLUTION</div>
+          <div style="font-size:13px;color:#15803D">${escapeHTML(g.resolution)}</div>
+        </div>
+      ` : ''}
+
+      <div style="border-top:1px solid #E2E8F0;padding-top:14px">
+        <label style="font-size:12px;font-weight:700;color:#334155;margin-bottom:6px;display:block">Take Administrative Action</label>
+        <div style="display:flex;gap:8px;margin-bottom:10px">
+          <input type="text" id="actionResolution" class="form-control" placeholder="Type resolution details or reply to student..." style="font-size:13px">
+        </div>
+        <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px">
+          <button class="btn btn-secondary btn-sm" onclick="closeModal('ticketModal')">Cancel</button>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-warning btn-sm" onclick="escalateTicketLive('${g._id}')"><i class="fas fa-level-up-alt"></i> Escalate Tier</button>
+            <button class="btn btn-info btn-sm" onclick="sendReplyLive('${g._id}')"><i class="fas fa-reply"></i> Post Reply</button>
+            <button class="btn btn-success btn-sm" onclick="resolveTicketLive('${g._id}')"><i class="fas fa-check"></i> Mark Resolved</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    openModal('ticketModal');
+  } catch (err) {
+    showToast('Failed to load ticket details', 'error');
+  }
+}
+
+async function sendReplyLive(id) {
+  const msg = (document.getElementById('actionResolution').value || '').trim();
+  if (!msg) return showToast('Please type a reply message', 'warning');
+
+  try {
+    await window.api.request(`/complaints/${id}/respond`, {
+      method: 'POST',
+      body: JSON.stringify({ message: msg })
+    });
+    showToast('Reply recorded on grievance thread', 'success');
+    viewTicket(id);
+    loadComplaints();
+  } catch (err) {
+    showToast(err.message || 'Failed to post reply', 'error');
+  }
+}
+
+async function resolveTicketLive(id) {
+  const resolution = (document.getElementById('actionResolution').value || '').trim();
+  if (!resolution) return showToast('Please enter resolution explanation', 'warning');
+
+  try {
+    await window.api.request(`/complaints/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify({ status: 'resolved', resolution })
+    });
+    showToast('Grievance ticket marked resolved!', 'success');
+    closeModal('ticketModal');
+    loadComplaints();
+  } catch (err) {
+    showToast(err.message || 'Failed to resolve ticket', 'error');
+  }
+}
+
+async function escalateTicketLive(id) {
+  try {
+    await window.api.request(`/complaints/${id}/escalate`, {
+      method: 'POST',
+      body: JSON.stringify({ reason: 'Administrative supervisory escalation' })
+    });
+    showToast('Ticket escalated to higher authority tier!', 'warning');
+    viewTicket(id);
+    loadComplaints();
+  } catch (err) {
+    showToast(err.message || 'Failed to escalate ticket', 'error');
+  }
+}
+</script>
+</body>
+</html>

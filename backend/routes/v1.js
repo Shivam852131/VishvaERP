@@ -13,6 +13,7 @@ router.use('/timetable', require('./timetable'));
 router.use('/fees', require('./fee'));
 router.use('/ai', require('./ai'));
 router.use('/leave', require('./leave'));
+router.use('/hr', require('./leave'));
 router.use('/logistics', require('./logistics'));
 router.use('/transport', require('./transport'));
 router.use('/hostel', require('./hostel'));

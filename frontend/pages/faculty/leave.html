@@ -1,11 +1,53 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Leave & HR — Faculty | VishvaERP</title>
+  <title>Faculty Leave & Workload Portal | VishvaERP</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="../../css/custom.css">
+  <style>
+    .quota-card {
+      background: white;
+      border-radius: 14px;
+      padding: 18px;
+      border: 1px solid #E2E8F0;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+      transition: all 0.2s ease;
+    }
+    .quota-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px -2px rgba(0,0,0,0.08);
+    }
+    .tab-btn {
+      padding: 10px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #64748B;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+    .tab-btn.active {
+      color: #059669;
+      border-bottom-color: #059669;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .badge-pending { background: #FEF3C7; color: #92400E; }
+    .badge-approved { background: #D1FAE5; color: #065F46; }
+    .badge-rejected { background: #FEE2E2; color: #991B1B; }
+    .badge-cancelled { background: #F1F5F9; color: #64748B; }
+    .modal-backdrop {
+      background-color: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+    }
+  </style>
 </head>
 <body>
 <div class="erp-layout">
@@ -20,13 +62,10 @@
       <a href="grades.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-list"></i> Grades & Results</a>
       <a href="assignments.html" class="nav-link"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
       <a href="timetable.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Timetable</a>
+      <a href="live-class.html" class="nav-link"><i class="nav-link-icon fas fa-video"></i> Live Classes</a>
       <a href="notes.html" class="nav-link"><i class="nav-link-icon fas fa-sticky-note"></i> Notes</a>
-      <div class="nav-section-label">Career Center</div>
-      <a href="../college-admin/placement.html" class="nav-link"><i class="nav-link-icon fas fa-briefcase"></i> Placements</a>
-      <div class="nav-section-label">HR</div>
+      <div class="nav-section-label">HR & Admin</div>
       <a href="leave.html" class="nav-link active"><i class="nav-link-icon fas fa-file-signature"></i> Leave & HR</a>
-      <div class="nav-section-label">Tools</div>
-      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Assistant</a>
     </nav>
     <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
   </aside>
@@ -36,73 +75,571 @@
     <header class="erp-topbar">
       <div class="topbar-left">
         <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
-        <div class="topbar-breadcrumb">Faculty / <span>Leave & HR</span></div>
+        <div class="topbar-breadcrumb">Faculty / <span>Leave & HR Portal</span></div>
       </div>
       <div class="topbar-right"><div class="topbar-avatar" id="topbar-avatar">F</div></div>
     </header>
 
     <div class="erp-content">
-      <div class="page-header">
-        <h1 class="page-title">📝 Leave & HR</h1>
-        <p class="page-subtitle">Apply for leave and view your HR records.</p>
+      <!-- Page Header -->
+      <div class="page-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;margin-bottom:24px">
+        <div>
+          <h1 class="page-title" style="font-size:24px;font-weight:800;color:#0F172A;display:flex;align-items:center;gap:10px">
+            <i class="fas fa-calendar-minus text-emerald-600"></i> Faculty Leave & Covering Portal
+          </h1>
+          <p class="page-subtitle" style="color:#64748B;margin-top:4px">Manage your annual academic leave balances, designate substitute lecture coverage, and respond to peer covering requests.</p>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-secondary" onclick="loadFacultyLeaves()"><i class="fas fa-sync-alt mr-2"></i> Refresh</button>
+          <button class="btn btn-primary" onclick="openApplyModal()" style="background:#059669;border-color:#059669"><i class="fas fa-paper-plane mr-2"></i> Apply for Leave</button>
+        </div>
       </div>
 
-      <!-- Leave Balance -->
-      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
-        <div class="stat-card"><div class="stat-icon" style="background:#D1FAE5;color:#065F46"><i class="fas fa-umbrella-beach"></i></div><div class="stat-label">Casual Leave (CL)</div><div class="stat-value" data-counter="8">8</div><div class="stat-change neutral"><i class="fas fa-circle" style="font-size:7px"></i> 4 used</div></div>
-        <div class="stat-card"><div class="stat-icon" style="background:#FEE2E2;color:#991B1B"><i class="fas fa-heartbeat"></i></div><div class="stat-label">Sick Leave (SL)</div><div class="stat-value" data-counter="12">12</div><div class="stat-change neutral"><i class="fas fa-circle" style="font-size:7px"></i> 2 used</div></div>
-        <div class="stat-card"><div class="stat-icon" style="background:#DBEAFE;color:#1E40AF"><i class="fas fa-briefcase"></i></div><div class="stat-label">Earned Leave (EL)</div><div class="stat-value" data-counter="15">15</div><div class="stat-change neutral"><i class="fas fa-circle" style="font-size:7px"></i> 0 used</div></div>
-        <div class="stat-card"><div class="stat-icon" style="background:#FEF3C7;color:#92400E"><i class="fas fa-tasks"></i></div><div class="stat-label">Duty Leave (DL)</div><div class="stat-value" data-counter="5">5</div><div class="stat-change neutral"><i class="fas fa-circle" style="font-size:7px"></i> 1 used</div></div>
-      </div>
-
-      <div class="grid col-2">
-        <!-- APPLY LEAVE -->
-        <div class="card">
-          <div class="card-header"><div class="card-title"><i class="fas fa-paper-plane" style="color:#059669;margin-right:8px"></i>Apply for Leave</div></div>
-          <div class="card-body">
-            <form id="leaveForm">
-              <div class="form-group">
-                <label class="form-label">Leave Type *</label>
-                <select class="form-control" id="leaveType">
-                  <option value="casual">Casual Leave (CL)</option>
-                  <option value="sick">Sick Leave (SL)</option>
-                  <option value="duty">Duty Leave (DL)</option>
-                  <option value="earned">Earned Leave (EL)</option>
-                </select>
-              </div>
-              <div class="form-grid-2">
-                <div class="form-group"><label class="form-label">From Date *</label><input class="form-control" type="date" id="startDate" required></div>
-                <div class="form-group"><label class="form-label">To Date *</label><input class="form-control" type="date" id="endDate" required></div>
-              </div>
-              <div class="form-group">
-                <label class="form-label">Reason *</label>
-                <textarea class="form-control" id="leaveReason" rows="3" placeholder="Provide a brief reason for the leave..." required></textarea>
-              </div>
-              <div class="form-group">
-                <label class="form-label">Alternate Faculty (if any)</label>
-                <input class="form-control" id="alternateFaculty" placeholder="Name of covering faculty">
-              </div>
-              <button type="submit" class="btn btn-primary w-full" id="submitLeaveBtn"><i class="fas fa-paper-plane"></i> Submit Leave Request</button>
-            </form>
+      <!-- Quota Cards Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+        <div class="quota-card">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Casual Leave (CL)</span>
+            <div class="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm">
+              <i class="fas fa-umbrella-beach"></i>
+            </div>
           </div>
+          <div class="flex items-baseline gap-2 mb-2">
+            <span class="text-2xl font-extrabold text-slate-900" id="clRemaining">--</span>
+            <span class="text-xs text-slate-500">/ <span id="clTotal">12</span> remaining</span>
+          </div>
+          <div class="w-full bg-slate-100 rounded-full h-2 mb-2">
+            <div id="clProgressBar" class="bg-emerald-600 h-2 rounded-full" style="width:0%"></div>
+          </div>
+          <div class="text-[11px] text-slate-500" id="clUsedText">-- used this year</div>
         </div>
 
-        <!-- MY LEAVES HISTORY -->
-        <div class="card">
-          <div class="card-header"><div class="card-title"><i class="fas fa-history" style="color:#4F46E5;margin-right:8px"></i>My Leave History</div></div>
-          <div class="table-wrap" style="max-height:420px;overflow-y:auto">
-            <table class="erp-table">
-              <thead><tr><th>Type</th><th>Duration</th><th>Reason</th><th>Status</th></tr></thead>
-              <tbody id="leaveHistoryBody"></tbody>
+        <div class="quota-card">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Sick Leave (SL)</span>
+            <div class="w-8 h-8 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center text-sm">
+              <i class="fas fa-heartbeat"></i>
+            </div>
+          </div>
+          <div class="flex items-baseline gap-2 mb-2">
+            <span class="text-2xl font-extrabold text-slate-900" id="slRemaining">--</span>
+            <span class="text-xs text-slate-500">/ <span id="slTotal">10</span> remaining</span>
+          </div>
+          <div class="w-full bg-slate-100 rounded-full h-2 mb-2">
+            <div id="slProgressBar" class="bg-rose-500 h-2 rounded-full" style="width:0%"></div>
+          </div>
+          <div class="text-[11px] text-slate-500" id="slUsedText">-- used this year</div>
+        </div>
+
+        <div class="quota-card">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Earned Leave (EL)</span>
+            <div class="w-8 h-8 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center text-sm">
+              <i class="fas fa-briefcase"></i>
+            </div>
+          </div>
+          <div class="flex items-baseline gap-2 mb-2">
+            <span class="text-2xl font-extrabold text-slate-900" id="elRemaining">--</span>
+            <span class="text-xs text-slate-500">/ <span id="elTotal">15</span> remaining</span>
+          </div>
+          <div class="w-full bg-slate-100 rounded-full h-2 mb-2">
+            <div id="elProgressBar" class="bg-blue-600 h-2 rounded-full" style="width:0%"></div>
+          </div>
+          <div class="text-[11px] text-slate-500" id="elUsedText">-- used this year</div>
+        </div>
+
+        <div class="quota-card">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Duty Leave (DL)</span>
+            <div class="w-8 h-8 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center text-sm">
+              <i class="fas fa-graduation-cap"></i>
+            </div>
+          </div>
+          <div class="flex items-baseline gap-2 mb-2">
+            <span class="text-2xl font-extrabold text-slate-900" id="dlRemaining">--</span>
+            <span class="text-xs text-slate-500">/ <span id="dlTotal">10</span> remaining</span>
+          </div>
+          <div class="w-full bg-slate-100 rounded-full h-2 mb-2">
+            <div id="dlProgressBar" class="bg-amber-500 h-2 rounded-full" style="width:0%"></div>
+          </div>
+          <div class="text-[11px] text-slate-500" id="dlUsedText">-- used this year</div>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="border-b border-slate-200 mb-6 flex gap-2">
+        <button class="tab-btn active" id="tabMyLeavesBtn" onclick="switchFacultyTab('myLeaves')">
+          <i class="fas fa-history mr-2"></i> My Leave Applications
+        </button>
+        <button class="tab-btn" id="tabSubRequestsBtn" onclick="switchFacultyTab('subRequests')">
+          <i class="fas fa-hands-helping mr-2"></i> Covering & Substitute Requests
+          <span id="subRequestBadge" class="hidden ml-1.5 px-2 py-0.5 rounded-full bg-amber-500 text-white text-[10px] font-bold">0</span>
+        </button>
+      </div>
+
+      <!-- TAB 1: MY LEAVES -->
+      <div id="tabMyLeavesContent" class="space-y-4">
+        <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+          <div class="table-wrap">
+            <table class="erp-table w-full text-left">
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  <th class="py-3 px-4">Leave Type</th>
+                  <th class="py-3 px-4">Duration</th>
+                  <th class="py-3 px-4">Days</th>
+                  <th class="py-3 px-4">Substitute Coverage</th>
+                  <th class="py-3 px-4">Reason</th>
+                  <th class="py-3 px-4">Approver Remarks</th>
+                  <th class="py-3 px-4">Status</th>
+                  <th class="py-3 px-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="myLeavesTableBody" class="divide-y divide-slate-100 text-sm">
+                <tr>
+                  <td colspan="8" class="text-center py-8 text-slate-400">
+                    <i class="fas fa-spinner fa-spin mr-2"></i> Loading your leaves...
+                  </td>
+                </tr>
+              </tbody>
             </table>
           </div>
         </div>
       </div>
+
+      <!-- TAB 2: SUBSTITUTE REQUESTS -->
+      <div id="tabSubRequestsContent" class="hidden space-y-4">
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+          <div class="mb-4">
+            <h2 class="text-lg font-bold text-slate-900">Lecture Coverage Requests</h2>
+            <p class="text-xs text-slate-500">Colleagues who have designated you to cover classes or laboratories during their planned absence.</p>
+          </div>
+          <div id="subRequestsList" class="space-y-3">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
 
+<!-- APPLY FOR LEAVE MODAL -->
+<div id="applyLeaveModal" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 max-h-[90vh] overflow-y-auto">
+    <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+          <i class="fas fa-paper-plane"></i>
+        </div>
+        <div>
+          <h3 class="font-bold text-slate-900 text-lg">Apply for Leave</h3>
+          <p class="text-xs text-slate-500">Submit an institutional leave request with substitute coverage</p>
+        </div>
+      </div>
+      <button onclick="closeApplyModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+    </div>
+
+    <form id="applyLeaveForm" onsubmit="submitLeaveApplication(event)" class="space-y-4 text-xs">
+      <div>
+        <label class="block font-bold text-slate-600 uppercase tracking-wider mb-1">Leave Type *</label>
+        <select id="formLeaveType" class="w-full p-2.5 border border-slate-300 rounded-lg focus:outline-none focus:border-emerald-500 font-medium" required>
+          <option value="casual">Casual Leave (CL)</option>
+          <option value="sick">Sick Leave (SL)</option>
+          <option value="duty">Duty Leave (DL - Conference / Exam Duty)</option>
+          <option value="earned">Earned Leave (EL)</option>
+          <option value="maternity">Maternity Leave</option>
+          <option value="paternity">Paternity Leave</option>
+          <option value="study">Study / Sabbatical Leave</option>
+          <option value="bereavement">Bereavement Leave</option>
+          <option value="other">Other Academic Exemption</option>
+        </select>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block font-bold text-slate-600 uppercase tracking-wider mb-1">Start Date *</label>
+          <input type="date" id="formStartDate" class="w-full p-2 border border-slate-300 rounded-lg focus:outline-none focus:border-emerald-500 font-medium" required onchange="calcDuration()">
+        </div>
+        <div>
+          <label class="block font-bold text-slate-600 uppercase tracking-wider mb-1">End Date *</label>
+          <input type="date" id="formEndDate" class="w-full p-2 border border-slate-300 rounded-lg focus:outline-none focus:border-emerald-500 font-medium" required onchange="calcDuration()">
+        </div>
+      </div>
+
+      <!-- Half Day Toggle -->
+      <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" id="formIsHalfDay" class="rounded text-emerald-600 focus:ring-emerald-500" onchange="toggleHalfDay(this)">
+          <span class="font-bold text-slate-700">Apply as Half-Day Leave</span>
+        </label>
+        <div id="halfDaySessionWrap" class="hidden mt-2 pt-2 border-t border-slate-200">
+          <span class="text-slate-500 mr-3">Session:</span>
+          <label class="inline-flex items-center mr-3 cursor-pointer">
+            <input type="radio" name="halfDaySession" value="first_half" checked class="text-emerald-600">
+            <span class="ml-1 text-slate-700">Morning (First Half)</span>
+          </label>
+          <label class="inline-flex items-center cursor-pointer">
+            <input type="radio" name="halfDaySession" value="second_half" class="text-emerald-600">
+            <span class="ml-1 text-slate-700">Afternoon (Second Half)</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="text-right">
+        <span class="text-xs text-slate-500">Calculated Duration:</span>
+        <strong id="calcDurationText" class="text-emerald-700 font-bold ml-1 text-sm">--</strong>
+      </div>
+
+      <div>
+        <label class="block font-bold text-slate-600 uppercase tracking-wider mb-1">Reason for Leave *</label>
+        <textarea id="formReason" rows="2" class="w-full p-2.5 border border-slate-300 rounded-lg focus:outline-none focus:border-emerald-500" placeholder="State the purpose of your absence clearly..." required></textarea>
+      </div>
+
+      <!-- Substitute Colleague Selector -->
+      <div class="p-3 bg-emerald-50/50 rounded-xl border border-emerald-100">
+        <label class="block font-bold text-emerald-900 uppercase tracking-wider mb-1">Substitute Lecture Coverage (Optional)</label>
+        <select id="formSubstituteFaculty" class="w-full p-2 border border-slate-300 rounded-lg bg-white focus:outline-none focus:border-emerald-500 mb-2">
+          <option value="">-- No substitute requested --</option>
+        </select>
+        <input type="text" id="formSubstituteNotes" placeholder="Notes for substitute: e.g. 'Cover CS401 lecture at 10 AM in Hall 202'" class="w-full p-2 text-xs border border-slate-300 rounded-lg bg-white">
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block font-bold text-slate-600 uppercase tracking-wider mb-1">Contact Phone During Leave</label>
+          <input type="text" id="formContact" placeholder="+91 98765 43210" class="w-full p-2 border border-slate-300 rounded-lg focus:outline-none focus:border-emerald-500">
+        </div>
+        <div>
+          <label class="block font-bold text-slate-600 uppercase tracking-wider mb-1">Attachment Link (Optional)</label>
+          <input type="url" id="formAttachmentUrl" placeholder="https://..." class="w-full p-2 border border-slate-300 rounded-lg focus:outline-none focus:border-emerald-500">
+        </div>
+      </div>
+
+      <div class="mt-6 flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
+        <button type="button" onclick="closeApplyModal()" class="px-4 py-2 font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
+        <button type="submit" id="applySubmitBtn" class="px-5 py-2 font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm">
+          <i class="fas fa-paper-plane mr-1"></i> Submit Application
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script src="../../js/shared.js"></script>
-<script src="../../live/live-admin-pages.js"></script>
+<script>
+  let facultyLeaves = [];
+  let colleagueList = [];
+
+  function getAuthHeader() {
+    const token = localStorage.getItem('token') || '';
+    return { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+  }
+
+  async function loadFacultyLeaves() {
+    try {
+      // 1. Fetch My Leaves & Balances
+      const res = await fetch('/api/leave/my-leaves', { headers: getAuthHeader() });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          facultyLeaves = data.leaves || [];
+          renderQuotas(data.balances || {});
+          renderMyLeavesTable(facultyLeaves);
+        }
+      }
+
+      // 2. Fetch Substitute Requests
+      const subRes = await fetch('/api/leave/substitute-requests', { headers: getAuthHeader() });
+      if (subRes.ok) {
+        const subData = await subRes.json();
+        if (subData.success) {
+          renderSubstituteRequests(subData.requests || []);
+        }
+      }
+
+      // 3. Preload Department Colleagues for Substitute Dropdown
+      const colleaguesRes = await fetch('/api/hr/faculty-workload', { headers: getAuthHeader() });
+      if (colleaguesRes.ok) {
+        const cData = await colleaguesRes.json();
+        if (cData.success) {
+          colleagueList = cData.facultyWorkload || [];
+          populateColleagueDropdown(colleagueList);
+        }
+      }
+    } catch (e) {
+      console.error('Error fetching faculty leaves:', e);
+    }
+  }
+
+  function renderQuotas(balances) {
+    const updateQuota = (key, remId, totId, barId, textId, defaultTot) => {
+      const b = balances[key] || { total: defaultTot, used: 0, remaining: defaultTot };
+      document.getElementById(remId).innerText = b.remaining;
+      document.getElementById(totId).innerText = b.total;
+      const pct = Math.min(100, Math.round((b.used / b.total) * 100));
+      document.getElementById(barId).style.width = `${pct}%`;
+      document.getElementById(textId).innerText = `${b.used} day(s) utilized this calendar year`;
+    };
+
+    updateQuota('casual', 'clRemaining', 'clTotal', 'clProgressBar', 'clUsedText', 12);
+    updateQuota('sick', 'slRemaining', 'slTotal', 'slProgressBar', 'slUsedText', 10);
+    updateQuota('earned', 'elRemaining', 'elTotal', 'elProgressBar', 'elUsedText', 15);
+    updateQuota('duty', 'dlRemaining', 'dlTotal', 'dlProgressBar', 'dlUsedText', 10);
+  }
+
+  function renderMyLeavesTable(leaves) {
+    const tbody = document.getElementById('myLeavesTableBody');
+    if (!leaves || leaves.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="8" class="text-center py-8 text-slate-400">No leave applications submitted yet.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = leaves.map(l => {
+      const sDate = new Date(l.startDate).toISOString().split('T')[0];
+      const eDate = new Date(l.endDate).toISOString().split('T')[0];
+      const dateStr = sDate === eDate ? sDate : `${sDate} to ${eDate}`;
+
+      const daysBadge = l.isHalfDay ? `<span class="badge bg-purple-50 text-purple-700">0.5d (${l.halfDaySession})</span>` : `<strong>${l.totalDays || 1}d</strong>`;
+
+      let substituteStr = '<span class="text-slate-400 text-xs">None</span>';
+      if (l.substituteFacultyId) {
+        const subName = l.substituteFacultyId.name || 'Assigned';
+        const subBadge = l.substituteStatus === 'accepted' ? 'badge-approved' : (l.substituteStatus === 'declined' ? 'badge-rejected' : 'badge-pending');
+        substituteStr = `<div class="text-xs font-semibold text-slate-700">${subName}</div><span class="badge ${subBadge} text-[10px] mt-0.5">${l.substituteStatus}</span>`;
+      }
+
+      let statusBadge = `badge-${l.status}`;
+      const statusIcon = l.status === 'approved' ? 'fa-check' : (l.status === 'rejected' ? 'fa-times' : (l.status === 'cancelled' ? 'fa-ban' : 'fa-clock'));
+
+      const remarks = l.remarks || l.rejectionReason || '-';
+
+      const actions = l.status === 'pending'
+        ? `<button onclick="cancelMyLeave('${l._id}')" class="px-3 py-1 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-xs font-semibold"><i class="fas fa-ban mr-1"></i> Cancel</button>`
+        : `<span class="text-slate-400 text-xs">-</span>`;
+
+      return `
+        <tr class="hover:bg-slate-50 transition-colors">
+          <td class="py-3 px-4">
+            <span class="badge bg-emerald-50 text-emerald-700 capitalize">${l.leaveType}</span>
+          </td>
+          <td class="py-3 px-4 text-xs font-medium text-slate-700">${dateStr}</td>
+          <td class="py-3 px-4 text-xs">${daysBadge}</td>
+          <td class="py-3 px-4">${substituteStr}</td>
+          <td class="py-3 px-4 text-xs text-slate-600 max-w-xs truncate" title="${l.reason}">${l.reason}</td>
+          <td class="py-3 px-4 text-xs text-slate-500">${remarks}</td>
+          <td class="py-3 px-4">
+            <span class="badge ${statusBadge} capitalize"><i class="fas ${statusIcon} mr-1 text-[10px]"></i> ${l.status}</span>
+          </td>
+          <td class="py-3 px-4 text-right">${actions}</td>
+        </tr>`;
+    }).join('');
+  }
+
+  function renderSubstituteRequests(requests) {
+    const list = document.getElementById('subRequestsList');
+    const badge = document.getElementById('subRequestBadge');
+
+    const pendingCount = requests.filter(r => r.substituteStatus === 'pending').length;
+    if (pendingCount > 0) {
+      badge.classList.remove('hidden');
+      badge.innerText = pendingCount;
+    } else {
+      badge.classList.add('hidden');
+    }
+
+    if (!requests || requests.length === 0) {
+      list.innerHTML = '<div class="text-center py-8 text-slate-400 text-xs">No colleague lecture coverage requests assigned to you.</div>';
+      return;
+    }
+
+    list.innerHTML = requests.map(r => {
+      const applicant = r.userId || {};
+      const sDate = new Date(r.startDate).toISOString().split('T')[0];
+      const eDate = new Date(r.endDate).toISOString().split('T')[0];
+      const dateStr = sDate === eDate ? sDate : `${sDate} to ${eDate}`;
+
+      let actionButtons = '';
+      if (r.substituteStatus === 'pending') {
+        actionButtons = `
+          <div class="flex items-center gap-2">
+            <button onclick="respondSubstitute('${r._id}', 'declined')" class="px-3 py-1.5 text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 rounded-lg">Decline</button>
+            <button onclick="respondSubstitute('${r._id}', 'accepted')" class="px-4 py-1.5 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg">Accept Coverage</button>
+          </div>`;
+      } else {
+        const badgeClass = r.substituteStatus === 'accepted' ? 'badge-approved' : 'badge-rejected';
+        actionButtons = `<span class="badge ${badgeClass} capitalize">${r.substituteStatus}</span>`;
+      }
+
+      return `
+        <div class="p-4 rounded-xl border border-slate-200 bg-slate-50 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <div class="font-bold text-slate-900 text-sm">${applicant.name || 'Colleague'} (${applicant.department || 'Department'})</div>
+            <div class="text-xs text-slate-500 mt-0.5">
+              <span>Dates: <strong>${dateStr}</strong></span> • 
+              <span class="capitalize">Type: ${r.leaveType}</span>
+            </div>
+            <div class="text-xs text-slate-700 mt-2 bg-white p-2.5 rounded-lg border border-slate-200">
+              <strong class="text-emerald-800">Coverage Notes:</strong> ${r.substituteNotes || r.reason}
+            </div>
+          </div>
+          <div>${actionButtons}</div>
+        </div>`;
+    }).join('');
+  }
+
+  function populateColleagueDropdown(colleagues) {
+    const select = document.getElementById('formSubstituteFaculty');
+    select.innerHTML = '<option value="">-- No substitute requested --</option>';
+    colleagues.forEach(c => {
+      select.innerHTML += `<option value="${c.facultyId}">${c.name} (${c.department})</option>`;
+    });
+  }
+
+  function switchFacultyTab(tab) {
+    document.getElementById('tabMyLeavesContent').classList.add('hidden');
+    document.getElementById('tabSubRequestsContent').classList.add('hidden');
+
+    document.getElementById('tabMyLeavesBtn').classList.remove('active');
+    document.getElementById('tabSubRequestsBtn').classList.remove('active');
+
+    if (tab === 'myLeaves') {
+      document.getElementById('tabMyLeavesContent').classList.remove('hidden');
+      document.getElementById('tabMyLeavesBtn').classList.add('active');
+    } else if (tab === 'subRequests') {
+      document.getElementById('tabSubRequestsContent').classList.remove('hidden');
+      document.getElementById('tabSubRequestsBtn').classList.add('active');
+    }
+  }
+
+  function openApplyModal() {
+    document.getElementById('applyLeaveModal').classList.remove('hidden');
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('formStartDate').value = today;
+    document.getElementById('formEndDate').value = today;
+    calcDuration();
+  }
+
+  function closeApplyModal() {
+    document.getElementById('applyLeaveModal').classList.add('hidden');
+  }
+
+  function toggleHalfDay(cb) {
+    const wrap = document.getElementById('halfDaySessionWrap');
+    if (cb.checked) {
+      wrap.classList.remove('hidden');
+      // Set end date equal to start date
+      document.getElementById('formEndDate').value = document.getElementById('formStartDate').value;
+      document.getElementById('formEndDate').disabled = true;
+    } else {
+      wrap.classList.add('hidden');
+      document.getElementById('formEndDate').disabled = false;
+    }
+    calcDuration();
+  }
+
+  function calcDuration() {
+    const isHalf = document.getElementById('formIsHalfDay').checked;
+    if (isHalf) {
+      document.getElementById('calcDurationText').innerText = '0.5 Day';
+      return;
+    }
+    const start = new Date(document.getElementById('formStartDate').value);
+    const end = new Date(document.getElementById('formEndDate').value);
+    if (isNaN(start.getTime()) || isNaN(end.getTime()) || start > end) {
+      document.getElementById('calcDurationText').innerText = 'Invalid Dates';
+      return;
+    }
+    const diff = Math.ceil(Math.abs(end - start) / (1000 * 60 * 60 * 24)) + 1;
+    document.getElementById('calcDurationText').innerText = `${diff} Day(s)`;
+  }
+
+  async function submitLeaveApplication(e) {
+    e.preventDefault();
+    const isHalfDay = document.getElementById('formIsHalfDay').checked;
+    const session = isHalfDay ? document.querySelector('input[name="halfDaySession"]:checked').value : null;
+
+    const body = {
+      leaveType: document.getElementById('formLeaveType').value,
+      startDate: document.getElementById('formStartDate').value,
+      endDate: document.getElementById('formEndDate').value,
+      isHalfDay,
+      halfDaySession: session,
+      reason: document.getElementById('formReason').value,
+      substituteFacultyId: document.getElementById('formSubstituteFaculty').value || null,
+      substituteNotes: document.getElementById('formSubstituteNotes').value || '',
+      contactDuringLeave: document.getElementById('formContact').value || '',
+    };
+
+    const attUrl = document.getElementById('formAttachmentUrl').value;
+    if (attUrl) {
+      body.attachments = [{ name: 'Medical_or_Duty_Proof', url: attUrl, fileType: 'link' }];
+    }
+
+    const btn = document.getElementById('applySubmitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Submitting...';
+
+    try {
+      const res = await fetch('/api/leave/apply', {
+        method: 'POST',
+        headers: getAuthHeader(),
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (data.success) {
+        closeApplyModal();
+        loadFacultyLeaves();
+      } else {
+        alert(data.message || 'Application submission failed');
+      }
+    } catch (err) {
+      alert('Network error while applying for leave');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-paper-plane mr-1"></i> Submit Application';
+    }
+  }
+
+  async function cancelMyLeave(leaveId) {
+    if (!confirm('Are you sure you want to cancel this pending leave application?')) return;
+    try {
+      const res = await fetch(`/api/leave/${leaveId}/cancel`, {
+        method: 'PUT',
+        headers: getAuthHeader(),
+        body: JSON.stringify({ reason: 'Cancelled by faculty' }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        loadFacultyLeaves();
+      } else {
+        alert(data.message || 'Cancellation failed');
+      }
+    } catch (e) {
+      alert('Network error while cancelling leave');
+    }
+  }
+
+  async function respondSubstitute(leaveId, response) {
+    try {
+      const res = await fetch(`/api/leave/${leaveId}/substitute-response`, {
+        method: 'PATCH',
+        headers: getAuthHeader(),
+        body: JSON.stringify({ response }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        loadFacultyLeaves();
+      } else {
+        alert(data.message || 'Failed to update substitute status');
+      }
+    } catch (e) {
+      alert('Network error');
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    loadFacultyLeaves();
+  });
+</script>
 </body>
 </html>

@@ -162,7 +162,10 @@
             <div class="card">
               <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
                 <div class="card-title"><i class="fas fa-route text-primary" style="margin-right:8px"></i>Route & Bus Specifications</div>
-                <button class="btn btn-xs btn-danger" onclick="unenrollMyBus()"><i class="fas fa-sign-out-alt"></i> Leave Route</button>
+                <div style="display:flex;gap:8px">
+                  <button class="btn btn-xs btn-primary" onclick="openDigitalPassModal()"><i class="fas fa-id-card"></i> Digital Bus Pass</button>
+                  <button class="btn btn-xs btn-danger" onclick="unenrollMyBus()"><i class="fas fa-sign-out-alt"></i> Leave Route</button>
+                </div>
               </div>
               <div class="card-body" id="routeDetailsBody">
                 <div class="route-detail"><span class="route-label">Route Identifier</span><span class="route-value" id="detailRouteName">—</span></div>
@@ -480,6 +483,83 @@ async function unenrollMyBus() {
     showToast(err.message || 'Failed to unenroll', 'error');
   }
 }
+
+async function openDigitalPassModal() {
+  if (!myEnrolledRoute) return showToast('No active transport enrollment found', 'warning');
+  const user = api.getUser() || {};
+
+  try {
+    const passRes = await window.api.request('/transport/my-pass').catch(() => null);
+    const pass = (passRes && passRes.pass) ? passRes.pass : (myEnrolledRoute.myPass || (myEnrolledRoute.passes && myEnrolledRoute.passes[0]));
+
+    document.getElementById('passStudentName').textContent = user.name || 'Student';
+    document.getElementById('passRollNo').textContent = user.rollNo || user.rollNumber || '2026-CS-001';
+    document.getElementById('passRouteBus').textContent = `${myEnrolledRoute.routeName || 'Route'} • ${myEnrolledRoute.busNumber || 'BUS'}`;
+    document.getElementById('passStopName').textContent = (pass && pass.stopName) || (myEnrolledRoute.stops?.[0]?.stopName) || 'Campus Stop';
+    document.getElementById('passNumberDisplay').textContent = (pass && pass.passNumber) || `PASS-${(myEnrolledRoute.routeCode || 'BUS')}-2026-ACTIVE`;
+
+    openModal('busPassModal');
+  } catch (err) {
+    showToast('Failed to load pass details', 'error');
+  }
+}
 </script>
+
+<!-- DIGITAL TRANSIT PASS MODAL -->
+<div class="modal-backdrop" id="busPassModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:1000;align-items:center;justify-content:center">
+  <div class="modal" style="background:#fff;border-radius:16px;max-width:440px;width:90%;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25)">
+    <div style="background:linear-gradient(135deg,#0284C7,#0369A1);padding:20px;color:white;position:relative">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:36px;height:36px;border-radius:8px;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px">V</div>
+          <div>
+            <div style="font-weight:800;font-size:15px">VishvaERP Campus Transit</div>
+            <div style="font-size:11px;opacity:0.85">Official Digital Boarding Pass</div>
+          </div>
+        </div>
+        <button onclick="closeModal('busPassModal')" style="background:none;border:none;color:white;font-size:18px;cursor:pointer"><i class="fas fa-times"></i></button>
+      </div>
+      <div style="margin-top:16px;display:flex;justify-content:space-between;align-items:flex-end">
+        <div>
+          <div style="font-size:11px;opacity:0.75;text-transform:uppercase">Pass Number</div>
+          <div style="font-size:14px;font-weight:700;font-family:monospace" id="passNumberDisplay">PASS-BUS-2026-XXXX</div>
+        </div>
+        <span class="badge" style="background:#10B981;color:white;font-size:11px;padding:4px 8px">VERIFIED ACTIVE</span>
+      </div>
+    </div>
+    <div style="padding:20px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px">
+        <div>
+          <div style="font-size:11px;color:#64748B;font-weight:600">COMMUTER NAME</div>
+          <div style="font-size:13px;font-weight:700;color:#0F172A" id="passStudentName">—</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:#64748B;font-weight:600">ROLL NUMBER</div>
+          <div style="font-size:13px;font-weight:700;color:#0F172A" id="passRollNo">—</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:#64748B;font-weight:600">ROUTE & BUS</div>
+          <div style="font-size:13px;font-weight:700;color:#0F172A" id="passRouteBus">—</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:#64748B;font-weight:600">BOARDING STOP</div>
+          <div style="font-size:13px;font-weight:700;color:#0F172A" id="passStopName">—</div>
+        </div>
+      </div>
+      <div style="text-align:center;padding:16px;background:#F8FAFC;border-radius:12px;border:1px dashed #CBD5E1;margin-bottom:16px">
+        <div style="width:110px;height:110px;margin:0 auto 10px;background:#0F172A;border-radius:8px;padding:8px;display:flex;align-items:center;justify-content:center">
+          <div style="background:white;width:100%;height:100%;border-radius:4px;display:flex;align-items:center;justify-content:center;color:#0F172A;font-family:monospace;font-size:9px;font-weight:700;text-align:center;line-height:1.2;padding:4px" id="passQrGraphic">
+            [VERIFIED QR<br>TRANSIT GATEWAY<br>2026-TERM]
+          </div>
+        </div>
+        <div style="font-size:11px;color:#64748B">Scan with conductor optical / RFID scanner upon boarding</div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-secondary" style="flex:1" onclick="closeModal('busPassModal')">Close</button>
+        <button class="btn btn-primary" style="flex:1" onclick="window.print()"><i class="fas fa-print" style="margin-right:6px"></i> Print / Save PDF</button>
+      </div>
+    </div>
+  </div>
+</div>
 </body>
 </html>

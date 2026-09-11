@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Transport Fleet & Transit | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../css/custom.css">
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-college" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon"><img src="../../icons/logo.png" alt="Vi"></div><div class="sidebar-logo-text">Vishva <span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" id="sidebar-avatar">A</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Admin</div><div class="sidebar-user-role">College Administrator</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <div class="nav-section-label">Academics</div>
+      <a href="students.html" class="nav-link"><i class="nav-link-icon fas fa-user-graduate"></i> Students</a>
+      <a href="faculty.html" class="nav-link"><i class="nav-link-icon fas fa-chalkboard-teacher"></i> Faculty</a>
+      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-open"></i> Courses & Exams</a>
+      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-check"></i> Attendance</a>
+      <div class="nav-section-label">Finance & HR</div>
+      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-file-invoice-dollar"></i> Fee Management</a>
+      <a href="hr.html" class="nav-link"><i class="nav-link-icon fas fa-user-md"></i> HR & Leave</a>
+      <div class="nav-section-label">Campus Life</div>
+      <a href="transport.html" class="nav-link active"><i class="nav-link-icon fas fa-bus"></i> Transport Fleet</a>
+      <a href="hostel.html" class="nav-link"><i class="nav-link-icon fas fa-building"></i> Hostel Living</a>
+      <a href="grievances.html" class="nav-link"><i class="nav-link-icon fas fa-exclamation-circle"></i> Grievances</a>
+      <a href="logistics.html" class="nav-link"><i class="nav-link-icon fas fa-truck"></i> All Logistics</a>
+      <a href="library.html" class="nav-link"><i class="nav-link-icon fas fa-book"></i> Library</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">College Admin / <span>Transport Fleet</span></div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-avatar" id="topbar-avatar">A</div>
+      </div>
+    </header>
+
+    <div class="erp-content">
+      <div class="page-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:20px">
+        <div>
+          <h1 class="page-title"><i class="fas fa-bus text-primary" style="margin-right:10px"></i>Campus Transit & Bus Fleet</h1>
+          <p class="page-subtitle">Manage campus commuter routes, vehicle assignments, driver records, and real-time GPS telemetry.</p>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-secondary" onclick="exportTransportCSV()"><i class="fas fa-file-csv" style="margin-right:6px"></i> Export Commuter Roster</button>
+          <button class="btn btn-primary" onclick="openModal('addRouteModal')"><i class="fas fa-plus" style="margin-right:6px"></i> Add New Route</button>
+        </div>
+      </div>
+
+      <!-- KPI METRICS -->
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#DBEAFE;color:#1E40AF"><i class="fas fa-route"></i></div>
+          <div class="stat-info"><div class="stat-label">Active Routes</div><div class="stat-value" id="kpiRoutes">—</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#D1FAE5;color:#065F46"><i class="fas fa-users"></i></div>
+          <div class="stat-info"><div class="stat-label">Enrolled Commuters</div><div class="stat-value" id="kpiCommuters">—</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#EDE9FE;color:#5B21B6"><i class="fas fa-chair"></i></div>
+          <div class="stat-info"><div class="stat-label">Fleet Seat Capacity</div><div class="stat-value" id="kpiCapacity">—</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#FEF3C7;color:#92400E"><i class="fas fa-chart-pie"></i></div>
+          <div class="stat-info"><div class="stat-label">Seat Utilization</div><div class="stat-value" id="kpiUtilization">—</div></div>
+        </div>
+      </div>
+
+      <!-- ROUTES TABLE -->
+      <div class="card mb-6">
+        <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+          <div class="card-title"><i class="fas fa-bus-alt" style="color:#0284C7;margin-right:8px"></i>Transport Routes & Rosters</div>
+          <input type="text" id="routeSearch" class="form-control" placeholder="Filter by route, bus or driver..." style="width:240px;font-size:12px" oninput="filterRoutes()">
+        </div>
+        <div class="table-wrap">
+          <table class="erp-table">
+            <thead>
+              <tr>
+                <th>Route Name / Code</th>
+                <th>Via Stops</th>
+                <th>Bus Registration</th>
+                <th>Driver & Contact</th>
+                <th>Morning Pickup</th>
+                <th>Capacity</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="routesBody">
+              <tr><td colspan="8" style="text-align:center;padding:30px;color:#94A3B8"><i class="fas fa-spinner fa-spin" style="margin-right:8px"></i>Loading transit routes...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD ROUTE MODAL -->
+<div class="modal-backdrop" id="addRouteModal" style="display:none">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Add Transport Route</div><button class="modal-close" onclick="closeModal('addRouteModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Route Name</label><input class="form-control" id="routeNoInput" placeholder="e.g. Route 7 - North Corridor"></div>
+        <div class="form-group"><label class="form-label">Bus No.</label><input class="form-control" id="routeBusInput" placeholder="e.g. KA-04-TR-8822"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Via Points / Stops (comma separated)</label><input class="form-control" id="routeStopsInput" placeholder="e.g. Hebbal, Yelahanka, Campus Gate"></div>
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Driver Name</label><input class="form-control" id="routeDriverInput" placeholder="Driver full name"></div>
+        <div class="form-group"><label class="form-label">Driver Phone</label><input class="form-control" id="routeDriverPhoneInput" placeholder="+91 ..."></div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Seating Capacity</label><input class="form-control" type="number" id="routeCapacityInput" value="40" min="1"></div>
+        <div class="form-group"><label class="form-label">Timing (Morning)</label><input class="form-control" type="time" id="routeMorningInput"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('addRouteModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="createRouteLive()"><i class="fas fa-check"></i> Add Route</button>
+    </div>
+  </div>
+</div>
+
+<!-- GPS TELEMETRY SIMULATOR MODAL -->
+<div class="modal-backdrop" id="gpsModal" style="display:none">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header"><div class="modal-title">Update Live GPS Coordinates</div><button class="modal-close" onclick="closeModal('gpsModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <input type="hidden" id="gpsRouteId">
+      <div style="font-size:13px;color:#64748B;margin-bottom:14px">Push real-time latitude & longitude coordinates to simulate driver telematics beacon.</div>
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Latitude</label><input class="form-control" id="gpsLat" value="13.0358"></div>
+        <div class="form-group"><label class="form-label">Longitude</label><input class="form-control" id="gpsLng" value="77.5970"></div>
+      </div>
+      <div class="form-grid-2">
+        <div class="form-group"><label class="form-label">Speed (km/h)</label><input class="form-control" type="number" id="gpsSpeed" value="38"></div>
+        <div class="form-group"><label class="form-label">Heading (°)</label><input class="form-control" type="number" id="gpsHeading" value="180"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('gpsModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitGPSLive()"><i class="fas fa-satellite-dish"></i> Push GPS Ping</button>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script>
+let routesList = [];
+
+document.addEventListener('DOMContentLoaded', function () {
+  const user = api.getUser();
+  if (user) {
+    if (document.getElementById('sidebar-user-name')) document.getElementById('sidebar-user-name').textContent = user.name || 'Admin';
+  }
+  loadRoutes();
+});
+
+async function loadRoutes() {
+  try {
+    const res = await window.api.request('/transport');
+    routesList = res.routes || [];
+    renderRoutesTable(routesList);
+    updateKPIs(routesList);
+  } catch (err) {
+    showToast('Failed to load transport fleet', 'error');
+  }
+}
+
+function updateKPIs(routes) {
+  const totalRoutes = routes.length;
+  const totalCommuters = routes.reduce((sum, r) => sum + (r.enrolledStudents || []).length, 0);
+  const totalCapacity = routes.reduce((sum, r) => sum + (r.capacity || 0), 0);
+  const util = totalCapacity > 0 ? Math.round((totalCommuters / totalCapacity) * 100) : 0;
+
+  document.getElementById('kpiRoutes').textContent = totalRoutes;
+  document.getElementById('kpiCommuters').textContent = totalCommuters;
+  document.getElementById('kpiCapacity').textContent = totalCapacity;
+  document.getElementById('kpiUtilization').textContent = util + '%';
+}
+
+function renderRoutesTable(routes) {
+  const body = document.getElementById('routesBody');
+  if (!routes.length) {
+    body.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:36px;color:#94A3B8">No transit routes registered yet.</td></tr>';
+    return;
+  }
+
+  body.innerHTML = routes.map(r => {
+    const stopsStr = (r.stops || []).map(s => s.stopName || s.name).join(' → ') || 'Direct';
+    const enrolled = (r.enrolledStudents || []).length;
+    const isLive = r.currentLocation && r.currentLocation.isLive;
+
+    return `
+      <tr>
+        <td style="font-weight:700;color:#0F172A">${escapeHTML(r.routeName)}</td>
+        <td style="font-size:12px;color:#64748B;max-width:200px" title="${escapeHTML(stopsStr)}">${escapeHTML(stopsStr)}</td>
+        <td><code style="background:#F1F5F9;padding:2px 6px;border-radius:4px;font-weight:700">${escapeHTML(r.busNumber)}</code></td>
+        <td style="font-size:13px">${escapeHTML(r.driverName || '—')}<br><span style="font-size:11px;color:#64748B">${escapeHTML(r.driverPhone || '')}</span></td>
+        <td style="font-size:13px">${escapeHTML(r.stops?.[0]?.pickupTime || '07:30 AM')}</td>
+        <td><span class="badge badge-info">${enrolled} / ${r.capacity || 40}</span></td>
+        <td>
+          ${isLive ? '<span class="badge badge-success"><i class="fas fa-satellite-dish" style="margin-right:4px"></i>Live GPS</span>' : '<span class="badge badge-warning">Standby</span>'}
+        </td>
+        <td>
+          <div style="display:flex;gap:4px">
+            <button class="btn btn-xs btn-secondary" title="GPS Telemetry" onclick="openGPSModal('${r._id}')"><i class="fas fa-location-crosshairs"></i></button>
+            <button class="btn btn-xs btn-danger" title="Delete" onclick="deleteRoute('${r._id}')"><i class="fas fa-trash"></i></button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function filterRoutes() {
+  const q = (document.getElementById('routeSearch').value || '').toLowerCase();
+  const filtered = routesList.filter(r => {
+    return (r.routeName || '').toLowerCase().includes(q) ||
+           (r.busNumber || '').toLowerCase().includes(q) ||
+           (r.driverName || '').toLowerCase().includes(q);
+  });
+  renderRoutesTable(filtered);
+}
+
+async function createRouteLive() {
+  const routeName = document.getElementById('routeNoInput').value.trim();
+  const busNumber = document.getElementById('routeBusInput').value.trim();
+  const via = document.getElementById('routeStopsInput').value.trim();
+  const driverName = document.getElementById('routeDriverInput').value.trim();
+  const driverPhone = document.getElementById('routeDriverPhoneInput').value.trim();
+  const capacity = document.getElementById('routeCapacityInput').value;
+  const morningTime = document.getElementById('routeMorningInput').value;
+
+  if (!routeName || !busNumber) return showToast('Route name and Bus registration number are required', 'warning');
+
+  try {
+    await window.api.request('/transport', {
+      method: 'POST',
+      body: JSON.stringify({ routeName, busNumber, via, driverName, driverPhone, capacity, morningTime })
+    });
+    closeModal('addRouteModal');
+    showToast('Transport route created successfully!', 'success');
+    loadRoutes();
+  } catch (err) {
+    showToast(err.message || 'Failed to create route', 'error');
+  }
+}
+
+function openGPSModal(id) {
+  document.getElementById('gpsRouteId').value = id;
+  openModal('gpsModal');
+}
+
+async function submitGPSLive() {
+  const id = document.getElementById('gpsRouteId').value;
+  const lat = document.getElementById('gpsLat').value;
+  const lng = document.getElementById('gpsLng').value;
+  const speed = document.getElementById('gpsSpeed').value;
+  const heading = document.getElementById('gpsHeading').value;
+
+  try {
+    await window.api.request(`/transport/${id}/gps`, {
+      method: 'POST',
+      body: JSON.stringify({ lat, lng, speed, heading })
+    });
+    closeModal('gpsModal');
+    showToast('GPS telemetry ping recorded and broadcast!', 'success');
+    loadRoutes();
+  } catch (err) {
+    showToast(err.message || 'Failed to push GPS telemetry', 'error');
+  }
+}
+
+async function deleteRoute(id) {
+  if (!confirm('Are you sure you want to delete this transport route?')) return;
+  try {
+    await window.api.request(`/transport/${id}`, { method: 'DELETE' });
+    showToast('Transport route deleted', 'info');
+    loadRoutes();
+  } catch (err) {
+    showToast(err.message || 'Failed to delete route', 'error');
+  }
+}
+
+function exportTransportCSV() {
+  window.open('/api/logistics/export?type=transport', '_blank');
+}
+</script>
+</body>
+</html>

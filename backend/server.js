@@ -182,6 +182,7 @@ app.use('/api/timetable', require('./routes/timetable'));
 app.use('/api/fees', require('./routes/fee'));
 app.use('/api/ai', require('./routes/ai'));
 app.use('/api/leave', require('./routes/leave'));
+app.use('/api/hr', require('./routes/leave'));
 app.use('/api/logistics', require('./routes/logistics'));
 app.use('/api/transport', require('./routes/transport'));
 app.use('/api/hostel', require('./routes/hostel'));

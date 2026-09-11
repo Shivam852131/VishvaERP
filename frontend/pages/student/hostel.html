@@ -65,6 +65,7 @@
           <p class="page-subtitle">Your allocated room, warden directory, roommate roster, and mess schedule.</p>
         </div>
         <div style="display:flex;gap:8px">
+          <button class="btn btn-secondary" onclick="openRoomTransferModal()"><i class="fas fa-exchange-alt" style="margin-right:6px"></i> Request Room Change</button>
           <button class="btn btn-primary" onclick="openHostelComplaintModal()"><i class="fas fa-wrench" style="margin-right:6px"></i> Report Room Issue</button>
         </div>
       </div>
@@ -418,6 +419,63 @@ async function submitHostelComplaint(e){
     setLoading(btn, false);
   }
 }
+
+function openRoomTransferModal() {
+  if (!currentRoomData) return showToast('You must have an allocated room before requesting a room transfer', 'warning');
+  openModal('roomTransferModal');
+}
+
+async function submitRoomTransfer(e) {
+  e.preventDefault();
+  const btn = document.getElementById('btnSubmitTransfer');
+  setLoading(btn, true);
+
+  const targetRoom = document.getElementById('transferTargetRoom').value.trim();
+  const reason = document.getElementById('transferReason').value.trim();
+
+  try {
+    await window.api.request('/grievances', {
+      method: 'POST',
+      body: JSON.stringify({
+        category: 'hostel',
+        subject: `Room Change Request: Current [${currentRoomData.roomNumber}] -> Target [${targetRoom || 'Preferred Alternative'}]`,
+        priority: 'medium',
+        description: `Reason for transfer request: ${reason}\nCurrent Block: ${currentRoomData.hostelName || 'Residence'}, Current Room: ${currentRoomData.roomNumber || '—'}`
+      })
+    });
+    closeModal('roomTransferModal');
+    showToast('Room change application filed with hostel warden & administration!', 'success');
+    document.getElementById('roomTransferForm').reset();
+  } catch (err) {
+    showToast(err.message || 'Failed to submit room change request', 'error');
+  } finally {
+    setLoading(btn, false);
+  }
+}
 </script>
+
+<!-- ROOM TRANSFER REQUEST MODAL -->
+<div class="modal-backdrop" id="roomTransferModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:1000;align-items:center;justify-content:center">
+  <div class="modal" style="background:#fff;border-radius:16px;max-width:480px;width:90%;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25)">
+    <div style="background:linear-gradient(135deg,#0284C7,#0369A1);padding:20px;color:white;display:flex;justify-content:space-between;align-items:center">
+      <div style="font-weight:700;font-size:16px"><i class="fas fa-exchange-alt" style="margin-right:8px"></i>Apply for Room Transfer</div>
+      <button onclick="closeModal('roomTransferModal')" style="background:none;border:none;color:white;font-size:18px;cursor:pointer"><i class="fas fa-times"></i></button>
+    </div>
+    <form id="roomTransferForm" onsubmit="submitRoomTransfer(event)" style="padding:20px">
+      <div class="form-group mb-3">
+        <label class="form-label" style="font-size:12px;font-weight:700;color:#334155">Preferred Target Room / Block (Optional)</label>
+        <input type="text" id="transferTargetRoom" class="form-control" placeholder="e.g. Block B, Single Room or Room 204">
+      </div>
+      <div class="form-group mb-4">
+        <label class="form-label" style="font-size:12px;font-weight:700;color:#334155">Justification / Reason for Transfer</label>
+        <textarea id="transferReason" class="form-control" rows="3" required placeholder="Describe reasons (e.g. academic quiet hours, medical needs, departmental proximity)..." style="resize:vertical"></textarea>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('roomTransferModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="btnSubmitTransfer"><i class="fas fa-paper-plane" style="margin-right:6px"></i> Submit Application</button>
+      </div>
+    </form>
+  </div>
+</div>
 </body>
 </html>

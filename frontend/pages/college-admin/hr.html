@@ -2,10 +2,52 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>HR & Leave — College Admin | VishvaERP</title>
+  <title>HR & Faculty Workload Management | VishvaERP</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="../../css/custom.css">
+  <style>
+    .kpi-card {
+      background: white;
+      border-radius: 14px;
+      padding: 20px;
+      border: 1px solid #E2E8F0;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .kpi-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 15px -3px rgba(0,0,0,0.08);
+    }
+    .tab-btn {
+      padding: 10px 18px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #64748B;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+    }
+    .tab-btn.active {
+      color: #4F46E5;
+      border-bottom-color: #4F46E5;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .badge-pending { background: #FEF3C7; color: #92400E; }
+    .badge-approved { background: #D1FAE5; color: #065F46; }
+    .badge-rejected { background: #FEE2E2; color: #991B1B; }
+    .badge-cancelled { background: #F1F5F9; color: #64748B; }
+    .modal-backdrop {
+      background-color: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+    }
+  </style>
 </head>
 <body>
 <div class="erp-layout">
@@ -19,23 +61,17 @@
       <a href="students.html" class="nav-link"><i class="nav-link-icon fas fa-user-graduate"></i> Students</a>
       <a href="faculty.html" class="nav-link"><i class="nav-link-icon fas fa-chalkboard-teacher"></i> Faculty</a>
       <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-open"></i> Courses & Exams</a>
-      <a href="notices.html" class="nav-link"><i class="nav-link-icon fas fa-bullhorn"></i> Notice Board</a>
       <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-check"></i> Attendance</a>
       <div class="nav-section-label">Finance & HR</div>
       <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-file-invoice-dollar"></i> Fee Management</a>
-      <a href="hr.html" class="nav-link active"><i class="nav-link-icon fas fa-user-md"></i> HR & Leave</a>
-      <a href="subscription.html" class="nav-link"><i class="nav-link-icon fas fa-credit-card"></i> Subscription</a>
-      <div class="nav-section-label">Smart Campus</div>
-      <a href="iot-dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-microchip"></i> IoT Dashboard</a>
-      <a href="sustainability.html" class="nav-link"><i class="nav-link-icon fas fa-leaf"></i> Sustainability</a>
-      <a href="ai-intelligence.html" class="nav-link"><i class="nav-link-icon fas fa-brain"></i> AI Intelligence</a>
+      <a href="hr.html" class="nav-link active"><i class="nav-link-icon fas fa-user-tie"></i> HR & Leave</a>
       <div class="nav-section-label">Campus Life</div>
-      <a href="visitors.html" class="nav-link"><i class="nav-link-icon fas fa-id-card-visitor"></i> Visitors</a>
-      <div class="nav-section-label">Facilities</div>
-      <a href="logistics.html" class="nav-link"><i class="nav-link-icon fas fa-bus"></i> Logistics & Hostel</a>
+      <a href="transport.html" class="nav-link"><i class="nav-link-icon fas fa-bus"></i> Transport Fleet</a>
+      <a href="hostel.html" class="nav-link"><i class="nav-link-icon fas fa-building"></i> Hostel Living</a>
+      <a href="complaints.html" class="nav-link"><i class="nav-link-icon fas fa-exclamation-circle"></i> Complaints & Grievances</a>
       <a href="library.html" class="nav-link"><i class="nav-link-icon fas fa-book"></i> Library</a>
-      <div class="nav-section-label">Tools</div>
-      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Hub</a>
+      <a href="placement.html" class="nav-link"><i class="nav-link-icon fas fa-briefcase"></i> Placements</a>
+      <a href="visitors.html" class="nav-link"><i class="nav-link-icon fas fa-id-badge"></i> Visitors</a>
     </nav>
     <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
   </aside>
@@ -45,7 +81,7 @@
     <header class="erp-topbar">
       <div class="topbar-left">
         <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
-        <div class="topbar-breadcrumb">College Admin / <span>HR & Leave</span></div>
+        <div class="topbar-breadcrumb">College Admin / <span>HR & Leave Management</span></div>
       </div>
       <div class="topbar-right">
         <div class="topbar-avatar" id="topbar-avatar">A</div>
@@ -53,66 +89,555 @@
     </header>
 
     <div class="erp-content">
-      <div class="page-header">
-        <h1 class="page-title">🏥 HR & Leave Management</h1>
-        <p class="page-subtitle">Approve/reject leave requests and monitor faculty HR records.</p>
-      </div>
-
-      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
-        <div class="stat-card"><div class="stat-icon" style="background:#FEF3C7;color:#92400E"><i class="fas fa-clock"></i></div><div class="stat-label">Pending Requests</div><div class="stat-value" data-counter="4">4</div><div class="stat-change down"><i class="fas fa-exclamation-circle"></i> Needs review</div></div>
-        <div class="stat-card"><div class="stat-icon" style="background:#D1FAE5;color:#065F46"><i class="fas fa-check-circle"></i></div><div class="stat-label">Approved (Month)</div><div class="stat-value" data-counter="12">12</div></div>
-        <div class="stat-card"><div class="stat-icon" style="background:#FEE2E2;color:#991B1B"><i class="fas fa-times-circle"></i></div><div class="stat-label">Rejected (Month)</div><div class="stat-value" data-counter="3">3</div></div>
-        <div class="stat-card"><div class="stat-icon" style="background:#DBEAFE;color:#1E40AF"><i class="fas fa-user-slash"></i></div><div class="stat-label">Currently Absent</div><div class="stat-value" data-counter="5">5</div></div>
-      </div>
-
-      <!-- Tabs -->
-      <div class="tab-bar mb-6" style="max-width:400px">
-        <button class="tab-btn active" onclick="filterLeaves('pending',this)">Pending</button>
-        <button class="tab-btn" onclick="filterLeaves('approved',this)">Approved</button>
-        <button class="tab-btn" onclick="filterLeaves('rejected',this)">Rejected</button>
-        <button class="tab-btn" onclick="filterLeaves('all',this)">All</button>
-      </div>
-
-      <!-- Leave Requests -->
-      <div class="card mb-6">
-        <div class="card-header"><div class="card-title"><i class="fas fa-clipboard-list" style="color:#F59E0B;margin-right:8px"></i>Leave Requests</div></div>
-        <div class="table-wrap">
-          <table class="erp-table">
-            <thead><tr><th>#</th><th>Faculty</th><th>Type</th><th>Duration</th><th>Days</th><th>Reason</th><th>Applied On</th><th>Status</th><th>Actions</th></tr></thead>
-            <tbody id="leavesBody"></tbody>
-          </table>
+      <!-- Page Header -->
+      <div class="page-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;margin-bottom:24px">
+        <div>
+          <h1 class="page-title" style="font-size:24px;font-weight:800;color:#0F172A;display:flex;align-items:center;gap:10px">
+            <i class="fas fa-user-tie text-indigo-600"></i> HR, Faculty Workload & Leave Management
+          </h1>
+          <p class="page-subtitle" style="color:#64748B;margin-top:4px">Supervise institution staff presence, review multi-tier leave requests, audit substitute coverages, and balance teaching workloads.</p>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-secondary" onclick="exportLeaveReport()"><i class="fas fa-file-csv mr-2"></i> Export Leave Ledger</button>
+          <button class="btn btn-primary" onclick="loadHRData()"><i class="fas fa-sync-alt mr-2"></i> Refresh Roster</button>
         </div>
       </div>
 
-      <!-- Attendance Summary -->
-      <div class="card">
-        <div class="card-header"><div class="card-title"><i class="fas fa-calendar-check" style="color:#10B981;margin-right:8px"></i>Today's Attendance Summary</div><span style="font-size:13px;color:#64748B">Live daily view</span></div>
-        <div class="card-body">
-          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px">
-            <div style="background:#D1FAE5;padding:16px;border-radius:12px;border:1px solid #A7F3D0">
-              <div style="font-size:13px;font-weight:600;color:#065F46">Present Faculty</div>
-              <div style="font-size:28px;font-weight:800;margin-top:4px;color:#047857" id="facultyPresentCount">0</div>
+      <!-- KPI Overview Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+        <div class="kpi-card flex items-center gap-4">
+          <div style="width:52px;height:52px;border-radius:12px;background:#EEF2FF;color:#4F46E5;display:flex;align-items:center;justify-content:center;font-size:22px">
+            <i class="fas fa-users"></i>
+          </div>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:#64748B">Total Staff / Faculty</div>
+            <div id="statTotalStaff" style="font-size:26px;font-weight:800;color:#0F172A;line-height:1.2">--</div>
+            <div style="font-size:12px;color:#10B981;margin-top:2px"><i class="fas fa-shield-alt mr-1"></i>Active Campus Team</div>
+          </div>
+        </div>
+
+        <div class="kpi-card flex items-center gap-4">
+          <div style="width:52px;height:52px;border-radius:12px;background:#ECFDF5;color:#10B981;display:flex;align-items:center;justify-content:center;font-size:22px">
+            <i class="fas fa-user-check"></i>
+          </div>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:#64748B">Present On Duty Today</div>
+            <div id="statPresentToday" style="font-size:26px;font-weight:800;color:#0F172A;line-height:1.2">--</div>
+            <div id="statAttendanceRate" style="font-size:12px;color:#059669;margin-top:2px"><i class="fas fa-percentage mr-1"></i>-- Attendance</div>
+          </div>
+        </div>
+
+        <div class="kpi-card flex items-center gap-4">
+          <div style="width:52px;height:52px;border-radius:12px;background:#FFFBEB;color:#D97706;display:flex;align-items:center;justify-content:center;font-size:22px">
+            <i class="fas fa-user-clock"></i>
+          </div>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:#64748B">Pending Leave Requests</div>
+            <div id="statPendingApprovals" style="font-size:26px;font-weight:800;color:#D97706;line-height:1.2">--</div>
+            <div style="font-size:12px;color:#B45309;margin-top:2px"><i class="fas fa-bell mr-1"></i>Awaiting Approval</div>
+          </div>
+        </div>
+
+        <div class="kpi-card flex items-center gap-4">
+          <div style="width:52px;height:52px;border-radius:12px;background:#FEF2F2;color:#EF4444;display:flex;align-items:center;justify-content:center;font-size:22px">
+            <i class="fas fa-umbrella-beach"></i>
+          </div>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:#64748B">On Approved Leave Today</div>
+            <div id="statOnLeaveToday" style="font-size:26px;font-weight:800;color:#EF4444;line-height:1.2">--</div>
+            <div style="font-size:12px;color:#DC2626;margin-top:2px"><i class="fas fa-calendar-minus mr-1"></i>Excused Absences</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="border-b border-slate-200 mb-6 flex gap-2">
+        <button class="tab-btn active" id="tabLeavesBtn" onclick="switchTab('leaves')"><i class="fas fa-clipboard-list mr-2"></i> Leave Requests & Approvals</button>
+        <button class="tab-btn" id="tabWorkloadBtn" onclick="switchTab('workload')"><i class="fas fa-chalkboard-teacher mr-2"></i> Faculty Workload & Directory</button>
+        <button class="tab-btn" id="tabAnalyticsBtn" onclick="switchTab('analytics')"><i class="fas fa-chart-pie mr-2"></i> Absenteeism Analytics</button>
+      </div>
+
+      <!-- TAB 1: LEAVE REQUESTS -->
+      <div id="tabLeavesContent" class="space-y-4">
+        <!-- Filter Toolbar -->
+        <div class="bg-white p-4 rounded-xl border border-slate-200 flex flex-wrap items-center justify-between gap-4">
+          <div class="flex flex-wrap items-center gap-3">
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Status:</span>
+            <div class="inline-flex rounded-lg border border-slate-200 p-1 bg-slate-50">
+              <button class="px-3 py-1 text-xs font-semibold rounded-md bg-white text-indigo-600 shadow-sm" onclick="filterByStatus('all', this)">All</button>
+              <button class="px-3 py-1 text-xs font-semibold rounded-md text-slate-600 hover:text-indigo-600" onclick="filterByStatus('pending', this)">Pending</button>
+              <button class="px-3 py-1 text-xs font-semibold rounded-md text-slate-600 hover:text-indigo-600" onclick="filterByStatus('approved', this)">Approved</button>
+              <button class="px-3 py-1 text-xs font-semibold rounded-md text-slate-600 hover:text-indigo-600" onclick="filterByStatus('rejected', this)">Rejected</button>
             </div>
-            <div style="background:#FEE2E2;padding:16px;border-radius:12px;border:1px solid #FECACA">
-              <div style="font-size:13px;font-weight:600;color:#991B1B">Absent / Unscheduled</div>
-              <div style="font-size:28px;font-weight:800;margin-top:4px;color:#B91C1C" id="facultyAbsentCount">0</div>
+
+            <span class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-2">Role:</span>
+            <select id="filterRole" class="form-control text-xs py-1.5 px-3 rounded-lg border border-slate-300" onchange="applyFilters()">
+              <option value="all">All Applicants</option>
+              <option value="faculty">Faculty Members</option>
+              <option value="student">Students</option>
+              <option value="staff">Administrative Staff</option>
+            </select>
+          </div>
+
+          <div class="w-full sm:w-64">
+            <div class="relative">
+              <input type="text" id="searchApplicant" placeholder="Search applicant name / roll..." class="w-full text-xs pl-8 pr-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-indigo-500" onkeyup="searchLeaves()">
+              <i class="fas fa-search absolute left-2.5 top-2.5 text-slate-400 text-xs"></i>
             </div>
-            <div style="background:#FEF3C7;padding:16px;border-radius:12px;border:1px solid #FDE68A">
-              <div style="font-size:13px;font-weight:600;color:#92400E">On Approved Leave</div>
-              <div style="font-size:28px;font-weight:800;margin-top:4px;color:#B45309" id="facultyOnLeaveCount">0</div>
+          </div>
+        </div>
+
+        <!-- Leaves Table Card -->
+        <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+          <div class="table-wrap">
+            <table class="erp-table w-full text-left">
+              <thead>
+                <tr class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                  <th class="py-3 px-4">Applicant</th>
+                  <th class="py-3 px-4">Type</th>
+                  <th class="py-3 px-4">Duration</th>
+                  <th class="py-3 px-4">Days</th>
+                  <th class="py-3 px-4">Substitute Coverage</th>
+                  <th class="py-3 px-4">Reason / Notes</th>
+                  <th class="py-3 px-4">Status</th>
+                  <th class="py-3 px-4 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="leavesTableBody" class="divide-y divide-slate-100 text-sm">
+                <tr>
+                  <td colspan="8" class="text-center py-8 text-slate-400">
+                    <i class="fas fa-spinner fa-spin mr-2"></i> Loading leave applications...
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: FACULTY TEACHING WORKLOAD & DIRECTORY -->
+      <div id="tabWorkloadContent" class="hidden space-y-6">
+        <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h2 class="text-lg font-bold text-slate-900">Faculty Teaching Load & Contact Hours</h2>
+              <p class="text-xs text-slate-500">Live lecture allocations, weekly teaching contact hours, and subject assignments derived from the active timetable grid.</p>
             </div>
-            <div style="background:#DBEAFE;padding:16px;border-radius:12px;border:1px solid #BFDBFE">
-              <div style="font-size:13px;font-weight:600;color:#1E40AF">Pending Leave Decisions</div>
-              <div style="font-size:28px;font-weight:800;margin-top:4px;color:#1D4ED8" id="facultyPendingLeaveCount">0</div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="workloadCardsGrid">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 3: ABSENTEEISM ANALYTICS -->
+      <div id="tabAnalyticsContent" class="hidden space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+            <h3 class="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
+              <i class="fas fa-pie-chart text-indigo-600"></i> Leave Types Distribution (Approved)
+            </h3>
+            <div id="leaveTypeBreakdown" class="space-y-3">
+              <!-- Populated via JS -->
+            </div>
+          </div>
+
+          <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
+            <h3 class="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
+              <i class="fas fa-building text-indigo-600"></i> Department-Wise Absenteeism Today
+            </h3>
+            <div id="deptAbsenteeismBreakdown" class="space-y-3">
+              <!-- Populated via JS -->
             </div>
           </div>
         </div>
       </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- LEAVE REVIEW & ACTION MODAL -->
+<div id="leaveReviewModal" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 animate-in fade-in zoom-in-95 duration-150">
+    <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+          <i class="fas fa-file-signature"></i>
+        </div>
+        <div>
+          <h3 class="font-bold text-slate-900 text-lg">Review Leave Application</h3>
+          <p class="text-xs text-slate-500" id="modalApplicantSub">Applicant details</p>
+        </div>
+      </div>
+      <button onclick="closeReviewModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+    </div>
+
+    <div class="space-y-4 text-sm">
+      <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 grid grid-cols-2 gap-3 text-xs">
+        <div><span class="text-slate-500 font-medium">Leave Type:</span> <strong id="modalLeaveType" class="text-slate-800 block text-sm capitalize">--</strong></div>
+        <div><span class="text-slate-500 font-medium">Total Duration:</span> <strong id="modalLeaveDays" class="text-slate-800 block text-sm">--</strong></div>
+        <div><span class="text-slate-500 font-medium">From Date:</span> <span id="modalStartDate" class="block font-semibold text-slate-700">--</span></div>
+        <div><span class="text-slate-500 font-medium">To Date:</span> <span id="modalEndDate" class="block font-semibold text-slate-700">--</span></div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Reason for Leave</label>
+        <div id="modalReason" class="p-3 bg-slate-50 rounded-lg text-slate-700 text-xs border border-slate-200">--</div>
+      </div>
+
+      <div id="modalSubstituteSection" class="hidden p-3 bg-amber-50 rounded-lg border border-amber-200 text-xs">
+        <div class="font-bold text-amber-900 flex items-center gap-1.5 mb-1">
+          <i class="fas fa-hands-helping"></i> Substitute Coverage Arrangement
+        </div>
+        <div class="text-amber-800" id="modalSubstituteInfo">--</div>
+      </div>
+
+      <div id="modalAttachmentSection" class="hidden">
+        <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Supporting Document</label>
+        <a id="modalAttachmentLink" href="#" target="_blank" class="inline-flex items-center gap-2 text-xs font-semibold text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg hover:bg-indigo-100">
+          <i class="fas fa-paperclip"></i> View Attached Medical / Duty Proof
+        </a>
+      </div>
+
+      <div class="pt-2">
+        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Administrative Remarks / Decision Notes</label>
+        <textarea id="modalRemarks" rows="2" class="w-full text-xs p-2.5 border border-slate-300 rounded-lg focus:outline-none focus:border-indigo-500" placeholder="Optional notes, condition of approval, or rejection reason..."></textarea>
+      </div>
+
+      <input type="hidden" id="modalLeaveId" value="">
+    </div>
+
+    <div class="mt-6 flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
+      <button onclick="closeReviewModal()" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Dismiss</button>
+      <button onclick="submitDecision('rejected')" class="px-4 py-2 text-xs font-semibold text-red-600 bg-red-50 hover:bg-red-100 rounded-lg border border-red-200">
+        <i class="fas fa-times-circle mr-1"></i> Reject
+      </button>
+      <button onclick="submitDecision('approved')" class="px-5 py-2 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded-lg shadow-sm">
+        <i class="fas fa-check-circle mr-1"></i> Approve Leave
+      </button>
     </div>
   </div>
 </div>
 
 <script src="../../js/shared.js"></script>
-<script src="../../live/live-admin-pages.js"></script>
+<script>
+  let allLeavesData = [];
+  let currentStatusFilter = 'all';
+
+  function getAuthHeader() {
+    const token = localStorage.getItem('token') || '';
+    return { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+  }
+
+  async function loadHRData() {
+    try {
+      // 1. Fetch Stats
+      const statsRes = await fetch('/api/hr/stats', { headers: getAuthHeader() });
+      if (statsRes.ok) {
+        const statsJson = await statsRes.json();
+        if (statsJson.success) renderStats(statsJson.stats);
+      }
+
+      // 2. Fetch All Leaves
+      const leavesRes = await fetch('/api/hr/all', { headers: getAuthHeader() });
+      if (leavesRes.ok) {
+        const leavesJson = await leavesRes.json();
+        if (leavesJson.success) {
+          allLeavesData = leavesJson.leaves || [];
+          renderLeavesTable(allLeavesData);
+        }
+      }
+
+      // 3. Fetch Faculty Workload
+      const workloadRes = await fetch('/api/hr/faculty-workload', { headers: getAuthHeader() });
+      if (workloadRes.ok) {
+        const workloadJson = await workloadRes.json();
+        if (workloadJson.success) {
+          renderWorkloadCards(workloadJson.facultyWorkload || []);
+        }
+      }
+    } catch (e) {
+      console.error('Error loading HR data:', e);
+    }
+  }
+
+  function renderStats(stats) {
+    document.getElementById('statTotalStaff').innerText = stats.totalStaff || 0;
+    document.getElementById('statPresentToday').innerText = stats.presentToday || 0;
+    document.getElementById('statPendingApprovals').innerText = stats.pendingApprovals || 0;
+    document.getElementById('statOnLeaveToday').innerText = stats.onLeaveToday || 0;
+    document.getElementById('statAttendanceRate').innerHTML = `<i class="fas fa-percentage mr-1"></i>${stats.attendanceRateToday || 100}% Today`;
+
+    // Render Leave Type Breakdown
+    const typeBox = document.getElementById('leaveTypeBreakdown');
+    typeBox.innerHTML = '';
+    const dist = stats.leaveTypeDistribution || {};
+    const types = Object.keys(dist);
+    if (types.length === 0) {
+      typeBox.innerHTML = '<div class="text-xs text-slate-400 py-3">No approved leaves on record yet.</div>';
+    } else {
+      types.forEach(t => {
+        const item = dist[t];
+        typeBox.innerHTML += `
+          <div>
+            <div class="flex justify-between text-xs mb-1 font-semibold">
+              <span class="capitalize text-slate-700">${t} Leave</span>
+              <span class="text-slate-500">${item.count} applications (${item.totalDays} days)</span>
+            </div>
+            <div class="w-full bg-slate-100 rounded-full h-2">
+              <div class="bg-indigo-600 h-2 rounded-full" style="width:${Math.min(100, item.count * 10)}%"></div>
+            </div>
+          </div>`;
+      });
+    }
+
+    // Render Department Absenteeism
+    const deptBox = document.getElementById('deptAbsenteeismBreakdown');
+    deptBox.innerHTML = '';
+    const depts = stats.departmentAbsenteeism || {};
+    const deptNames = Object.keys(depts);
+    if (deptNames.length === 0) {
+      deptBox.innerHTML = '<div class="text-xs text-slate-400 py-3">Full staff presence across all departments today!</div>';
+    } else {
+      deptNames.forEach(d => {
+        deptBox.innerHTML += `
+          <div class="flex items-center justify-between p-2.5 bg-slate-50 rounded-lg border border-slate-200">
+            <span class="text-xs font-bold text-slate-800">${d}</span>
+            <span class="badge badge-rejected">${depts[d]} on leave</span>
+          </div>`;
+      });
+    }
+  }
+
+  function renderLeavesTable(leaves) {
+    const tbody = document.getElementById('leavesTableBody');
+    if (!leaves || leaves.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="8" class="text-center py-8 text-slate-400">No leave applications found matching current criteria.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = leaves.map(l => {
+      const user = l.userId || {};
+      const name = user.name || 'Unknown User';
+      const role = l.role || user.role || 'faculty';
+      const deptOrRoll = user.department || user.rollNo || '-';
+      const designation = user.designation || (role === 'student' ? 'Student' : 'Staff');
+
+      const sDate = new Date(l.startDate).toISOString().split('T')[0];
+      const eDate = new Date(l.endDate).toISOString().split('T')[0];
+      const dateStr = sDate === eDate ? sDate : `${sDate} to ${eDate}`;
+
+      const daysBadge = l.isHalfDay ? `<span class="badge bg-purple-50 text-purple-700">0.5d (${l.halfDaySession})</span>` : `<strong>${l.totalDays || 1}d</strong>`;
+
+      let substituteStr = '<span class="text-slate-400 text-xs">None</span>';
+      if (l.substituteFacultyId) {
+        const subName = l.substituteFacultyId.name || 'Assigned';
+        const subBadge = l.substituteStatus === 'accepted' ? 'badge-approved' : (l.substituteStatus === 'declined' ? 'badge-rejected' : 'badge-pending');
+        substituteStr = `<div class="text-xs font-medium text-slate-700">${subName}</div><span class="badge ${subBadge} text-[10px] mt-0.5">${l.substituteStatus}</span>`;
+      }
+
+      let statusBadge = `badge-${l.status}`;
+      const statusIcon = l.status === 'approved' ? 'fa-check' : (l.status === 'rejected' ? 'fa-times' : (l.status === 'cancelled' ? 'fa-ban' : 'fa-clock'));
+
+      const isPending = l.status === 'pending';
+      const actions = isPending
+        ? `<button onclick="openReviewModal('${l._id}')" class="px-3 py-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg text-xs font-semibold"><i class="fas fa-edit mr-1"></i> Review</button>`
+        : `<button onclick="openReviewModal('${l._id}')" class="px-3 py-1 text-slate-500 hover:text-indigo-600 rounded-lg text-xs font-semibold"><i class="fas fa-eye mr-1"></i> Details</button>`;
+
+      return `
+        <tr class="hover:bg-slate-50 transition-colors">
+          <td class="py-3 px-4">
+            <div class="font-bold text-slate-900">${name}</div>
+            <div class="text-xs text-slate-500">${deptOrRoll} • <span class="capitalize text-slate-600 font-semibold">${role}</span></div>
+          </td>
+          <td class="py-3 px-4">
+            <span class="badge bg-indigo-50 text-indigo-700 capitalize">${l.leaveType}</span>
+          </td>
+          <td class="py-3 px-4 text-xs font-medium text-slate-600">${dateStr}</td>
+          <td class="py-3 px-4 text-xs">${daysBadge}</td>
+          <td class="py-3 px-4">${substituteStr}</td>
+          <td class="py-3 px-4 text-xs text-slate-600 max-w-xs truncate" title="${l.reason}">${l.reason}</td>
+          <td class="py-3 px-4">
+            <span class="badge ${statusBadge} capitalize"><i class="fas ${statusIcon} mr-1 text-[10px]"></i> ${l.status}</span>
+          </td>
+          <td class="py-3 px-4 text-right">${actions}</td>
+        </tr>`;
+    }).join('');
+  }
+
+  function renderWorkloadCards(workload) {
+    const grid = document.getElementById('workloadCardsGrid');
+    if (!workload || workload.length === 0) {
+      grid.innerHTML = '<div class="col-span-3 text-center py-10 text-slate-400">No faculty members found in the institution roster.</div>';
+      return;
+    }
+
+    grid.innerHTML = workload.map(f => {
+      const hoursPercent = Math.min(100, Math.round((f.weeklyHours / 20) * 100));
+      return `
+        <div class="p-5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-white hover:shadow-md transition-all">
+          <div class="flex items-start justify-between mb-3">
+            <div>
+              <h4 class="font-bold text-slate-900 text-base">${f.name}</h4>
+              <p class="text-xs text-slate-500">${f.designation} • <span class="text-indigo-600 font-semibold">${f.department}</span></p>
+            </div>
+            <div class="w-9 h-9 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-sm">
+              ${f.name.charAt(0)}
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 py-3 border-y border-slate-200 my-3 text-xs">
+            <div>
+              <span class="text-slate-500">Weekly Classes:</span>
+              <strong class="block text-slate-800 text-sm font-bold">${f.weeklyClasses} lectures</strong>
+            </div>
+            <div>
+              <span class="text-slate-500">Teaching Contact:</span>
+              <strong class="block text-slate-800 text-sm font-bold">${f.weeklyHours} hrs / week</strong>
+            </div>
+          </div>
+
+          <div>
+            <div class="flex justify-between text-xs text-slate-500 mb-1">
+              <span>Contact Hours Load</span>
+              <span class="font-semibold text-slate-700">${hoursPercent}% of standard capacity</span>
+            </div>
+            <div class="w-full bg-slate-200 rounded-full h-2">
+              <div class="bg-indigo-600 h-2 rounded-full" style="width:${hoursPercent}%"></div>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function filterByStatus(status, btn) {
+    currentStatusFilter = status;
+    const parent = btn.parentElement;
+    Array.from(parent.children).forEach(c => {
+      c.className = 'px-3 py-1 text-xs font-semibold rounded-md text-slate-600 hover:text-indigo-600';
+    });
+    btn.className = 'px-3 py-1 text-xs font-semibold rounded-md bg-white text-indigo-600 shadow-sm';
+    applyFilters();
+  }
+
+  function applyFilters() {
+    const roleFilter = document.getElementById('filterRole').value;
+    let filtered = allLeavesData;
+
+    if (currentStatusFilter !== 'all') {
+      filtered = filtered.filter(l => l.status === currentStatusFilter);
+    }
+    if (roleFilter !== 'all') {
+      filtered = filtered.filter(l => (l.role || (l.userId && l.userId.role)) === roleFilter);
+    }
+
+    renderLeavesTable(filtered);
+  }
+
+  function searchLeaves() {
+    const q = document.getElementById('searchApplicant').value.toLowerCase().trim();
+    if (!q) {
+      applyFilters();
+      return;
+    }
+    const searched = allLeavesData.filter(l => {
+      const name = (l.userId && l.userId.name) ? l.userId.name.toLowerCase() : '';
+      const roll = (l.userId && l.userId.rollNo) ? l.userId.rollNo.toLowerCase() : '';
+      return name.includes(q) || roll.includes(q) || (l.leaveType && l.leaveType.toLowerCase().includes(q));
+    });
+    renderLeavesTable(searched);
+  }
+
+  function switchTab(tab) {
+    document.getElementById('tabLeavesContent').classList.add('hidden');
+    document.getElementById('tabWorkloadContent').classList.add('hidden');
+    document.getElementById('tabAnalyticsContent').classList.add('hidden');
+
+    document.getElementById('tabLeavesBtn').classList.remove('active');
+    document.getElementById('tabWorkloadBtn').classList.remove('active');
+    document.getElementById('tabAnalyticsBtn').classList.remove('active');
+
+    if (tab === 'leaves') {
+      document.getElementById('tabLeavesContent').classList.remove('hidden');
+      document.getElementById('tabLeavesBtn').classList.add('active');
+    } else if (tab === 'workload') {
+      document.getElementById('tabWorkloadContent').classList.remove('hidden');
+      document.getElementById('tabWorkloadBtn').classList.add('active');
+    } else if (tab === 'analytics') {
+      document.getElementById('tabAnalyticsContent').classList.remove('hidden');
+      document.getElementById('tabAnalyticsBtn').classList.add('active');
+    }
+  }
+
+  function openReviewModal(leaveId) {
+    const leave = allLeavesData.find(l => l._id === leaveId);
+    if (!leave) return;
+
+    document.getElementById('modalLeaveId').value = leave._id;
+    const user = leave.userId || {};
+    document.getElementById('modalApplicantSub').innerText = `${user.name || 'User'} • ${user.department || user.rollNo || ''} (${leave.role || user.role || 'faculty'})`;
+    document.getElementById('modalLeaveType').innerText = `${leave.leaveType} leave`;
+    document.getElementById('modalLeaveDays').innerText = leave.isHalfDay ? `0.5 Day (${leave.halfDaySession})` : `${leave.totalDays || 1} Day(s)`;
+    document.getElementById('modalStartDate').innerText = new Date(leave.startDate).toLocaleDateString();
+    document.getElementById('modalEndDate').innerText = new Date(leave.endDate).toLocaleDateString();
+    document.getElementById('modalReason').innerText = leave.reason;
+    document.getElementById('modalRemarks').value = leave.remarks || '';
+
+    // Substitute section
+    const subSec = document.getElementById('modalSubstituteSection');
+    if (leave.substituteFacultyId) {
+      subSec.classList.remove('hidden');
+      document.getElementById('modalSubstituteInfo').innerText = `Colleague: ${leave.substituteFacultyId.name} (${leave.substituteStatus.toUpperCase()})\nNotes: ${leave.substituteNotes || 'None'}`;
+    } else {
+      subSec.classList.add('hidden');
+    }
+
+    // Attachment section
+    const attSec = document.getElementById('modalAttachmentSection');
+    if (leave.attachments && leave.attachments.length > 0) {
+      attSec.classList.remove('hidden');
+      document.getElementById('modalAttachmentLink').href = leave.attachments[0].url;
+    } else {
+      attSec.classList.add('hidden');
+    }
+
+    document.getElementById('leaveReviewModal').classList.remove('hidden');
+  }
+
+  function closeReviewModal() {
+    document.getElementById('leaveReviewModal').classList.add('hidden');
+  }
+
+  async function submitDecision(status) {
+    const leaveId = document.getElementById('modalLeaveId').value;
+    const remarks = document.getElementById('modalRemarks').value;
+
+    try {
+      const res = await fetch(`/api/hr/leaves/${leaveId}/status`, {
+        method: 'PUT',
+        headers: getAuthHeader(),
+        body: JSON.stringify({ status, remarks }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        closeReviewModal();
+        loadHRData();
+      } else {
+        alert(data.message || 'Action failed');
+      }
+    } catch (e) {
+      alert('Network error while processing leave decision');
+    }
+  }
+
+  function exportLeaveReport() {
+    window.open('/api/hr/leaves/export', '_blank');
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    loadHRData();
+  });
+</script>
 </body>
 </html>

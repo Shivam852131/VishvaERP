@@ -7333,18 +7333,27 @@
     if (path.endsWith('/pages/college-admin/fee-analytics.html')) return initCollegeAdminFeeAnalyticsPage();
     if (path.endsWith('/pages/college-admin/fees.html')) return initCollegeAdminFeesPage();
     if (path.endsWith('/pages/college-admin/notices.html')) return initCollegeAdminNoticesPage();
-    if (path.endsWith('/pages/college-admin/hr.html')) return initCollegeAdminHrPage();
+    if (path.endsWith('/pages/college-admin/hr.html')) {
+      if (typeof window.loadHRData === 'function') return window.loadHRData();
+      return typeof initCollegeAdminHrPage === 'function' ? initCollegeAdminHrPage() : null;
+    }
     if (path.endsWith('/pages/college-admin/courses.html')) return initCollegeAdminCoursesPage();
     if (path.endsWith('/pages/college-admin/logistics.html')) return initCollegeAdminLogisticsPage();
     if (path.endsWith('/pages/faculty/dashboard.html')) return initFacultyDashboardPage();
     if (path.endsWith('/pages/faculty/attendance.html')) return initFacultyAttendancePage();
-    if (path.endsWith('/pages/faculty/leave.html')) return initFacultyLeavePage();
+    if (path.endsWith('/pages/faculty/leave.html')) {
+      if (typeof window.loadFacultyLeaves === 'function') return window.loadFacultyLeaves();
+      return typeof initFacultyLeavePage === 'function' ? initFacultyLeavePage() : null;
+    }
     if (path.endsWith('/pages/faculty/grades.html')) return initFacultyGradesPage();
     if (path.endsWith('/pages/faculty/assignments.html')) return initFacultyAssignmentsPage();
     if (path.endsWith('/pages/faculty/timetable.html')) return initFacultyTimetablePage();
     if (path.endsWith('/pages/faculty/live-class.html')) {
       if (typeof window.__initFacultyLiveClass === 'function') return window.__initFacultyLiveClass();
       return initFacultyLiveClassPage();
+    }
+    if (path.endsWith('/pages/student/leave.html')) {
+      if (typeof window.loadStudentLeaves === 'function') return window.loadStudentLeaves();
     }
     if (path.endsWith('/pages/student/live-class.html')) {
       if (typeof window.__initStudentLiveClass === 'function') return window.__initStudentLiveClass();

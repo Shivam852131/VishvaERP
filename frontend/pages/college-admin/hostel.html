@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Hostel & Residence Life | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../css/custom.css">
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-college" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon"><img src="../../icons/logo.png" alt="Vi"></div><div class="sidebar-logo-text">Vishva <span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" id="sidebar-avatar">A</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Admin</div><div class="sidebar-user-role">College Administrator</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <div class="nav-section-label">Academics</div>
+      <a href="students.html" class="nav-link"><i class="nav-link-icon fas fa-user-graduate"></i> Students</a>
+      <a href="faculty.html" class="nav-link"><i class="nav-link-icon fas fa-chalkboard-teacher"></i> Faculty</a>
+      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-open"></i> Courses & Exams</a>
+      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-check"></i> Attendance</a>
+      <div class="nav-section-label">Finance & HR</div>
+      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-file-invoice-dollar"></i> Fee Management</a>
+      <a href="hr.html" class="nav-link"><i class="nav-link-icon fas fa-user-md"></i> HR & Leave</a>
+      <div class="nav-section-label">Campus Life</div>
+      <a href="transport.html" class="nav-link"><i class="nav-link-icon fas fa-bus"></i> Transport Fleet</a>
+      <a href="hostel.html" class="nav-link active"><i class="nav-link-icon fas fa-building"></i> Hostel Living</a>
+      <a href="grievances.html" class="nav-link"><i class="nav-link-icon fas fa-exclamation-circle"></i> Grievances</a>
+      <a href="logistics.html" class="nav-link"><i class="nav-link-icon fas fa-truck"></i> All Logistics</a>
+      <a href="library.html" class="nav-link"><i class="nav-link-icon fas fa-book"></i> Library</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">College Admin / <span>Hostel Management</span></div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-avatar" id="topbar-avatar">A</div>
+      </div>
+    </header>
+
+    <div class="erp-content">
+      <div class="page-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:20px">
+        <div>
+          <h1 class="page-title"><i class="fas fa-building text-primary" style="margin-right:10px"></i>Hostel & Residence Life</h1>
+          <p class="page-subtitle">Manage residential blocks, room allocations, occupancy capacities, and warden supervision.</p>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-secondary" onclick="exportHostelCSV()"><i class="fas fa-file-csv" style="margin-right:6px"></i> Export Residence Roster</button>
+          <button class="btn btn-secondary" onclick="openModal('addHostelModal')"><i class="fas fa-building" style="margin-right:6px"></i> Add Hostel Block</button>
+          <button class="btn btn-secondary" onclick="openModal('addRoomModal')"><i class="fas fa-door-open" style="margin-right:6px"></i> Add Room</button>
+          <button class="btn btn-primary" onclick="openModal('allocateModal')"><i class="fas fa-user-plus" style="margin-right:6px"></i> Allocate Bed</button>
+          <button class="btn btn-warning" onclick="openModal('transferModal')"><i class="fas fa-exchange-alt" style="margin-right:6px"></i> Transfer Room</button>
+        </div>
+      </div>
+
+      <!-- KPI METRICS -->
+      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#DBEAFE;color:#1E40AF"><i class="fas fa-building"></i></div>
+          <div class="stat-info"><div class="stat-label">Hostel Blocks</div><div class="stat-value" id="kpiHostels">—</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#D1FAE5;color:#065F46"><i class="fas fa-bed"></i></div>
+          <div class="stat-info"><div class="stat-label">Total Beds Configured</div><div class="stat-value" id="kpiBeds">—</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#EDE9FE;color:#5B21B6"><i class="fas fa-users"></i></div>
+          <div class="stat-info"><div class="stat-label">Resident Students</div><div class="stat-value" id="kpiOccupants">—</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#FEF3C7;color:#92400E"><i class="fas fa-percent"></i></div>
+          <div class="stat-info"><div class="stat-label">Residence Occupancy</div><div class="stat-value" id="kpiOccupancy">—</div></div>
+        </div>
+      </div>
+
+      <!-- HOSTEL BLOCKS GRID -->
+      <div id="hostelBlocksContainer" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px">
+        <div style="grid-column:1/-1;text-align:center;padding:40px;color:#94A3B8"><i class="fas fa-spinner fa-spin" style="margin-right:8px"></i>Loading residential blocks...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ALLOCATE ROOM MODAL -->
+<div class="modal-backdrop" id="allocateModal" style="display:none">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Allocate Student to Bed</div><button class="modal-close" onclick="closeModal('allocateModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <div class="form-group mb-3"><label class="form-label">Select Hostel Block</label><select class="form-control" id="allocHostelSelect"></select></div>
+      <div class="form-grid-2 mb-3">
+        <div class="form-group"><label class="form-label">Room Number</label><input class="form-control" id="allocRoomNumber" placeholder="e.g. A-101"></div>
+        <div class="form-group"><label class="form-label">Student Roll Number</label><input class="form-control" id="allocStudentRoll" placeholder="e.g. 2026-CSE-045"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('allocateModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitAllocation()"><i class="fas fa-check"></i> Complete Allocation</button>
+    </div>
+  </div>
+</div>
+
+<!-- TRANSFER ROOM MODAL -->
+<div class="modal-backdrop" id="transferModal" style="display:none">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Transfer Student Room</div><button class="modal-close" onclick="closeModal('transferModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <div class="form-group mb-3"><label class="form-label">Student Roll Number</label><input class="form-control" id="transferRoll" placeholder="e.g. 2026-ECE-012"></div>
+      <div class="form-grid-2 mb-3">
+        <div class="form-group"><label class="form-label">Target Hostel Block</label><select class="form-control" id="transferHostelSelect"></select></div>
+        <div class="form-group"><label class="form-label">Target Room Number</label><input class="form-control" id="transferTargetRoom" placeholder="e.g. A-102"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('transferModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitTransfer()"><i class="fas fa-exchange-alt"></i> Execute Transfer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD HOSTEL MODAL -->
+<div class="modal-backdrop" id="addHostelModal" style="display:none">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Add Residential Hostel Block</div><button class="modal-close" onclick="closeModal('addHostelModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <div class="form-group mb-3"><label class="form-label">Hostel Name</label><input class="form-control" id="newHostelName" placeholder="e.g. Aryabhata Residence"></div>
+      <div class="form-grid-2 mb-3">
+        <div class="form-group"><label class="form-label">Hostel Type</label><select class="form-control" id="newHostelType"><option value="boys">Boys</option><option value="girls">Girls</option><option value="coed">Co-Ed</option></select></div>
+        <div class="form-group"><label class="form-label">Total Rooms</label><input class="form-control" type="number" id="newHostelRooms" value="30"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Amenities / Facilities (comma separated)</label><input class="form-control" id="newHostelFacilities" placeholder="WiFi, Gym, Laundry, Mess"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('addHostelModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="createHostel()"><i class="fas fa-check"></i> Save Hostel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD ROOM MODAL -->
+<div class="modal-backdrop" id="addRoomModal" style="display:none">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Add Room to Hostel</div><button class="modal-close" onclick="closeModal('addRoomModal')"><i class="fas fa-times"></i></button></div>
+    <div class="modal-body">
+      <div class="form-group mb-3"><label class="form-label">Hostel Block</label><select class="form-control" id="roomBlockSelect"></select></div>
+      <div class="form-grid-2 mb-3">
+        <div class="form-group"><label class="form-label">Room Number</label><input class="form-control" id="newRoomNumber" placeholder="e.g. B-201"></div>
+        <div class="form-group"><label class="form-label">Bed Capacity</label><input class="form-control" type="number" id="newRoomCapacity" value="2" min="1"></div>
+      </div>
+      <div class="form-grid-2 mb-3">
+        <div class="form-group"><label class="form-label">Floor</label><input class="form-control" type="number" id="newRoomFloor" value="1" min="0"></div>
+        <div class="form-group"><label class="form-label">Fee Per Term (₹)</label><input class="form-control" type="number" id="newRoomFee" value="30000"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('addRoomModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="createRoom()"><i class="fas fa-check"></i> Add Room</button>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script>
+let hostelData = [];
+let roomsData = [];
+
+document.addEventListener('DOMContentLoaded', function () {
+  const user = api.getUser();
+  if (user) {
+    if (document.getElementById('sidebar-user-name')) document.getElementById('sidebar-user-name').textContent = user.name || 'Admin';
+  }
+  loadHostels();
+});
+
+async function loadHostels() {
+  try {
+    const res = await window.api.request('/hostel');
+    hostelData = res.hostels || [];
+    roomsData = res.rooms || [];
+    populateBlockOptions();
+    renderHostels();
+    updateKPIs();
+  } catch (err) {
+    showToast('Failed to load hostels data', 'error');
+  }
+}
+
+function populateBlockOptions() {
+  const opts = '<option value="">Select Block</option>' + hostelData.map(h => `<option value="${h._id}">${escapeHTML(h.name)} (${escapeHTML(h.type)})</option>`).join('');
+  document.getElementById('allocHostelSelect').innerHTML = opts;
+  document.getElementById('transferHostelSelect').innerHTML = opts;
+  document.getElementById('roomBlockSelect').innerHTML = opts;
+}
+
+function updateKPIs() {
+  const totalBeds = roomsData.reduce((sum, r) => sum + (r.capacity || 0), 0);
+  const totalOccupants = roomsData.reduce((sum, r) => sum + (r.occupants || []).length, 0);
+  const pct = totalBeds > 0 ? Math.round((totalOccupants / totalBeds) * 100) : 0;
+
+  document.getElementById('kpiHostels').textContent = hostelData.length;
+  document.getElementById('kpiBeds').textContent = totalBeds;
+  document.getElementById('kpiOccupants').textContent = totalOccupants;
+  document.getElementById('kpiOccupancy').textContent = pct + '%';
+}
+
+function renderHostels() {
+  const container = document.getElementById('hostelBlocksContainer');
+  if (!hostelData.length) {
+    container.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#94A3B8">No residential blocks registered yet.</div>';
+    return;
+  }
+
+  container.innerHTML = hostelData.map(h => {
+    const blockRooms = roomsData.filter(r => String(r.hostelId?._id || r.hostelId) === String(h._id));
+    const occupied = blockRooms.reduce((sum, r) => sum + (r.occupants || []).length, 0);
+    const capacity = blockRooms.reduce((sum, r) => sum + (r.capacity || 0), 0) || (h.totalRooms * 2);
+    const pct = capacity > 0 ? Math.round((occupied / capacity) * 100) : 0;
+
+    return `
+      <div class="card" style="padding:0;overflow:hidden;border-top:4px solid #0284C7">
+        <div style="padding:20px">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+            <div>
+              <div style="font-weight:800;font-size:16px;color:#0F172A">${escapeHTML(h.name)}</div>
+              <div style="font-size:12px;color:#64748B;text-transform:capitalize">${escapeHTML(h.type)} Hostel • ${blockRooms.length} Configured Rooms</div>
+            </div>
+            <span class="badge badge-info">${h.blockCode || 'BLOCK'}</span>
+          </div>
+
+          <div style="margin:12px 0">
+            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+              <span style="color:#64748B">Occupancy Rate</span>
+              <span style="font-weight:700">${occupied} / ${capacity} Beds</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" style="width:${pct}%;background:#0284C7"></div></div>
+            <div style="font-size:11px;color:#94A3B8;margin-top:4px">${pct}% filled</div>
+          </div>
+
+          <div style="font-size:12px;color:#64748B;background:#F8FAFC;padding:8px 12px;border-radius:8px;margin-bottom:14px">
+            <strong>Warden:</strong> ${escapeHTML(h.warden?.name || 'Assigned Warden')} (${escapeHTML(h.warden?.phone || '+91 ...')})
+          </div>
+
+          <div style="max-height:180px;overflow-y:auto;border-top:1px solid #F1F5F9;padding-top:10px">
+            <div style="font-size:11px;font-weight:700;color:#64748B;text-transform:uppercase;margin-bottom:6px">Room List</div>
+            ${blockRooms.map(rm => `
+              <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:12px;border-bottom:1px solid #F8FAFC">
+                <span>Room <strong>${escapeHTML(rm.roomNumber)}</strong> (${(rm.occupants || []).length}/${rm.capacity})</span>
+                <span class="badge ${rm.status === 'occupied' ? 'badge-danger' : (rm.status === 'maintenance' ? 'badge-warning' : 'badge-success')}">${rm.status}</span>
+              </div>
+            `).join('') || '<div style="font-size:12px;color:#94A3B8">No rooms configured in this block.</div>'}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function submitAllocation() {
+  const hostelId = document.getElementById('allocHostelSelect').value;
+  const roomNumber = document.getElementById('allocRoomNumber').value.trim();
+  const rollNo = document.getElementById('allocStudentRoll').value.trim();
+
+  if (!roomNumber || !rollNo) return showToast('Room number and student roll number required', 'warning');
+
+  try {
+    const res = await window.api.request('/hostel/allocate', {
+      method: 'POST',
+      body: JSON.stringify({ hostelId, roomNumber, rollNo })
+    });
+    closeModal('allocateModal');
+    showToast(res.message || 'Student allocated to room!', 'success');
+    loadHostels();
+  } catch (err) {
+    showToast(err.message || 'Failed to allocate room', 'error');
+  }
+}
+
+async function submitTransfer() {
+  const rollNo = document.getElementById('transferRoll').value.trim();
+  const targetHostelId = document.getElementById('transferHostelSelect').value;
+  const targetRoomNumber = document.getElementById('transferTargetRoom').value.trim();
+
+  if (!rollNo || !targetRoomNumber) return showToast('Roll number and target room required', 'warning');
+
+  try {
+    const res = await window.api.request('/hostel/transfer', {
+      method: 'POST',
+      body: JSON.stringify({ rollNo, targetHostelId, targetRoomNumber })
+    });
+    closeModal('transferModal');
+    showToast(res.message || 'Room transfer executed!', 'success');
+    loadHostels();
+  } catch (err) {
+    showToast(err.message || 'Failed to transfer room', 'error');
+  }
+}
+
+async function createHostel() {
+  const name = document.getElementById('newHostelName').value.trim();
+  const type = document.getElementById('newHostelType').value;
+  const totalRooms = document.getElementById('newHostelRooms').value;
+  const facilities = document.getElementById('newHostelFacilities').value;
+
+  if (!name) return showToast('Hostel name required', 'warning');
+
+  try {
+    await window.api.request('/hostel', {
+      method: 'POST',
+      body: JSON.stringify({ name, type, totalRooms, facilities })
+    });
+    closeModal('addHostelModal');
+    showToast('Hostel block created successfully', 'success');
+    loadHostels();
+  } catch (err) {
+    showToast(err.message || 'Failed to add hostel', 'error');
+  }
+}
+
+async function createRoom() {
+  const hostelId = document.getElementById('roomBlockSelect').value;
+  const roomNumber = document.getElementById('newRoomNumber').value.trim();
+  const capacity = document.getElementById('newRoomCapacity').value;
+  const floor = document.getElementById('newRoomFloor').value;
+  const feePerTerm = document.getElementById('newRoomFee').value;
+
+  if (!hostelId || !roomNumber) return showToast('Hostel block and room number required', 'warning');
+
+  try {
+    await window.api.request('/hostel/rooms', {
+      method: 'POST',
+      body: JSON.stringify({ hostelId, roomNumber, capacity, floor, feePerTerm })
+    });
+    closeModal('addRoomModal');
+    showToast('Room added successfully', 'success');
+    loadHostels();
+  } catch (err) {
+    showToast(err.message || 'Failed to add room', 'error');
+  }
+}
+
+function exportHostelCSV() {
+  window.open('/api/logistics/export?type=hostel', '_blank');
+}
+</script>
+</body>
+</html>

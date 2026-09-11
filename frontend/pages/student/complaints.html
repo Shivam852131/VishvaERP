@@ -379,7 +379,12 @@ async function viewGrievance(id) {
         <div style="border-top:1px solid #E2E8F0;padding-top:16px;margin-bottom:16px">
           <label style="font-size:12px;font-weight:700;color:#334155;display:block;margin-bottom:6px">Post Reply / Information to Handler</label>
           <textarea id="replyMessage" class="form-control" rows="3" placeholder="Add further context or reply to administrator..." style="resize:vertical;font-size:13px"></textarea>
-          <div style="display:flex;justify-content:flex-end;margin-top:8px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+            ${(g.escalationTier || 1) < 3 ? `
+              <button class="btn btn-warning btn-sm" onclick="escalateGrievanceStudent('${g._id}')">
+                <i class="fas fa-level-up-alt"></i> Escalate Tier
+              </button>
+            ` : '<span></span>'}
             <button class="btn btn-primary btn-sm" id="btnSendReply" onclick="sendReply('${g._id}')">
               <i class="fas fa-reply"></i> Send Message
             </button>
@@ -460,6 +465,23 @@ async function closeGrievance(id) {
     loadGrievances();
   } catch (err) {
     showToast(err.message || 'Failed to close complaint', 'error');
+  }
+}
+
+async function escalateGrievanceStudent(id) {
+  const reason = prompt('Please describe why you are escalating this complaint to a higher authority tier:');
+  if (!reason || !reason.trim()) return;
+
+  try {
+    await window.api.request(`/grievances/${id}/escalate`, {
+      method: 'POST',
+      body: JSON.stringify({ reason: reason.trim() })
+    });
+    showToast('Complaint successfully escalated to higher authority tier!', 'warning');
+    viewGrievance(id);
+    loadGrievances();
+  } catch (err) {
+    showToast(err.message || 'Failed to escalate grievance', 'error');
   }
 }
 </script>

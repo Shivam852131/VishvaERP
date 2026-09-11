@@ -698,6 +698,7 @@ async function runAllTests() {
     if (server) {
       server.close();
     }
+    process.exit(0);
   }
 }
 

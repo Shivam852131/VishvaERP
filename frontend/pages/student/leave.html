@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Student Leave & On-Duty (OD) | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../css/custom.css">
+  <style>
+    .kpi-card {
+      background: white;
+      border-radius: 14px;
+      padding: 18px;
+      border: 1px solid #E2E8F0;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+      transition: all 0.2s ease;
+    }
+    .kpi-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px -2px rgba(0,0,0,0.08);
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .badge-pending { background: #FEF3C7; color: #92400E; }
+    .badge-approved { background: #D1FAE5; color: #065F46; }
+    .badge-rejected { background: #FEE2E2; color: #991B1B; }
+    .badge-cancelled { background: #F1F5F9; color: #64748B; }
+    .modal-backdrop {
+      background-color: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(4px);
+    }
+  </style>
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-student" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)">V</div><div class="sidebar-logo-text">Vishva <span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)" id="sidebar-avatar">S</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Student</div><div class="sidebar-user-role" id="sidebar-user-role">B.Tech • Sem 4</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Academics</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-reader"></i> My Courses</a>
+      <a href="timetable.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-week"></i> Timetable</a>
+      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Attendance</a>
+      <a href="leave.html" class="nav-link active"><i class="nav-link-icon fas fa-file-signature"></i> Leave & OD</a>
+      <a href="assignments.html" class="nav-link"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
+      <a href="results.html" class="nav-link"><i class="nav-link-icon fas fa-poll"></i> Results</a>
+      <div class="nav-section-label">Campus Life</div>
+      <a href="library.html" class="nav-link"><i class="nav-link-icon fas fa-book"></i> Library</a>
+      <a href="transport.html" class="nav-link"><i class="nav-link-icon fas fa-bus"></i> Transport</a>
+      <a href="hostel.html" class="nav-link"><i class="nav-link-icon fas fa-building"></i> Hostel</a>
+      <a href="complaints.html" class="nav-link"><i class="nav-link-icon fas fa-exclamation-circle"></i> Complaints</a>
+      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-receipt"></i> Fee Details</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">Student / <span>Leave & On-Duty (OD)</span></div>
+      </div>
+      <div class="topbar-right"><div class="topbar-avatar" id="topbar-avatar">S</div></div>
+    </header>
+
+    <div class="erp-content">
+      <!-- Page Header -->
+      <div class="page-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;margin-bottom:24px">
+        <div>
+          <h1 class="page-title" style="font-size:24px;font-weight:800;color:#0F172A;display:flex;align-items:center;gap:10px">
+            <i class="fas fa-file-medical text-sky-600"></i> Student Leave & On-Duty (OD) Portal
+          </h1>
+          <p class="page-subtitle" style="color:#64748B;margin-top:4px">Apply for medical exemptions, symposiums, hackathon on-duty passes, and monitor academic attendance regularization.</p>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-secondary" onclick="loadStudentLeaves()"><i class="fas fa-sync-alt mr-2"></i> Refresh</button>
+          <button class="btn btn-primary" onclick="openStudentApplyModal()" style="background:#0284C7;border-color:#0284C7"><i class="fas fa-paper-plane mr-2"></i> Apply for Leave / OD</button>
+        </div>
+      </div>
+
+      <!-- KPI Overview Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+        <div class="kpi-card flex items-center gap-4">
+          <div style="width:50px;height:50px;border-radius:12px;background:#F0F9FF;color:#0284C7;display:flex;align-items:center;justify-content:center;font-size:22px">
+            <i class="fas fa-layer-group"></i>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:600;color:#64748B">Total Applications</div>
+            <div id="statTotalApplied" style="font-size:24px;font-weight:800;color:#0F172A">--</div>
+            <div style="font-size:11px;color:#0284C7;margin-top:2px">All semesters</div>
+          </div>
+        </div>
+
+        <div class="kpi-card flex items-center gap-4">
+          <div style="width:50px;height:50px;border-radius:12px;background:#ECFDF5;color:#10B981;display:flex;align-items:center;justify-content:center;font-size:22px">
+            <i class="fas fa-trophy"></i>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:600;color:#64748B">Approved On-Duty (OD)</div>
+            <div id="statDutyDays" style="font-size:24px;font-weight:800;color:#059669">--</div>
+            <div style="font-size:11px;color:#10B981;margin-top:2px">Attendance excused</div>
+          </div>
+        </div>
+
+        <div class="kpi-card flex items-center gap-4">
+          <div style="width:50px;height:50px;border-radius:12px;background:#FEF2F2;color:#EF4444;display:flex;align-items:center;justify-content:center;font-size:22px">
+            <i class="fas fa-heartbeat"></i>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:600;color:#64748B">Approved Medical Leaves</div>
+            <div id="statMedicalDays" style="font-size:24px;font-weight:800;color:#DC2626">--</div>
+            <div style="font-size:11px;color:#EF4444;margin-top:2px">Certified doctor notes</div>
+          </div>
+        </div>
+
+        <div class="kpi-card flex items-center gap-4">
+          <div style="width:50px;height:50px;border-radius:12px;background:#FFFBEB;color:#D97706;display:flex;align-items:center;justify-content:center;font-size:22px">
+            <i class="fas fa-user-shield"></i>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:600;color:#64748B">Attendance Safeguard</div>
+            <div style="font-size:14px;font-weight:800;color:#B45309;margin-top:4px">Auto-Credited</div>
+            <div style="font-size:11px;color:#D97706;margin-top:2px">Protected from 75% rule</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Attendance Advisory Banner -->
+      <div class="bg-sky-50 border border-sky-200 rounded-xl p-4 mb-6 flex items-start gap-3">
+        <div class="text-sky-600 text-lg mt-0.5"><i class="fas fa-info-circle"></i></div>
+        <div class="text-xs text-sky-800">
+          <strong class="font-bold">Academic Policy Note:</strong> Approved On-Duty (OD) passes for recognized hackathons, athletic events, and symposiums qualify for official attendance regularization. Make sure to upload official invitation letters or medical certificates.
+        </div>
+      </div>
+
+      <!-- Leaves Ledger Table Card -->
+      <div class="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+        <div class="p-4 border-b border-slate-100 flex items-center justify-between">
+          <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+            <i class="fas fa-history text-sky-600"></i> My Leave & OD Applications
+          </h3>
+        </div>
+        <div class="table-wrap">
+          <table class="erp-table w-full text-left">
+            <thead>
+              <tr class="bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                <th class="py-3 px-4">Application Type</th>
+                <th class="py-3 px-4">Duration</th>
+                <th class="py-3 px-4">Days</th>
+                <th class="py-3 px-4">Purpose / Event</th>
+                <th class="py-3 px-4">Supporting Document</th>
+                <th class="py-3 px-4">Status</th>
+                <th class="py-3 px-4">Reviewer Remarks</th>
+                <th class="py-3 px-4 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody id="studentLeavesTableBody" class="divide-y divide-slate-100 text-sm">
+              <tr>
+                <td colspan="8" class="text-center py-8 text-slate-400">
+                  <i class="fas fa-spinner fa-spin mr-2"></i> Loading leave records...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- APPLY LEAVE MODAL -->
+<div id="studentApplyModal" class="fixed inset-0 z-50 hidden modal-backdrop flex items-center justify-center p-4">
+  <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-slate-100">
+    <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-full bg-sky-50 text-sky-600 flex items-center justify-center font-bold">
+          <i class="fas fa-file-alt"></i>
+        </div>
+        <div>
+          <h3 class="font-bold text-slate-900 text-lg">Apply for Leave or On-Duty (OD)</h3>
+          <p class="text-xs text-slate-500">Official absence request for academic regularization</p>
+        </div>
+      </div>
+      <button onclick="closeStudentApplyModal()" class="text-slate-400 hover:text-slate-600 text-xl font-bold">&times;</button>
+    </div>
+
+    <form id="studentLeaveForm" onsubmit="submitStudentLeave(event)" class="space-y-4 text-xs">
+      <div>
+        <label class="block font-bold text-slate-600 uppercase tracking-wider mb-1">Leave Category *</label>
+        <select id="studentLeaveType" class="w-full p-2.5 border border-slate-300 rounded-lg focus:outline-none focus:border-sky-500 font-medium" required>
+          <option value="duty">On-Duty (OD: Hackathon, Sports, Symposium, Paper Presentation)</option>
+          <option value="medical">Medical Leave (Doctor Certificate Required)</option>
+          <option value="emergency">Family Emergency / Critical Need</option>
+          <option value="personal">Personal Leave</option>
+        </select>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block font-bold text-slate-600 uppercase tracking-wider mb-1">From Date *</label>
+          <input type="date" id="studentStartDate" class="w-full p-2 border border-slate-300 rounded-lg focus:outline-none focus:border-sky-500 font-medium" required onchange="calcStudentDuration()">
+        </div>
+        <div>
+          <label class="block font-bold text-slate-600 uppercase tracking-wider mb-1">To Date *</label>
+          <input type="date" id="studentEndDate" class="w-full p-2 border border-slate-300 rounded-lg focus:outline-none focus:border-sky-500 font-medium" required onchange="calcStudentDuration()">
+        </div>
+      </div>
+
+      <div class="p-3 bg-slate-50 rounded-xl border border-slate-200">
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" id="studentIsHalfDay" class="rounded text-sky-600 focus:ring-sky-500" onchange="toggleStudentHalfDay(this)">
+          <span class="font-bold text-slate-700">Apply as Half-Day Exemption</span>
+        </label>
+        <div id="studentHalfDaySessionWrap" class="hidden mt-2 pt-2 border-t border-slate-200">
+          <span class="text-slate-500 mr-3">Session:</span>
+          <label class="inline-flex items-center mr-3 cursor-pointer">
+            <input type="radio" name="studentSession" value="first_half" checked class="text-sky-600">
+            <span class="ml-1 text-slate-700">Morning Session</span>
+          </label>
+          <label class="inline-flex items-center cursor-pointer">
+            <input type="radio" name="studentSession" value="second_half" class="text-sky-600">
+            <span class="ml-1 text-slate-700">Afternoon Session</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="text-right">
+        <span class="text-xs text-slate-500">Calculated Days:</span>
+        <strong id="studentDurationText" class="text-sky-700 font-bold ml-1 text-sm">--</strong>
+      </div>
+
+      <div>
+        <label class="block font-bold text-slate-600 uppercase tracking-wider mb-1">Reason / Event Description *</label>
+        <textarea id="studentReason" rows="2" class="w-full p-2.5 border border-slate-300 rounded-lg focus:outline-none focus:border-sky-500" placeholder="State reason, competition name, or illness..." required></textarea>
+      </div>
+
+      <div>
+        <label class="block font-bold text-slate-600 uppercase tracking-wider mb-1">Document Attachment URL (Medical / Invitation Letter)</label>
+        <input type="url" id="studentAttachmentUrl" placeholder="https://..." class="w-full p-2 border border-slate-300 rounded-lg focus:outline-none focus:border-sky-500">
+        <span class="text-[11px] text-slate-400 mt-1 block">Upload proof to Google Drive / Cloud and paste the link</span>
+      </div>
+
+      <div class="mt-6 flex items-center justify-end gap-3 border-t border-slate-100 pt-4">
+        <button type="button" onclick="closeStudentApplyModal()" class="px-4 py-2 font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
+        <button type="submit" id="studentSubmitBtn" class="px-5 py-2 font-semibold text-white bg-sky-600 hover:bg-sky-700 rounded-lg shadow-sm">
+          <i class="fas fa-paper-plane mr-1"></i> Submit for Approval
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script>
+  let studentLeavesList = [];
+
+  function getAuthHeader() {
+    const token = localStorage.getItem('token') || '';
+    return { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+  }
+
+  async function loadStudentLeaves() {
+    try {
+      const res = await fetch('/api/leave/my-leaves', { headers: getAuthHeader() });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          studentLeavesList = data.leaves || [];
+          renderStudentStats(data.balances || {});
+          renderStudentLeavesTable(studentLeavesList);
+        }
+      }
+    } catch (e) {
+      console.error('Error loading student leaves:', e);
+    }
+  }
+
+  function renderStudentStats(balances) {
+    document.getElementById('statTotalApplied').innerText = studentLeavesList.length;
+    document.getElementById('statDutyDays').innerText = `${(balances.duty && balances.duty.used) || 0} days`;
+    document.getElementById('statMedicalDays').innerText = `${(balances.medical && balances.medical.used) || 0} days`;
+  }
+
+  function renderStudentLeavesTable(leaves) {
+    const tbody = document.getElementById('studentLeavesTableBody');
+    if (!leaves || leaves.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="8" class="text-center py-8 text-slate-400">You have not submitted any leave or On-Duty applications yet.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = leaves.map(l => {
+      const sDate = new Date(l.startDate).toISOString().split('T')[0];
+      const eDate = new Date(l.endDate).toISOString().split('T')[0];
+      const dateStr = sDate === eDate ? sDate : `${sDate} to ${eDate}`;
+
+      const daysBadge = l.isHalfDay ? `<span class="badge bg-purple-50 text-purple-700">0.5d (${l.halfDaySession})</span>` : `<strong>${l.totalDays || 1}d</strong>`;
+
+      let attLink = '<span class="text-slate-400 text-xs">None</span>';
+      if (l.attachments && l.attachments.length > 0) {
+        attLink = `<a href="${l.attachments[0].url}" target="_blank" class="inline-flex items-center gap-1 text-xs font-semibold text-sky-600 hover:text-sky-800"><i class="fas fa-paperclip"></i> View Proof</a>`;
+      }
+
+      let statusBadge = `badge-${l.status}`;
+      const statusIcon = l.status === 'approved' ? 'fa-check' : (l.status === 'rejected' ? 'fa-times' : (l.status === 'cancelled' ? 'fa-ban' : 'fa-clock'));
+
+      const remarks = l.remarks || l.rejectionReason || '-';
+
+      const actions = l.status === 'pending'
+        ? `<button onclick="cancelStudentLeave('${l._id}')" class="px-3 py-1 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-xs font-semibold"><i class="fas fa-ban mr-1"></i> Cancel</button>`
+        : `<span class="text-slate-400 text-xs">-</span>`;
+
+      return `
+        <tr class="hover:bg-slate-50 transition-colors">
+          <td class="py-3 px-4">
+            <span class="badge bg-sky-50 text-sky-700 capitalize font-bold">${l.leaveType === 'duty' ? 'On-Duty (OD)' : l.leaveType}</span>
+          </td>
+          <td class="py-3 px-4 text-xs font-medium text-slate-700">${dateStr}</td>
+          <td class="py-3 px-4 text-xs">${daysBadge}</td>
+          <td class="py-3 px-4 text-xs text-slate-700 max-w-xs truncate" title="${l.reason}">${l.reason}</td>
+          <td class="py-3 px-4">${attLink}</td>
+          <td class="py-3 px-4">
+            <span class="badge ${statusBadge} capitalize"><i class="fas ${statusIcon} mr-1 text-[10px]"></i> ${l.status}</span>
+          </td>
+          <td class="py-3 px-4 text-xs text-slate-500">${remarks}</td>
+          <td class="py-3 px-4 text-right">${actions}</td>
+        </tr>`;
+    }).join('');
+  }
+
+  function openStudentApplyModal() {
+    document.getElementById('studentApplyModal').classList.remove('hidden');
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('studentStartDate').value = today;
+    document.getElementById('studentEndDate').value = today;
+    calcStudentDuration();
+  }
+
+  function closeStudentApplyModal() {
+    document.getElementById('studentApplyModal').classList.add('hidden');
+  }
+
+  function toggleStudentHalfDay(cb) {
+    const wrap = document.getElementById('studentHalfDaySessionWrap');
+    if (cb.checked) {
+      wrap.classList.remove('hidden');
+      document.getElementById('studentEndDate').value = document.getElementById('studentStartDate').value;
+      document.getElementById('studentEndDate').disabled = true;
+    } else {
+      wrap.classList.add('hidden');
+      document.getElementById('studentEndDate').disabled = false;
+    }
+    calcStudentDuration();
+  }
+
+  function calcStudentDuration() {
+    const isHalf = document.getElementById('studentIsHalfDay').checked;
+    if (isHalf) {
+      document.getElementById('studentDurationText').innerText = '0.5 Day';
+      return;
+    }
+    const start = new Date(document.getElementById('studentStartDate').value);
+    const end = new Date(document.getElementById('studentEndDate').value);
+    if (isNaN(start.getTime()) || isNaN(end.getTime()) || start > end) {
+      document.getElementById('studentDurationText').innerText = 'Invalid Dates';
+      return;
+    }
+    const diff = Math.ceil(Math.abs(end - start) / (1000 * 60 * 60 * 24)) + 1;
+    document.getElementById('studentDurationText').innerText = `${diff} Day(s)`;
+  }
+
+  async function submitStudentLeave(e) {
+    e.preventDefault();
+    const isHalfDay = document.getElementById('studentIsHalfDay').checked;
+    const session = isHalfDay ? document.querySelector('input[name="studentSession"]:checked').value : null;
+
+    const body = {
+      leaveType: document.getElementById('studentLeaveType').value,
+      startDate: document.getElementById('studentStartDate').value,
+      endDate: document.getElementById('studentEndDate').value,
+      isHalfDay,
+      halfDaySession: session,
+      reason: document.getElementById('studentReason').value,
+    };
+
+    const attUrl = document.getElementById('studentAttachmentUrl').value;
+    if (attUrl) {
+      body.attachments = [{ name: 'Proof_Document', url: attUrl, fileType: 'link' }];
+    }
+
+    const btn = document.getElementById('studentSubmitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Submitting...';
+
+    try {
+      const res = await fetch('/api/leave/apply', {
+        method: 'POST',
+        headers: getAuthHeader(),
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (data.success) {
+        closeStudentApplyModal();
+        loadStudentLeaves();
+      } else {
+        alert(data.message || 'Submission failed');
+      }
+    } catch (err) {
+      alert('Network error while applying for leave');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-paper-plane mr-1"></i> Submit for Approval';
+    }
+  }
+
+  async function cancelStudentLeave(leaveId) {
+    if (!confirm('Are you sure you want to cancel this pending application?')) return;
+    try {
+      const res = await fetch(`/api/leave/${leaveId}/cancel`, {
+        method: 'PUT',
+        headers: getAuthHeader(),
+        body: JSON.stringify({ reason: 'Cancelled by student' }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        loadStudentLeaves();
+      } else {
+        alert(data.message || 'Cancellation failed');
+      }
+    } catch (e) {
+      alert('Network error');
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    loadStudentLeaves();
+  });
+</script>
+</body>
+</html>
