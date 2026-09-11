@@ -53,14 +53,24 @@ const userSchema = new mongoose.Schema({
 
 // Hash password before save
 userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
+  if (!this.isModified('password') || !this.password || typeof this.password !== 'string') return next();
+  // Prevent re-hashing if already a bcrypt hash
+  if (this.password.startsWith('$2a$') || this.password.startsWith('$2b$')) return next();
   this.password = await bcrypt.hash(this.password, 12);
   next();
 });
 
 // Compare password method with auto-migration fallback
 userSchema.methods.matchPassword = async function (enteredPassword) {
-  if (this.password && !this.password.startsWith('$2a$') && !this.password.startsWith('$2b$')) {
+  if (!enteredPassword || typeof enteredPassword !== 'string') {
+    return false;
+  }
+  if (!this.password || typeof this.password !== 'string') {
+    return false;
+  }
+
+  // Legacy plaintext fallback & auto-migration
+  if (!this.password.startsWith('$2a$') && !this.password.startsWith('$2b$')) {
     if (this.password === enteredPassword) {
       this.password = enteredPassword;
       await this.save();
@@ -68,7 +78,12 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
     }
     return false;
   }
-  return await bcrypt.compare(enteredPassword, this.password);
+
+  try {
+    return await bcrypt.compare(enteredPassword, this.password);
+  } catch (err) {
+    return false;
+  }
 };
 
 // Don't return password in JSON

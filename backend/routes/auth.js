@@ -15,7 +15,7 @@ router.post('/register', [
 
 router.post('/login', authLimiter, [
   body('email', 'Please include a valid email').isEmail(),
-  body('password', 'Password is required').exists()
+  body('password', 'Password is required').isString().notEmpty()
 ], login);
 
 router.post('/send-otp', authLimiter, sendOTPHandler);

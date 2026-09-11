@@ -177,7 +177,16 @@ const login = asyncHandler(async (req, res) => {
     return res.status(401).json({ success: false, message: 'Account has been deactivated' });
   }
 
-  const isMatch = await user.matchPassword(password);
+  if (!user.password || typeof password !== 'string' || !password.trim()) {
+    return res.status(401).json({ success: false, message: 'Invalid credentials' });
+  }
+
+  let isMatch = false;
+  try {
+    isMatch = await user.matchPassword(password);
+  } catch (matchErr) {
+    isMatch = false;
+  }
   if (!isMatch) {
     attempts.count += 1;
     if (attempts.count >= MAX_LOGIN_ATTEMPTS) {
@@ -363,10 +372,25 @@ const updateProfile = asyncHandler(async (req, res) => {
 // @route   PUT /api/auth/change-password
 // @access  Private
 const changePassword = asyncHandler(async (req, res) => {
-  const { currentPassword, newPassword } = req.body;
-  const user = await User.findById(req.user._id).select('+password');
+  if (!currentPassword || !newPassword || typeof currentPassword !== 'string' || typeof newPassword !== 'string') {
+    return res.status(400).json({ success: false, message: 'Current password and new password are required' });
+  }
 
-  const isMatch = await user.matchPassword(currentPassword);
+  if (newPassword.length < 6) {
+    return res.status(400).json({ success: false, message: 'New password must be at least 6 characters' });
+  }
+
+  const user = await User.findById(req.user._id).select('+password');
+  if (!user || !user.password) {
+    return res.status(400).json({ success: false, message: 'Current password is not set or account not found' });
+  }
+
+  let isMatch = false;
+  try {
+    isMatch = await user.matchPassword(currentPassword);
+  } catch (err) {
+    isMatch = false;
+  }
   if (!isMatch) {
     return res.status(400).json({ success: false, message: 'Current password is incorrect' });
   }
