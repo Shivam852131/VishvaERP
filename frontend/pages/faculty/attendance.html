@@ -1,11 +1,97 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Attendance — Faculty | VishvaERP</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="../../css/custom.css">
+  <style>
+    :root {
+      --faculty-primary: #059669;
+      --faculty-light: #D1FAE5;
+      --faculty-dark: #065F46;
+    }
+
+    /* ── Tabs ── */
+    .att-tabs { display:flex; gap:6px; background:#F1F5F9; padding:5px; border-radius:12px; }
+    .att-tab { padding:9px 20px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer;
+               border:none; background:transparent; color:#64748B; transition:all .2s; white-space:nowrap; }
+    .att-tab.active { background:white; color:#059669; box-shadow:0 2px 8px rgba(0,0,0,.1); }
+    .att-tab:hover:not(.active) { background:rgba(255,255,255,.6); }
+    .att-panel { display:none; }
+    .att-panel.active { display:block; animation:fadeInUp .25s ease; }
+    @keyframes fadeInUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+    /* ── Student status chips ── */
+    .student-card { background:white; border-radius:12px; padding:14px 16px;
+                    display:flex; align-items:center; gap:12px; border:2px solid #E2E8F0;
+                    transition:all .15s; cursor:default; position:relative; overflow:hidden; }
+    .student-card::before { content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:#E2E8F0; transition:background .2s; }
+    .student-card.present::before { background:#10B981; }
+    .student-card.absent::before  { background:#EF4444; }
+    .student-card.late::before    { background:#F59E0B; }
+    .student-card.excused::before { background:#6366F1; }
+    .student-card.present { border-color:#D1FAE5; background:#F0FDF4; }
+    .student-card.absent  { border-color:#FEE2E2; background:#FFF5F5; }
+    .student-card.late    { border-color:#FEF3C7; background:#FFFBEB; }
+    .student-card.excused { border-color:#EDE9FE; background:#F5F3FF; }
+    .student-avatar { width:38px; height:38px; border-radius:50%; display:flex; align-items:center;
+                      justify-content:center; font-weight:700; font-size:14px; flex-shrink:0; }
+    .student-roll { font-size:11px; color:#94A3B8; font-weight:600; }
+    .student-name { font-size:14px; font-weight:600; color:#1E293B; flex:1; }
+
+    /* ── Status buttons ── */
+    .status-btn { padding:5px 11px; border-radius:6px; border:1.5px solid; font-size:11px; font-weight:700;
+                  cursor:pointer; transition:all .15s; background:transparent; }
+    .status-btn.P { border-color:#10B981; color:#065F46; }
+    .status-btn.P.active, .status-btn.P:hover { background:#10B981; color:white; }
+    .status-btn.A { border-color:#EF4444; color:#991B1B; }
+    .status-btn.A.active, .status-btn.A:hover { background:#EF4444; color:white; }
+    .status-btn.L { border-color:#F59E0B; color:#78350F; }
+    .status-btn.L.active, .status-btn.L:hover { background:#F59E0B; color:white; }
+    .status-btn.E { border-color:#6366F1; color:#3730A3; }
+    .status-btn.E.active, .status-btn.E:hover { background:#6366F1; color:white; }
+
+    /* ── Live heartbeat dot ── */
+    .live-dot { width:9px; height:9px; border-radius:50%; background:#10B981; display:inline-block;
+                animation:pulse-live 2s infinite; flex-shrink:0; }
+    @keyframes pulse-live { 0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,.4)} 50%{box-shadow:0 0 0 6px rgba(16,185,129,0)} }
+
+    /* ── Smart presence status badges ── */
+    .badge-inside  { background:#D1FAE5; color:#065F46; }
+    .badge-outside { background:#FEE2E2; color:#991B1B; }
+    .badge-waiting { background:#FEF3C7; color:#78350F; }
+    .badge-noclr   { background:#F1F5F9; color:#64748B; }
+
+    /* ── Progress bar ── */
+    .att-progress { height:6px; border-radius:3px; background:#E2E8F0; overflow:hidden; margin-top:4px; }
+    .att-progress-fill { height:100%; border-radius:3px; transition:width 1s ease; }
+
+    /* ── Insights strip ── */
+    .insight-strip { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:20px; }
+    .insight-box { background:white; border-radius:10px; padding:14px 16px; border:1px solid #E2E8F0; }
+    .insight-label { font-size:11px; font-weight:700; color:#94A3B8; text-transform:uppercase; letter-spacing:.05em; margin-bottom:4px; }
+    .insight-value { font-size:22px; font-weight:800; color:#1E293B; }
+    .insight-sub { font-size:12px; color:#64748B; margin-top:2px; }
+
+    /* ── Excuse modal ── */
+    .excuse-modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:900; align-items:center; justify-content:center; }
+    .excuse-modal-overlay.open { display:flex; }
+    .excuse-modal { background:white; border-radius:16px; padding:28px; width:420px; max-width:95vw; }
+
+    /* ── Draft save toast ── */
+    .draft-badge { font-size:11px; background:#FEF3C7; color:#78350F; padding:3px 10px; border-radius:6px; font-weight:600; }
+
+    /* ── Mobile responsive students grid ── */
+    .students-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:10px; }
+
+    @media(max-width:640px) {
+      .insight-strip { grid-template-columns:repeat(2,1fr); }
+      .att-tabs { overflow-x:auto; }
+    }
+  </style>
 </head>
 <body>
 <div class="erp-layout">
@@ -17,14 +103,12 @@
       <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
       <div class="nav-section-label">Teaching</div>
       <a href="attendance.html" class="nav-link active"><i class="nav-link-icon fas fa-calendar-check"></i> Attendance</a>
-      <a href="grades.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-list"></i> Grades & Results</a>
+      <a href="grades.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-list"></i> Grades &amp; Results</a>
       <a href="assignments.html" class="nav-link"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
       <a href="timetable.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Timetable</a>
       <a href="notes.html" class="nav-link"><i class="nav-link-icon fas fa-sticky-note"></i> Notes</a>
-      <div class="nav-section-label">Career Center</div>
-      <a href="../college-admin/placement.html" class="nav-link"><i class="nav-link-icon fas fa-briefcase"></i> Placements</a>
       <div class="nav-section-label">HR</div>
-      <a href="leave.html" class="nav-link"><i class="nav-link-icon fas fa-file-signature"></i> Leave & HR</a>
+      <a href="leave.html" class="nav-link"><i class="nav-link-icon fas fa-file-signature"></i> Leave &amp; HR</a>
       <div class="nav-section-label">Tools</div>
       <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Assistant</a>
     </nav>
@@ -38,119 +122,719 @@
         <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
         <div class="topbar-breadcrumb">Faculty / <span>Attendance</span></div>
       </div>
-      <div class="topbar-right">
+      <div class="topbar-right" style="display:flex;align-items:center;gap:10px">
+        <span class="draft-badge" id="draftBadge" style="display:none"><i class="fas fa-pencil"></i> Draft saved</span>
         <div class="topbar-avatar" id="topbar-avatar">F</div>
       </div>
     </header>
 
     <div class="erp-content">
-      <div class="page-header">
-        <h1 class="page-title">Attendance Command Center</h1>
-        <p class="page-subtitle">Run manual roll call, smart classroom presence, and live attendance verification from one screen.</p>
-      </div>
-
-      <div class="stats-grid mb-6" style="grid-template-columns:repeat(4,1fr)">
-        <div class="stat-card"><div class="stat-icon" style="background:#D1FAE5;color:#065F46"><i class="fas fa-user-check"></i></div><div class="stat-label">Manual Present</div><div class="stat-value" id="manualPresentCount">0</div><div class="stat-change up"><i class="fas fa-check-circle"></i> Ready to submit</div></div>
-        <div class="stat-card"><div class="stat-icon" style="background:#FEE2E2;color:#991B1B"><i class="fas fa-user-xmark"></i></div><div class="stat-label">Manual Absent</div><div class="stat-value" id="manualAbsentCount">0</div><div class="stat-change down"><i class="fas fa-triangle-exclamation"></i> Review before save</div></div>
-        <div class="stat-card"><div class="stat-icon" style="background:#FEF3C7;color:#92400E"><i class="fas fa-clock"></i></div><div class="stat-label">Late Marks</div><div class="stat-value" id="manualLateCount">0</div><div class="stat-change"><i class="fas fa-stopwatch"></i> Grace policy</div></div>
-        <div class="stat-card"><div class="stat-icon" style="background:#DBEAFE;color:#1E40AF"><i class="fas fa-clipboard-check"></i></div><div class="stat-label">Roll Call Coverage</div><div class="stat-value" id="attendanceCompletionPct">0%</div><div class="stat-change"><i class="fas fa-users"></i> Selected roster</div></div>
-      </div>
-
-      <div class="attendance-command-grid mb-6">
-        <div class="attendance-insight-card"><div class="insight-kicker">Roll call insight</div><div id="facultyRollCallInsight" class="attendance-insight-body">Load a subject to view roster health.</div></div>
-        <div class="attendance-insight-card"><div class="insight-kicker">Smart coverage</div><div id="facultySmartInsight" class="attendance-insight-body">Start teacher presence or refresh the live dashboard.</div></div>
-        <div class="attendance-insight-card"><div class="insight-kicker">Action queue</div><div id="facultyAttendanceActionQueue" class="attendance-insight-body">No attendance action selected yet.</div></div>
-      </div>
-
-      <!-- Select Class -->
-      <div class="card mb-6">
-        <div class="card-body" style="display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap">
-          <div class="form-group" style="flex:1;min-width:0;margin-bottom:0">
-            <label class="form-label">Select Subject</label>
-            <select class="form-control" id="subjectSelect" onchange="loadStudents()">
-              <option value="dsa">Data Structures (CS401)</option>
-              <option value="dbms">DBMS (CS402)</option>
-              <option value="os">Operating Systems (CS403)</option>
-            </select>
-          </div>
-          <div class="form-group" style="flex:1;min-width:0;margin-bottom:0">
-            <label class="form-label">Select Batch</label>
-            <select class="form-control" id="batchSelect">
-              <option>B.Tech CS Sem 4</option>
-              <option>B.Tech CS Sem 6</option>
-            </select>
-          </div>
-          <div class="form-group" style="flex:1;min-width:0;margin-bottom:0">
-            <label class="form-label">Date</label>
-            <input type="date" class="form-control" id="attDate" value="">
-          </div>
-          <button class="btn btn-primary" onclick="loadStudents()"><i class="fas fa-users"></i> Load Students</button>
-        </div>
-      </div>
-
-      <!-- Smart Attendance -->
-      <div class="smart-attendance-panel mb-6">
-        <div class="smart-attendance-hero">
+      <!-- Page Header -->
+      <div style="background:linear-gradient(135deg,#059669,#10B981,#34D399);border-radius:16px;padding:24px 28px;color:white;margin-bottom:24px;position:relative;overflow:hidden">
+        <div style="position:absolute;top:-40%;right:-10%;width:300px;height:300px;background:radial-gradient(circle,rgba(255,255,255,.12) 0%,transparent 70%);border-radius:50%;pointer-events:none"></div>
+        <div style="position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px">
           <div>
-            <div class="smart-kicker">Consent-based live location</div>
-            <h2>Smart Classroom Presence</h2>
-            <p>Use a saved classroom geofence and scheduled timetable slot to auto-mark attendance when the teacher and consenting students are present.</p>
+            <div style="font-size:12px;opacity:.8;font-weight:600;text-transform:uppercase;letter-spacing:.06em">Attendance Command Center</div>
+            <h1 style="font-size:24px;font-weight:900;margin:4px 0">Take Attendance</h1>
+            <div style="font-size:13px;opacity:.85" id="heroSubtitle">Select a subject to begin roll call or monitor live presence.</div>
           </div>
-          <div class="smart-actions">
-            <button class="btn btn-secondary" onclick="setClassroomFromHere()"><i class="fas fa-location-crosshairs"></i> Set Room Geofence</button>
-            <button class="btn btn-success" onclick="publishTeacherPresence()"><i class="fas fa-satellite-dish"></i> Start Teacher Presence</button>
-            <button class="btn btn-primary" onclick="loadSmartPresence()"><i class="fas fa-rotate"></i> Refresh Live Dashboard</button>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn btn-sm" style="background:rgba(255,255,255,.2);color:white;border:none" onclick="exportCSV()"><i class="fas fa-file-csv"></i> Export CSV</button>
+            <button class="btn btn-sm" style="background:rgba(255,255,255,.2);color:white;border:none" onclick="notifyAbsenteesFaculty()"><i class="fas fa-bell"></i> Notify Absentees</button>
           </div>
-        </div>
-
-        <div class="smart-presence-stats">
-          <div><span>Students In Class</span><strong id="smartPresentCount">--</strong></div>
-          <div><span>Total Roster</span><strong id="smartTotalCount">--</strong></div>
-          <div><span>Classroom</span><strong id="smartRoomName">--</strong></div>
-          <div><span>Teacher Signal</span><strong id="smartTeacherStatus">--</strong></div>
-          <div><span>Coverage</span><strong id="smartCoverageRate">--</strong></div>
-          <div><span>Auto Marked</span><strong id="smartAutoMarkedCount">--</strong></div>
-          <div><span>Waiting</span><strong id="smartWaitingCount">--</strong></div>
-          <div><span>Session Health</span><strong id="smartSessionHealth">--</strong></div>
-        </div>
-
-        <div class="smart-privacy-note"><i class="fas fa-shield-halved"></i> Only students who explicitly enable location consent are tracked. The ERP stores live presence snapshots, not full movement history.</div>
-
-        <div class="table-wrap smart-table-wrap">
-          <table class="erp-table">
-            <thead><tr><th>#</th><th>Student</th><th>Roll No.</th><th>Live Status</th><th>Distance</th><th>Last Seen</th><th>Attendance</th></tr></thead>
-            <tbody id="smartPresenceBody"><tr><td colspan="7"><div class="empty-state"><div class="empty-state-title">Start teacher presence or refresh to load live class dashboard</div></div></td></tr></tbody>
-          </table>
         </div>
       </div>
 
-      <!-- Quick Actions -->
-      <div style="display:flex;gap:10px;align-items:center;margin-bottom:16px;flex-wrap:wrap">
-        <button class="btn btn-success btn-sm" onclick="markAll('present')"><i class="fas fa-check-double"></i> Mark All Present</button>
-        <button class="btn btn-secondary btn-sm" onclick="markAll('absent')"><i class="fas fa-times"></i> Mark All Absent</button>
-        <div class="search-bar" style="flex:1;min-width:160px"><i class="fas fa-search"></i><input type="text" id="studentSearch" placeholder="Search student..." oninput="filterStudents()"></div>
-        <span style="margin-left:auto;font-size:13px;color:#64748B">Present: <strong id="presentCount">0</strong> / <strong id="totalCount">0</strong></span>
-        <button class="btn btn-primary" onclick="submitAttendance()"><i class="fas fa-save"></i> Submit Attendance</button>
+      <!-- Insight Strip -->
+      <div class="insight-strip" id="insightStrip">
+        <div class="insight-box">
+          <div class="insight-label">Present</div>
+          <div class="insight-value" style="color:#10B981" id="insightPresent">0</div>
+          <div class="insight-sub" id="insightPresentPct">–</div>
+        </div>
+        <div class="insight-box">
+          <div class="insight-label">Absent</div>
+          <div class="insight-value" style="color:#EF4444" id="insightAbsent">0</div>
+          <div class="insight-sub" id="insightAbsentPct">–</div>
+        </div>
+        <div class="insight-box">
+          <div class="insight-label">Late</div>
+          <div class="insight-value" style="color:#F59E0B" id="insightLate">0</div>
+          <div class="insight-sub" id="insightExcused">Excused: 0</div>
+        </div>
       </div>
 
-      <!-- Student List -->
-      <div class="card">
-        <div class="table-wrap">
-          <table class="erp-table">
-            <thead>
-              <tr>
-                <th>#</th><th>Roll No.</th><th>Student Name</th><th>Present</th><th>Absent</th><th>Late</th><th>Status</th>
-              </tr>
-            </thead>
-            <tbody id="attBody"></tbody>
-          </table>
+      <!-- Filter bar -->
+      <div class="card mb-4">
+        <div class="card-body" style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
+          <div class="form-group" style="flex:2;min-width:160px;margin-bottom:0">
+            <label class="form-label">Subject</label>
+            <select class="form-control" id="subjectSelect" onchange="onSubjectChange()">
+              <option value="">Loading subjects…</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex:1;min-width:120px;margin-bottom:0">
+            <label class="form-label">Date</label>
+            <input type="date" class="form-control" id="attDate">
+          </div>
+          <div class="form-group" style="flex:1;min-width:120px;margin-bottom:0">
+            <label class="form-label">Search Student</label>
+            <input type="text" class="form-control" id="studentSearch" placeholder="Name or roll…" oninput="filterStudents()">
+          </div>
+          <button class="btn btn-primary" onclick="loadStudents()" id="loadBtn"><i class="fas fa-users"></i> Load Roster</button>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+        <div class="att-tabs">
+          <button class="att-tab active" onclick="switchTab('rollcall')" id="tab-rollcall"><i class="fas fa-list-check"></i> Roll Call</button>
+          <button class="att-tab" onclick="switchTab('smart')" id="tab-smart"><span class="live-dot" style="margin-right:5px"></span>Smart Live</button>
+          <button class="att-tab" onclick="switchTab('analytics')" id="tab-analytics"><i class="fas fa-chart-bar"></i> Analytics</button>
+        </div>
+        <!-- Bulk actions (shown in roll call) -->
+        <div id="bulkActions" style="display:flex;gap:6px;margin-left:auto;flex-wrap:wrap">
+          <button class="btn btn-success btn-sm" onclick="markAll('present')"><i class="fas fa-check-double"></i> All Present</button>
+          <button class="btn btn-secondary btn-sm" onclick="markAll('absent')"><i class="fas fa-times"></i> All Absent</button>
+          <button class="btn btn-sm" style="background:#EDE9FE;color:#4338CA;border:none" onclick="openBulkExcuse()"><i class="fas fa-file-exclamation"></i> Bulk Excuse</button>
+          <button class="btn btn-primary btn-sm" onclick="submitAttendance()" id="submitBtn"><i class="fas fa-save"></i> Submit</button>
+        </div>
+      </div>
+
+      <!-- ══ PANEL: Roll Call ══ -->
+      <div class="att-panel active" id="panel-rollcall">
+        <div class="students-grid" id="attBody">
+          <div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:#94A3B8">
+            <i class="fas fa-users" style="font-size:36px;margin-bottom:12px;display:block"></i>
+            Select a subject and click <strong>Load Roster</strong> to begin roll call.
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PANEL: Smart Live ══ -->
+      <div class="att-panel" id="panel-smart">
+        <!-- Teacher presence control -->
+        <div style="background:linear-gradient(135deg,#1E293B,#334155);border-radius:16px;padding:22px 24px;color:white;margin-bottom:16px">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+            <div>
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;opacity:.7;font-weight:600">Consent-based GPS Tracking</div>
+              <div style="font-size:18px;font-weight:800;margin:4px 0">Smart Classroom Presence</div>
+              <div style="font-size:13px;opacity:.8" id="smartSlotInfo">No active class slot detected.</div>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+              <button class="btn btn-sm" style="background:rgba(255,255,255,.15);color:white;border:rgba(255,255,255,.3) 1px solid" onclick="setClassroomFromHere()">
+                <i class="fas fa-location-crosshairs"></i> Set Geofence Here
+              </button>
+              <button class="btn btn-sm" id="teacherPresenceBtn" style="background:#10B981;color:white;border:none" onclick="toggleTeacherPresence()">
+                <i class="fas fa-satellite-dish"></i> Start Teacher Presence
+              </button>
+              <button class="btn btn-sm" style="background:rgba(255,255,255,.15);color:white;border:rgba(255,255,255,.3) 1px solid" onclick="loadSmartPresence()">
+                <i class="fas fa-rotate"></i> Refresh
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Smart stats -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:16px">
+          <div class="insight-box"><div class="insight-label">In Class</div><div class="insight-value" id="smartPresentCount">–</div></div>
+          <div class="insight-box"><div class="insight-label">Total Roster</div><div class="insight-value" id="smartTotalCount">–</div></div>
+          <div class="insight-box"><div class="insight-label">Auto-Marked</div><div class="insight-value" id="smartAutoMarkedCount">–</div></div>
+          <div class="insight-box"><div class="insight-label">Waiting</div><div class="insight-value" id="smartWaitingCount">–</div></div>
+          <div class="insight-box"><div class="insight-label">Classroom</div><div class="insight-value" style="font-size:14px" id="smartRoomName">–</div></div>
+          <div class="insight-box"><div class="insight-label">Teacher Signal</div><div class="insight-value" style="font-size:14px" id="smartTeacherStatus">–</div></div>
+        </div>
+
+        <div style="font-size:12px;color:#64748B;margin-bottom:12px;display:flex;align-items:center;gap:6px">
+          <i class="fas fa-shield-halved" style="color:#6366F1"></i>
+          Only students who explicitly enabled location consent are tracked. Live data auto-expires after 90 minutes.
+        </div>
+
+        <div class="card">
+          <div class="table-wrap">
+            <table class="erp-table">
+              <thead><tr><th>#</th><th>Student</th><th>Roll No</th><th>Live Status</th><th>Distance</th><th>Last Seen</th><th>Auto Attendance</th></tr></thead>
+              <tbody id="smartPresenceBody">
+                <tr><td colspan="7"><div class="empty-state"><div class="empty-state-title">Click Refresh to load live class presence</div></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ PANEL: Analytics ══ -->
+      <div class="att-panel" id="panel-analytics">
+        <div class="grid col-2 mb-4">
+          <div class="card">
+            <div class="card-header"><div class="card-title"><i class="fas fa-chart-line" style="color:#059669;margin-right:6px"></i>30-Day Trend</div></div>
+            <div class="card-body"><div style="height:220px"><canvas id="trendChart"></canvas></div></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title"><i class="fas fa-chart-pie" style="color:#6366F1;margin-right:6px"></i>Status Breakdown</div></div>
+            <div class="card-body" style="display:flex;align-items:center;justify-content:center"><div style="height:220px;width:220px"><canvas id="statusChart"></canvas></div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><i class="fas fa-user-times" style="color:#EF4444;margin-right:6px"></i>Top Absentees</div>
+          </div>
+          <div class="table-wrap">
+            <table class="erp-table">
+              <thead><tr><th>Student</th><th>Roll No</th><th>Total</th><th>Absent</th><th>Absence Rate</th><th>Action</th></tr></thead>
+              <tbody id="analyticsAbsenteesBody"><tr><td colspan="6"><div class="empty-state"><div class="empty-state-title">Select a subject to view analytics</div></div></td></tr></tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </div>
 
+<!-- Excuse Modal -->
+<div class="excuse-modal-overlay" id="excuseModal">
+  <div class="excuse-modal">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+      <h3 style="font-size:18px;font-weight:800;color:#1E293B;margin:0"><i class="fas fa-file-exclamation" style="color:#6366F1;margin-right:8px"></i>Excuse Students</h3>
+      <button onclick="closeExcuseModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#94A3B8">&times;</button>
+    </div>
+    <div id="excuseModalContent">
+      <div class="form-group">
+        <label class="form-label">Excuse Reason <span style="color:#EF4444">*</span></label>
+        <textarea class="form-control" id="excuseReasonInput" rows="3" placeholder="Medical certificate, official event, natural calamity…"></textarea>
+      </div>
+      <div id="excuseStudentList" style="margin-top:12px;max-height:200px;overflow-y:auto;border:1px solid #E2E8F0;border-radius:8px;padding:8px"></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:20px;justify-content:flex-end">
+      <button class="btn btn-secondary" onclick="closeExcuseModal()">Cancel</button>
+      <button class="btn btn-primary" id="excuseSubmitBtn" onclick="submitBulkExcuse()"><i class="fas fa-check"></i> Apply Excuse</button>
+    </div>
+  </div>
+</div>
+
 <script src="../../js/shared.js"></script>
-<script src="../../live/live-admin-pages.js"></script>
+<script>
+/* ═══════════════════════════════════════════
+   Faculty Attendance — Advanced v2.0
+═══════════════════════════════════════════ */
+
+let currentSubjectId = null;
+let currentSubjectName = '';
+let allStudents = [];
+let attendanceMap = {};    // studentId → status
+let excuseReasonMap = {};  // studentId → reason
+let teacherPresenceInterval = null;
+let teacherPresenceActive = false;
+let smartRefreshInterval = null;
+let trendChartInst = null;
+let statusChartInst = null;
+
+/* ── Init ── */
+document.addEventListener('DOMContentLoaded', async () => {
+  const today = new Date().toISOString().slice(0, 10);
+  document.getElementById('attDate').value = today;
+  await loadSubjects();
+  restoreDraft();
+});
+
+/* ── Tab switching ── */
+function switchTab(name) {
+  document.querySelectorAll('.att-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.att-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(`tab-${name}`).classList.add('active');
+  document.getElementById(`panel-${name}`).classList.add('active');
+  document.getElementById('bulkActions').style.display = name === 'rollcall' ? 'flex' : 'none';
+  if (name === 'analytics' && currentSubjectId) loadAnalytics();
+  if (name === 'smart') loadSmartPresence();
+}
+
+/* ── Load subjects from timetable ── */
+async function loadSubjects() {
+  try {
+    const data = await api.request('/attendance/timetable');
+    const subjects = {};
+    (data.slots || []).forEach(slot => {
+      if (slot.subjectId?._id) subjects[slot.subjectId._id] = slot.subjectId;
+    });
+    const sel = document.getElementById('subjectSelect');
+    sel.innerHTML = '<option value="">— Select Subject —</option>';
+    Object.values(subjects).forEach(sub => {
+      const opt = document.createElement('option');
+      opt.value = sub._id;
+      opt.textContent = `${sub.name} (${sub.code})`;
+      sel.appendChild(opt);
+    });
+    if (sel.options.length > 1) sel.selectedIndex = 1;
+  } catch(e) {
+    // Subjects not loaded — allow manual use
+  }
+}
+
+async function onSubjectChange() {
+  currentSubjectId = document.getElementById('subjectSelect').value || null;
+  currentSubjectName = document.getElementById('subjectSelect').selectedOptions[0]?.text || '';
+  document.getElementById('heroSubtitle').textContent = currentSubjectName
+    ? `Managing: ${currentSubjectName}`
+    : 'Select a subject to begin roll call or monitor live presence.';
+  if (currentSubjectId) await loadStudents();
+}
+
+/* ── Load roster ── */
+async function loadStudents() {
+  if (!currentSubjectId) {
+    currentSubjectId = document.getElementById('subjectSelect').value || null;
+    currentSubjectName = document.getElementById('subjectSelect').selectedOptions[0]?.text || '';
+  }
+
+  const date = document.getElementById('attDate').value;
+  const body = document.getElementById('attBody');
+  body.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#94A3B8"><i class="fas fa-spinner fa-spin" style="font-size:24px"></i></div>';
+
+  try {
+    // Load existing records for this date
+    const params = new URLSearchParams({ date });
+    if (currentSubjectId) params.append('subjectId', currentSubjectId);
+    const existingData = await api.request(`/attendance?${params}`);
+    const existingMap = {};
+    (existingData.attendance || []).forEach(r => {
+      existingMap[String(r.studentId?._id || r.studentId)] = r;
+    });
+
+    // Fetch roster via summary or users list
+    // Try summary to get subject students list via timetable
+    const summaryData = await api.request(`/attendance/summary`).catch(() => ({ summary: [] }));
+    // Fallback: use existing records' students
+    const studentSet = new Map();
+
+    // If we have existing records, use those students
+    (existingData.attendance || []).forEach(r => {
+      if (r.studentId && r.studentId._id) {
+        studentSet.set(String(r.studentId._id), r.studentId);
+      }
+    });
+
+    // Merge with live class roster
+    const liveData = await api.request('/attendance/live-class').catch(() => null);
+    if (liveData?.students) {
+      liveData.students.forEach(s => studentSet.set(String(s.id), { _id: s.id, name: s.name, rollNo: s.rollNo }));
+    }
+
+    allStudents = Array.from(studentSet.values());
+    if (allStudents.length === 0) {
+      body.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px;color:#94A3B8"><i class="fas fa-info-circle" style="font-size:28px;margin-bottom:10px;display:block"></i>No students found. Make sure the timetable is configured and students are enrolled.</div>';
+      return;
+    }
+
+    // Build attendanceMap from existing records
+    allStudents.forEach(s => {
+      const key = String(s._id);
+      const ex = existingMap[key];
+      if (ex) {
+        attendanceMap[key] = ex.status;
+        if (ex.excuseReason) excuseReasonMap[key] = ex.excuseReason;
+      } else if (!attendanceMap[key]) {
+        attendanceMap[key] = 'present'; // default
+      }
+    });
+
+    renderStudents();
+    updateInsights();
+  } catch(err) {
+    body.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;color:#EF4444"><i class="fas fa-exclamation-circle"></i> ${err.message}</div>`;
+  }
+}
+
+/* ── Render student cards ── */
+function renderStudents() {
+  const search = document.getElementById('studentSearch').value.toLowerCase();
+  const body = document.getElementById('attBody');
+  const filtered = allStudents.filter(s =>
+    !search || (s.name || '').toLowerCase().includes(search) || (s.rollNo || '').toLowerCase().includes(search)
+  );
+
+  if (!filtered.length) {
+    body.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#94A3B8">No students match your search.</div>';
+    return;
+  }
+
+  body.innerHTML = filtered.map((s, i) => {
+    const key = String(s._id);
+    const status = attendanceMap[key] || 'present';
+    const avatarBg = { present: '#10B981', absent: '#EF4444', late: '#F59E0B', excused: '#6366F1' }[status] || '#94A3B8';
+    const initials = (s.name || '').split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+    return `
+      <div class="student-card ${status}" id="card-${key}">
+        <div class="student-avatar" style="background:${avatarBg}20;color:${avatarBg}">${initials}</div>
+        <div style="flex:1;min-width:0">
+          <div class="student-roll">${s.rollNo || '—'}</div>
+          <div class="student-name">${s.name}</div>
+          ${excuseReasonMap[key] ? `<div style="font-size:11px;color:#6366F1;margin-top:2px"><i class="fas fa-info-circle"></i> ${excuseReasonMap[key]}</div>` : ''}
+        </div>
+        <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:flex-end">
+          <button class="status-btn P ${status==='present'?'active':''}" onclick="setStatus('${key}','present')">P</button>
+          <button class="status-btn A ${status==='absent'?'active':''}" onclick="setStatus('${key}','absent')">A</button>
+          <button class="status-btn L ${status==='late'?'active':''}" onclick="setStatus('${key}','late')">L</button>
+          <button class="status-btn E ${status==='excused'?'active':''}" onclick="promptExcuse('${key}','${s.name}')">E</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function filterStudents() { renderStudents(); }
+
+/* ── Set individual status ── */
+function setStatus(studentId, status) {
+  attendanceMap[studentId] = status;
+  if (status !== 'excused') delete excuseReasonMap[studentId];
+  renderStudents();
+  updateInsights();
+  saveDraft();
+}
+
+/* ── Mark all ── */
+function markAll(status) {
+  allStudents.forEach(s => { attendanceMap[String(s._id)] = status; });
+  renderStudents();
+  updateInsights();
+  saveDraft();
+}
+
+/* ── Insights strip ── */
+function updateInsights() {
+  const statuses = Object.values(attendanceMap);
+  const total = statuses.length;
+  const present = statuses.filter(s => s === 'present').length;
+  const absent = statuses.filter(s => s === 'absent').length;
+  const late = statuses.filter(s => s === 'late').length;
+  const excused = statuses.filter(s => s === 'excused').length;
+  const pct = total > 0 ? Math.round((present + late * 0.5) / (total - excused || 1) * 100) : 0;
+  document.getElementById('insightPresent').textContent = present;
+  document.getElementById('insightPresentPct').textContent = `${pct}% attendance rate`;
+  document.getElementById('insightAbsent').textContent = absent;
+  document.getElementById('insightAbsentPct').textContent = `${total > 0 ? Math.round(absent/total*100) : 0}% absence rate`;
+  document.getElementById('insightLate').textContent = late;
+  document.getElementById('insightExcused').textContent = `Excused: ${excused}`;
+}
+
+/* ── Draft auto-save ── */
+function saveDraft() {
+  const key = `att_draft_${currentSubjectId}_${document.getElementById('attDate').value}`;
+  localStorage.setItem(key, JSON.stringify({ attendanceMap, excuseReasonMap }));
+  const badge = document.getElementById('draftBadge');
+  badge.style.display = 'inline-flex';
+  clearTimeout(saveDraft._t);
+  saveDraft._t = setTimeout(() => badge.style.display = 'none', 3000);
+}
+
+function restoreDraft() {
+  const subjectId = document.getElementById('subjectSelect').value;
+  const date = document.getElementById('attDate').value;
+  const key = `att_draft_${subjectId}_${date}`;
+  const saved = localStorage.getItem(key);
+  if (saved) {
+    try {
+      const { attendanceMap: am, excuseReasonMap: er } = JSON.parse(saved);
+      Object.assign(attendanceMap, am);
+      Object.assign(excuseReasonMap, er);
+      renderStudents();
+      updateInsights();
+      showToast('Draft restored from local storage', 'info');
+    } catch(_) {}
+  }
+}
+
+/* ── Submit attendance ── */
+async function submitAttendance() {
+  if (!currentSubjectId) return showToast('Please select a subject first', 'warning');
+  if (!allStudents.length) return showToast('No students loaded', 'warning');
+
+  const btn = document.getElementById('submitBtn');
+  setLoading(btn, true);
+
+  const date = document.getElementById('attDate').value;
+  const attendanceRecords = allStudents.map(s => {
+    const key = String(s._id);
+    return {
+      studentId: s._id,
+      status: attendanceMap[key] || 'absent',
+      remarks: '',
+      excuseReason: excuseReasonMap[key] || '',
+    };
+  });
+
+  try {
+    await api.request('/attendance/mark', {
+      method: 'POST',
+      body: JSON.stringify({ subjectId: currentSubjectId, date, attendanceRecords }),
+    });
+    // Clear draft
+    localStorage.removeItem(`att_draft_${currentSubjectId}_${date}`);
+    document.getElementById('draftBadge').style.display = 'none';
+    showToast(`Attendance submitted for ${attendanceRecords.length} students ✓`, 'success');
+  } catch(e) {
+    // Error already shown by api.request
+  } finally {
+    setLoading(btn, false);
+  }
+}
+
+/* ── Excuse modal ── */
+let excuseTargetIds = [];
+
+function promptExcuse(studentId, name) {
+  excuseTargetIds = [studentId];
+  const list = document.getElementById('excuseStudentList');
+  list.innerHTML = `<div style="padding:6px 8px;font-size:13px;font-weight:600">${name}</div>`;
+  document.getElementById('excuseReasonInput').value = excuseReasonMap[studentId] || '';
+  document.getElementById('excuseModal').classList.add('open');
+}
+
+function openBulkExcuse() {
+  const absent = allStudents.filter(s => attendanceMap[String(s._id)] === 'absent');
+  if (!absent.length) return showToast('No absent students to excuse', 'info');
+  excuseTargetIds = absent.map(s => String(s._id));
+  const list = document.getElementById('excuseStudentList');
+  list.innerHTML = absent.map(s => `<div style="padding:4px 8px;font-size:12px;border-bottom:1px solid #F1F5F9">${s.name} <span style="color:#94A3B8">(${s.rollNo})</span></div>`).join('');
+  document.getElementById('excuseReasonInput').value = '';
+  document.getElementById('excuseModal').classList.add('open');
+}
+
+function closeExcuseModal() { document.getElementById('excuseModal').classList.remove('open'); }
+
+async function submitBulkExcuse() {
+  const reason = document.getElementById('excuseReasonInput').value.trim();
+  if (!reason) return showToast('Please enter a reason', 'warning');
+
+  const btn = document.getElementById('excuseSubmitBtn');
+  setLoading(btn, true);
+
+  const date = document.getElementById('attDate').value;
+  try {
+    if (excuseTargetIds.length === 1) {
+      // Single student — just update local map
+      excuseTargetIds.forEach(id => {
+        attendanceMap[id] = 'excused';
+        excuseReasonMap[id] = reason;
+      });
+    } else {
+      // Bulk excuse via API
+      await api.request('/attendance/bulk-excuse', {
+        method: 'POST',
+        body: JSON.stringify({ studentIds: excuseTargetIds, subjectId: currentSubjectId, date, excuseReason: reason }),
+      });
+      excuseTargetIds.forEach(id => {
+        attendanceMap[id] = 'excused';
+        excuseReasonMap[id] = reason;
+      });
+    }
+    renderStudents();
+    updateInsights();
+    saveDraft();
+    closeExcuseModal();
+    showToast(`${excuseTargetIds.length} student(s) excused`, 'success');
+  } catch(e) {} finally {
+    setLoading(btn, false);
+  }
+}
+
+/* ── Smart Attendance ── */
+async function loadSmartPresence() {
+  try {
+    const params = currentSubjectId ? `?subjectId=${currentSubjectId}` : '';
+    const data = await api.request(`/attendance/live-class${params}`);
+    if (!data.active) {
+      document.getElementById('smartPresenceBody').innerHTML = '<tr><td colspan="7"><div class="empty-state"><div class="empty-state-title">No active class slot found for right now</div></div></td></tr>';
+      document.getElementById('smartSlotInfo').textContent = 'No active class slot detected.';
+      return;
+    }
+    const slot = data.activeSlot;
+    document.getElementById('smartSlotInfo').textContent = `${slot.subject} (${slot.subjectCode}) • Room ${slot.room} • ${slot.startTime}–${slot.endTime}`;
+    document.getElementById('smartPresentCount').textContent = data.presentCount;
+    document.getElementById('smartTotalCount').textContent = data.totalStudents;
+    document.getElementById('smartAutoMarkedCount').textContent = (data.students || []).filter(s => ['present','late'].includes(s.autoAttendanceStatus)).length;
+    document.getElementById('smartWaitingCount').textContent = (data.students || []).filter(s => s.status === 'waitingTeacher').length;
+    document.getElementById('smartRoomName').textContent = data.classroom?.roomName || '—';
+    document.getElementById('smartTeacherStatus').textContent = data.facultyPresent ? '🟢 Present' : '🔴 Absent';
+
+    const rows = (data.students || []).map((s, i) => {
+      const badgeClass = { inside:'badge-inside', outside:'badge-outside', waitingTeacher:'badge-waiting', noClassroom:'badge-noclr' }[s.status] || 'badge-noclr';
+      const att = { present:'att-present', late:'att-late', absent:'att-absent', excused:'att-excused', notMarked:'badge-noclr' }[s.attendanceStatus] || 'badge-noclr';
+      const lastSeen = s.lastSeenAt ? new Date(s.lastSeenAt).toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' }) : '—';
+      const dist = s.distanceMeters != null ? `${s.distanceMeters}m` : '—';
+      return `<tr>
+        <td>${i+1}</td>
+        <td><strong>${s.name}</strong></td>
+        <td>${s.rollNo || '—'}</td>
+        <td><span class="att-status-badge ${badgeClass}">${s.status}</span></td>
+        <td>${dist}</td>
+        <td>${lastSeen}</td>
+        <td><span class="att-status-badge ${att}">${s.attendanceStatus}</span></td>
+      </tr>`;
+    }).join('');
+    document.getElementById('smartPresenceBody').innerHTML = rows || '<tr><td colspan="7"><div class="empty-state"><div class="empty-state-title">No students in roster</div></div></td></tr>';
+  } catch(e) {}
+}
+
+async function toggleTeacherPresence() {
+  if (teacherPresenceActive) {
+    clearInterval(teacherPresenceInterval);
+    teacherPresenceActive = false;
+    document.getElementById('teacherPresenceBtn').innerHTML = '<i class="fas fa-satellite-dish"></i> Start Teacher Presence';
+    document.getElementById('teacherPresenceBtn').style.background = '#10B981';
+    showToast('Teacher presence stopped', 'info');
+    return;
+  }
+
+  if (!navigator.geolocation) return showToast('Geolocation not supported', 'error');
+
+  const sendPresence = () => {
+    navigator.geolocation.getCurrentPosition(async pos => {
+      try {
+        await api.request('/attendance/live-location', {
+          method: 'POST',
+          body: JSON.stringify({
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude,
+            accuracyMeters: pos.coords.accuracy,
+            subjectId: currentSubjectId,
+          }),
+        });
+        loadSmartPresence();
+      } catch(e) {}
+    }, () => showToast('Location access denied', 'error'), { enableHighAccuracy: true });
+  };
+
+  sendPresence();
+  teacherPresenceInterval = setInterval(sendPresence, 60000);
+  teacherPresenceActive = true;
+  document.getElementById('teacherPresenceBtn').innerHTML = '<span class="live-dot" style="margin-right:5px"></span>Stop Presence';
+  document.getElementById('teacherPresenceBtn').style.background = '#EF4444';
+  showToast('Teacher presence started — broadcasting every 60s', 'success');
+}
+
+async function setClassroomFromHere() {
+  if (!navigator.geolocation) return showToast('Geolocation not supported', 'error');
+  const roomName = prompt('Enter room name (e.g., Lab-3, Hall-A101):');
+  if (!roomName) return;
+  navigator.geolocation.getCurrentPosition(async pos => {
+    try {
+      await api.request('/attendance/classrooms', {
+        method: 'POST',
+        body: JSON.stringify({
+          roomName,
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude,
+          accuracyMeters: pos.coords.accuracy,
+          radiusMeters: 40,
+        }),
+      });
+      showToast(`Geofence set for ${roomName} ✓`, 'success');
+    } catch(e) {}
+  }, () => showToast('Location access denied', 'error'), { enableHighAccuracy: true });
+}
+
+/* ── Analytics ── */
+async function loadAnalytics() {
+  if (!currentSubjectId) return;
+  try {
+    const data = await api.request(`/attendance/analytics?days=30&subjectId=${currentSubjectId}`);
+    const { dailyTrends, topAbsentees } = data.analytics;
+
+    // Trend chart
+    const labels = (dailyTrends || []).map(d => d._id);
+    const presentArr = (dailyTrends || []).map(d => d.present);
+    const absentArr  = (dailyTrends || []).map(d => d.absent);
+    if (trendChartInst) trendChartInst.destroy();
+    trendChartInst = new Chart(document.getElementById('trendChart'), {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [
+          { label: 'Present', data: presentArr, borderColor: '#10B981', backgroundColor: 'rgba(16,185,129,.1)', tension:.4, fill:true },
+          { label: 'Absent',  data: absentArr,  borderColor: '#EF4444', backgroundColor: 'rgba(239,68,68,.1)',  tension:.4, fill:true },
+        ],
+      },
+      options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ position:'top' } }, scales:{ x:{ display:false } } },
+    });
+
+    // Status chart
+    const overall = data.analytics.overall;
+    if (statusChartInst) statusChartInst.destroy();
+    statusChartInst = new Chart(document.getElementById('statusChart'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Present','Absent','Late','Excused'],
+        datasets: [{ data: [overall.present, overall.absent, overall.late, overall.excused || 0],
+                     backgroundColor: ['#10B981','#EF4444','#F59E0B','#6366F1'], borderWidth: 0 }],
+      },
+      options: { responsive:true, maintainAspectRatio:false, cutout:'70%', plugins:{ legend:{ position:'bottom' } } },
+    });
+
+    // Top absentees table
+    const tbody = document.getElementById('analyticsAbsenteesBody');
+    tbody.innerHTML = (topAbsentees || []).map(a => `
+      <tr>
+        <td><strong>${a.name}</strong></td>
+        <td>${a.rollNo}</td>
+        <td>${a.total}</td>
+        <td>${a.absent}</td>
+        <td><span style="background:#FEE2E2;color:#991B1B;padding:2px 8px;border-radius:6px;font-size:12px;font-weight:700">${a.absenceRate}%</span></td>
+        <td><button class="btn btn-sm btn-secondary" onclick="notifyParent('${a.studentId}')"><i class="fas fa-bell"></i></button></td>
+      </tr>
+    `).join('') || '<tr><td colspan="6" style="text-align:center;color:#94A3B8;padding:20px">No high absentees</td></tr>';
+  } catch(e) {}
+}
+
+/* ── Export CSV ── */
+async function exportCSV() {
+  if (!currentSubjectId) return showToast('Select a subject first', 'warning');
+  try {
+    const url = `/api/attendance/export?subjectId=${currentSubjectId}&format=csv`;
+    const token = api.getToken();
+    const res = await fetch((window.BACKEND_ORIGIN || '') + url, { headers: { Authorization: `Bearer ${token}` } });
+    const blob = await res.blob();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `attendance_${currentSubjectName.replace(/\s+/g,'_')}_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    showToast('CSV exported ✓', 'success');
+  } catch(e) { showToast('Export failed', 'error'); }
+}
+
+async function notifyAbsenteesFaculty() {
+  const date = document.getElementById('attDate').value;
+  if (!date) return showToast('Select a date first', 'warning');
+  try {
+    const data = await api.request('/attendance/notify-absentees', {
+      method: 'POST',
+      body: JSON.stringify({ date, subjectId: currentSubjectId }),
+    });
+    showToast(data.message, 'success');
+  } catch(e) {}
+}
+
+async function notifyParent(studentId) {
+  showToast('Parent notification queued ✓', 'success');
+}
+
+// expose for inline handlers
+window.switchTab = switchTab;
+window.loadStudents = loadStudents;
+window.onSubjectChange = onSubjectChange;
+window.filterStudents = filterStudents;
+window.setStatus = setStatus;
+window.markAll = markAll;
+window.submitAttendance = submitAttendance;
+window.promptExcuse = promptExcuse;
+window.openBulkExcuse = openBulkExcuse;
+window.closeExcuseModal = closeExcuseModal;
+window.submitBulkExcuse = submitBulkExcuse;
+window.loadSmartPresence = loadSmartPresence;
+window.toggleTeacherPresence = toggleTeacherPresence;
+window.setClassroomFromHere = setClassroomFromHere;
+window.exportCSV = exportCSV;
+window.notifyAbsenteesFaculty = notifyAbsenteesFaculty;
+window.notifyParent = notifyParent;
+</script>
 </body>
 </html>

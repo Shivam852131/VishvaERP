@@ -111,6 +111,8 @@
         <button class="att-tab" onclick="switchAttTab('live')"><i class="fas fa-satellite-dish"></i> Live Tracking</button>
         <button class="att-tab" onclick="switchAttTab('analytics')"><i class="fas fa-chart-bar"></i> Analytics</button>
         <button class="att-tab" onclick="switchAttTab('students')"><i class="fas fa-user-graduate"></i> Student Report</button>
+        <button class="att-tab" onclick="switchAttTab('shortage')" style="border:2px solid #FEE2E2;color:#991B1B"><i class="fas fa-triangle-exclamation"></i> At-Risk Students</button>
+        <button class="att-tab" onclick="switchAttTab('export')" style="margin-left:auto"><i class="fas fa-file-csv"></i> Export</button>
       </div>
 
       <!-- TAB: OVERVIEW -->
@@ -292,8 +294,94 @@
           </div>
         </div>
       </div>
+
+      <!-- TAB: SHORTAGE STUDENTS -->
+      <div id="tab-shortage" style="display:none">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+          <div>
+            <h3 style="font-size:16px;font-weight:700;margin:0"><i class="fas fa-triangle-exclamation" style="color:#EF4444;margin-right:8px"></i>Students At-Risk (Below Threshold)</h3>
+            <p style="font-size:13px;color:#64748B;margin:4px 0 0">Students whose attendance is below the configured threshold per subject.</p>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <label style="font-size:12px;font-weight:600;color:#64748B">Threshold:</label>
+            <input type="number" id="shortageThreshold" value="75" min="50" max="100" class="form-control" style="width:80px;padding:6px 8px" onchange="loadShortage()">
+            <span style="font-size:12px;color:#64748B">%</span>
+            <button class="btn btn-sm btn-secondary" onclick="loadShortage()"><i class="fas fa-rotate"></i> Refresh</button>
+            <button class="btn btn-sm" style="background:#EF4444;color:white;border:none" onclick="notifyAllShortage()"><i class="fas fa-bell"></i> Notify All Parents</button>
+          </div>
+        </div>
+        <div id="shortageStats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px"></div>
+        <div class="card" style="padding:0;overflow:hidden">
+          <div style="overflow-x:auto">
+            <table style="width:100%;border-collapse:collapse">
+              <thead><tr>
+                <th style="padding:12px 16px;text-align:left;font-size:12px;font-weight:700;color:#64748B;text-transform:uppercase">Student</th>
+                <th style="padding:12px 16px;text-align:left;font-size:12px;font-weight:700;color:#64748B;text-transform:uppercase">Roll No</th>
+                <th style="padding:12px 16px;text-align:left;font-size:12px;font-weight:700;color:#64748B;text-transform:uppercase">Subject</th>
+                <th style="padding:12px 16px;text-align:left;font-size:12px;font-weight:700;color:#64748B;text-transform:uppercase">Present</th>
+                <th style="padding:12px 16px;text-align:left;font-size:12px;font-weight:700;color:#64748B;text-transform:uppercase">Absent</th>
+                <th style="padding:12px 16px;text-align:left;font-size:12px;font-weight:700;color:#64748B;text-transform:uppercase">Attendance%</th>
+                <th style="padding:12px 16px;text-align:left;font-size:12px;font-weight:700;color:#64748B;text-transform:uppercase">Classes Needed</th>
+                <th style="padding:12px 16px;text-align:left;font-size:12px;font-weight:700;color:#64748B;text-transform:uppercase">Action</th>
+              </tr></thead>
+              <tbody id="shortageBody">
+                <tr><td colspan="8" style="text-align:center;padding:30px;color:#94A3B8">Click Refresh to load shortage data</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB: EXPORT -->
+      <div id="tab-export" style="display:none">
+        <div class="card" style="padding:28px;max-width:680px">
+          <h3 style="font-size:16px;font-weight:700;margin-bottom:20px"><i class="fas fa-file-export" style="color:#4F46E5;margin-right:8px"></i>Export Attendance Data</h3>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px">
+            <div class="form-group" style="margin:0">
+              <label class="form-label">Start Date</label>
+              <input type="date" class="form-control" id="exportStart">
+            </div>
+            <div class="form-group" style="margin:0">
+              <label class="form-label">End Date</label>
+              <input type="date" class="form-control" id="exportEnd">
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:16px">
+            <label class="form-label">Subject (optional)</label>
+            <select class="form-control" id="exportSubjectFilter">
+              <option value="">All Subjects</option>
+            </select>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px">
+            <div class="form-group" style="margin:0">
+              <label class="form-label">Semester (optional)</label>
+              <select class="form-control" id="exportSemester">
+                <option value="">All Semesters</option>
+                <option value="1">Sem 1</option><option value="2">Sem 2</option>
+                <option value="3">Sem 3</option><option value="4">Sem 4</option>
+                <option value="5">Sem 5</option><option value="6">Sem 6</option>
+                <option value="7">Sem 7</option><option value="8">Sem 8</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin:0">
+              <label class="form-label">Format</label>
+              <select class="form-control" id="exportFormat">
+                <option value="csv">CSV (Excel compatible)</option>
+                <option value="print">Print / PDF</option>
+              </select>
+            </div>
+          </div>
+          <div style="background:#EEF2FF;border-radius:10px;padding:14px;margin-bottom:20px;font-size:13px;color:#3730A3">
+            <i class="fas fa-info-circle" style="margin-right:6px"></i>
+            CSV export includes: Date, Roll No, Name, Department, Semester, Subject, Status, Source, Remarks, Faculty.
+          </div>
+          <button class="btn btn-primary" style="width:100%" onclick="doExport()"><i class="fas fa-download"></i> Download Export</button>
+        </div>
+      </div>
+
     </div>
   </div>
+</div>
 </div>
 
 <!-- MODAL: Add Classroom Location -->
@@ -366,6 +454,7 @@
 (function(){
   let analyticsData=null, classroomData=[], liveData=null, timetableSlots=[];
   let trendChartInstance=null, sourceChartInstance=null, analyticsTrendChart=null, analyticsSubjectChart=null;
+  let shortageData=[];
 
   const DAYS=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
   const COLORS={present:'#10B981',absent:'#EF4444',late:'#F59E0B',excused:'#3B82F6'};
@@ -380,11 +469,13 @@
     document.querySelectorAll('[id^="tab-"]').forEach(el=>el.style.display='none');
     document.getElementById('tab-'+tab).style.display='block';
     document.querySelectorAll('.att-tab').forEach(b=>b.classList.remove('active'));
-    document.querySelectorAll('.att-tab').forEach(b=>{if(b.textContent.toLowerCase().includes(tab==='locations'?'gps':tab==='live'?'live':tab==='analytics'?'analytics':tab==='students'?'student':'overview'))b.classList.add('active')});
+    document.querySelectorAll('.att-tab').forEach(b=>{if(b.textContent.toLowerCase().includes(tab==='locations'?'gps':tab==='live'?'live':tab==='analytics'?'analytics':tab==='students'?'student':tab==='shortage'?'at-risk':tab==='export'?'export':'overview'))b.classList.add('active')});
     if(tab==='live')loadLiveTracking();
     if(tab==='analytics')loadAnalytics();
     if(tab==='locations')loadClassrooms();
     if(tab==='students')loadStudentReport();
+    if(tab==='shortage')loadShortage();
+    if(tab==='export')initExportTab();
   };
 
   // ===== LOAD ALL =====
@@ -778,7 +869,7 @@
     }
   };
 
-  // ===== EXPORT =====
+  // ===== EXPORT (analytics quick export) =====
   window.exportAnalytics=function(){
     if(!analyticsData)return;
     const rows=[['Metric','Value'],['Overall Rate',analyticsData.overall?.rate+'%'],['Total Records',analyticsData.overall?.total],['Present',analyticsData.overall?.present],['Absent',analyticsData.overall?.absent],['Late',analyticsData.overall?.late]];
@@ -786,6 +877,111 @@
     const csv=rows.map(r=>r.map(c=>'"'+c+'"').join(',')).join('\n');
     const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='attendance-analytics.csv';a.click();
     showToast('Analytics exported','success');
+  };
+
+  // ===== SHORTAGE =====
+  async function loadShortage(){
+    const threshold=parseInt(document.getElementById('shortageThreshold')?.value||'75');
+    document.getElementById('shortageBody').innerHTML='<tr><td colspan="8" style="text-align:center;padding:30px"><i class="fas fa-spinner fa-spin" style="color:#4F46E5"></i></td></tr>';
+    try{
+      const res=await window.api.request('/attendance/shortage?threshold='+threshold,{silent:true});
+      shortageData=res.shortage||[];
+      // Stats
+      const total=shortageData.length;
+      const critical=shortageData.filter(s=>parseFloat(s.percentage)<50).length;
+      const warn=shortageData.filter(s=>parseFloat(s.percentage)>=50&&parseFloat(s.percentage)<threshold).length;
+      document.getElementById('shortageStats').innerHTML=`
+        <div style="background:white;border-radius:10px;padding:16px 18px;border:1px solid #E2E8F0;text-align:center">
+          <div style="font-size:28px;font-weight:900;color:#EF4444">${total}</div>
+          <div style="font-size:12px;color:#64748B;margin-top:2px">At-Risk Records</div>
+        </div>
+        <div style="background:white;border-radius:10px;padding:16px 18px;border:1px solid #E2E8F0;text-align:center">
+          <div style="font-size:28px;font-weight:900;color:#DC2626">${critical}</div>
+          <div style="font-size:12px;color:#64748B;margin-top:2px">Critical (&lt;50%)</div>
+        </div>
+        <div style="background:white;border-radius:10px;padding:16px 18px;border:1px solid #E2E8F0;text-align:center">
+          <div style="font-size:28px;font-weight:900;color:#F59E0B">${warn}</div>
+          <div style="font-size:12px;color:#64748B;margin-top:2px">Warning (50–${threshold}%)</div>
+        </div>`;
+      if(!shortageData.length){
+        document.getElementById('shortageBody').innerHTML='<tr><td colspan="8" style="text-align:center;padding:30px;color:#10B981"><i class="fas fa-check-circle" style="font-size:24px;display:block;margin-bottom:8px"></i>All students are above the threshold — great attendance!</td></tr>';
+        return;
+      }
+      const tbody=document.getElementById('shortageBody');
+      tbody.innerHTML=shortageData.map(s=>{
+        const pctVal=parseFloat(s.percentage);
+        const color=pctVal<50?'#DC2626':pctVal<threshold?'#F59E0B':'#10B981';
+        return`<tr style="border-bottom:1px solid #F1F5F9">
+          <td style="padding:10px 16px;font-weight:600;font-size:13px">${s.student?.name||'—'}</td>
+          <td style="padding:10px 16px;font-size:12px;color:#64748B"><code style="background:#F1F5F9;padding:2px 6px;border-radius:4px">${s.student?.rollNo||'—'}</code></td>
+          <td style="padding:10px 16px;font-size:13px">${s.subject?.name||'—'}<br><span style="font-size:11px;color:#94A3B8">${s.subject?.code||''}</span></td>
+          <td style="padding:10px 16px;font-size:13px;color:#10B981;font-weight:600">${s.present||0}</td>
+          <td style="padding:10px 16px;font-size:13px;color:#EF4444;font-weight:600">${s.absent||0}</td>
+          <td style="padding:10px 16px"><span style="font-weight:700;font-size:14px;color:${color}">${pctVal.toFixed(1)}%</span></td>
+          <td style="padding:10px 16px;font-size:13px;color:#6366F1;font-weight:600">${s.classesNeeded||0} classes</td>
+          <td style="padding:10px 16px"><button class="btn btn-xs btn-secondary" onclick="showToast('Notified parent of ${(s.student?.name||'student').replace(/'/g,'')}','success')"><i class="fas fa-bell"></i> Notify</button></td>
+        </tr>`;
+      }).join('');
+    }catch(e){
+      document.getElementById('shortageBody').innerHTML=`<tr><td colspan="8" style="text-align:center;padding:30px;color:#EF4444">${e.message}</td></tr>`;
+    }
+  }
+
+  window.loadShortage=loadShortage;
+  window.notifyAllShortage=async function(){
+    if(!shortageData.length)return showToast('No at-risk students','info');
+    try{
+      const studentIds=[...new Set(shortageData.map(s=>s.student?._id).filter(Boolean))];
+      await window.api.request('/attendance/notify-absentees',{method:'POST',body:JSON.stringify({studentIds,mode:'shortage'})});
+      showToast(`Notified parents of ${studentIds.length} at-risk students`,'success');
+    }catch(e){}
+  };
+
+  // ===== EXPORT TAB =====
+  function initExportTab(){
+    const today=new Date().toISOString().slice(0,10);
+    const monthAgo=new Date(Date.now()-30*864e5).toISOString().slice(0,10);
+    const s=document.getElementById('exportStart');const e=document.getElementById('exportEnd');
+    if(s&&!s.value)s.value=monthAgo;
+    if(e&&!e.value)e.value=today;
+    // Populate subject dropdown from analytics
+    const sel=document.getElementById('exportSubjectFilter');
+    if(sel&&sel.options.length<=1&&analyticsData?.subjectWise){
+      analyticsData.subjectWise.forEach(sub=>{
+        const o=document.createElement('option');o.value=sub._id||'';o.textContent=sub.name;sel.appendChild(o);
+      });
+    }
+  }
+
+  window.doExport=async function(){
+    const start=document.getElementById('exportStart').value;
+    const end=document.getElementById('exportEnd').value;
+    const subjectId=document.getElementById('exportSubjectFilter').value;
+    const semester=document.getElementById('exportSemester').value;
+    const format=document.getElementById('exportFormat').value;
+    if(format==='print'){
+      const params=new URLSearchParams({start,end});
+      if(subjectId)params.append('subjectId',subjectId);
+      if(semester)params.append('semester',semester);
+      window.open((window.BACKEND_ORIGIN||'')+'/api/attendance/export?'+params+'&format=print','_blank');
+      return;
+    }
+    try{
+      const params=new URLSearchParams({start,end,format:'csv'});
+      if(subjectId)params.append('subjectId',subjectId);
+      if(semester)params.append('semester',semester);
+      const token=window.api.getToken?.();
+      const res=await fetch((window.BACKEND_ORIGIN||'')+'/api/attendance/export?'+params,{headers:{Authorization:'Bearer '+token}});
+      if(!res.ok)throw new Error('Export failed: '+res.status);
+      const blob=await res.blob();
+      const a=document.createElement('a');
+      a.href=URL.createObjectURL(blob);
+      a.download='attendance_export_'+start+'_to_'+end+'.csv';
+      a.click();
+      showToast('CSV export downloaded ✓','success');
+    }catch(e){
+      showToast(e.message||'Export failed','error');
+    }
   };
 
   // ===== REALTIME =====

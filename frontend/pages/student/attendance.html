@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -7,6 +7,80 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="../../css/custom.css">
+  <style>
+    /* ── Circular gauge ── */
+    .gauge-wrap { position:relative; width:140px; height:140px; margin:0 auto; }
+    .gauge-wrap svg { transform:rotate(-90deg); width:140px; height:140px; }
+    .gauge-bg  { fill:none; stroke:#E2E8F0; stroke-width:12; }
+    .gauge-fill{ fill:none; stroke-width:12; stroke-linecap:round; transition:stroke-dashoffset 1.5s cubic-bezier(.4,0,.2,1); }
+    .gauge-text { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+    .gauge-pct  { font-size:26px; font-weight:900; line-height:1; }
+    .gauge-label{ font-size:11px; font-weight:600; color:#94A3B8; margin-top:2px; }
+
+    /* ── Alert banner ── */
+    .shortage-banner { display:flex; align-items:center; gap:12px; padding:14px 18px; border-radius:12px;
+                       background:linear-gradient(135deg,#FEF2F2,#FEE2E2); border-left:4px solid #EF4444;
+                       margin-bottom:12px; animation:fadeIn .4s ease; }
+    .shortage-banner .icon { font-size:20px; color:#EF4444; flex-shrink:0; }
+    .shortage-banner strong { color:#991B1B; }
+    .shortage-banner p { font-size:13px; color:#7F1D1D; margin:0; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
+
+    /* ── Subject card ── */
+    .subject-card { background:white; border-radius:16px; padding:20px; border:1px solid #E2E8F0;
+                    transition:all .2s; position:relative; overflow:hidden; }
+    .subject-card::after { content:''; position:absolute; top:0; left:0; right:0; height:3px;
+                           background:var(--accent); border-radius:16px 16px 0 0; }
+    .subject-card:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,.08); }
+    .subject-name { font-size:15px; font-weight:700; color:#1E293B; }
+    .subject-code { font-size:11px; color:#94A3B8; font-weight:600; }
+    .subject-stats { display:flex; gap:12px; margin:12px 0; font-size:12px; }
+    .subject-stat { display:flex; flex-direction:column; align-items:center; }
+    .subject-stat strong { font-size:18px; font-weight:800; }
+    .subject-stat span { color:#94A3B8; font-size:10px; }
+
+    /* ── Progress ring on subject card ── */
+    .mini-ring { position:relative; width:70px; height:70px; flex-shrink:0; }
+    .mini-ring svg { transform:rotate(-90deg); width:70px; height:70px; }
+    .mini-ring .ring-bg  { fill:none; stroke:#F1F5F9; stroke-width:8; }
+    .mini-ring .ring-fill{ fill:none; stroke-width:8; stroke-linecap:round; transition:stroke-dashoffset 1.2s ease; }
+    .mini-ring .ring-text { position:absolute; inset:0; display:flex; flex-direction:column;
+                             align-items:center; justify-content:center; font-size:14px; font-weight:800; }
+    .mini-ring .ring-sub  { font-size:9px; color:#94A3B8; font-weight:600; margin-top:-2px; }
+
+    /* ── Calendar heatmap ── */
+    .heatmap-wrap { overflow-x:auto; padding-bottom:8px; }
+    .heatmap-grid { display:grid; grid-auto-flow:column; grid-template-rows:repeat(7,16px); gap:3px; width:max-content; }
+    .heatmap-cell { width:16px; height:16px; border-radius:3px; cursor:pointer; transition:transform .15s; position:relative; }
+    .heatmap-cell:hover { transform:scale(1.3); z-index:10; }
+    .heatmap-cell[data-status="present"] { background:#10B981; }
+    .heatmap-cell[data-status="late"]    { background:#F59E0B; }
+    .heatmap-cell[data-status="absent"]  { background:#EF4444; }
+    .heatmap-cell[data-status="excused"] { background:#6366F1; }
+    .heatmap-cell[data-status="none"]    { background:#F1F5F9; }
+    .heatmap-legend { display:flex; align-items:center; gap:8px; margin-top:10px; font-size:11px; color:#64748B; flex-wrap:wrap; }
+    .legend-box { width:12px; height:12px; border-radius:2px; }
+
+    /* ── Streak card ── */
+    .streak-card { background:linear-gradient(135deg,#0F172A,#1E293B); border-radius:16px; padding:20px 24px; color:white; }
+
+    /* ── Tooltip ── */
+    .hm-tooltip { position:fixed; background:#1E293B; color:white; font-size:11px; padding:6px 10px;
+                  border-radius:8px; pointer-events:none; z-index:999; display:none; max-width:200px; }
+
+    /* ── Smart panel ── */
+    .smart-panel { background:linear-gradient(135deg,#1E293B,#334155); border-radius:16px; padding:22px 24px; color:white; }
+    .consent-toggle { display:flex; align-items:center; gap:10px; }
+    .toggle-track { width:48px; height:26px; border-radius:13px; background:#475569; cursor:pointer; position:relative; transition:background .2s; }
+    .toggle-track.on { background:#10B981; }
+    .toggle-thumb { width:20px; height:20px; border-radius:50%; background:white; position:absolute; top:3px; left:3px; transition:left .2s; box-shadow:0 1px 4px rgba(0,0,0,.3); }
+    .toggle-track.on .toggle-thumb { left:25px; }
+
+    /* ── Risk badge ── */
+    .risk-safe   { background:#D1FAE5; color:#065F46; }
+    .risk-warn   { background:#FEF3C7; color:#78350F; }
+    .risk-danger { background:#FEE2E2; color:#991B1B; }
+  </style>
 </head>
 <body>
 <div class="erp-layout">
@@ -47,85 +121,157 @@
     <header class="erp-topbar">
       <div class="topbar-left">
         <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
-        <div class="topbar-breadcrumb">Student / <span>Attendance</span></div>
+        <div class="topbar-breadcrumb">Student / <span>My Attendance</span></div>
       </div>
       <div class="topbar-right"><div class="topbar-avatar" id="topbar-avatar">S</div></div>
     </header>
 
     <div class="erp-content">
-      <div class="page-header">
-        <h1 class="page-title">My Attendance</h1>
-        <p class="page-subtitle">Track subject risk, daily status, smart attendance source, and exam eligibility.</p>
+
+      <!-- ══ HERO: Overall Gauge ══ -->
+      <div style="background:linear-gradient(135deg,#0F172A,#1E3A5F);border-radius:20px;padding:28px 32px;color:white;margin-bottom:24px;display:flex;align-items:center;gap:32px;flex-wrap:wrap">
+        <div>
+          <div class="gauge-wrap" id="overallGaugeWrap">
+            <svg viewBox="0 0 140 140">
+              <circle class="gauge-bg" cx="70" cy="70" r="58"/>
+              <circle class="gauge-fill" id="overallGaugeFill" cx="70" cy="70" r="58"
+                stroke="#10B981" stroke-dasharray="364.4" stroke-dashoffset="364.4"/>
+            </svg>
+            <div class="gauge-text">
+              <span class="gauge-pct" id="overallPct" style="color:#10B981">–%</span>
+              <span class="gauge-label">Overall</span>
+            </div>
+          </div>
+        </div>
+        <div style="flex:1;min-width:200px">
+          <div style="font-size:12px;opacity:.7;font-weight:600;text-transform:uppercase;letter-spacing:.06em">Attendance Overview</div>
+          <h1 style="font-size:28px;font-weight:900;margin:6px 0" id="heroTitle">My Attendance</h1>
+          <div id="heroDesc" style="font-size:14px;opacity:.85">Loading your attendance data…</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;flex:1;min-width:260px">
+          <div style="background:rgba(255,255,255,.08);border-radius:12px;padding:14px;text-align:center">
+            <div style="font-size:22px;font-weight:900;color:#10B981" id="heroPresent">–</div>
+            <div style="font-size:11px;opacity:.7;margin-top:2px">Present</div>
+          </div>
+          <div style="background:rgba(255,255,255,.08);border-radius:12px;padding:14px;text-align:center">
+            <div style="font-size:22px;font-weight:900;color:#EF4444" id="heroAbsent">–</div>
+            <div style="font-size:11px;opacity:.7;margin-top:2px">Absent</div>
+          </div>
+          <div style="background:rgba(255,255,255,.08);border-radius:12px;padding:14px;text-align:center">
+            <div style="font-size:22px;font-weight:900;color:#F59E0B" id="heroLate">–</div>
+            <div style="font-size:11px;opacity:.7;margin-top:2px">Late</div>
+          </div>
+        </div>
       </div>
 
-      <!-- Overall -->
-      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
-        <div class="stat-card"><div class="stat-icon" style="background:#D1FAE5;color:#065F46"><i class="fas fa-percentage"></i></div><div class="stat-label">Overall</div><div class="stat-value" style="color:#059669"><span data-counter="85" data-suffix="%">85%</span></div><div class="stat-change up"><i class="fas fa-check-circle"></i> Above 75%</div></div>
-        <div class="stat-card"><div class="stat-icon" style="background:#DBEAFE;color:#1E40AF"><i class="fas fa-calendar-check"></i></div><div class="stat-label">Classes Present</div><div class="stat-value" data-counter="102">102</div></div>
-        <div class="stat-card"><div class="stat-icon" style="background:#FEE2E2;color:#991B1B"><i class="fas fa-calendar-times"></i></div><div class="stat-label">Classes Absent</div><div class="stat-value" data-counter="18">18</div></div>
-        <div class="stat-card"><div class="stat-icon" style="background:#FEF3C7;color:#92400E"><i class="fas fa-exclamation-triangle"></i></div><div class="stat-label">Shortage Risk</div><div class="stat-value">2 Subjects</div><div class="stat-change down"><i class="fas fa-exclamation-circle"></i> Below 75%</div></div>
+      <!-- ══ SHORTAGE ALERT BANNERS ══ -->
+      <div id="shortageBanners"></div>
+
+      <!-- ══ STREAK ══ -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:24px">
+        <div class="streak-card">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;opacity:.6;font-weight:600">Current Streak</div>
+          <div style="font-size:36px;font-weight:900;margin:6px 0" id="streakCurrent">–</div>
+          <div style="font-size:12px;opacity:.7">consecutive days present</div>
+        </div>
+        <div class="streak-card" style="background:linear-gradient(135deg,#1E3A5F,#0F2952)">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;opacity:.6;font-weight:600">Best Streak</div>
+          <div style="font-size:36px;font-weight:900;margin:6px 0;color:#F59E0B" id="streakBest">–</div>
+          <div style="font-size:12px;opacity:.7">personal best</div>
+        </div>
+        <div style="background:white;border-radius:16px;padding:20px 24px;border:1px solid #E2E8F0">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#94A3B8;font-weight:600">At-Risk Subjects</div>
+          <div style="font-size:36px;font-weight:900;margin:6px 0;color:#EF4444" id="atRiskCount">–</div>
+          <div style="font-size:12px;color:#64748B">below 75% threshold</div>
+        </div>
       </div>
 
-      <div class="attendance-intelligence-grid mb-6">
-        <div class="attendance-insight-card">
-          <div class="insight-kicker">Today status</div>
-          <div id="studentTodayAttendance" class="attendance-insight-body">Loading today's attendance...</div>
+      <!-- ══ SUBJECT CARDS ══ -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <h2 style="font-size:16px;font-weight:800;color:#1E293B;margin:0"><i class="fas fa-book" style="color:#0284C7;margin-right:8px"></i>Subject-wise Attendance</h2>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin-bottom:24px" id="subjectCardsGrid">
+        <!-- filled by JS -->
+        <div style="text-align:center;padding:40px;color:#94A3B8;grid-column:1/-1"><i class="fas fa-spinner fa-spin" style="font-size:24px"></i></div>
+      </div>
+
+      <!-- ══ CALENDAR HEATMAP ══ -->
+      <div class="card mb-6">
+        <div class="card-header">
+          <div class="card-title"><i class="fas fa-calendar-alt" style="color:#6366F1;margin-right:8px"></i>90-Day Attendance Calendar</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <select class="form-control" id="heatmapSubjectFilter" onchange="buildHeatmap()" style="padding:6px 10px;font-size:12px">
+              <option value="">All Subjects</option>
+            </select>
+          </div>
         </div>
-        <div class="attendance-insight-card">
-          <div class="insight-kicker">Eligibility forecast</div>
-          <div id="studentEligibilityPlan" class="attendance-insight-body">Loading eligibility forecast...</div>
-        </div>
-        <div class="attendance-insight-card">
-          <div class="insight-kicker">Source mix</div>
-          <div id="studentAttendanceSourceMix" class="attendance-insight-body">Loading source mix...</div>
+        <div class="card-body">
+          <div class="heatmap-wrap">
+            <div class="heatmap-grid" id="heatmapGrid"></div>
+          </div>
+          <div class="heatmap-legend">
+            <span>Less</span>
+            <div class="legend-box" style="background:#F1F5F9"></div>
+            <div class="legend-box" style="background:#EF4444"></div>
+            <div class="legend-box" style="background:#F59E0B"></div>
+            <div class="legend-box" style="background:#10B981"></div>
+            <div class="legend-box" style="background:#6366F1"></div>
+            <span>More</span>
+            <span style="margin-left:auto;display:flex;gap:12px">
+              <span><span class="legend-box" style="background:#EF4444;display:inline-block;vertical-align:middle"></span> Absent</span>
+              <span><span class="legend-box" style="background:#F59E0B;display:inline-block;vertical-align:middle"></span> Late</span>
+              <span><span class="legend-box" style="background:#10B981;display:inline-block;vertical-align:middle"></span> Present</span>
+              <span><span class="legend-box" style="background:#6366F1;display:inline-block;vertical-align:middle"></span> Excused</span>
+            </span>
+          </div>
         </div>
       </div>
 
-      <div class="smart-attendance-panel mb-6">
-        <div class="smart-attendance-hero">
+      <!-- ══ SMART ATTENDANCE ══ -->
+      <div class="smart-panel mb-6">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px">
           <div>
-            <div class="smart-kicker">Privacy-first smart attendance</div>
-            <h2>Live Classroom Check-in</h2>
-            <p>Enable consent to let VishvaERP use your device location only during scheduled class periods for automatic attendance.</p>
+            <div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;opacity:.7;font-weight:600">Privacy-first GPS</div>
+            <div style="font-size:18px;font-weight:800;margin:4px 0">Live Classroom Check-in</div>
+            <div style="font-size:13px;opacity:.8">Your location is only used during scheduled class windows.</div>
           </div>
-          <div class="smart-actions">
-            <button class="btn btn-secondary" id="locationConsentBtn" onclick="toggleLocationConsent()"><i class="fas fa-user-shield"></i> Loading Consent</button>
-            <button class="btn btn-success" id="studentLocationBtn" onclick="startStudentSmartAttendance()"><i class="fas fa-location-arrow"></i> Start Live Check-in</button>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div class="consent-toggle">
+              <div class="toggle-track" id="consentTrack" onclick="toggleLocationConsent()">
+                <div class="toggle-thumb"></div>
+              </div>
+              <span style="font-size:13px;font-weight:600" id="consentLabel">Location Consent: Off</span>
+            </div>
+            <button class="btn btn-sm" id="checkinBtn" style="background:#10B981;color:white;border:none;display:none" onclick="startStudentSmartAttendance()">
+              <i class="fas fa-location-arrow"></i> Start Live Check-in
+            </button>
           </div>
         </div>
-        <div class="smart-privacy-note" id="studentSmartStatus"><i class="fas fa-shield-halved"></i> Location sharing is off until you grant consent and start live check-in.</div>
-        <div class="smart-presence-stats">
-          <div><span>Consent</span><strong id="studentConsentState">--</strong></div>
-          <div><span>Active Class</span><strong id="studentSmartClass">--</strong></div>
-          <div><span>Live Status</span><strong id="studentSmartPresence">--</strong></div>
-          <div><span>Auto Attendance</span><strong id="studentSmartAttendance">--</strong></div>
+        <div id="smartStatusMsg" style="margin-top:14px;font-size:13px;opacity:.8;padding:10px 14px;background:rgba(255,255,255,.08);border-radius:8px">
+          Enable consent above to allow automatic attendance marking when you arrive in class.
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-top:14px">
+          <div style="background:rgba(255,255,255,.08);border-radius:10px;padding:12px">
+            <div style="font-size:10px;text-transform:uppercase;opacity:.6;font-weight:600">Active Class</div>
+            <div style="font-size:14px;font-weight:700;margin-top:4px" id="smartClass">—</div>
+          </div>
+          <div style="background:rgba(255,255,255,.08);border-radius:10px;padding:12px">
+            <div style="font-size:10px;text-transform:uppercase;opacity:.6;font-weight:600">Live Status</div>
+            <div style="font-size:14px;font-weight:700;margin-top:4px" id="smartStatus">—</div>
+          </div>
+          <div style="background:rgba(255,255,255,.08);border-radius:10px;padding:12px">
+            <div style="font-size:10px;text-transform:uppercase;opacity:.6;font-weight:600">Auto Attendance</div>
+            <div style="font-size:14px;font-weight:700;margin-top:4px" id="smartAttendanceResult">—</div>
+          </div>
         </div>
       </div>
 
-      <div class="grid col-2 mb-6">
-        <div class="card">
-          <div class="card-header"><div class="card-title"><i class="fas fa-chart-bar" style="color:#0284C7;margin-right:8px"></i>Subject-wise Attendance</div></div>
-          <div class="card-body"><div class="chart-container" style="height:240px"><canvas id="subjectAttChart"></canvas></div></div>
-        </div>
-        <div class="card">
-          <div class="card-header"><div class="card-title"><i class="fas fa-chart-line" style="color:#059669;margin-right:8px"></i>Monthly Trend</div></div>
-          <div class="card-body"><div class="chart-container" style="height:240px"><canvas id="monthlyAttChart"></canvas></div></div>
-        </div>
-      </div>
-
-      <!-- Subject-wise breakdown -->
+      <!-- ══ RECENT LEDGER ══ -->
       <div class="card">
-        <div class="card-header"><div class="card-title">Subject-wise Breakdown</div></div>
-        <div class="table-wrap">
-          <table class="erp-table">
-            <thead><tr><th>Subject</th><th>Code</th><th>Total Classes</th><th>Present</th><th>Absent</th><th>Attendance %</th><th>Status</th></tr></thead>
-            <tbody id="attBreakdownBody"></tbody>
-          </table>
+        <div class="card-header">
+          <div class="card-title"><i class="fas fa-list-check" style="color:#4F46E5;margin-right:8px"></i>Recent Attendance Ledger</div>
+          <span class="badge badge-gray">Latest 20</span>
         </div>
-      </div>
-
-      <div class="card mt-6">
-        <div class="card-header"><div class="card-title"><i class="fas fa-list-check" style="color:#4F46E5;margin-right:8px"></i>Recent Attendance Ledger</div><span class="badge badge-gray">Latest 8</span></div>
         <div class="table-wrap">
           <table class="erp-table">
             <thead><tr><th>Date</th><th>Subject</th><th>Status</th><th>Source</th><th>Remarks</th></tr></thead>
@@ -133,11 +279,359 @@
           </table>
         </div>
       </div>
+
     </div>
   </div>
 </div>
 
+<!-- Heatmap tooltip -->
+<div class="hm-tooltip" id="hmTooltip"></div>
+
 <script src="../../js/shared.js"></script>
-<script src="../../live/live-pages.js"></script>
+<script>
+/* ═══════════════════════════════════════════
+   Student Attendance — Advanced v2.0
+═══════════════════════════════════════════ */
+
+let summaryData = [];
+let calendarData = [];
+let locationConsentEnabled = false;
+let checkinInterval = null;
+
+const THRESHOLD = 75;
+
+const statusColors = { present:'#10B981', absent:'#EF4444', late:'#F59E0B', excused:'#6366F1', notMarked:'#94A3B8' };
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await Promise.all([
+    loadSummary(),
+    loadCalendar(),
+    loadStreak(),
+    loadRecentLedger(),
+    loadConsentState(),
+  ]);
+});
+
+/* ── Summary (subject cards + gauges) ── */
+async function loadSummary() {
+  try {
+    const data = await api.request('/attendance/summary');
+    summaryData = data.summary || [];
+
+    let totalPresent = 0, totalAbsent = 0, totalLate = 0, totalTotal = 0;
+    summaryData.forEach(s => {
+      totalPresent += s.present;
+      totalAbsent  += s.absent;
+      totalLate    += s.late;
+      totalTotal   += s.total - (s.excused || 0);
+    });
+
+    const overallPct = totalTotal > 0 ? (totalPresent + totalLate * 0.5) / totalTotal * 100 : 0;
+    animateGauge('overallGaugeFill', overallPct, getGaugeColor(overallPct));
+    const pctEl = document.getElementById('overallPct');
+    pctEl.textContent = `${Math.round(overallPct)}%`;
+    pctEl.style.color = getGaugeColor(overallPct);
+
+    document.getElementById('heroPresent').textContent = totalPresent;
+    document.getElementById('heroAbsent').textContent  = totalAbsent;
+    document.getElementById('heroLate').textContent    = totalLate;
+
+    const atRisk = summaryData.filter(s => parseFloat(s.percentage) < THRESHOLD);
+    document.getElementById('atRiskCount').textContent = atRisk.length;
+    document.getElementById('heroTitle').textContent = 'My Attendance';
+    document.getElementById('heroDesc').textContent = atRisk.length > 0
+      ? `⚠️ ${atRisk.length} subject${atRisk.length>1?'s':''} below 75% — action needed!`
+      : `✅ All subjects above 75% attendance threshold`;
+
+    // Shortage banners
+    const bannerEl = document.getElementById('shortageBanners');
+    bannerEl.innerHTML = atRisk.map(s => `
+      <div class="shortage-banner">
+        <div class="icon"><i class="fas fa-triangle-exclamation"></i></div>
+        <div>
+          <strong>${s.subject?.name || 'Subject'}</strong>
+          <p>You are at <strong>${s.percentage}%</strong>.
+            ${s.classesNeeded > 0
+              ? `Attend <strong>${s.classesNeeded}</strong> more class${s.classesNeeded>1?'es':''} to reach 75%.`
+              : `You can still miss <strong>${s.canStillMiss}</strong> class${s.canStillMiss!==1?'es':''}.`}
+          </p>
+        </div>
+      </div>
+    `).join('');
+
+    // Subject cards
+    const grid = document.getElementById('subjectCardsGrid');
+    grid.innerHTML = summaryData.length === 0
+      ? '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#94A3B8">No attendance records yet.</div>'
+      : summaryData.map(s => {
+          const pct = parseFloat(s.percentage);
+          const color = getGaugeColor(pct);
+          const risk = pct >= THRESHOLD ? 'risk-safe' : pct >= 60 ? 'risk-warn' : 'risk-danger';
+          const riskLabel = pct >= THRESHOLD ? 'Safe' : pct >= 60 ? 'Warning' : 'Danger';
+          const circumference = 2 * Math.PI * 28;
+          const offset = circumference * (1 - pct / 100);
+          return `
+            <div class="subject-card" style="--accent:${color}">
+              <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+                <div>
+                  <div class="subject-code">${s.subject?.code || ''}</div>
+                  <div class="subject-name">${s.subject?.name || 'Subject'}</div>
+                  <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;margin-top:6px;display:inline-block" class="${risk}">${riskLabel}</span>
+                </div>
+                <div class="mini-ring">
+                  <svg viewBox="0 0 70 70">
+                    <circle class="ring-bg" cx="35" cy="35" r="28"/>
+                    <circle class="ring-fill" cx="35" cy="35" r="28" stroke="${color}"
+                      stroke-dasharray="${circumference}" stroke-dashoffset="${offset}"/>
+                  </svg>
+                  <div class="ring-text" style="color:${color}">
+                    ${Math.round(pct)}<span style="font-size:9px">%</span>
+                    <div class="ring-sub">attend</div>
+                  </div>
+                </div>
+              </div>
+              <div class="subject-stats">
+                <div class="subject-stat"><strong style="color:#10B981">${s.present}</strong><span>Present</span></div>
+                <div class="subject-stat"><strong style="color:#EF4444">${s.absent}</strong><span>Absent</span></div>
+                <div class="subject-stat"><strong style="color:#F59E0B">${s.late || 0}</strong><span>Late</span></div>
+                <div class="subject-stat"><strong style="color:#6366F1">${s.excused || 0}</strong><span>Excused</span></div>
+                <div class="subject-stat"><strong>${s.total}</strong><span>Total</span></div>
+              </div>
+              ${s.classesNeeded > 0
+                ? `<div style="background:#FEE2E2;border-radius:8px;padding:8px 10px;font-size:12px;color:#991B1B;margin-top:4px"><i class="fas fa-triangle-exclamation"></i> Need <strong>${s.classesNeeded}</strong> more classes to reach 75%</div>`
+                : `<div style="background:#D1FAE5;border-radius:8px;padding:8px 10px;font-size:12px;color:#065F46;margin-top:4px"><i class="fas fa-shield-check"></i> Can miss <strong>${s.canStillMiss}</strong> more class${s.canStillMiss!==1?'es':''}</div>`
+              }
+            </div>
+          `;
+        }).join('');
+
+    // Populate heatmap subject filter
+    const heatSel = document.getElementById('heatmapSubjectFilter');
+    summaryData.forEach(s => {
+      if (s.subject?._id) {
+        const o = document.createElement('option');
+        o.value = s.subject._id;
+        o.textContent = s.subject.name;
+        heatSel.appendChild(o);
+      }
+    });
+
+  } catch(e) {
+    document.getElementById('subjectCardsGrid').innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;color:#EF4444"><i class="fas fa-exclamation-circle"></i> ${e.message}</div>`;
+  }
+}
+
+function getGaugeColor(pct) {
+  if (pct >= 85) return '#10B981';
+  if (pct >= 75) return '#F59E0B';
+  if (pct >= 60) return '#F97316';
+  return '#EF4444';
+}
+
+function animateGauge(id, pct, color) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const circumference = 2 * Math.PI * 58;
+  el.style.strokeDasharray = circumference;
+  el.style.stroke = color;
+  setTimeout(() => {
+    el.style.strokeDashoffset = circumference * (1 - Math.max(0, Math.min(100, pct)) / 100);
+  }, 100);
+}
+
+/* ── Calendar / Heatmap ── */
+async function loadCalendar() {
+  try {
+    const data = await api.request('/attendance/calendar?days=90');
+    calendarData = data.calendar || [];
+    buildHeatmap();
+  } catch(e) {}
+}
+
+function buildHeatmap() {
+  const filterSubject = document.getElementById('heatmapSubjectFilter')?.value || '';
+  const grid = document.getElementById('heatmapGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+
+  // Build a map: date → status
+  const dateMap = {};
+  calendarData.forEach(d => {
+    if (filterSubject) {
+      const subEntry = d.subjects?.find(s => s._id === filterSubject);
+      if (subEntry) dateMap[d.date] = subEntry.status;
+    } else {
+      dateMap[d.date] = d.status;
+    }
+  });
+
+  // Generate 13 weeks back
+  const today = new Date();
+  const cells = [];
+  for (let w = 12; w >= 0; w--) {
+    for (let day = 0; day < 7; day++) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - (w * 7 + (6 - day)));
+      const dateStr = d.toISOString().slice(0, 10);
+      const status = dateMap[dateStr] || (d <= today ? 'none' : '');
+      if (status !== '') cells.push({ date: dateStr, status, dayObj: d });
+    }
+  }
+
+  cells.forEach(c => {
+    const cell = document.createElement('div');
+    cell.className = 'heatmap-cell';
+    cell.dataset.status = c.status;
+    cell.dataset.date = c.date;
+    cell.title = `${c.date}: ${c.status}`;
+    cell.addEventListener('mouseenter', showHmTooltip);
+    cell.addEventListener('mouseleave', hideHmTooltip);
+    grid.appendChild(cell);
+  });
+}
+
+function showHmTooltip(e) {
+  const tooltip = document.getElementById('hmTooltip');
+  const cell = e.currentTarget;
+  const calEntry = calendarData.find(d => d.date === cell.dataset.date);
+  let html = `<strong>${cell.dataset.date}</strong>`;
+  if (calEntry?.subjects?.length) {
+    html += '<br>' + calEntry.subjects.map(s => `${s.name || s.code}: <strong>${s.status}</strong>`).join('<br>');
+  } else {
+    html += `<br>Status: <strong>${cell.dataset.status}</strong>`;
+  }
+  tooltip.innerHTML = html;
+  tooltip.style.display = 'block';
+  tooltip.style.left = (e.clientX + 12) + 'px';
+  tooltip.style.top  = (e.clientY - 10) + 'px';
+}
+function hideHmTooltip() { document.getElementById('hmTooltip').style.display = 'none'; }
+
+/* ── Streak ── */
+async function loadStreak() {
+  try {
+    const data = await api.request('/attendance/streak');
+    document.getElementById('streakCurrent').textContent = data.currentStreak || 0;
+    document.getElementById('streakBest').textContent = data.longestStreak || 0;
+  } catch(e) {}
+}
+
+/* ── Recent Ledger ── */
+async function loadRecentLedger() {
+  try {
+    const data = await api.request('/attendance?');
+    const records = (data.attendance || []).slice(0, 20);
+    const tbody = document.getElementById('recentAttendanceBody');
+    if (!records.length) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#94A3B8;padding:30px">No attendance records found.</td></tr>';
+      return;
+    }
+    const statusBadge = { present:'att-present', absent:'att-absent', late:'att-late', excused:'att-excused' };
+    const sourceIcon  = { manual:'fa-pencil', 'smart-location':'fa-location-dot', 'face-id':'fa-face-smile', 'qr-code':'fa-qrcode' };
+    tbody.innerHTML = records.map(r => {
+      const date = new Date(r.date).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+      const badge = statusBadge[r.status] || 'badge-noclr';
+      const icon  = sourceIcon[r.source] || 'fa-circle-question';
+      return `<tr>
+        <td>${date}</td>
+        <td><strong>${r.subjectId?.name || '–'}</strong><br><span style="font-size:11px;color:#94A3B8">${r.subjectId?.code || ''}</span></td>
+        <td><span style="background:${badge==='att-present'?'#D1FAE5':badge==='att-absent'?'#FEE2E2':badge==='att-late'?'#FEF3C7':'#EDE9FE'};
+                        color:${badge==='att-present'?'#065F46':badge==='att-absent'?'#991B1B':badge==='att-late'?'#78350F':'#3730A3'};
+                        padding:2px 10px;border-radius:8px;font-size:11px;font-weight:700">${r.status}</span></td>
+        <td><i class="fas ${icon}" style="color:#6366F1;margin-right:4px"></i>${r.source || 'manual'}</td>
+        <td style="font-size:12px;color:#64748B">${r.remarks || '—'}</td>
+      </tr>`;
+    }).join('');
+  } catch(e) {}
+}
+
+/* ── Location Consent ── */
+async function loadConsentState() {
+  try {
+    const data = await api.request('/attendance/location-consent');
+    locationConsentEnabled = data.consent?.enabled || false;
+    updateConsentUI();
+  } catch(e) {}
+}
+
+function updateConsentUI() {
+  const track = document.getElementById('consentTrack');
+  const label = document.getElementById('consentLabel');
+  const btn   = document.getElementById('checkinBtn');
+  if (locationConsentEnabled) {
+    track.classList.add('on');
+    label.textContent = 'Location Consent: On';
+    btn.style.display = 'block';
+  } else {
+    track.classList.remove('on');
+    label.textContent = 'Location Consent: Off';
+    btn.style.display = 'none';
+    if (checkinInterval) { clearInterval(checkinInterval); checkinInterval = null; }
+  }
+}
+
+async function toggleLocationConsent() {
+  try {
+    const data = await api.request('/attendance/location-consent', {
+      method: 'POST',
+      body: JSON.stringify({ enabled: !locationConsentEnabled }),
+    });
+    locationConsentEnabled = data.consent?.enabled || false;
+    updateConsentUI();
+    showToast(locationConsentEnabled ? 'Location consent enabled ✓' : 'Location consent disabled', 'success');
+  } catch(e) {}
+}
+
+/* ── Smart Check-in ── */
+async function startStudentSmartAttendance() {
+  if (!locationConsentEnabled) return showToast('Enable consent first', 'warning');
+  if (!navigator.geolocation) return showToast('Geolocation not supported on this device', 'error');
+
+  const btn = document.getElementById('checkinBtn');
+  if (checkinInterval) {
+    clearInterval(checkinInterval);
+    checkinInterval = null;
+    btn.innerHTML = '<i class="fas fa-location-arrow"></i> Start Live Check-in';
+    btn.style.background = '#10B981';
+    document.getElementById('smartStatusMsg').textContent = 'Check-in stopped.';
+    return;
+  }
+
+  const doCheckin = () => {
+    navigator.geolocation.getCurrentPosition(async pos => {
+      try {
+        const result = await api.request('/attendance/live-location', {
+          method: 'POST',
+          body: JSON.stringify({
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude,
+            accuracyMeters: pos.coords.accuracy,
+          }),
+        });
+        if (result.active) {
+          document.getElementById('smartClass').textContent = result.activeSlot?.subject || '—';
+          document.getElementById('smartStatus').textContent = result.presence?.status || '—';
+          document.getElementById('smartAttendanceResult').textContent = result.presence?.autoAttendanceStatus || '—';
+          document.getElementById('smartStatusMsg').textContent =
+            `✅ Broadcasting in ${result.activeSlot?.room || 'room'}. Status: ${result.presence?.status}. Teacher: ${result.teacherPresent ? '✅ Present' : '⏳ Waiting'}`;
+        } else {
+          document.getElementById('smartStatusMsg').textContent = '🕐 No active class slot right now. Will check again in 60s.';
+        }
+      } catch(e) {}
+    }, () => showToast('Location access denied', 'error'), { enableHighAccuracy: true });
+  };
+
+  doCheckin();
+  checkinInterval = setInterval(doCheckin, 60000);
+  btn.innerHTML = '<span style="width:8px;height:8px;border-radius:50%;background:white;display:inline-block;animation:pulse-live 2s infinite;margin-right:6px"></span>Stop Check-in';
+  btn.style.background = '#EF4444';
+  showToast('Live check-in started — broadcasting every 60s', 'success');
+}
+
+// expose
+window.toggleLocationConsent = toggleLocationConsent;
+window.startStudentSmartAttendance = startStudentSmartAttendance;
+window.buildHeatmap = buildHeatmap;
+</script>
 </body>
 </html>
