@@ -1,21 +1,152 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Timetable & Smart Scheduling — Faculty | VishvaERP</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="../../css/custom.css">
   <style>
-    /* ── Timetable Custom Aesthetics ── */
+    /* ── Timetable Modern Design System ── */
+    :root {
+      --faculty-emerald: #059669;
+      --faculty-emerald-dark: #065F46;
+      --faculty-emerald-light: #ECFDF5;
+    }
+
+    /* Responsive KPI Metric Grid */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    @media (max-width: 1023px) {
+      .kpi-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+    @media (max-width: 639px) {
+      .kpi-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .kpi-card {
+      background: #FFFFFF;
+      border: 1px solid #E2E8F0;
+      border-radius: 14px;
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+      transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    .kpi-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px -4px rgba(15, 23, 42, 0.08);
+      border-color: #CBD5E1;
+    }
+
+    /* Hero Movement & Queue Split Grid */
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      gap: 20px;
+      margin-bottom: 24px;
+      align-items: stretch;
+    }
+    @media (max-width: 1023px) {
+      .hero-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Next Movement Hero */
+    .hero-movement {
+      background: linear-gradient(135deg, #064E3B 0%, #065F46 50%, #047857 100%);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 16px;
+      padding: 24px 28px;
+      color: white;
+      box-shadow: 0 12px 28px -6px rgba(5, 150, 105, 0.28);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .hero-movement::after {
+      content: '';
+      position: absolute;
+      right: -30px;
+      top: -30px;
+      width: 200px;
+      height: 200px;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.12) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    /* Queue items */
+    .flow-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      border-radius: 10px;
+      background: #F8FAFC;
+      border: 1px solid #E2E8F0;
+      margin-bottom: 8px;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .flow-item:last-child {
+      margin-bottom: 0;
+    }
+    .flow-item:hover {
+      border-color: #CBD5E1;
+      background: #FFFFFF;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.03);
+    }
+    .flow-item.active {
+      background: #ECFDF5;
+      border-color: #10B981;
+      box-shadow: 0 3px 12px rgba(16, 185, 129, 0.15);
+    }
+
+    .live-beacon {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: #10B981;
+      color: white;
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      animation: livePulse 1.8s infinite;
+    }
+    @keyframes livePulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.75; transform: scale(0.98); }
+    }
+
+    /* Timetable Table Grid Styling */
     .timetable-session {
       background: white;
-      border: 1.5px solid #E2E8F0;
+      border: 1px solid #E2E8F0;
       border-radius: 10px;
       padding: 10px 12px;
       text-align: left;
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       position: relative;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.03);
     }
     .timetable-session:hover {
       transform: translateY(-2px);
@@ -24,6 +155,7 @@
     }
     .timetable-session.is-today {
       background: #FAFDFA;
+      border-color: #A7F3D0;
     }
     .timetable-session.is-live {
       border-color: #10B981;
@@ -46,7 +178,7 @@
       font-weight: 800;
       color: #0F172A;
       margin: 2px 0 6px 0;
-      line-height: 1.3;
+      line-height: 1.35;
     }
     .session-meta {
       font-size: 11px;
@@ -57,64 +189,100 @@
       margin-bottom: 3px;
     }
 
-    /* Next Movement Hero */
-    .hero-movement {
-      background: linear-gradient(135deg, #064E3B 0%, #065F46 60%, #047857 100%);
-      border-radius: 16px;
-      padding: 24px 28px;
-      color: white;
-      box-shadow: 0 10px 25px -5px rgba(5, 150, 105, 0.3);
-      position: relative;
-      overflow: hidden;
+    /* Empty Grid Cell Hover Plus */
+    .empty-cell-btn {
+      opacity: 0;
+      transition: opacity 0.15s ease;
+      width: 100%;
+      height: 100%;
+      min-height: 70px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 8px;
+      color: #94A3B8;
+      background: transparent;
+      border: 1px dashed transparent;
+      font-size: 12px;
+      cursor: pointer;
     }
-    .hero-movement::after {
-      content: '';
-      position: absolute;
-      right: -30px;
-      top: -30px;
-      width: 180px;
-      height: 180px;
-      background: rgba(255, 255, 255, 0.06);
-      border-radius: 50%;
-      pointer-events: none;
+    td:hover .empty-cell-btn {
+      opacity: 1;
+      border-color: #CBD5E1;
+      background: #F8FAFC;
+      color: #059669;
     }
 
-    /* Queue items */
-    .flow-item {
+    /* Day Agenda Timeline View */
+    .daily-agenda-card {
+      background: #FFFFFF;
+      border: 1px solid #E2E8F0;
+      border-radius: 14px;
+      padding: 18px 22px;
+      margin-bottom: 14px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 12px 14px;
-      border-radius: 10px;
-      background: #F8FAFC;
-      border: 1px solid #E2E8F0;
-      margin-bottom: 8px;
-      transition: all 0.2s;
+      gap: 20px;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.02);
     }
-    .flow-item:hover {
+    .daily-agenda-card:hover {
       border-color: #CBD5E1;
-      background: #FFFFFF;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.06);
     }
-    .flow-item.active {
-      background: #ECFDF5;
+    .daily-agenda-card.is-live {
       border-color: #10B981;
-      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15);
+      background: #FAFDFA;
+      box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
     }
-    .live-beacon {
-      display: inline-flex;
+
+    /* Action bar buttons on session hover */
+    .session-actions {
+      display: flex;
       align-items: center;
-      gap: 6px;
-      padding: 3px 8px;
-      border-radius: 999px;
-      background: #10B981;
-      color: white;
-      font-size: 10px;
-      font-weight: 800;
-      animation: pulse 1.5s infinite;
+      gap: 4px;
+      opacity: 0.85;
+      transition: opacity 0.15s ease;
     }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.6; }
+    .timetable-session:hover .session-actions {
+      opacity: 1;
+    }
+
+    /* Filter tabs */
+    .tab-pill {
+      padding: 6px 14px;
+      font-size: 13px;
+      font-weight: 700;
+      border-radius: 8px;
+      color: #475569;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .tab-pill:hover {
+      color: #0F172A;
+      background: rgba(255,255,255,0.7);
+    }
+    .tab-pill.active {
+      color: #065F46;
+      background: #FFFFFF;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+
+    /* Print Stylesheet */
+    @media print {
+      .erp-sidebar, .erp-topbar, .tab-bar, .session-actions,
+      .no-print, button, #slotModal, #clashModal {
+        display: none !important;
+      }
+      .erp-layout { display: block !important; }
+      .erp-main { margin: 0 !important; padding: 0 !important; }
+      .erp-content { padding: 0 !important; max-width: 100% !important; }
+      .timetable-session { break-inside: avoid; border: 1px solid #000 !important; }
+      body { background: white !important; color: black !important; font-size: 10pt; }
     }
   </style>
 </head>
@@ -140,7 +308,7 @@
       <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
       <div class="nav-section-label">Teaching</div>
       <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-check"></i> Attendance</a>
-      <a href="grades.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-list"></i> Grades & Results</a>
+      <a href="grades.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-list"></i> Grades &amp; Results</a>
       <a href="assignments.html" class="nav-link"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
       <a href="timetable.html" class="nav-link active"><i class="nav-link-icon fas fa-calendar-alt"></i> Timetable</a>
       <a href="notes.html" class="nav-link"><i class="nav-link-icon fas fa-sticky-note"></i> Notes</a>
@@ -161,10 +329,10 @@
         <div class="topbar-breadcrumb">Faculty / <span>Teaching Timetable</span></div>
       </div>
       <div class="topbar-right">
-        <a href="/api/timetable/export/ics" class="btn btn-secondary btn-sm" title="Import schedule into Google Calendar, Outlook, or Apple Calendar">
-          <i class="fas fa-calendar-plus"></i> Sync to Calendar (.ICS)
-        </a>
-        <button class="btn btn-secondary btn-sm" onclick="window.print()">
+        <button class="btn btn-secondary btn-sm" onclick="exportCalendarICS()" title="Export schedule into Google Calendar, Apple Calendar, or Outlook (.ICS)">
+          <i class="fas fa-calendar-plus text-emerald-600"></i> Sync to Calendar (.ICS)
+        </button>
+        <button class="btn btn-secondary btn-sm" onclick="window.print()" title="Print weekly timetable matrix">
           <i class="fas fa-print"></i> Print
         </button>
         <button class="btn btn-primary btn-sm" onclick="openAddSlotModal()" style="background:#059669;border-color:#059669">
@@ -175,79 +343,87 @@
     </header>
 
     <div class="erp-content" style="padding:24px 28px;max-width:1440px;margin:0 auto">
-      <!-- Page Header -->
+      
+      <!-- Page Header with Conflict Status & Academic Term Pill -->
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;flex-wrap:wrap;gap:12px">
         <div>
           <h1 class="page-title" style="font-size:24px;font-weight:800;color:#0F172A;display:flex;align-items:center;gap:10px">
-            <span>📅</span> Teaching Schedule & Slot Allocation
+            <span>📅</span> Teaching Schedule &amp; Slot Allocation
           </h1>
           <p class="page-subtitle" style="color:#64748B;font-size:14px;margin-top:2px">
             Weekly lecture grid, classroom movements, automated clash auditing, and live classroom tracking.
           </p>
         </div>
-        <div style="display:flex;align-items:center;gap:10px">
-          <span class="badge" style="background:#ECFDF5;color:#059669;font-weight:700;font-size:12px;padding:6px 12px;border:1px solid #A7F3D0">
-            <i class="fas fa-circle" style="font-size:8px;margin-right:6px"></i><span id="liveClock">Loading time...</span>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <span class="badge" style="background:#F1F5F9;color:#334155;font-weight:700;font-size:12px;padding:6px 12px;border:1px solid #E2E8F0">
+            <i class="fas fa-graduation-cap" style="color:#059669;margin-right:6px"></i>2026-27 • Semester 4
+          </span>
+          <span class="badge cursor-pointer" id="clashStatusBadge" onclick="openClashModal()" style="background:#ECFDF5;color:#059669;font-weight:700;font-size:12px;padding:6px 12px;border:1px solid #A7F3D0" title="Click to audit scheduling clashes">
+            <i class="fas fa-shield-check" style="margin-right:6px"></i><span id="clashStatusText">Conflict-Free</span>
           </span>
         </div>
       </div>
 
-      <!-- 4 Top Executive Stats -->
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:24px">
-        <div class="card" style="padding:18px;display:flex;align-items:center;gap:16px">
-          <div style="width:46px;height:46px;border-radius:12px;background:#D1FAE5;color:#065F46;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">
+      <!-- 4 Balanced Executive KPI Stat Cards (Responsive 4-col desktop, 2-col tablet, 1-col mobile) -->
+      <div class="kpi-grid">
+        <!-- Card 1: Weekly Classes -->
+        <div class="kpi-card">
+          <div style="width:48px;height:48px;border-radius:12px;background:#D1FAE5;color:#065F46;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">
             <i class="fas fa-chalkboard-teacher"></i>
           </div>
           <div>
-            <div style="font-size:11px;font-weight:700;color:#64748B;text-transform:uppercase">Weekly Classes</div>
-            <div style="font-size:24px;font-weight:900;color:#0F172A" id="statWeeklySlots">0</div>
-            <div style="font-size:11px;color:#10B981;font-weight:600">Active teaching slots</div>
+            <div style="font-size:11px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.5px">Weekly Classes</div>
+            <div style="font-size:24px;font-weight:900;color:#0F172A;line-height:1.2" id="statWeeklySlots">0</div>
+            <div style="font-size:11px;color:#10B981;font-weight:600;margin-top:2px">Active teaching slots</div>
           </div>
         </div>
 
-        <div class="card" style="padding:18px;display:flex;align-items:center;gap:16px">
-          <div style="width:46px;height:46px;border-radius:12px;background:#EDE9FE;color:#5B21B6;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">
+        <!-- Card 2: Teaching Hours -->
+        <div class="kpi-card">
+          <div style="width:48px;height:48px;border-radius:12px;background:#EDE9FE;color:#5B21B6;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">
             <i class="fas fa-clock"></i>
           </div>
           <div>
-            <div style="font-size:11px;font-weight:700;color:#64748B;text-transform:uppercase">Teaching Hours</div>
-            <div style="font-size:24px;font-weight:900;color:#5B21B6" id="statTeachingHours">0h</div>
-            <div style="font-size:11px;color:#7C3AED;font-weight:600">Weekly contact load</div>
+            <div style="font-size:11px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.5px">Teaching Hours</div>
+            <div style="font-size:24px;font-weight:900;color:#5B21B6;line-height:1.2" id="statTeachingHours">0h</div>
+            <div style="font-size:11px;color:#7C3AED;font-weight:600;margin-top:2px">Weekly contact load</div>
           </div>
         </div>
 
-        <div class="card" style="padding:18px;display:flex;align-items:center;gap:16px">
-          <div style="width:46px;height:46px;border-radius:12px;background:#DBEAFE;color:#1E40AF;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">
+        <!-- Card 3: Course Subjects -->
+        <div class="kpi-card">
+          <div style="width:48px;height:48px;border-radius:12px;background:#DBEAFE;color:#1E40AF;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">
             <i class="fas fa-book-open"></i>
           </div>
           <div>
-            <div style="font-size:11px;font-weight:700;color:#64748B;text-transform:uppercase">Course Subjects</div>
-            <div style="font-size:24px;font-weight:900;color:#1E40AF" id="statSubjectCount">0</div>
-            <div style="font-size:11px;color:#2563EB;font-weight:600">Distinct curriculums</div>
+            <div style="font-size:11px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.5px">Course Subjects</div>
+            <div style="font-size:24px;font-weight:900;color:#1E40AF;line-height:1.2" id="statSubjectCount">0</div>
+            <div style="font-size:11px;color:#2563EB;font-weight:600;margin-top:2px">Distinct curriculums</div>
           </div>
         </div>
 
-        <div class="card" style="padding:18px;display:flex;align-items:center;gap:16px">
-          <div style="width:46px;height:46px;border-radius:12px;background:#FEF3C7;color:#92400E;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">
+        <!-- Card 4: Today's Load (Properly aligned in row!) -->
+        <div class="kpi-card">
+          <div style="width:48px;height:48px;border-radius:12px;background:#FEF3C7;color:#92400E;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0">
             <i class="fas fa-calendar-day"></i>
           </div>
           <div>
-            <div style="font-size:11px;font-weight:700;color:#64748B;text-transform:uppercase">Today's Load</div>
-            <div style="font-size:24px;font-weight:900;color:#92400E" id="statTodayCount">0</div>
-            <div style="font-size:11px;color:#D97706;font-weight:600">Scheduled lectures today</div>
+            <div style="font-size:11px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.5px">Today's Load</div>
+            <div style="font-size:24px;font-weight:900;color:#92400E;line-height:1.2" id="statTodayCount">0</div>
+            <div style="font-size:11px;color:#D97706;font-weight:600;margin-top:2px" id="statTodaySub">Scheduled lectures today</div>
           </div>
         </div>
       </div>
 
-      <!-- Next Teaching Movement Hero & Today Queue Grid -->
-      <div style="display:grid;grid-template-columns:1.4fr 1fr;gap:20px;margin-bottom:24px;align-items:stretch">
+      <!-- Next Teaching Movement Hero & Today's Class Queue (Balanced heights & typography) -->
+      <div class="hero-grid">
         
         <!-- Left Hero: Next Class Beacon -->
-        <div class="hero-movement" style="display:flex;flex-direction:column;justify-content:space-between">
+        <div class="hero-movement">
           <div>
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-              <span style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#A7F3D0">
-                <i class="fas fa-satellite-dish" style="margin-right:6px"></i>Next Teaching Movement
+              <span style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#A7F3D0;display:flex;align-items:center;gap:6px">
+                <i class="fas fa-satellite-dish"></i>Next Teaching Movement
               </span>
               <span id="heroLiveTag" class="live-beacon" style="display:none">
                 <i class="fas fa-broadcast-tower"></i> CLASS IN SESSION NOW
@@ -263,88 +439,145 @@
           </div>
 
           <!-- Bottom Ribbon in Hero -->
-          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;border-top:1px solid rgba(255,255,255,0.15);padding-top:16px">
-            <div style="display:flex;gap:20px">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;border-top:1px solid rgba(255,255,255,0.18);padding-top:16px">
+            <div style="display:flex;gap:24px;flex-wrap:wrap">
               <div>
-                <span style="font-size:11px;color:#A7F3D0;display:block">Room:</span>
+                <span style="font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:#A7F3D0;display:block;font-weight:700">Room</span>
                 <strong style="font-size:14px" id="heroRoomText">--</strong>
               </div>
               <div>
-                <span style="font-size:11px;color:#A7F3D0;display:block">Batch:</span>
+                <span style="font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:#A7F3D0;display:block;font-weight:700">Batch</span>
                 <strong style="font-size:14px" id="heroBatchText">--</strong>
               </div>
               <div>
-                <span style="font-size:11px;color:#A7F3D0;display:block">Type:</span>
+                <span style="font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:#A7F3D0;display:block;font-weight:700">Type</span>
                 <strong style="font-size:14px" id="heroTypeText">Lecture</strong>
               </div>
             </div>
 
-            <button class="btn btn-sm btn-light" id="heroAttendanceBtn" onclick="takeClassAttendance()" style="background:white;color:#065F46;font-weight:800;border:none">
-              <i class="fas fa-user-check" style="margin-right:6px"></i> Take Attendance
-            </button>
+            <div style="display:flex;gap:8px;align-items:center">
+              <button class="btn btn-sm" id="heroAttendanceBtn" onclick="takeClassAttendance()" style="background:#FFFFFF;color:#065F46;font-weight:800;border:none;box-shadow:0 2px 8px rgba(0,0,0,0.1)">
+                <i class="fas fa-user-check" style="margin-right:6px"></i> Take Attendance
+              </button>
+            </div>
           </div>
         </div>
 
         <!-- Right Card: Today's Queue -->
-        <div class="card" style="padding:20px;display:flex;flex-direction:column">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-            <h3 style="font-size:15px;font-weight:800;color:#0F172A">
-              <i class="fas fa-list-ol" style="color:#059669;margin-right:6px"></i>Today's Class Queue
-            </h3>
-            <span class="badge badge-gray" id="todayDayName" style="font-size:11px">Monday</span>
+        <div class="card" style="padding:20px;display:flex;flex-direction:column;justify-content:space-between;border-radius:16px;border:1px solid #E2E8F0;box-shadow:0 1px 3px rgba(0,0,0,0.04)">
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+              <h3 style="font-size:15px;font-weight:800;color:#0F172A;display:flex;align-items:center;gap:6px">
+                <i class="fas fa-list-ol text-emerald-600"></i> Today's Class Queue
+              </h3>
+              <span class="badge badge-gray" id="todayDayName" style="font-size:11px;font-weight:700">Friday</span>
+            </div>
+
+            <div id="todayQueueList" style="overflow-y:auto;max-height:185px;padding-right:2px">
+              <!-- Rendered via JS -->
+            </div>
           </div>
 
-          <div id="todayQueueList" style="flex:1;overflow-y:auto;max-height:180px">
-            <!-- Rendered via JS -->
+          <div style="margin-top:12px;padding-top:10px;border-top:1px solid #F1F5F9;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#64748B">
+            <span id="todaySummaryCount"><i class="fas fa-circle-info mr-1 text-emerald-500"></i>0 classes scheduled today</span>
+            <button class="text-emerald-700 hover:text-emerald-800 font-bold" onclick="filterByDay('today')" style="background:none;border:none;cursor:pointer">
+              View Today's Agenda &rarr;
+            </button>
           </div>
         </div>
 
       </div>
 
-      <!-- Weekly Matrix Tabs & Controls -->
-      <div style="background:white;border:1px solid #E2E8F0;border-radius:12px;padding:14px 18px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
-        <div class="tab-bar" style="border:1px solid #E2E8F0;border-radius:8px;padding:2px;background:#F8FAFC">
-          <button class="tab-btn active" id="tabDayAll" onclick="filterByDay('all')">Full Week</button>
-          <button class="tab-btn" id="tabDayMon" onclick="filterByDay('Monday')">Mon</button>
-          <button class="tab-btn" id="tabDayTue" onclick="filterByDay('Tuesday')">Tue</button>
-          <button class="tab-btn" id="tabDayWed" onclick="filterByDay('Wednesday')">Wed</button>
-          <button class="tab-btn" id="tabDayThu" onclick="filterByDay('Thursday')">Thu</button>
-          <button class="tab-btn" id="tabDayFri" onclick="filterByDay('Friday')">Fri</button>
-          <button class="tab-btn" id="tabDaySat" onclick="filterByDay('Saturday')">Sat</button>
+      <!-- Controls & Filter Toolbar (Day tabs + Search + Legend) -->
+      <div style="background:white;border:1px solid #E2E8F0;border-radius:14px;padding:12px 18px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;box-shadow:0 1px 3px rgba(0,0,0,0.02)">
+        
+        <!-- Day Navigation Tabs -->
+        <div class="tab-bar" style="border:1px solid #E2E8F0;border-radius:10px;padding:3px;background:#F1F5F9;display:flex;gap:2px;overflow-x:auto">
+          <button class="tab-pill active" id="tabDayAll" onclick="filterByDay('all')">Full Week</button>
+          <button class="tab-pill" id="tabDayMon" onclick="filterByDay('Monday')">Mon</button>
+          <button class="tab-pill" id="tabDayTue" onclick="filterByDay('Tuesday')">Tue</button>
+          <button class="tab-pill" id="tabDayWed" onclick="filterByDay('Wednesday')">Wed</button>
+          <button class="tab-pill" id="tabDayThu" onclick="filterByDay('Thursday')">Thu</button>
+          <button class="tab-pill" id="tabDayFri" onclick="filterByDay('Friday')">Fri</button>
+          <button class="tab-pill" id="tabDaySat" onclick="filterByDay('Saturday')">Sat</button>
         </div>
 
-        <div style="display:flex;align-items:center;gap:12px;font-size:12px;color:#64748B">
-          <span style="display:flex;align-items:center;gap:6px">
-            <span style="width:10px;height:10px;border-radius:2px;background:#059669"></span> Theory Lecture
-          </span>
-          <span style="display:flex;align-items:center;gap:6px">
-            <span style="width:10px;height:10px;border-radius:2px;background:#7C3AED"></span> Practical Lab
-          </span>
-          <span style="display:flex;align-items:center;gap:6px">
-            <span style="width:10px;height:10px;border-radius:2px;background:#D97706"></span> Tutorial
-          </span>
+        <!-- Search & Filter Controls -->
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+          <!-- Search box -->
+          <div style="position:relative;width:200px">
+            <i class="fas fa-search" style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px;color:#94A3B8"></i>
+            <input type="text" id="filterSearchInput" oninput="applyFilters()" placeholder="Search subject, room..." 
+                   style="width:100%;padding:6px 10px 6px 28px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;background:#F8FAFC;outline:none">
+          </div>
+
+          <!-- Type Filter -->
+          <select id="filterTypeSelect" onchange="applyFilters()" style="padding:6px 10px;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;background:#F8FAFC;color:#475569;font-weight:600;outline:none">
+            <option value="all">All Types</option>
+            <option value="lecture">Lecture (Theory)</option>
+            <option value="lab">Practical Lab</option>
+            <option value="tutorial">Tutorial / Remedial</option>
+          </select>
+
+          <!-- Legend -->
+          <div style="display:flex;align-items:center;gap:12px;font-size:11px;font-weight:700;color:#64748B">
+            <span style="display:flex;align-items:center;gap:5px">
+              <span style="width:10px;height:10px;border-radius:2px;background:#059669"></span> Theory
+            </span>
+            <span style="display:flex;align-items:center;gap:5px">
+              <span style="width:10px;height:10px;border-radius:2px;background:#7C3AED"></span> Lab
+            </span>
+            <span style="display:flex;align-items:center;gap:5px">
+              <span style="width:10px;height:10px;border-radius:2px;background:#D97706"></span> Tutorial
+            </span>
+          </div>
         </div>
       </div>
 
-      <!-- Weekly Timetable Table Grid -->
-      <div class="card" style="padding:0;overflow:hidden">
-        <div class="table-wrap">
-          <table class="erp-table text-left" id="ttTable" style="margin:0">
+      <!-- VIEW 1: Weekly Timetable Table Grid (Shown in "Full Week" mode) -->
+      <div id="fullWeekViewContainer" class="card" style="padding:0;overflow:hidden;border:1px solid #E2E8F0;border-radius:14px">
+        <div class="table-wrap" style="overflow-x:auto">
+          <table class="erp-table text-left" id="ttTable" style="margin:0;width:100%;border-collapse:collapse">
             <thead>
               <tr style="background:#F8FAFC">
-                <th style="width:130px;padding:14px 16px;border-bottom:2px solid #E2E8F0;color:#475569;font-size:12px;text-transform:uppercase">Time Slot</th>
-                <th class="col-day col-Monday" style="padding:14px 16px;border-bottom:2px solid #E2E8F0;color:#475569;font-size:12px;text-transform:uppercase">Monday</th>
-                <th class="col-day col-Tuesday" style="padding:14px 16px;border-bottom:2px solid #E2E8F0;color:#475569;font-size:12px;text-transform:uppercase">Tuesday</th>
-                <th class="col-day col-Wednesday" style="padding:14px 16px;border-bottom:2px solid #E2E8F0;color:#475569;font-size:12px;text-transform:uppercase">Wednesday</th>
-                <th class="col-day col-Thursday" style="padding:14px 16px;border-bottom:2px solid #E2E8F0;color:#475569;font-size:12px;text-transform:uppercase">Thursday</th>
-                <th class="col-day col-Friday" style="padding:14px 16px;border-bottom:2px solid #E2E8F0;color:#475569;font-size:12px;text-transform:uppercase">Friday</th>
-                <th class="col-day col-Saturday" style="padding:14px 16px;border-bottom:2px solid #E2E8F0;color:#475569;font-size:12px;text-transform:uppercase">Saturday</th>
+                <th style="width:125px;padding:14px 16px;border-bottom:2px solid #E2E8F0;color:#475569;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px">Time Slot</th>
+                <th class="col-day col-Monday" style="padding:14px 16px;border-bottom:2px solid #E2E8F0;color:#475569;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px" id="th-Monday">Monday</th>
+                <th class="col-day col-Tuesday" style="padding:14px 16px;border-bottom:2px solid #E2E8F0;color:#475569;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px" id="th-Tuesday">Tuesday</th>
+                <th class="col-day col-Wednesday" style="padding:14px 16px;border-bottom:2px solid #E2E8F0;color:#475569;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px" id="th-Wednesday">Wednesday</th>
+                <th class="col-day col-Thursday" style="padding:14px 16px;border-bottom:2px solid #E2E8F0;color:#475569;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px" id="th-Thursday">Thursday</th>
+                <th class="col-day col-Friday" style="padding:14px 16px;border-bottom:2px solid #E2E8F0;color:#475569;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px" id="th-Friday">Friday</th>
+                <th class="col-day col-Saturday" style="padding:14px 16px;border-bottom:2px solid #E2E8F0;color:#475569;font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:0.5px" id="th-Saturday">Saturday</th>
               </tr>
             </thead>
             <tbody id="ttBody">
               <!-- Rendered via JS -->
             </tbody>
           </table>
+        </div>
+      </div>
+
+      <!-- VIEW 2: Daily Agenda Timeline (Shown when a specific day like Mon, Tue, etc. is selected) -->
+      <div id="dailyAgendaViewContainer" style="display:none">
+        <!-- Daily Agenda Header Banner -->
+        <div style="background:white;border:1px solid #E2E8F0;border-radius:14px;padding:18px 24px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+          <div>
+            <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#059669">Daily Lecture Agenda</div>
+            <h2 style="font-size:20px;font-weight:900;color:#0F172A;margin-top:2px" id="dailyAgendaDayTitle">Tuesday Schedule</h2>
+            <div style="font-size:13px;color:#64748B" id="dailyAgendaDayMeta">1 lecture • 2 teaching hours</div>
+          </div>
+          <div style="display:flex;gap:10px">
+            <button class="btn btn-secondary btn-sm" onclick="filterByDay('all')">
+              <i class="fas fa-table-cells mr-1"></i> Switch to Full Week
+            </button>
+            <button class="btn btn-primary btn-sm" onclick="openAddSlotForSelectedDay()" style="background:#059669;border-color:#059669">
+              <i class="fas fa-plus mr-1"></i> Add Slot for <span id="addSlotDayBtnName">Tuesday</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Timeline Cards List -->
+        <div id="dailyAgendaList">
+          <!-- Rendered via JS -->
         </div>
       </div>
 
@@ -356,38 +589,38 @@
      ADD / EDIT TIMETABLE SLOT MODAL
 ======================================================== -->
 <div class="modal-backdrop" id="slotModal">
-  <div class="modal modal-lg">
-    <div class="modal-header" style="background:#F8FAFC;border-bottom:1px solid #E2E8F0">
-      <div class="modal-title" id="slotModalTitle">
-        <i class="fas fa-plus-circle" style="color:#059669;margin-right:8px"></i>Add Timetable Slot
+  <div class="modal modal-lg" style="border-radius:16px;overflow:hidden;box-shadow:0 20px 40px rgba(0,0,0,0.18)">
+    <div class="modal-header" style="background:#F8FAFC;border-bottom:1px solid #E2E8F0;padding:18px 24px">
+      <div class="modal-title" id="slotModalTitle" style="font-size:17px;font-weight:800;color:#0F172A">
+        <i class="fas fa-plus-circle text-emerald-600 mr-2"></i>Add Timetable Slot
       </div>
       <button class="modal-close" onclick="closeModal('slotModal')"><i class="fas fa-times"></i></button>
     </div>
     <div class="modal-body" style="padding:22px 24px">
       <input type="hidden" id="editSlotId" value="">
 
-      <!-- Conflict Warning Banner -->
-      <div id="clashWarningBanner" style="display:none;background:#FEF2F2;border:1px solid #FECACA;border-radius:10px;padding:12px 16px;margin-bottom:16px">
-        <div style="display:flex;align-items:flex-start;gap:10px">
-          <i class="fas fa-exclamation-triangle" style="color:#EF4444;font-size:18px;margin-top:2px"></i>
+      <!-- Real-time Conflict Warning Banner -->
+      <div id="clashWarningBanner" style="display:none;background:#FEF2F2;border:1px solid #FECACA;border-radius:12px;padding:14px 18px;margin-bottom:18px">
+        <div style="display:flex;align-items:flex-start;gap:12px">
+          <i class="fas fa-triangle-exclamation" style="color:#EF4444;font-size:20px;margin-top:2px"></i>
           <div>
-            <div style="font-weight:700;color:#991B1B;font-size:13px" id="clashTitle">Scheduling Clash Detected!</div>
-            <div style="font-size:12px;color:#7F1D1D;line-height:1.4" id="clashDesc"></div>
+            <div style="font-weight:800;color:#991B1B;font-size:13px" id="clashTitle">Scheduling Conflict Detected!</div>
+            <div style="font-size:12px;color:#7F1D1D;line-height:1.4;margin-top:2px" id="clashDesc"></div>
           </div>
         </div>
       </div>
 
-      <div class="form-grid-2" style="margin-bottom:16px">
-        <div class="form-group">
-          <label class="form-label" style="font-weight:700;font-size:13px">Subject *</label>
-          <select class="form-control" id="formSubject" required>
+      <div class="form-grid-2" style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:16px">
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label" style="font-weight:700;font-size:13px;color:#334155">Subject *</label>
+          <select class="form-control" id="formSubject" onchange="checkModalLiveClash()" required style="border-radius:8px">
             <option value="">Select Subject...</option>
           </select>
         </div>
-        <div class="form-group">
-          <label class="form-label" style="font-weight:700;font-size:13px">Semester / Batch *</label>
-          <select class="form-control" id="formSemester">
-            <option value="4">Semester 4</option>
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label" style="font-weight:700;font-size:13px;color:#334155">Semester / Batch *</label>
+          <select class="form-control" id="formSemester" onchange="checkModalLiveClash()" style="border-radius:8px">
+            <option value="4">Semester 4 (Batch 2024-28)</option>
             <option value="1">Semester 1</option>
             <option value="2">Semester 2</option>
             <option value="3">Semester 3</option>
@@ -399,10 +632,10 @@
         </div>
       </div>
 
-      <div class="form-grid-3" style="margin-bottom:16px">
-        <div class="form-group">
-          <label class="form-label" style="font-weight:700;font-size:13px">Day of Week *</label>
-          <select class="form-control" id="formDay">
+      <div class="form-grid-3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px">
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label" style="font-weight:700;font-size:13px;color:#334155">Day of Week *</label>
+          <select class="form-control" id="formDay" onchange="checkModalLiveClash()" style="border-radius:8px">
             <option value="Monday">Monday</option>
             <option value="Tuesday">Tuesday</option>
             <option value="Wednesday">Wednesday</option>
@@ -411,40 +644,68 @@
             <option value="Saturday">Saturday</option>
           </select>
         </div>
-        <div class="form-group">
-          <label class="form-label" style="font-weight:700;font-size:13px">Start Time *</label>
-          <input class="form-control" type="time" id="formStart" value="09:00" required>
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label" style="font-weight:700;font-size:13px;color:#334155">Start Time *</label>
+          <input class="form-control" type="time" id="formStart" value="09:00" onchange="checkModalLiveClash()" required style="border-radius:8px">
         </div>
-        <div class="form-group">
-          <label class="form-label" style="font-weight:700;font-size:13px">End Time *</label>
-          <input class="form-control" type="time" id="formEnd" value="10:00" required>
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label" style="font-weight:700;font-size:13px;color:#334155">End Time *</label>
+          <input class="form-control" type="time" id="formEnd" value="10:00" onchange="checkModalLiveClash()" required style="border-radius:8px">
         </div>
       </div>
 
-      <div class="form-grid-3" style="margin-bottom:8px">
-        <div class="form-group">
-          <label class="form-label" style="font-weight:700;font-size:13px">Room / Lab *</label>
-          <input class="form-control" id="formRoom" placeholder="e.g. Room 302 or Lab 4" required>
+      <div class="form-grid-3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:12px">
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label" style="font-weight:700;font-size:13px;color:#334155">Room / Lab *</label>
+          <input class="form-control" id="formRoom" list="roomSuggestions" placeholder="e.g. Room 302 or Lab 2" oninput="checkModalLiveClash()" required style="border-radius:8px">
+          <datalist id="roomSuggestions">
+            <option value="Room 302"></option>
+            <option value="Room 304"></option>
+            <option value="Room 205"></option>
+            <option value="Computing Lab 2"></option>
+            <option value="Database Lab 1"></option>
+            <option value="Seminar Hall A"></option>
+          </datalist>
         </div>
-        <div class="form-group">
-          <label class="form-label" style="font-weight:700;font-size:13px">Slot Type</label>
-          <select class="form-control" id="formType">
-            <option value="lecture">Lecture</option>
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label" style="font-weight:700;font-size:13px;color:#334155">Slot Type</label>
+          <select class="form-control" id="formType" style="border-radius:8px">
+            <option value="lecture">Lecture (Theory)</option>
             <option value="lab">Practical Lab</option>
-            <option value="tutorial">Tutorial</option>
+            <option value="tutorial">Tutorial / Remedial</option>
           </select>
         </div>
-        <div class="form-group">
-          <label class="form-label" style="font-weight:700;font-size:13px">Academic Year</label>
-          <input class="form-control" id="formYear" value="2026-27">
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label" style="font-weight:700;font-size:13px;color:#334155">Academic Year</label>
+          <input class="form-control" id="formYear" value="2026-27" style="border-radius:8px">
         </div>
       </div>
     </div>
-    <div class="modal-footer" style="background:#F8FAFC;border-top:1px solid #E2E8F0;padding:14px 24px">
+    <div class="modal-footer" style="background:#F8FAFC;border-top:1px solid #E2E8F0;padding:14px 24px;display:flex;justify-content:flex-end;gap:12px">
       <button class="btn btn-secondary" onclick="closeModal('slotModal')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveSlot()" id="saveSlotBtn" style="background:#059669;border-color:#059669">
-        <i class="fas fa-check"></i> Save Timetable Slot
+      <button class="btn btn-primary" onclick="saveSlot()" id="saveSlotBtn" style="background:#059669;border-color:#059669;font-weight:700">
+        <i class="fas fa-check mr-1"></i> Save Timetable Slot
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================================
+     CLASH AUDIT MODAL
+======================================================== -->
+<div class="modal-backdrop" id="clashModal">
+  <div class="modal modal-md" style="border-radius:16px;overflow:hidden">
+    <div class="modal-header" style="background:#F8FAFC;border-bottom:1px solid #E2E8F0;padding:16px 20px">
+      <div class="modal-title" style="font-size:16px;font-weight:800;color:#0F172A">
+        <i class="fas fa-shield-check text-emerald-600 mr-2"></i>Schedule Conflict Audit
+      </div>
+      <button class="modal-close" onclick="closeModal('clashModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body" style="padding:20px" id="clashModalBody">
+      <!-- Injected via JS -->
+    </div>
+    <div class="modal-footer" style="background:#F8FAFC;border-top:1px solid #E2E8F0;padding:12px 20px">
+      <button class="btn btn-secondary btn-sm" onclick="closeModal('clashModal')">Close</button>
     </div>
   </div>
 </div>
@@ -458,6 +719,8 @@
   let availableSubjects = [];
   let selectedDayFilter = 'all';
   let activeNextSlot = null;
+  let activeSearchTerm = '';
+  let activeTypeFilter = 'all';
 
   const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const DAY_KEYS = { Monday: 'mon', Tuesday: 'tue', Wednesday: 'wed', Thursday: 'thu', Friday: 'fri', Saturday: 'sat' };
@@ -533,22 +796,19 @@
   ];
 
   document.addEventListener('DOMContentLoaded', async () => {
-    startLiveClock();
+    highlightCurrentDayHeader();
     await loadSubjects();
     await loadTimetableData();
   });
 
-  function startLiveClock() {
-    const clockEl = document.getElementById('liveClock');
-    const update = () => {
-      const now = new Date();
-      if (clockEl) {
-        clockEl.textContent = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) + 
-          ' • ' + now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      }
-    };
-    update();
-    setInterval(update, 1000);
+  function highlightCurrentDayHeader() {
+    const now = new Date();
+    const todayName = DAYS[now.getDay() === 0 ? 5 : now.getDay() - 1] || 'Monday';
+    const th = document.getElementById('th-' + todayName);
+    if (th) {
+      th.innerHTML = `${todayName} <span class="badge" style="background:#ECFDF5;color:#059669;font-size:9px;padding:2px 5px;margin-left:4px;border:1px solid #A7F3D0">TODAY</span>`;
+      th.style.background = '#F0FDF4';
+    }
   }
 
   async function loadSubjects() {
@@ -574,7 +834,7 @@
     const select = document.getElementById('formSubject');
     if (select) {
       select.innerHTML = '<option value="">Select Subject...</option>' + 
-        availableSubjects.map(s => `<option value="${s._id}">${s.code} • ${s.name} (Sem ${s.semester})</option>`).join('');
+        availableSubjects.map(s => `<option value="${s._id}">${s.code} • ${s.name} (Sem ${s.semester || 4})</option>`).join('');
     }
   }
 
@@ -590,9 +850,10 @@
       timetableSlots = MOCK_FACULTY_TIMETABLE;
     }
 
-    renderTimetableGrid();
+    renderCurrentView();
     renderHeroAndTodayQueue();
     updateKPIs();
+    auditScheduleConflicts();
   }
 
   function updateKPIs() {
@@ -612,14 +873,16 @@
     const hours = (totalMinutes / 60).toFixed(totalMinutes % 60 ? 1 : 0);
 
     const now = new Date();
-    const todayName = DAYS[now.getDay() === 0 ? 6 : now.getDay() - 1] || 'Monday';
+    const todayName = DAYS[now.getDay() === 0 ? 5 : now.getDay() - 1] || 'Monday';
     const todaySlots = timetableSlots.filter(s => s.dayOfWeek === todayName);
 
     document.getElementById('statWeeklySlots').textContent = totalSlots;
     document.getElementById('statTeachingHours').textContent = `${hours}h`;
     document.getElementById('statSubjectCount').textContent = subjectsSet.size;
     document.getElementById('statTodayCount').textContent = todaySlots.length;
+    document.getElementById('statTodaySub').textContent = `${todayName} lectures`;
     document.getElementById('todayDayName').textContent = todayName;
+    document.getElementById('todaySummaryCount').innerHTML = `<i class="fas fa-circle-info mr-1 text-emerald-500"></i>${todaySlots.length} lecture${todaySlots.length === 1 ? '' : 's'} scheduled on ${todayName}`;
   }
 
   function timeToMin(timeStr) {
@@ -628,10 +891,16 @@
     return (h || 0) * 60 + (m || 0);
   }
 
+  function minToTime(minutes) {
+    const h = Math.floor(minutes / 60);
+    const m = minutes % 60;
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  }
+
   function renderHeroAndTodayQueue() {
     const now = new Date();
     const currentMin = now.getHours() * 60 + now.getMinutes();
-    const todayName = DAYS[now.getDay() === 0 ? 6 : now.getDay() - 1] || 'Monday';
+    const todayName = DAYS[now.getDay() === 0 ? 5 : now.getDay() - 1] || 'Monday';
 
     const todaySlots = timetableSlots
       .filter(s => s.dayOfWeek === todayName)
@@ -641,9 +910,10 @@
     
     if (todaySlots.length === 0) {
       queueContainer.innerHTML = `
-        <div style="text-align:center;padding:24px;color:#94A3B8;font-size:13px">
-          <i class="fas fa-coffee" style="font-size:24px;margin-bottom:8px;display:block"></i>
-          No teaching lectures scheduled for today (${todayName}).
+        <div style="text-align:center;padding:24px 16px;color:#94A3B8;font-size:13px;background:#F8FAFC;border-radius:10px;border:1px dashed #E2E8F0">
+          <i class="fas fa-mug-hot" style="font-size:24px;color:#10B981;margin-bottom:8px;display:block"></i>
+          <strong>No lectures scheduled today (${todayName})</strong>
+          <div style="font-size:11px;color:#64748B;margin-top:4px">Enjoy your preparation time or schedule an extra session.</div>
         </div>
       `;
     } else {
@@ -653,27 +923,33 @@
         const isLive = currentMin >= start && currentMin <= end;
         const isPast = currentMin > end;
 
-        let statusPill = `<span class="badge badge-info" style="font-size:10px">Upcoming</span>`;
+        let statusPill = `<span class="badge badge-info" style="font-size:10px;padding:3px 8px">Upcoming</span>`;
         if (isLive) {
-          statusPill = `<span class="live-beacon">● Live Now</span>`;
+          statusPill = `<span class="live-beacon">Live Now</span>`;
         } else if (isPast) {
-          statusPill = `<span class="badge badge-gray" style="font-size:10px">Completed</span>`;
+          statusPill = `<span class="badge badge-gray" style="font-size:10px;padding:3px 8px"><i class="fas fa-check mr-1 text-emerald-600"></i>Completed</span>`;
         }
 
         const typeColor = s.type === 'lab' ? '#7C3AED' : (s.type === 'tutorial' ? '#D97706' : '#059669');
+        const duration = Math.max(end - start, 0);
 
         return `
           <div class="flow-item ${isLive ? 'active' : ''}">
-            <div style="display:flex;align-items:center;gap:10px">
-              <span style="width:8px;height:8px;border-radius:50%;background:${typeColor}"></span>
+            <div style="display:flex;align-items:center;gap:12px">
+              <span style="width:10px;height:10px;border-radius:50%;background:${typeColor};flex-shrink:0" title="${s.type || 'lecture'}"></span>
               <div>
-                <div style="font-size:13px;font-weight:800;color:#0F172A">${s.startTime} - ${s.endTime}</div>
-                <div style="font-size:12px;color:#64748B;font-weight:600">${s.subjectId?.code || 'CS'} • ${s.subjectId?.name || 'Class'}</div>
+                <div style="font-size:13px;font-weight:800;color:#0F172A">
+                  ${s.startTime} - ${s.endTime}
+                  <span style="font-size:10px;color:#64748B;font-weight:600;margin-left:4px">(${duration}m)</span>
+                </div>
+                <div style="font-size:12px;color:#475569;font-weight:600">${s.subjectId?.code || 'CS'} • ${s.subjectId?.name || 'Class'}</div>
               </div>
             </div>
-            <div style="text-align:right">
+            <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end">
               <div>${statusPill}</div>
-              <div style="font-size:11px;color:#64748B;margin-top:3px"><i class="fas fa-location-dot"></i> ${s.room || 'Room TBD'}</div>
+              <div style="font-size:11px;color:#64748B;margin-top:3px;display:flex;align-items:center;gap:4px">
+                <i class="fas fa-location-dot text-emerald-600"></i> ${s.room || 'Room TBD'}
+              </div>
             </div>
           </div>
         `;
@@ -681,7 +957,6 @@
     }
 
     // Hero: Find Next Class
-    // 1. Is there a class live right now?
     let activeClass = todaySlots.find(s => currentMin >= timeToMin(s.startTime) && currentMin <= timeToMin(s.endTime));
     let nextUpcoming = todaySlots.find(s => timeToMin(s.startTime) > currentMin);
 
@@ -691,15 +966,18 @@
     const heroBatch = document.getElementById('heroBatchText');
     const heroType = document.getElementById('heroTypeText');
     const heroLiveTag = document.getElementById('heroLiveTag');
+    const heroAttBtn = document.getElementById('heroAttendanceBtn');
 
     if (activeClass) {
       activeNextSlot = activeClass;
       heroLiveTag.style.display = 'inline-flex';
       heroTitle.textContent = `${activeClass.subjectId?.code || 'CS'}: ${activeClass.subjectId?.name || 'Lecture'}`;
-      heroMeta.textContent = `Ongoing from ${activeClass.startTime} to ${activeClass.endTime}. Attendance check-in active.`;
+      heroMeta.textContent = `Ongoing right now until ${activeClass.endTime}. Roll call is ready to submit.`;
       heroRoom.textContent = activeClass.room || 'Room TBD';
       heroBatch.textContent = `Sem ${activeClass.semester || 4}`;
       heroType.textContent = (activeClass.type || 'Lecture').toUpperCase();
+      heroAttBtn.style.display = 'inline-flex';
+      heroAttBtn.innerHTML = '<i class="fas fa-user-check mr-1.5"></i> Take Attendance';
     } else if (nextUpcoming) {
       activeNextSlot = nextUpcoming;
       heroLiveTag.style.display = 'none';
@@ -709,28 +987,63 @@
       heroRoom.textContent = nextUpcoming.room || 'Room TBD';
       heroBatch.textContent = `Sem ${nextUpcoming.semester || 4}`;
       heroType.textContent = (nextUpcoming.type || 'Lecture').toUpperCase();
+      heroAttBtn.style.display = 'inline-flex';
+      heroAttBtn.innerHTML = '<i class="fas fa-user-check mr-1.5"></i> Take Attendance';
     } else {
-      // Look for first class in future days
       heroLiveTag.style.display = 'none';
-      if (timetableSlots.length > 0) {
+      // Find next class in upcoming days
+      const currentDayIdx = now.getDay() === 0 ? 5 : now.getDay() - 1;
+      let nextDaySlot = null;
+
+      for (let offset = 1; offset <= 7; offset++) {
+        const nextDayName = DAYS[(currentDayIdx + offset) % 6];
+        const match = timetableSlots
+          .filter(s => s.dayOfWeek === nextDayName)
+          .sort((a, b) => timeToMin(a.startTime) - timeToMin(b.startTime))[0];
+        if (match) {
+          nextDaySlot = match;
+          break;
+        }
+      }
+
+      if (nextDaySlot) {
+        activeNextSlot = nextDaySlot;
+        heroTitle.textContent = `${nextDaySlot.subjectId?.code || 'CS'}: ${nextDaySlot.subjectId?.name || 'Lecture'}`;
+        heroMeta.textContent = `Scheduled on ${nextDaySlot.dayOfWeek} at ${nextDaySlot.startTime}. All lectures for today are completed.`;
+        heroRoom.textContent = nextDaySlot.room || 'Room TBD';
+        heroBatch.textContent = `Sem ${nextDaySlot.semester || 4}`;
+        heroType.textContent = (nextDaySlot.type || 'Lecture').toUpperCase();
+        heroAttBtn.style.display = 'inline-flex';
+        heroAttBtn.innerHTML = '<i class="fas fa-clipboard-check mr-1.5"></i> View Attendance';
+      } else if (timetableSlots.length > 0) {
         activeNextSlot = timetableSlots[0];
         heroTitle.textContent = `${timetableSlots[0].subjectId?.code || 'CS'}: ${timetableSlots[0].subjectId?.name || 'Lecture'}`;
-        heroMeta.textContent = `Scheduled on ${timetableSlots[0].dayOfWeek} at ${timetableSlots[0].startTime}. No further teaching slots today.`;
+        heroMeta.textContent = `Scheduled on ${timetableSlots[0].dayOfWeek} at ${timetableSlots[0].startTime}.`;
         heroRoom.textContent = timetableSlots[0].room || 'Room TBD';
         heroBatch.textContent = `Sem ${timetableSlots[0].semester || 4}`;
         heroType.textContent = (timetableSlots[0].type || 'Lecture').toUpperCase();
       } else {
+        activeNextSlot = null;
         heroTitle.textContent = 'No Teaching Slots Scheduled';
-        heroMeta.textContent = 'Click "Add Slot" to schedule lecture or lab sessions.';
+        heroMeta.textContent = 'Click "Add Slot" above to schedule lectures or practical labs.';
         heroRoom.textContent = '--';
         heroBatch.textContent = '--';
         heroType.textContent = '--';
+        heroAttBtn.style.display = 'none';
       }
     }
   }
 
+  // ── Switch View Filter (Full Week vs Specific Day) ──
   function filterByDay(day) {
+    if (day === 'today') {
+      const now = new Date();
+      day = DAYS[now.getDay() === 0 ? 5 : now.getDay() - 1] || 'Monday';
+    }
+
     selectedDayFilter = day;
+
+    // Update active tab buttons
     ['All', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].forEach(d => {
       const btn = document.getElementById('tabDay' + d);
       if (btn) btn.classList.remove('active');
@@ -744,29 +1057,54 @@
       if (btn) btn.classList.add('active');
     }
 
-    renderTimetableGrid();
+    renderCurrentView();
   }
 
+  function applyFilters() {
+    activeSearchTerm = (document.getElementById('filterSearchInput')?.value || '').trim().toLowerCase();
+    activeTypeFilter = document.getElementById('filterTypeSelect')?.value || 'all';
+    renderCurrentView();
+  }
+
+  function renderCurrentView() {
+    const weekContainer = document.getElementById('fullWeekViewContainer');
+    const dayContainer = document.getElementById('dailyAgendaViewContainer');
+
+    if (selectedDayFilter === 'all') {
+      weekContainer.style.display = 'block';
+      dayContainer.style.display = 'none';
+      renderTimetableGrid();
+    } else {
+      weekContainer.style.display = 'none';
+      dayContainer.style.display = 'block';
+      renderDailyAgenda(selectedDayFilter);
+    }
+  }
+
+  // ── Render Full Week Matrix ──
   function renderTimetableGrid() {
     const tbody = document.getElementById('ttBody');
 
-    // Show/hide table day columns based on filter
-    DAYS.forEach(dayName => {
-      const col = document.querySelectorAll('.col-' + dayName);
-      col.forEach(el => {
-        el.style.display = (selectedDayFilter === 'all' || selectedDayFilter === dayName) ? '' : 'none';
-      });
+    // Filter slots based on search and type
+    let filtered = timetableSlots.filter(s => {
+      if (activeTypeFilter !== 'all' && s.type !== activeTypeFilter) return false;
+      if (activeSearchTerm) {
+        const text = `${s.subjectId?.name || ''} ${s.subjectId?.code || ''} ${s.room || ''} Sem ${s.semester || ''}`.toLowerCase();
+        if (!text.includes(activeSearchTerm)) return false;
+      }
+      return true;
     });
 
     // Unique time slots
-    const uniqueSlotPairs = Array.from(new Set(timetableSlots.map(s => `${s.startTime} - ${s.endTime}`)))
+    const uniqueSlotPairs = Array.from(new Set(filtered.map(s => `${s.startTime} - ${s.endTime}`)))
       .sort((a, b) => timeToMin(a.split(' - ')[0]) - timeToMin(b.split(' - ')[0]));
 
     if (uniqueSlotPairs.length === 0) {
       tbody.innerHTML = `
-        <tr><td colspan="7" style="text-align:center;padding:36px;color:#94A3B8">
-          <i class="fas fa-calendar-times" style="font-size:28px;margin-bottom:8px;display:block"></i>
-          No timetable slots created yet. Click "Add Slot" above to schedule your classes.
+        <tr><td colspan="7" style="text-align:center;padding:48px 24px;color:#94A3B8">
+          <i class="fas fa-calendar-xmark" style="font-size:32px;color:#CBD5E1;margin-bottom:10px;display:block"></i>
+          <span style="font-size:15px;font-weight:700;color:#64748B">No timetable slots match your criteria</span>
+          <div style="font-size:12px;color:#94A3B8;margin-top:4px">Click "Add Slot" or adjust your search filter.</div>
         </td></tr>
       `;
       return;
@@ -774,26 +1112,30 @@
 
     const now = new Date();
     const currentMin = now.getHours() * 60 + now.getMinutes();
-    const todayName = DAYS[now.getDay() === 0 ? 6 : now.getDay() - 1] || 'Monday';
+    const todayName = DAYS[now.getDay() === 0 ? 5 : now.getDay() - 1] || 'Monday';
 
     tbody.innerHTML = uniqueSlotPairs.map(slotPair => {
       const [start, end] = slotPair.split(' - ');
 
       return `
         <tr>
-          <td style="font-size:12px;font-weight:700;color:#475569;white-space:nowrap;padding:12px 16px;background:#FAFAFA;border-right:1px solid #E2E8F0">
-            <i class="far fa-clock" style="color:#94A3B8;margin-right:4px"></i>${slotPair}
+          <td style="font-size:12px;font-weight:700;color:#334155;white-space:nowrap;padding:14px 16px;background:#F8FAFC;border-right:1px solid #E2E8F0;border-bottom:1px solid #F1F5F9">
+            <i class="far fa-clock" style="color:#059669;margin-right:6px"></i>${slotPair}
           </td>
           ${DAYS.map(dayName => {
-            const isColHidden = selectedDayFilter !== 'all' && selectedDayFilter !== dayName;
-            if (isColHidden) return '';
+            const item = filtered.find(s => s.dayOfWeek === dayName && s.startTime === start);
+            const isToday = dayName === todayName;
 
-            const item = timetableSlots.find(s => s.dayOfWeek === dayName && s.startTime === start);
             if (!item) {
-              return `<td class="col-day col-${dayName}" style="padding:6px;background:#FFFFFF;border:1px solid #F1F5F9"></td>`;
+              return `
+                <td class="col-day col-${dayName}" style="padding:6px;background:${isToday ? '#FAFDFB' : '#FFFFFF'};border:1px solid #F1F5F9">
+                  <button class="empty-cell-btn" onclick="openAddSlotWithPrefill('${dayName}', '${start}', '${end}')" title="Add lecture on ${dayName} at ${start}">
+                    <i class="fas fa-plus mr-1"></i> Add
+                  </button>
+                </td>
+              `;
             }
 
-            const isToday = dayName === todayName;
             const startM = timeToMin(item.startTime);
             const endM = timeToMin(item.endTime);
             const isLive = isToday && currentMin >= startM && currentMin <= endM;
@@ -803,22 +1145,33 @@
             const typeBadgeColor = slotType === 'lab' ? 'badge-purple' : (slotType === 'tutorial' ? 'badge-warning' : 'badge-success');
 
             return `
-              <td class="col-day col-${dayName}" style="padding:6px;border:1px solid #F1F5F9">
+              <td class="col-day col-${dayName}" style="padding:6px;border:1px solid #F1F5F9;background:${isToday ? '#FAFDFB' : '#FFFFFF'}">
                 <div class="timetable-session ${typeClass} ${isToday ? 'is-today' : ''} ${isLive ? 'is-live' : ''}">
                   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
                     <span class="session-code">${item.subjectId?.code || 'CS'}</span>
-                    <span class="badge ${typeBadgeColor}" style="font-size:9px;padding:2px 6px">${slotType.toUpperCase()}</span>
+                    <span class="badge ${typeBadgeColor}" style="font-size:9px;padding:2px 6px;text-transform:uppercase">${slotType}</span>
                   </div>
-                  <div class="session-title">${item.subjectId?.name || 'Class'}</div>
-                  <div class="session-meta"><i class="fas fa-location-dot"></i> ${item.room || 'Room TBD'}</div>
-                  <div class="session-meta"><i class="fas fa-users"></i> ${item.courseId?.department || 'CS'} • Sem ${item.semester || 4}</div>
+                  <div class="session-title" title="${item.subjectId?.name || 'Class'}">${item.subjectId?.name || 'Class'}</div>
+                  <div class="session-meta"><i class="fas fa-location-dot text-emerald-600"></i> ${item.room || 'Room TBD'}</div>
+                  <div class="session-meta"><i class="fas fa-users text-slate-400"></i> Sem ${item.semester || 4} • ${item.courseId?.department || 'CS'}</div>
                   
                   <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;border-top:1px solid #F1F5F9;padding-top:6px">
-                    ${isLive ? '<span class="live-beacon">Live Now</span>' : '<span style="font-size:10px;color:#94A3B8">Ready</span>'}
-                    <button class="btn btn-sm btn-light" style="padding:2px 6px;font-size:10px;color:#EF4444" 
-                            onclick="deleteSlotPrompt('${item._id}')" title="Delete Slot">
-                      <i class="fas fa-trash"></i>
-                    </button>
+                    ${isLive ? '<span class="live-beacon">Live Now</span>' : '<span style="font-size:10px;color:#94A3B8;font-weight:600">Ready</span>'}
+                    
+                    <div class="session-actions">
+                      <button class="btn btn-sm btn-light" style="padding:3px 6px;font-size:10px;color:#059669" 
+                              onclick="openEditSlotModal('${item._id}')" title="Edit Slot">
+                        <i class="fas fa-pen"></i>
+                      </button>
+                      <button class="btn btn-sm btn-light" style="padding:3px 6px;font-size:10px;color:#2563EB" 
+                              onclick="takeClassAttendanceForSlot('${item._id}')" title="Take Attendance">
+                        <i class="fas fa-user-check"></i>
+                      </button>
+                      <button class="btn btn-sm btn-light" style="padding:3px 6px;font-size:10px;color:#EF4444" 
+                              onclick="deleteSlotPrompt('${item._id}')" title="Delete Slot">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </td>
@@ -829,15 +1182,119 @@
     }).join('');
   }
 
+  // ── Render Daily Agenda View ──
+  function renderDailyAgenda(dayName) {
+    const listEl = document.getElementById('dailyAgendaList');
+    const titleEl = document.getElementById('dailyAgendaDayTitle');
+    const metaEl = document.getElementById('dailyAgendaDayMeta');
+    const btnDayName = document.getElementById('addSlotDayBtnName');
+
+    titleEl.textContent = `${dayName} Schedule`;
+    btnDayName.textContent = dayName;
+
+    // Filter slots for this specific day
+    const daySlots = timetableSlots
+      .filter(s => s.dayOfWeek === dayName)
+      .sort((a, b) => timeToMin(a.startTime) - timeToMin(b.startTime));
+
+    let totalMin = 0;
+    daySlots.forEach(s => {
+      totalMin += Math.max(timeToMin(s.endTime) - timeToMin(s.startTime), 0);
+    });
+    const hours = (totalMin / 60).toFixed(totalMin % 60 ? 1 : 0);
+    metaEl.textContent = `${daySlots.length} lecture session${daySlots.length === 1 ? '' : 's'} • ${hours} total teaching hours`;
+
+    if (daySlots.length === 0) {
+      listEl.innerHTML = `
+        <div class="card" style="text-align:center;padding:50px 24px;border-radius:14px;border:1px dashed #CBD5E1">
+          <i class="fas fa-calendar-day" style="font-size:38px;color:#059669;margin-bottom:12px;opacity:0.7"></i>
+          <h3 style="font-size:18px;font-weight:800;color:#0F172A">No lectures scheduled on ${dayName}</h3>
+          <p style="font-size:13px;color:#64748B;margin:6px 0 20px 0">
+            You do not have any teaching commitments allocated for this day.
+          </p>
+          <button class="btn btn-primary btn-sm" onclick="openAddSlotForSelectedDay()" style="background:#059669;border-color:#059669">
+            <i class="fas fa-plus mr-1"></i> Schedule a Class on ${dayName}
+          </button>
+        </div>
+      `;
+      return;
+    }
+
+    const now = new Date();
+    const currentMin = now.getHours() * 60 + now.getMinutes();
+    const todayName = DAYS[now.getDay() === 0 ? 5 : now.getDay() - 1] || 'Monday';
+    const isToday = dayName === todayName;
+
+    listEl.innerHTML = daySlots.map((slot, idx) => {
+      const startM = timeToMin(slot.startTime);
+      const endM = timeToMin(slot.endTime);
+      const duration = Math.max(endM - startM, 0);
+      const isLive = isToday && currentMin >= startM && currentMin <= endM;
+      const isPast = isToday && currentMin > endM;
+
+      const typeBadgeColor = slot.type === 'lab' ? 'badge-purple' : (slot.type === 'tutorial' ? 'badge-warning' : 'badge-success');
+      const typeIcon = slot.type === 'lab' ? 'fa-flask' : (slot.type === 'tutorial' ? 'fa-user-graduate' : 'fa-chalkboard-user');
+
+      return `
+        <div class="daily-agenda-card ${isLive ? 'is-live' : ''}">
+          <!-- Left: Order & Time -->
+          <div style="display:flex;align-items:center;gap:16px;min-width:180px">
+            <div style="width:36px;height:36px;border-radius:50%;background:#F1F5F9;color:#475569;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px">
+              ${idx + 1}
+            </div>
+            <div>
+              <div style="font-size:15px;font-weight:900;color:#0F172A">${slot.startTime} - ${slot.endTime}</div>
+              <div style="font-size:12px;color:#64748B;font-weight:600">
+                <i class="far fa-clock text-emerald-600 mr-1"></i>${duration} minutes
+              </div>
+            </div>
+          </div>
+
+          <!-- Center: Subject & Room Details -->
+          <div style="flex:1">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+              <span class="session-code">${slot.subjectId?.code || 'CS401'}</span>
+              <span class="badge ${typeBadgeColor}" style="font-size:10px;padding:2px 8px">
+                <i class="fas ${typeIcon} mr-1"></i>${(slot.type || 'Lecture').toUpperCase()}
+              </span>
+              ${isLive ? '<span class="live-beacon">● In Progress</span>' : ''}
+              ${isPast ? '<span class="badge badge-gray" style="font-size:10px">Finished</span>' : ''}
+            </div>
+            <h4 style="font-size:16px;font-weight:800;color:#0F172A;margin:0 0 4px 0">${slot.subjectId?.name || 'Subject'}</h4>
+            <div style="font-size:12px;color:#64748B;display:flex;gap:16px;align-items:center">
+              <span><i class="fas fa-location-dot text-emerald-600 mr-1"></i>${slot.room || 'Room TBD'}</span>
+              <span><i class="fas fa-users text-slate-400 mr-1"></i>Semester ${slot.semester || 4} Batch</span>
+              <span><i class="fas fa-graduation-cap text-slate-400 mr-1"></i>${slot.academicYear || '2026-27'}</span>
+            </div>
+          </div>
+
+          <!-- Right: Actions -->
+          <div style="display:flex;align-items:center;gap:8px">
+            <button class="btn btn-secondary btn-sm" onclick="openEditSlotModal('${slot._id}')" title="Edit lecture details">
+              <i class="fas fa-pen mr-1"></i> Edit
+            </button>
+            <button class="btn btn-primary btn-sm" onclick="takeClassAttendanceForSlot('${slot._id}')" style="background:#059669;border-color:#059669">
+              <i class="fas fa-user-check mr-1"></i> Roll Call
+            </button>
+            <button class="btn btn-sm btn-light" style="color:#EF4444;border-color:#FEE2E2" onclick="deleteSlotPrompt('${slot._id}')" title="Delete slot">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
   // ========================================================
-  // SLOT CREATION & MODAL
+  // SLOT CREATION & EDIT MODAL
   // ========================================================
   function openAddSlotModal() {
     document.getElementById('editSlotId').value = '';
-    document.getElementById('slotModalTitle').innerHTML = '<i class="fas fa-plus-circle" style="color:#059669;margin-right:8px"></i>Add Timetable Slot';
+    document.getElementById('slotModalTitle').innerHTML = '<i class="fas fa-plus-circle text-emerald-600 mr-2"></i>Add Timetable Slot';
+    document.getElementById('saveSlotBtn').innerHTML = '<i class="fas fa-check mr-1"></i> Save Timetable Slot';
     document.getElementById('formSubject').value = availableSubjects[0]?._id || '';
     document.getElementById('formSemester').value = '4';
-    document.getElementById('formDay').value = 'Monday';
+    document.getElementById('formDay').value = selectedDayFilter !== 'all' ? selectedDayFilter : 'Monday';
     document.getElementById('formStart').value = '09:00';
     document.getElementById('formEnd').value = '10:00';
     document.getElementById('formRoom').value = 'Room 302';
@@ -847,7 +1304,91 @@
     openModal('slotModal');
   }
 
+  function openAddSlotForSelectedDay() {
+    openAddSlotModal();
+    if (selectedDayFilter !== 'all') {
+      document.getElementById('formDay').value = selectedDayFilter;
+    }
+  }
+
+  function openAddSlotWithPrefill(day, startTime, endTime) {
+    openAddSlotModal();
+    document.getElementById('formDay').value = day;
+    document.getElementById('formStart').value = startTime;
+    document.getElementById('formEnd').value = endTime;
+  }
+
+  function openEditSlotModal(slotId) {
+    const slot = timetableSlots.find(s => s._id === slotId);
+    if (!slot) return;
+
+    document.getElementById('editSlotId').value = slot._id;
+    document.getElementById('slotModalTitle').innerHTML = '<i class="fas fa-pen-to-square text-emerald-600 mr-2"></i>Edit Timetable Slot';
+    document.getElementById('saveSlotBtn').innerHTML = '<i class="fas fa-check mr-1"></i> Update Timetable Slot';
+
+    const subId = slot.subjectId?._id || slot.subjectId;
+    document.getElementById('formSubject').value = subId || '';
+    document.getElementById('formSemester').value = slot.semester || 4;
+    document.getElementById('formDay').value = slot.dayOfWeek || 'Monday';
+    document.getElementById('formStart').value = slot.startTime || '09:00';
+    document.getElementById('formEnd').value = slot.endTime || '10:00';
+    document.getElementById('formRoom').value = slot.room || 'Room 302';
+    document.getElementById('formType').value = slot.type || 'lecture';
+    document.getElementById('formYear').value = slot.academicYear || '2026-27';
+    document.getElementById('clashWarningBanner').style.display = 'none';
+
+    openModal('slotModal');
+  }
+
+  // Real-time client clash validation inside modal
+  function checkModalLiveClash() {
+    const editId = document.getElementById('editSlotId').value;
+    const day = document.getElementById('formDay').value;
+    const start = document.getElementById('formStart').value;
+    const end = document.getElementById('formEnd').value;
+    const room = document.getElementById('formRoom').value.trim().toLowerCase();
+    const sem = parseInt(document.getElementById('formSemester').value) || 4;
+
+    const banner = document.getElementById('clashWarningBanner');
+    const desc = document.getElementById('clashDesc');
+
+    if (!start || !end || !room || !day) {
+      banner.style.display = 'none';
+      return;
+    }
+
+    const startMin = timeToMin(start);
+    const endMin = timeToMin(end);
+
+    const conflicts = timetableSlots.filter(s => {
+      if (s._id === editId) return false;
+      if (s.dayOfWeek !== day) return false;
+
+      const sStart = timeToMin(s.startTime);
+      const sEnd = timeToMin(s.endTime);
+      const overlaps = Math.max(startMin, sStart) < Math.min(endMin, sEnd);
+      if (!overlaps) return false;
+
+      // Check room or batch
+      if (s.room && s.room.trim().toLowerCase() === room) return true;
+      if (Number(s.semester) === sem) return true;
+      return false;
+    });
+
+    if (conflicts.length > 0) {
+      banner.style.display = 'block';
+      const c = conflicts[0];
+      const conflictReason = (c.room && c.room.trim().toLowerCase() === room) 
+        ? `Room "${c.room}" is already occupied by ${c.subjectId?.name || 'another class'} (${c.startTime}-${c.endTime}).`
+        : `Semester ${sem} batch already has ${c.subjectId?.name || 'class'} scheduled at this time.`;
+      desc.textContent = conflictReason;
+    } else {
+      banner.style.display = 'none';
+    }
+  }
+
   async function saveSlot() {
+    const editId = document.getElementById('editSlotId').value;
     const subjectId = document.getElementById('formSubject').value;
     const semester = parseInt(document.getElementById('formSemester').value) || 4;
     const dayOfWeek = document.getElementById('formDay').value;
@@ -863,7 +1404,7 @@
     }
 
     if (timeToMin(endTime) <= timeToMin(startTime)) {
-      showToast('End time must be after start time', 'error');
+      showToast('End time must be strictly after start time', 'error');
       return;
     }
 
@@ -880,15 +1421,37 @@
 
     const saveBtn = document.getElementById('saveSlotBtn');
     saveBtn.disabled = true;
-    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking clashes...';
+    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Saving slot...';
 
     try {
-      const res = await api.request('/timetable', {
-        method: 'POST',
-        body: JSON.stringify(payload)
-      });
+      if (editId && !editId.startsWith('slot-')) {
+        // Edit existing slot via API
+        await api.request(`/timetable/${editId}`, {
+          method: 'PUT',
+          body: JSON.stringify(payload)
+        });
+        showToast('Timetable slot updated successfully!', 'success');
+      } else if (editId && editId.startsWith('slot-')) {
+        // Update local mock
+        const idx = timetableSlots.findIndex(s => s._id === editId);
+        const sub = availableSubjects.find(s => s._id === subjectId) || { name: 'Computer Science', code: 'CS' };
+        if (idx !== -1) {
+          timetableSlots[idx] = {
+            ...timetableSlots[idx],
+            ...payload,
+            subjectId: sub
+          };
+        }
+        showToast('Timetable slot updated (local)', 'success');
+      } else {
+        // Create new slot
+        await api.request('/timetable', {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+        showToast('Timetable slot created successfully!', 'success');
+      }
 
-      showToast('Timetable slot saved successfully!', 'success');
       closeModal('slotModal');
       await loadTimetableData();
     } catch (err) {
@@ -896,55 +1459,266 @@
         const banner = document.getElementById('clashWarningBanner');
         const desc = document.getElementById('clashDesc');
         banner.style.display = 'block';
-        desc.textContent = err.message + '. Please pick a different room or time window.';
+        desc.textContent = err.message + '. Please pick an alternate room or time window.';
       } else {
-        // Mock fallback insertion
+        // Fallback local operation
         const sub = availableSubjects.find(s => s._id === subjectId) || { name: 'Computer Science', code: 'CS' };
-        timetableSlots.push({
-          _id: 'slot-' + Date.now(),
-          subjectId: sub,
-          courseId: { department: 'Computer Science' },
-          semester,
-          dayOfWeek,
-          startTime,
-          endTime,
-          room,
-          type
-        });
-        showToast('Timetable slot added (local)', 'success');
+        if (editId) {
+          const idx = timetableSlots.findIndex(s => s._id === editId);
+          if (idx !== -1) {
+            timetableSlots[idx] = { ...timetableSlots[idx], ...payload, subjectId: sub };
+          }
+        } else {
+          timetableSlots.push({
+            _id: 'slot-' + Date.now(),
+            subjectId: sub,
+            courseId: { department: 'Computer Science' },
+            semester,
+            dayOfWeek,
+            startTime,
+            endTime,
+            room,
+            type,
+            academicYear
+          });
+        }
+        showToast('Timetable slot saved (local mode)', 'success');
         closeModal('slotModal');
-        renderTimetableGrid();
+        renderCurrentView();
         renderHeroAndTodayQueue();
         updateKPIs();
+        auditScheduleConflicts();
       }
     } finally {
       saveBtn.disabled = false;
-      saveBtn.innerHTML = '<i class="fas fa-check"></i> Save Timetable Slot';
+      saveBtn.innerHTML = editId ? '<i class="fas fa-check mr-1"></i> Update Timetable Slot' : '<i class="fas fa-check mr-1"></i> Save Timetable Slot';
     }
   }
 
   async function deleteSlotPrompt(slotId) {
-    if (!confirm('Remove this class slot from the timetable?')) return;
+    if (!confirm('Are you sure you want to remove this lecture slot from your schedule?')) return;
 
     try {
       if (!slotId.startsWith('slot-')) {
         await api.request(`/timetable/${slotId}`, { method: 'DELETE' });
       }
       timetableSlots = timetableSlots.filter(s => s._id !== slotId);
-      showToast('Slot removed', 'info');
-      renderTimetableGrid();
+      showToast('Timetable slot removed', 'info');
+      renderCurrentView();
       renderHeroAndTodayQueue();
       updateKPIs();
+      auditScheduleConflicts();
     } catch (err) {
       showToast('Error removing slot: ' + err.message, 'error');
     }
   }
 
+  // ── Roll Call / Attendance Direct Actions ──
   function takeClassAttendance() {
     if (activeNextSlot) {
-      window.location.href = 'attendance.html';
+      takeClassAttendanceForSlot(activeNextSlot._id);
     } else {
-      showToast('No active class slot selected', 'info');
+      window.location.href = 'attendance.html';
+    }
+  }
+
+  function takeClassAttendanceForSlot(slotId) {
+    const slot = timetableSlots.find(s => s._id === slotId);
+    if (!slot) {
+      window.location.href = 'attendance.html';
+      return;
+    }
+    const subId = slot.subjectId?._id || '';
+    const sem = slot.semester || 4;
+    window.location.href = `attendance.html?subject=${encodeURIComponent(subId)}&semester=${encodeURIComponent(sem)}`;
+  }
+
+  // ── Conflict Auditing ──
+  async function auditScheduleConflicts() {
+    const badge = document.getElementById('clashStatusBadge');
+    const badgeText = document.getElementById('clashStatusText');
+
+    let conflicts = [];
+
+    // Client-side quick audit
+    DAYS.forEach(day => {
+      const daySlots = timetableSlots.filter(s => s.dayOfWeek === day);
+      for (let i = 0; i < daySlots.length; i++) {
+        for (let j = i + 1; j < daySlots.length; j++) {
+          const a = daySlots[i];
+          const b = daySlots[j];
+          const aStart = timeToMin(a.startTime);
+          const aEnd = timeToMin(a.endTime);
+          const bStart = timeToMin(b.startTime);
+          const bEnd = timeToMin(b.endTime);
+
+          if (Math.max(aStart, bStart) < Math.min(aEnd, bEnd)) {
+            if (a.room && b.room && a.room.trim().toLowerCase() === b.room.trim().toLowerCase()) {
+              conflicts.push(`Room conflict in ${a.room} on ${day} (${a.startTime}-${a.endTime})`);
+            }
+          }
+        }
+      }
+    });
+
+    if (conflicts.length > 0) {
+      badge.style.background = '#FEF2F2';
+      badge.style.color = '#DC2626';
+      badge.style.borderColor = '#FECACA';
+      badgeText.innerHTML = `⚠️ ${conflicts.length} Clash${conflicts.length > 1 ? 'es' : ''} Detected`;
+    } else {
+      badge.style.background = '#ECFDF5';
+      badge.style.color = '#059669';
+      badge.style.borderColor = '#A7F3D0';
+      badgeText.innerHTML = '✓ Conflict-Free';
+    }
+  }
+
+  function openClashModal() {
+    const body = document.getElementById('clashModalBody');
+    let conflicts = [];
+
+    DAYS.forEach(day => {
+      const daySlots = timetableSlots.filter(s => s.dayOfWeek === day);
+      for (let i = 0; i < daySlots.length; i++) {
+        for (let j = i + 1; j < daySlots.length; j++) {
+          const a = daySlots[i];
+          const b = daySlots[j];
+          const aStart = timeToMin(a.startTime);
+          const aEnd = timeToMin(a.endTime);
+          const bStart = timeToMin(b.startTime);
+          const bEnd = timeToMin(b.endTime);
+
+          if (Math.max(aStart, bStart) < Math.min(aEnd, bEnd)) {
+            if (a.room && b.room && a.room.trim().toLowerCase() === b.room.trim().toLowerCase()) {
+              conflicts.push({
+                day,
+                room: a.room,
+                time: `${a.startTime}-${a.endTime}`,
+                slotA: a.subjectId?.name || 'Class A',
+                slotB: b.subjectId?.name || 'Class B'
+              });
+            }
+          }
+        }
+      }
+    });
+
+    if (conflicts.length === 0) {
+      body.innerHTML = `
+        <div style="text-align:center;padding:24px">
+          <div style="width:52px;height:52px;border-radius:50%;background:#D1FAE5;color:#059669;display:flex;align-items:center;justify-content:center;font-size:24px;margin:0 auto 14px auto">
+            <i class="fas fa-check"></i>
+          </div>
+          <h3 style="font-size:17px;font-weight:800;color:#0F172A">No Scheduling Clashes Detected</h3>
+          <p style="font-size:13px;color:#64748B;margin-top:4px">
+            Your teaching timetable is completely synchronized with no double-booked classrooms or overlapping lectures.
+          </p>
+        </div>
+      `;
+    } else {
+      body.innerHTML = `
+        <div style="margin-bottom:14px;color:#991B1B;font-weight:700;font-size:14px">
+          <i class="fas fa-triangle-exclamation mr-1 text-red-500"></i> ${conflicts.length} Conflict(s) Need Resolution:
+        </div>
+        ${conflicts.map(c => `
+          <div style="background:#FEF2F2;border:1px solid #FECACA;border-radius:10px;padding:12px 14px;margin-bottom:10px">
+            <div style="font-weight:800;color:#991B1B;font-size:13px">${c.day} • ${c.time} (Room: ${c.room})</div>
+            <div style="font-size:12px;color:#7F1D1D;margin-top:2px">
+              Overlap between <strong>${c.slotA}</strong> and <strong>${c.slotB}</strong>.
+            </div>
+          </div>
+        `).join('')}
+      `;
+    }
+
+    openModal('clashModal');
+  }
+
+  // ── iCalendar (.ICS) Exporter ──
+  function exportCalendarICS() {
+    try {
+      let icsContent = [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//VishvaERP//Faculty Timetable//EN',
+        'CALSCALE:GREGORIAN',
+        'METHOD:PUBLISH',
+        'X-WR-CALNAME:VishvaERP Faculty Schedule',
+      ];
+
+      const now = new Date();
+      const stamp = now.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+
+      const dayOffsetMap = {
+        Monday: 0,
+        Tuesday: 1,
+        Wednesday: 2,
+        Thursday: 3,
+        Friday: 4,
+        Saturday: 5
+      };
+
+      const dayRruleMap = {
+        Monday: 'MO',
+        Tuesday: 'TU',
+        Wednesday: 'WE',
+        Thursday: 'TH',
+        Friday: 'FR',
+        Saturday: 'SA'
+      };
+
+      const currentDayIdx = now.getDay() === 0 ? 6 : now.getDay() - 1;
+      const monday = new Date(now);
+      monday.setDate(now.getDate() - currentDayIdx);
+
+      timetableSlots.forEach(slot => {
+        const offset = dayOffsetMap[slot.dayOfWeek] ?? 0;
+        const slotDate = new Date(monday);
+        slotDate.setDate(monday.getDate() + offset);
+
+        const [sh, sm] = slot.startTime.split(':').map(Number);
+        const [eh, em] = slot.endTime.split(':').map(Number);
+
+        slotDate.setHours(sh, sm, 0, 0);
+        const dtStart = slotDate.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+
+        slotDate.setHours(eh, em, 0, 0);
+        const dtEnd = slotDate.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+
+        const summary = `${slot.subjectId?.code || 'CS'}: ${slot.subjectId?.name || 'Class'}`;
+        const byDay = dayRruleMap[slot.dayOfWeek] || 'MO';
+
+        icsContent.push(
+          'BEGIN:VEVENT',
+          `UID:${slot._id || Math.random().toString(36)}@vishvaerp.internal`,
+          `DTSTAMP:${stamp}`,
+          `DTSTART:${dtStart}`,
+          `DTEND:${dtEnd}`,
+          `RRULE:FREQ=WEEKLY;BYDAY=${byDay};COUNT=16`,
+          `SUMMARY:${summary}`,
+          `LOCATION:${slot.room || 'Campus'}`,
+          `DESCRIPTION:Vishva ERP Academic Lecture - Semester ${slot.semester || 4} (${slot.type || 'lecture'})`,
+          'STATUS:CONFIRMED',
+          'END:VEVENT'
+        );
+      });
+
+      icsContent.push('END:VCALENDAR');
+
+      const blob = new Blob([icsContent.join('\r\n')], { type: 'text/calendar;charset=utf-8' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'VishvaERP_Faculty_Schedule.ics';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(link.href);
+
+      showToast('Calendar (.ICS) file downloaded successfully!', 'success');
+    } catch (e) {
+      showToast('Exporting calendar file...', 'info');
+      window.location.href = '/api/timetable/export/ics';
     }
   }
 </script>
