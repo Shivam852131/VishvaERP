@@ -195,67 +195,275 @@ const addResults = asyncHandler(async (req, res) => {
     res.json({ success: true, message: 'Results saved' });
   });
 
-// @desc    Get student results
+// @desc    Get student results with credit-weighted SGPA & CGPA, semester breakdowns, and radar competencies
 const getStudentResults = asyncHandler(async (req, res) => {
-    let studentId = req.params.studentId || req.user._id;
-    if (req.user.role === 'parent' && !req.params.studentId) {
-      const parent = await User.findById(req.user._id).select('children');
-      studentId = parent?.children?.[0];
+  let studentId = req.params.studentId || req.user._id;
+  if (req.user.role === 'parent' && !req.params.studentId) {
+    const parent = await User.findById(req.user._id).select('children');
+    studentId = parent?.children?.[0];
+  }
+
+  if (!studentId) {
+    return res.json({ success: true, results: [], cgpa: 'N/A' });
+  }
+
+  const student = await User.findById(studentId).select('name rollNo department semester email avatar');
+
+  const results = await Result.find({ studentId, collegeId: req.user.collegeId })
+    .populate('examId', 'name examType date totalMarks passingMarks')
+    .populate('subjectId', 'name code semester credits type')
+    .sort({ createdAt: -1 });
+
+  // Group by semester
+  const semesterMap = {};
+  const gradeDistribution = { O: 0, 'A+': 0, A: 0, 'B+': 0, B: 0, C: 0, F: 0 };
+  const subjectScores = {};
+
+  results.forEach(r => {
+    const sem = r.subjectId?.semester || (r.examId && r.examId.semester) || student?.semester || 1;
+    if (!semesterMap[sem]) {
+      semesterMap[sem] = {
+        semester: sem,
+        results: [],
+        totalCredits: 0,
+        earnedCredits: 0,
+        weightedPoints: 0,
+        sgpa: 0,
+      };
+    }
+    semesterMap[sem].results.push(r);
+
+    const credits = Number(r.subjectId?.credits) || 3;
+    const gradePoints = Number(r.gradePoints != null ? r.gradePoints : 0);
+
+    semesterMap[sem].totalCredits += credits;
+    if (r.status === 'pass') {
+      semesterMap[sem].earnedCredits += credits;
+    }
+    semesterMap[sem].weightedPoints += gradePoints * credits;
+
+    // Track grade distribution
+    if (r.grade && gradeDistribution[r.grade] !== undefined) {
+      gradeDistribution[r.grade]++;
     }
 
-    if (!studentId) {
-      return res.json({ success: true, results: [], cgpa: 'N/A' });
-    }
-
-    const results = await Result.find({ studentId, collegeId: req.user.collegeId })
-      .populate('examId', 'name examType date')
-      .populate('subjectId', 'name code semester credits')
-      .sort({ createdAt: -1 });
-
-    // Calculate CGPA
-    const gradedResults = results.filter(r => r.gradePoints !== undefined);
-    const cgpa = gradedResults.length > 0
-      ? (gradedResults.reduce((sum, r) => sum + r.gradePoints, 0) / gradedResults.length).toFixed(2)
-      : 'N/A';
-
-    res.json({ success: true, results, cgpa });
+    // Track subject percentage for competency radar
+    const subName = r.subjectId?.name || 'Subject';
+    if (!subjectScores[subName]) subjectScores[subName] = [];
+    if (r.percentage != null) subjectScores[subName].push(r.percentage);
   });
+
+  // Calculate SGPA per semester
+  let totalCumulativeWeighted = 0;
+  let totalCumulativeCredits = 0;
+  let totalEarnedCredits = 0;
+  const semesterList = Object.keys(semesterMap).map(Number).sort((a, b) => a - b).map(sem => {
+    const s = semesterMap[sem];
+    s.sgpa = s.totalCredits > 0 ? Number((s.weightedPoints / s.totalCredits).toFixed(2)) : 0;
+    totalCumulativeWeighted += s.weightedPoints;
+    totalCumulativeCredits += s.totalCredits;
+    totalEarnedCredits += s.earnedCredits;
+    return s;
+  });
+
+  const cgpa = totalCumulativeCredits > 0
+    ? Number((totalCumulativeWeighted / totalCumulativeCredits).toFixed(2))
+    : (results.length > 0 ? (results.reduce((acc, r) => acc + (r.gradePoints || 0), 0) / results.length).toFixed(2) : 'N/A');
+
+  const bestSgpa = semesterList.length > 0
+    ? Math.max(...semesterList.map(s => s.sgpa))
+    : (cgpa !== 'N/A' ? cgpa : 0);
+
+  // Determine Academic Standing
+  let standing = 'Satisfactory';
+  const numCgpa = parseFloat(cgpa);
+  if (!isNaN(numCgpa)) {
+    if (numCgpa >= 8.5) standing = 'First Class with Distinction';
+    else if (numCgpa >= 7.0) standing = 'First Class';
+    else if (numCgpa >= 6.0) standing = 'Second Class';
+    else if (numCgpa >= 5.0) standing = 'Pass Class';
+    else standing = 'Needs Improvement';
+  }
+
+  // Trend data for charts
+  const trend = semesterList.map(s => ({
+    semester: `Sem ${s.semester}`,
+    sgpa: s.sgpa,
+    credits: s.totalCredits,
+  }));
+
+  // Radar chart data: average percentage per subject
+  const radar = Object.entries(subjectScores).map(([subject, scores]) => ({
+    subject,
+    score: Math.round(scores.reduce((a, b) => a + b, 0) / scores.length),
+  }));
+
+  res.json({
+    success: true,
+    student,
+    results,
+    semesters: semesterList,
+    cgpa,
+    bestSgpa,
+    totalCreditsEarned: totalEarnedCredits,
+    totalCreditsPossible: totalCumulativeCredits,
+    standing,
+    trend,
+    radar,
+    gradeDistribution,
+  });
+});
 
 const getResultSheet = asyncHandler(async (req, res) => {
-    const { subjectId, examId, examName } = req.query;
+  const { subjectId, examId, examName } = req.query;
 
-    if (!subjectId) {
-      return res.status(400).json({ success: false, message: 'Subject is required' });
-    }
+  if (!subjectId) {
+    return res.status(400).json({ success: false, message: 'Subject is required' });
+  }
 
-    const subject = await Subject.findOne({ _id: subjectId, collegeId: req.user.collegeId }).populate('courseId', 'department name code');
-    if (!subject) {
-      return res.status(404).json({ success: false, message: 'Subject not found' });
-    }
+  const subject = await Subject.findOne({ _id: subjectId, collegeId: req.user.collegeId }).populate('courseId', 'department name code');
+  if (!subject) {
+    return res.status(404).json({ success: false, message: 'Subject not found' });
+  }
 
-    const students = await User.find({
+  const students = await User.find({
+    collegeId: req.user.collegeId,
+    role: 'student',
+    department: subject.courseId?.department,
+    semester: subject.semester,
+  }).select('name email rollNo department semester').sort({ rollNo: 1, name: 1 });
+
+  let exam = null;
+  if (examId) {
+    exam = await Exam.findOne({ _id: examId, collegeId: req.user.collegeId, subjectId });
+  } else if (examName) {
+    exam = await Exam.findOne({
       collegeId: req.user.collegeId,
-      role: 'student',
-      department: subject.courseId?.department,
-      semester: subject.semester,
-    }).select('name email rollNo department semester').sort({ rollNo: 1, name: 1 });
+      subjectId,
+      name: { $regex: `^${examName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, $options: 'i' },
+    }).sort({ createdAt: -1 });
+  }
 
-    let exam = null;
-    if (examId) {
-      exam = await Exam.findOne({ _id: examId, collegeId: req.user.collegeId, subjectId });
-    } else if (examName) {
-      exam = await Exam.findOne({
-        collegeId: req.user.collegeId,
-        subjectId,
-        name: { $regex: `^${examName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`, $options: 'i' },
-      }).sort({ createdAt: -1 });
+  const results = exam
+    ? await Result.find({ examId: exam._id, collegeId: req.user.collegeId, subjectId }).select('studentId marksObtained totalMarks grade remarks status percentage')
+    : [];
+
+  res.json({ success: true, subject, exam, students, results });
+});
+
+// @desc    Get exam analytics: average, max, pass rate, bell curve / grade distribution
+// @route   GET /api/exams/analytics
+const getExamAnalytics = asyncHandler(async (req, res) => {
+  const examId = req.params.examId || req.query.examId;
+  const subjectId = req.query.subjectId;
+
+  let filter = { collegeId: req.user.collegeId };
+  if (examId) filter.examId = examId;
+  if (subjectId) filter.subjectId = subjectId;
+
+  if (!examId && !subjectId) {
+    return res.status(400).json({ success: false, message: 'examId or subjectId is required' });
+  }
+
+  const results = await Result.find(filter)
+    .populate('studentId', 'name rollNo')
+    .populate('examId', 'name totalMarks passingMarks')
+    .populate('subjectId', 'name code');
+
+  const total = results.length;
+  if (total === 0) {
+    return res.json({
+      success: true,
+      total: 0,
+      classAvg: 0,
+      classAvgPct: 0,
+      highestMark: 0,
+      lowestMark: 0,
+      passRate: 0,
+      passCount: 0,
+      failCount: 0,
+      gradeDistribution: { O: 0, 'A+': 0, A: 0, 'B+': 0, B: 0, C: 0, F: 0 },
+      brackets: { top: 0, average: 0, atRisk: 0 },
+    });
+  }
+
+  const marks = results.map(r => Number(r.marksObtained || 0));
+  const percentages = results.map(r => Number(r.percentage || 0));
+  const maxMark = Math.max(...marks);
+  const minMark = Math.min(...marks);
+  const sumMarks = marks.reduce((a, b) => a + b, 0);
+  const sumPct = percentages.reduce((a, b) => a + b, 0);
+  const classAvg = Number((sumMarks / total).toFixed(1));
+  const classAvgPct = Number((sumPct / total).toFixed(1));
+
+  const passCount = results.filter(r => r.status === 'pass').length;
+  const failCount = total - passCount;
+  const passRate = Math.round((passCount / total) * 100);
+
+  const gradeDistribution = { O: 0, 'A+': 0, A: 0, 'B+': 0, B: 0, C: 0, F: 0 };
+  let top = 0, average = 0, atRisk = 0;
+
+  results.forEach(r => {
+    if (r.grade && gradeDistribution[r.grade] !== undefined) {
+      gradeDistribution[r.grade]++;
     }
-
-    const results = exam
-      ? await Result.find({ examId: exam._id, collegeId: req.user.collegeId, subjectId }).select('studentId marksObtained totalMarks grade remarks')
-      : [];
-
-    res.json({ success: true, subject, exam, students, results });
+    const pct = r.percentage || 0;
+    if (pct >= 80) top++;
+    else if (pct >= 50) average++;
+    else atRisk++;
   });
 
-module.exports = { createExam, getExams, addResults, getStudentResults, getResultSheet };
+  res.json({
+    success: true,
+    total,
+    classAvg,
+    classAvgPct,
+    highestMark: maxMark,
+    lowestMark: minMark,
+    passRate,
+    passCount,
+    failCount,
+    gradeDistribution,
+    brackets: { top, average, atRisk },
+  });
+});
+
+// @desc    Download CSV template pre-populated with student roll numbers & names
+// @route   GET /api/exams/template?subjectId=...
+const exportExamCSVTemplate = asyncHandler(async (req, res) => {
+  const { subjectId } = req.query;
+  if (!subjectId) {
+    return res.status(400).json({ success: false, message: 'subjectId is required' });
+  }
+
+  const subject = await Subject.findOne({ _id: subjectId, collegeId: req.user.collegeId }).populate('courseId', 'department');
+  if (!subject) {
+    return res.status(404).json({ success: false, message: 'Subject not found' });
+  }
+
+  const students = await User.find({
+    collegeId: req.user.collegeId,
+    role: 'student',
+    department: subject.courseId?.department,
+    semester: subject.semester,
+  }).select('rollNo name').sort({ rollNo: 1 });
+
+  let csvContent = 'roll_no,student_name,marks,remarks\n';
+  students.forEach(s => {
+    csvContent += `"${s.rollNo || ''}","${s.name || ''}","",""\n`;
+  });
+
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', `attachment; filename=grade_template_${subject.code || 'subject'}.csv`);
+  res.status(200).send(csvContent);
+});
+
+module.exports = {
+  createExam,
+  getExams,
+  addResults,
+  getStudentResults,
+  getResultSheet,
+  getExamAnalytics,
+  exportExamCSVTemplate,
+};

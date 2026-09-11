@@ -1,18 +1,62 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Ward Attendance | VishvaERP</title>
+  <title>Ward Attendance — Parent | VishvaERP</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="../../css/custom.css">
+  <style>
+    /* ── Gauge ── */
+    .gauge-wrap { position:relative; width:130px; height:130px; margin:0 auto; }
+    .gauge-wrap svg { transform:rotate(-90deg); width:130px; height:130px; }
+    .gauge-bg   { fill:none; stroke:#1E3A5F; stroke-width:12; }
+    .gauge-fill { fill:none; stroke-width:12; stroke-linecap:round; transition:stroke-dashoffset 1.5s ease; }
+    .gauge-text { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+
+    /* ── Subject cards ── */
+    .sub-card { background:white; border-radius:14px; padding:18px; border:1px solid #E2E8F0; position:relative; overflow:hidden; transition:transform .2s; }
+    .sub-card:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,.08); }
+    .sub-card::after { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:var(--c); border-radius:14px 14px 0 0; }
+
+    /* ── Heatmap ── */
+    .hm-grid { display:grid; grid-auto-flow:column; grid-template-rows:repeat(7,14px); gap:3px; width:max-content; }
+    .hm-cell { width:14px; height:14px; border-radius:2px; cursor:default; }
+    .hm-cell[data-s="present"]  { background:#10B981; }
+    .hm-cell[data-s="late"]     { background:#F59E0B; }
+    .hm-cell[data-s="absent"]   { background:#EF4444; }
+    .hm-cell[data-s="excused"]  { background:#6366F1; }
+    .hm-cell[data-s="none"]     { background:#F1F5F9; }
+
+    /* ── Alert card ── */
+    .alert-card { display:flex; align-items:flex-start; gap:12px; padding:14px 16px; border-radius:12px;
+                  background:linear-gradient(135deg,#FEF2F2,#FEE2E2); border-left:4px solid #EF4444; margin-bottom:10px; }
+    .alert-card.warning { background:linear-gradient(135deg,#FFFBEB,#FEF3C7); border-left-color:#F59E0B; }
+
+    /* ── Tabs ── */
+    .p-tabs { display:flex; gap:6px; background:#F1F5F9; padding:5px; border-radius:12px; margin-bottom:20px; }
+    .p-tab { padding:9px 18px; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; border:none; background:transparent; color:#64748B; transition:all .2s; white-space:nowrap; }
+    .p-tab.active { background:white; color:#9333EA; box-shadow:0 2px 8px rgba(0,0,0,.1); }
+    .p-panel { display:none; }
+    .p-panel.active { display:block; animation:fadeUp .25s ease; }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+
+    /* ── Source badge ── */
+    .src-badge { display:inline-flex; align-items:center; gap:4px; font-size:10px; font-weight:700; padding:2px 8px; border-radius:6px; }
+    .src-manual   { background:#EEF2FF; color:#3730A3; }
+    .src-face-id  { background:#F0FDF4; color:#065F46; }
+    .src-smart    { background:#FFF7ED; color:#9A3412; }
+    .src-qr-code  { background:#FDF4FF; color:#6B21A8; }
+
+    @media(max-width:640px) { .p-tabs { overflow-x:auto; } }
+  </style>
 </head>
 <body>
 <div class="erp-layout">
   <aside class="erp-sidebar theme-parent" id="sidebar">
-    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon"><img src="../../icons/logo.png" alt="Vi"></div><div class="sidebar-logo-text">Vishva <span>ERP</span></div></a></div>
-    <div class="sidebar-user"><div class="sidebar-avatar" id="sidebar-avatar">P</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Parent</div><div class="sidebar-user-role">Ward: Priya Patel</div></div></div>
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon" style="background:linear-gradient(135deg,#9333EA,#A855F7)">V</div><div class="sidebar-logo-text">Vishva <span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" style="background:linear-gradient(135deg,#9333EA,#A855F7)" id="sidebar-avatar">P</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Parent</div><div class="sidebar-user-role" id="sidebar-ward-name">Ward</div></div></div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Ward Overview</div>
       <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
@@ -40,55 +84,421 @@
     </header>
 
     <div class="erp-content">
-      <div class="page-header">
-        <h1 class="page-title">📅 Ward Attendance</h1>
-        <p class="page-subtitle">Track your child's class attendance and absence alerts.</p>
+
+      <!-- HERO -->
+      <div style="background:linear-gradient(135deg,#581C87,#7C3AED,#9333EA);border-radius:20px;padding:28px 32px;color:white;margin-bottom:24px;display:flex;align-items:center;gap:32px;flex-wrap:wrap">
+        <div>
+          <div class="gauge-wrap">
+            <svg viewBox="0 0 130 130">
+              <circle class="gauge-bg" cx="65" cy="65" r="54"/>
+              <circle class="gauge-fill" id="gaugeArc" cx="65" cy="65" r="54"
+                stroke="#A3E635" stroke-dasharray="339.3" stroke-dashoffset="339.3"/>
+            </svg>
+            <div class="gauge-text">
+              <span style="font-size:24px;font-weight:900" id="gaugePct" style="color:#A3E635">–%</span>
+              <span style="font-size:10px;opacity:.8;font-weight:600;margin-top:2px">OVERALL</span>
+            </div>
+          </div>
+        </div>
+        <div style="flex:1;min-width:180px">
+          <div style="font-size:12px;opacity:.7;font-weight:600;text-transform:uppercase;letter-spacing:.06em">Ward Attendance Monitor</div>
+          <h1 style="font-size:26px;font-weight:900;margin:6px 0" id="wardNameHero">Loading…</h1>
+          <div style="font-size:13px;opacity:.85" id="heroDesc">Fetching attendance data…</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;flex:1;min-width:240px">
+          <div style="background:rgba(255,255,255,.12);border-radius:10px;padding:14px;text-align:center">
+            <div style="font-size:22px;font-weight:900;color:#A3E635" id="heroPresent">–</div>
+            <div style="font-size:11px;opacity:.7;margin-top:2px">Present</div>
+          </div>
+          <div style="background:rgba(255,255,255,.12);border-radius:10px;padding:14px;text-align:center">
+            <div style="font-size:22px;font-weight:900;color:#F87171" id="heroAbsent">–</div>
+            <div style="font-size:11px;opacity:.7;margin-top:2px">Absent</div>
+          </div>
+          <div style="background:rgba(255,255,255,.12);border-radius:10px;padding:14px;text-align:center">
+            <div style="font-size:22px;font-weight:900;color:#FDE047" id="heroLate">–</div>
+            <div style="font-size:11px;opacity:.7;margin-top:2px">Late</div>
+          </div>
+        </div>
       </div>
 
-      <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
-        <div class="stat-card">
-          <div class="stat-icon" style="background:#D1FAE5;color:#065F46"><i class="fas fa-calendar-check"></i></div>
-          <div class="stat-label">Total Attendance</div>
-          <div class="stat-value" style="color:#059669">85.4%</div>
+      <!-- Shortage/Warning Alerts -->
+      <div id="alertsContainer"></div>
+
+      <!-- Streak strip -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-bottom:24px">
+        <div style="background:linear-gradient(135deg,#1E293B,#334155);border-radius:14px;padding:18px 22px;color:white">
+          <div style="font-size:10px;text-transform:uppercase;opacity:.6;font-weight:600;letter-spacing:.06em">Current Streak</div>
+          <div style="font-size:34px;font-weight:900;margin:6px 0" id="streakCurrent">–</div>
+          <div style="font-size:11px;opacity:.7">consecutive days</div>
         </div>
-        <div class="stat-card">
-          <div class="stat-icon" style="background:#FEE2E2;color:#991B1B"><i class="fas fa-calendar-times"></i></div>
-          <div class="stat-label">Days Absent</div>
-          <div class="stat-value" style="color:#EF4444">4</div>
+        <div style="background:linear-gradient(135deg,#1E3A5F,#0F2952);border-radius:14px;padding:18px 22px;color:white">
+          <div style="font-size:10px;text-transform:uppercase;opacity:.6;font-weight:600;letter-spacing:.06em">Personal Best</div>
+          <div style="font-size:34px;font-weight:900;margin:6px 0;color:#FDE047" id="streakBest">–</div>
+          <div style="font-size:11px;opacity:.7">longest streak</div>
         </div>
-        <div class="stat-card" style="background:#FFFBEB;border:1px solid #FDE68A">
-          <div class="stat-icon" style="background:#FEF3C7;color:#D97706"><i class="fas fa-exclamation-triangle"></i></div>
-          <div class="stat-label">Low Attendance Warning</div>
-          <div class="stat-value" style="font-size:16px;color:#92400E;margin-top:4px">Computer Networks (68%)</div>
-          <div style="font-size:11px;color:#D97706;margin-top:4px">Minimum requirement: 75%</div>
+        <div style="background:white;border-radius:14px;padding:18px 22px;border:1px solid #E2E8F0">
+          <div style="font-size:10px;text-transform:uppercase;color:#94A3B8;font-weight:600;letter-spacing:.06em">At-Risk Subjects</div>
+          <div style="font-size:34px;font-weight:900;margin:6px 0;color:#EF4444" id="atRiskCount">–</div>
+          <div style="font-size:12px;color:#64748B">below 75% threshold</div>
         </div>
       </div>
 
-      <div class="grid col-2">
-        <div class="card">
-          <div class="card-header"><div class="card-title">Subject-wise Breakdown</div></div>
-          <div class="card-body"><div class="chart-container"><canvas id="attChart"></canvas></div></div>
+      <!-- Tabs -->
+      <div class="p-tabs">
+        <button class="p-tab active" onclick="switchTab('subjects')" id="ptab-subjects"><i class="fas fa-book"></i> Subjects</button>
+        <button class="p-tab" onclick="switchTab('calendar')" id="ptab-calendar"><i class="fas fa-calendar-alt"></i> 90-Day Calendar</button>
+        <button class="p-tab" onclick="switchTab('ledger')" id="ptab-ledger"><i class="fas fa-list-check"></i> Ledger</button>
+        <button class="p-tab" onclick="switchTab('chart')" id="ptab-chart"><i class="fas fa-chart-bar"></i> Trends</button>
+      </div>
+
+      <!-- PANEL: Subjects -->
+      <div class="p-panel active" id="panel-subjects">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px" id="subjectGrid">
+          <div style="grid-column:1/-1;text-align:center;padding:40px;color:#94A3B8"><i class="fas fa-spinner fa-spin" style="font-size:22px"></i></div>
         </div>
-        
+      </div>
+
+      <!-- PANEL: Calendar Heatmap -->
+      <div class="p-panel" id="panel-calendar">
         <div class="card">
-          <div class="card-header"><div class="card-title">Recent Absences</div></div>
-          <div class="card-body" style="padding:0">
+          <div class="card-header">
+            <div class="card-title"><i class="fas fa-calendar-alt" style="color:#9333EA;margin-right:8px"></i>90-Day Attendance Calendar</div>
+          </div>
+          <div class="card-body">
+            <div style="overflow-x:auto;padding-bottom:8px">
+              <div class="hm-grid" id="hmGrid"></div>
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:12px;font-size:11px;color:#64748B;flex-wrap:wrap">
+              <span>Less</span>
+              <div style="width:11px;height:11px;border-radius:2px;background:#F1F5F9"></div>
+              <div style="width:11px;height:11px;border-radius:2px;background:#EF4444"></div>
+              <div style="width:11px;height:11px;border-radius:2px;background:#F59E0B"></div>
+              <div style="width:11px;height:11px;border-radius:2px;background:#10B981"></div>
+              <div style="width:11px;height:11px;border-radius:2px;background:#6366F1"></div>
+              <span>More</span>
+              <span style="margin-left:auto;display:flex;gap:10px">
+                <span><span style="display:inline-block;width:10px;height:10px;background:#EF4444;border-radius:2px;vertical-align:middle;margin-right:3px"></span>Absent</span>
+                <span><span style="display:inline-block;width:10px;height:10px;background:#F59E0B;border-radius:2px;vertical-align:middle;margin-right:3px"></span>Late</span>
+                <span><span style="display:inline-block;width:10px;height:10px;background:#10B981;border-radius:2px;vertical-align:middle;margin-right:3px"></span>Present</span>
+                <span><span style="display:inline-block;width:10px;height:10px;background:#6366F1;border-radius:2px;vertical-align:middle;margin-right:3px"></span>Excused</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PANEL: Ledger -->
+      <div class="p-panel" id="panel-ledger">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><i class="fas fa-list-check" style="color:#4F46E5;margin-right:8px"></i>Attendance Ledger</div>
+            <div style="display:flex;gap:8px">
+              <select class="form-control" id="ledgerSubjectFilter" onchange="renderLedger()" style="padding:6px 10px;font-size:12px">
+                <option value="">All Subjects</option>
+              </select>
+              <select class="form-control" id="ledgerStatusFilter" onchange="renderLedger()" style="padding:6px 10px;font-size:12px">
+                <option value="">All Status</option>
+                <option value="absent">Absent</option>
+                <option value="present">Present</option>
+                <option value="late">Late</option>
+                <option value="excused">Excused</option>
+              </select>
+            </div>
+          </div>
+          <div class="table-wrap">
             <table class="erp-table">
-              <thead><tr><th>Date</th><th>Subject</th><th>Status</th><th>Reason</th></tr></thead>
-              <tbody>
-                <tr><td>Apr 05, 2026</td><td>Computer Networks</td><td><span class="badge badge-danger">Absent</span></td><td><span style="color:#94A3B8">Not specified</span></td></tr>
-                <tr><td>Mar 22, 2026</td><td>All Classes</td><td><span class="badge badge-warning">On Leave</span></td><td>Sick Leave (Medical)</td></tr>
-                <tr><td>Mar 15, 2026</td><td>Operating Systems</td><td><span class="badge badge-danger">Absent</span></td><td><span style="color:#94A3B8">Not specified</span></td></tr>
-              </tbody>
+              <thead><tr><th>Date</th><th>Subject</th><th>Status</th><th>Source</th><th>Remarks</th><th>Corrected?</th></tr></thead>
+              <tbody id="ledgerBody"></tbody>
             </table>
           </div>
         </div>
       </div>
+
+      <!-- PANEL: Chart Trends -->
+      <div class="p-panel" id="panel-chart">
+        <div class="grid col-2">
+          <div class="card">
+            <div class="card-header"><div class="card-title"><i class="fas fa-chart-line" style="color:#9333EA;margin-right:6px"></i>Subject-wise Attendance %</div></div>
+            <div class="card-body"><div style="height:260px"><canvas id="subjectBarChart"></canvas></div></div>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title"><i class="fas fa-chart-pie" style="color:#F59E0B;margin-right:6px"></i>Status Breakdown</div></div>
+            <div class="card-body" style="display:flex;align-items:center;justify-content:center"><div style="height:220px;width:220px"><canvas id="statusPieChart"></canvas></div></div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
 
 <script src="../../js/shared.js"></script>
-<script src="../../live/live-pages.js"></script>
+<script>
+/* ══ Parent Attendance — Advanced v2.0 ══ */
+let summaryData = [], calendarData = [], ledgerData = [];
+let barChart = null, pieChart = null;
+const THRESHOLD = 75;
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await Promise.all([loadSummary(), loadCalendar(), loadLedger(), loadStreak()]);
+});
+
+/* ── Tab switching ── */
+function switchTab(name) {
+  document.querySelectorAll('.p-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.p-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById(`ptab-${name}`).classList.add('active');
+  document.getElementById(`panel-${name}`).classList.add('active');
+  if (name === 'chart') buildCharts();
+  if (name === 'calendar') buildHeatmap();
+}
+
+/* ── Summary ── */
+async function loadSummary() {
+  try {
+    const data = await api.request('/attendance/summary');
+    summaryData = data.summary || [];
+
+    // Populate ward name from API if returned
+    if (data.student?.name) {
+      document.getElementById('wardNameHero').textContent = data.student.name;
+      document.getElementById('sidebar-ward-name').textContent = `Ward: ${data.student.name}`;
+    }
+
+    let totalPresent = 0, totalAbsent = 0, totalLate = 0, totalExcused = 0, totalTotal = 0;
+    summaryData.forEach(s => {
+      totalPresent += s.present;
+      totalAbsent  += s.absent;
+      totalLate    += s.late || 0;
+      totalExcused += s.excused || 0;
+      totalTotal   += s.total - (s.excused || 0);
+    });
+
+    const overallPct = totalTotal > 0 ? ((totalPresent + totalLate * 0.5) / totalTotal * 100) : 0;
+    document.getElementById('gaugePct').textContent = `${Math.round(overallPct)}%`;
+    document.getElementById('gaugePct').style.color = overallPct >= 75 ? '#A3E635' : overallPct >= 60 ? '#FDE047' : '#F87171';
+    // Animate gauge
+    const arc = document.getElementById('gaugeArc');
+    arc.style.stroke = overallPct >= 75 ? '#A3E635' : overallPct >= 60 ? '#FDE047' : '#F87171';
+    setTimeout(() => { arc.style.strokeDashoffset = 339.3 * (1 - Math.min(100, overallPct) / 100); }, 100);
+
+    document.getElementById('heroPresent').textContent = totalPresent;
+    document.getElementById('heroAbsent').textContent  = totalAbsent;
+    document.getElementById('heroLate').textContent    = totalLate;
+
+    const atRisk = summaryData.filter(s => parseFloat(s.percentage) < THRESHOLD);
+    document.getElementById('atRiskCount').textContent = atRisk.length;
+    document.getElementById('heroDesc').textContent = atRisk.length > 0
+      ? `⚠️ ${atRisk.length} subject${atRisk.length>1?'s':''} below 75% — action required`
+      : `✅ All subjects above 75% attendance threshold`;
+
+    // Alert banners
+    const alertsEl = document.getElementById('alertsContainer');
+    alertsEl.innerHTML = atRisk.map(s => {
+      const pct = parseFloat(s.percentage);
+      const cls = pct < 60 ? '' : 'warning';
+      return `
+        <div class="alert-card ${cls}">
+          <div style="font-size:22px;color:${pct<60?'#EF4444':'#F59E0B'}"><i class="fas fa-triangle-exclamation"></i></div>
+          <div>
+            <strong style="font-size:14px;color:${pct<60?'#991B1B':'#78350F'}">${s.subject?.name || 'Subject'}</strong>
+            <p style="font-size:13px;color:${pct<60?'#7F1D1D':'#78350F'};margin:2px 0">
+              Current: <strong>${s.percentage}%</strong>.
+              ${s.classesNeeded > 0
+                ? `Must attend <strong>${s.classesNeeded}</strong> more class${s.classesNeeded>1?'es':''} to reach 75%.`
+                : `Can miss <strong>${s.canStillMiss}</strong> more class${s.canStillMiss!==1?'es':''}.`}
+            </p>
+          </div>
+        </div>`;
+    }).join('');
+
+    // Subject grid
+    const grid = document.getElementById('subjectGrid');
+    grid.innerHTML = summaryData.length === 0
+      ? '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#94A3B8">No attendance records available.</div>'
+      : summaryData.map(s => {
+          const pct = parseFloat(s.percentage);
+          const color = pct >= 85 ? '#10B981' : pct >= 75 ? '#F59E0B' : pct >= 60 ? '#F97316' : '#EF4444';
+          const circumference = 2 * Math.PI * 26;
+          const offset = circumference * (1 - pct / 100);
+          return `
+            <div class="sub-card" style="--c:${color}">
+              <div style="display:flex;align-items:flex-start;gap:10px">
+                <div style="flex:1">
+                  <div style="font-size:11px;color:#94A3B8;font-weight:600">${s.subject?.code || ''}</div>
+                  <div style="font-size:15px;font-weight:700;color:#1E293B">${s.subject?.name || 'Subject'}</div>
+                  <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;margin-top:5px;display:inline-block;background:${pct>=THRESHOLD?'#D1FAE5':'#FEE2E2'};color:${pct>=THRESHOLD?'#065F46':'#991B1B'}">${pct>=THRESHOLD?'Safe':'At Risk'}</span>
+                </div>
+                <div style="position:relative;width:60px;height:60px;flex-shrink:0">
+                  <svg viewBox="0 0 60 60" style="transform:rotate(-90deg);width:60px;height:60px">
+                    <circle cx="30" cy="30" r="26" fill="none" stroke="#F1F5F9" stroke-width="7"/>
+                    <circle cx="30" cy="30" r="26" fill="none" stroke="${color}" stroke-width="7" stroke-linecap="round"
+                      stroke-dasharray="${circumference}" stroke-dashoffset="${offset}"/>
+                  </svg>
+                  <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+                    <span style="font-size:13px;font-weight:800;color:${color}">${Math.round(pct)}</span>
+                    <span style="font-size:8px;color:#94A3B8;margin-top:-2px">%</span>
+                  </div>
+                </div>
+              </div>
+              <div style="display:flex;gap:10px;margin:12px 0;font-size:12px">
+                <div style="flex:1;text-align:center"><strong style="color:#10B981;font-size:17px">${s.present}</strong><br><span style="color:#94A3B8">Present</span></div>
+                <div style="flex:1;text-align:center"><strong style="color:#EF4444;font-size:17px">${s.absent}</strong><br><span style="color:#94A3B8">Absent</span></div>
+                <div style="flex:1;text-align:center"><strong style="color:#F59E0B;font-size:17px">${s.late || 0}</strong><br><span style="color:#94A3B8">Late</span></div>
+                <div style="flex:1;text-align:center"><strong style="font-size:17px">${s.total}</strong><br><span style="color:#94A3B8">Total</span></div>
+              </div>
+              ${s.classesNeeded > 0
+                ? `<div style="background:#FEE2E2;border-radius:8px;padding:8px 10px;font-size:12px;color:#991B1B"><i class="fas fa-triangle-exclamation"></i> Needs <strong>${s.classesNeeded}</strong> more classes</div>`
+                : `<div style="background:#D1FAE5;border-radius:8px;padding:8px 10px;font-size:12px;color:#065F46"><i class="fas fa-shield-check"></i> Safe to miss <strong>${s.canStillMiss}</strong> more</div>`}
+            </div>`;
+        }).join('');
+
+    // Populate ledger subject filter
+    const sel = document.getElementById('ledgerSubjectFilter');
+    summaryData.forEach(s => {
+      if (s.subject?._id) {
+        const o = document.createElement('option'); o.value = s.subject._id; o.textContent = s.subject.name; sel.appendChild(o);
+      }
+    });
+  } catch(e) {}
+}
+
+/* ── Streak ── */
+async function loadStreak() {
+  try {
+    const data = await api.request('/attendance/streak');
+    document.getElementById('streakCurrent').textContent = data.currentStreak || 0;
+    document.getElementById('streakBest').textContent = data.longestStreak || 0;
+  } catch(e) {}
+}
+
+/* ── Calendar ── */
+async function loadCalendar() {
+  try {
+    const data = await api.request('/attendance/calendar?days=90');
+    calendarData = data.calendar || [];
+    buildHeatmap();
+  } catch(e) {}
+}
+
+function buildHeatmap() {
+  const grid = document.getElementById('hmGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+
+  const dateMap = {};
+  calendarData.forEach(d => { dateMap[d.date] = d.status; });
+
+  const today = new Date();
+  for (let w = 12; w >= 0; w--) {
+    for (let day = 0; day < 7; day++) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - (w * 7 + (6 - day)));
+      if (d > today) continue;
+      const ds = d.toISOString().slice(0, 10);
+      const st = dateMap[ds] || 'none';
+      const cell = document.createElement('div');
+      cell.className = 'hm-cell';
+      cell.dataset.s = st;
+      cell.title = `${ds}: ${st}`;
+      grid.appendChild(cell);
+    }
+  }
+}
+
+/* ── Ledger ── */
+async function loadLedger() {
+  try {
+    const data = await api.request('/attendance?');
+    ledgerData = data.attendance || [];
+    renderLedger();
+  } catch(e) {}
+}
+
+function renderLedger() {
+  const subjectFilter = document.getElementById('ledgerSubjectFilter')?.value || '';
+  const statusFilter = document.getElementById('ledgerStatusFilter')?.value || '';
+  const tbody = document.getElementById('ledgerBody');
+
+  const filtered = ledgerData.filter(r => {
+    if (subjectFilter && String(r.subjectId?._id) !== subjectFilter) return false;
+    if (statusFilter && r.status !== statusFilter) return false;
+    return true;
+  }).slice(0, 50);
+
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:30px;color:#94A3B8">No records found.</td></tr>';
+    return;
+  }
+
+  const srcClass = { 'manual': 'src-manual', 'face-id': 'src-face-id', 'smart-location': 'src-smart', 'qr-code': 'src-qr-code' };
+  const srcIcon  = { 'manual': 'pencil', 'face-id': 'face-smile', 'smart-location': 'location-dot', 'qr-code': 'qrcode' };
+  const statusBg = { present: '#D1FAE5', absent: '#FEE2E2', late: '#FEF3C7', excused: '#EDE9FE', notMarked: '#F1F5F9' };
+  const statusColor = { present: '#065F46', absent: '#991B1B', late: '#78350F', excused: '#3730A3', notMarked: '#64748B' };
+
+  tbody.innerHTML = filtered.map(r => {
+    const date = new Date(r.date).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+    const src = r.source || 'manual';
+    return `<tr>
+      <td>${date}</td>
+      <td><strong>${r.subjectId?.name || '–'}</strong><br><span style="font-size:11px;color:#94A3B8">${r.subjectId?.code || ''}</span></td>
+      <td><span style="background:${statusBg[r.status]||'#F1F5F9'};color:${statusColor[r.status]||'#64748B'};padding:2px 10px;border-radius:8px;font-size:11px;font-weight:700">${r.status}</span></td>
+      <td><span class="src-badge ${srcClass[src]||'src-manual'}"><i class="fas fa-${srcIcon[src]||'pencil'}"></i>${src}</span></td>
+      <td style="font-size:12px;color:#64748B">${r.remarks || '–'}</td>
+      <td>${r.correctedBy ? `<span style="font-size:11px;background:#FEF3C7;color:#78350F;padding:2px 8px;border-radius:6px"><i class="fas fa-edit"></i> Corrected</span>` : '–'}</td>
+    </tr>`;
+  }).join('');
+}
+
+/* ── Charts ── */
+function buildCharts() {
+  if (!summaryData.length) return;
+
+  if (barChart) barChart.destroy();
+  barChart = new Chart(document.getElementById('subjectBarChart'), {
+    type: 'bar',
+    data: {
+      labels: summaryData.map(s => s.subject?.name || 'Subject'),
+      datasets: [{
+        label: 'Attendance %',
+        data: summaryData.map(s => parseFloat(s.percentage)),
+        backgroundColor: summaryData.map(s => {
+          const p = parseFloat(s.percentage);
+          return p >= 75 ? '#10B981' : p >= 60 ? '#F59E0B' : '#EF4444';
+        }),
+        borderRadius: 6,
+      }],
+    },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { x: { beginAtZero: true, max: 100, grid: { color: '#F1F5F9' } }, y: { grid: { display: false } } },
+    },
+  });
+
+  const totalPresent = summaryData.reduce((s, d) => s + d.present, 0);
+  const totalAbsent  = summaryData.reduce((s, d) => s + d.absent, 0);
+  const totalLate    = summaryData.reduce((s, d) => s + (d.late||0), 0);
+  const totalExcused = summaryData.reduce((s, d) => s + (d.excused||0), 0);
+
+  if (pieChart) pieChart.destroy();
+  pieChart = new Chart(document.getElementById('statusPieChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Present', 'Absent', 'Late', 'Excused'],
+      datasets: [{
+        data: [totalPresent, totalAbsent, totalLate, totalExcused],
+        backgroundColor: ['#10B981', '#EF4444', '#F59E0B', '#6366F1'],
+        borderWidth: 0,
+      }],
+    },
+    options: { responsive: true, maintainAspectRatio: false, cutout: '68%', plugins: { legend: { position: 'bottom' } } },
+  });
+}
+
+window.switchTab = switchTab;
+window.renderLedger = renderLedger;
+window.buildHeatmap = buildHeatmap;
+</script>
 </body>
 </html>

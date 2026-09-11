@@ -2,7 +2,15 @@ const express = require('express');
 const { protect } = require('../middleware/auth');
 const { authorize, sameCollege } = require('../middleware/rbac');
 const { requireSubscription } = require('../middleware/subscription');
-const { createExam, getExams, addResults, getStudentResults, getResultSheet } = require('../controllers/examController');
+const {
+  createExam,
+  getExams,
+  addResults,
+  getStudentResults,
+  getResultSheet,
+  getExamAnalytics,
+  exportExamCSVTemplate,
+} = require('../controllers/examController');
 
 const router = express.Router();
 
@@ -15,6 +23,8 @@ router.route('/')
   .post(authorize('collegeAdmin', 'faculty'), createExam)
   .get(getExams);
 
+router.get('/analytics', authorize('faculty', 'collegeAdmin'), getExamAnalytics);
+router.get('/template', authorize('faculty', 'collegeAdmin'), exportExamCSVTemplate);
 router.post('/results', authorize('collegeAdmin', 'faculty'), addResults);
 router.get('/results-sheet', authorize('faculty', 'collegeAdmin'), getResultSheet);
 

@@ -1106,6 +1106,164 @@ const getAttendanceHeatmap = asyncHandler(async (req, res) => {
   res.json({ success: true, heatmap: data });
 });
 
+/* ═══════════════════════════════════════════════
+   QR CODE ATTENDANCE
+═══════════════════════════════════════════════ */
+
+const crypto = require('crypto');
+// In-memory store for QR tokens (in production, use Redis)
+const qrTokenStore = new Map();
+const QR_TOKEN_TTL_MS = 10 * 60 * 1000; // 10 minutes
+
+// @desc    Faculty generates a time-limited QR code token for attendance
+// @route   POST /api/attendance/qr/generate
+const generateQRToken = asyncHandler(async (req, res) => {
+  const { subjectId, date } = req.body;
+  if (!subjectId) return res.status(400).json({ success: false, message: 'subjectId is required' });
+
+  const token = crypto.randomBytes(24).toString('hex');
+  const expiresAt = Date.now() + QR_TOKEN_TTL_MS;
+  const attendanceDate = date ? startOfDay(date) : startOfDay();
+
+  qrTokenStore.set(token, {
+    collegeId: String(req.user.collegeId),
+    facultyId: String(req.user._id),
+    subjectId: String(subjectId),
+    date: attendanceDate,
+    expiresAt,
+  });
+
+  // Auto-cleanup expired tokens
+  setTimeout(() => qrTokenStore.delete(token), QR_TOKEN_TTL_MS);
+
+  res.json({
+    success: true,
+    token,
+    expiresAt: new Date(expiresAt).toISOString(),
+    ttlSeconds: QR_TOKEN_TTL_MS / 1000,
+    qrData: `vishvaerp://attendance/qr?token=${token}`,
+  });
+});
+
+// @desc    Student scans QR code to mark their attendance
+// @route   POST /api/attendance/qr/scan
+const scanQRAttendance = asyncHandler(async (req, res) => {
+  let { token } = req.body;
+  if (!token) return res.status(400).json({ success: false, message: 'QR token is required' });
+
+  // Handle URL / custom scheme formats
+  if (typeof token === 'string') {
+    if (token.includes('token=')) {
+      token = token.split('token=')[1].split('&')[0];
+    }
+    token = token.trim();
+  }
+
+  let entry = qrTokenStore.get(token);
+  if (!entry) {
+    // Support short prefix code matching (minimum 6 characters, case-insensitive)
+    const search = String(token).toLowerCase();
+    for (const [k, v] of qrTokenStore.entries()) {
+      if (k.toLowerCase().startsWith(search) && search.length >= 6) {
+        entry = v;
+        token = k;
+        break;
+      }
+    }
+  }
+
+  if (!entry) return res.status(404).json({ success: false, message: 'Invalid or expired QR code' });
+  if (Date.now() > entry.expiresAt) {
+    qrTokenStore.delete(token);
+    return res.status(410).json({ success: false, message: 'QR code has expired. Ask faculty to regenerate.' });
+  }
+
+  if (String(req.user.collegeId) !== entry.collegeId) {
+    return res.status(403).json({ success: false, message: 'QR code is for a different college' });
+  }
+
+  const now = new Date();
+  const timetableSlot = await Timetable.findOne({
+    collegeId: req.user.collegeId,
+    subjectId: entry.subjectId,
+    isActive: true,
+  }).select('startTime endTime');
+
+  const late = timetableSlot
+    ? currentTimeMinutes() > timeToMinutes(timetableSlot.startTime) + LATE_AFTER_MINUTES
+    : false;
+  const status = late ? 'late' : 'present';
+
+  const attendance = await Attendance.findOneAndUpdate(
+    {
+      collegeId: req.user.collegeId,
+      studentId: req.user._id,
+      subjectId: entry.subjectId,
+      date: entry.date,
+    },
+    {
+      $set: {
+        status,
+        source: 'qr-code',
+        verificationMethod: 'qr-code',
+        facultyId: entry.facultyId,
+        lastSeenAt: now,
+        remarks: `Marked via QR code scan at ${now.toLocaleTimeString('en-IN')}`,
+      },
+      $setOnInsert: {
+        collegeId: req.user.collegeId,
+        studentId: req.user._id,
+        subjectId: entry.subjectId,
+        date: entry.date,
+        firstSeenAt: now,
+      },
+    },
+    { upsert: true, new: true }
+  );
+
+  logAudit(req, 'create', 'attendance', {
+    description: `Student ${req.user.name} scanned QR for attendance`,
+    metadata: { subjectId: entry.subjectId, status },
+  });
+
+  emitDataChange(req, {
+    collegeId: String(req.user.collegeId),
+    userIds: [entry.facultyId],
+    resource: 'attendance',
+    action: 'qr-scanned',
+  });
+
+  res.json({
+    success: true,
+    message: `Attendance marked as ${status} via QR code`,
+    status,
+    attendance: { id: attendance._id, status: attendance.status, time: now },
+  });
+});
+
+// @desc    Get QR token status (faculty polls this to see who scanned)
+// @route   GET /api/attendance/qr/status/:token
+const getQRScanStatus = asyncHandler(async (req, res) => {
+  const entry = qrTokenStore.get(req.params.token);
+  if (!entry) return res.status(404).json({ success: false, message: 'Token not found or expired' });
+  if (String(req.user.collegeId) !== entry.collegeId) return res.status(403).json({ success: false });
+
+  const scanners = await Attendance.find({
+    collegeId: entry.collegeId,
+    subjectId: entry.subjectId,
+    date: entry.date,
+    source: 'qr-code',
+  }).populate('studentId', 'name rollNo');
+
+  res.json({
+    success: true,
+    active: Date.now() < entry.expiresAt,
+    expiresAt: new Date(entry.expiresAt).toISOString(),
+    scannedCount: scanners.length,
+    scanners: scanners.map(s => ({ name: s.studentId?.name, rollNo: s.studentId?.rollNo, status: s.status, time: s.lastSeenAt })),
+  });
+});
+
 module.exports = {
   markAttendance,
   getAttendance,
@@ -1127,4 +1285,7 @@ module.exports = {
   notifyAbsentees,
   getTimetableSlots,
   getAttendanceHeatmap,
+  generateQRToken,
+  scanQRAttendance,
+  getQRScanStatus,
 };

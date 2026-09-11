@@ -227,41 +227,95 @@
         </div>
       </div>
 
-      <!-- ══ SMART ATTENDANCE ══ -->
-      <div class="smart-panel mb-6">
-        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px">
-          <div>
-            <div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;opacity:.7;font-weight:600">Privacy-first GPS</div>
-            <div style="font-size:18px;font-weight:800;margin:4px 0">Live Classroom Check-in</div>
-            <div style="font-size:13px;opacity:.8">Your location is only used during scheduled class windows.</div>
-          </div>
-          <div style="display:flex;flex-direction:column;gap:10px">
-            <div class="consent-toggle">
-              <div class="toggle-track" id="consentTrack" onclick="toggleLocationConsent()">
-                <div class="toggle-thumb"></div>
-              </div>
-              <span style="font-size:13px;font-weight:600" id="consentLabel">Location Consent: Off</span>
+      <!-- ══ SMART & QR ATTENDANCE ══ -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;margin-bottom:24px">
+        <!-- Panel 1: GPS Live Check-In -->
+        <div class="smart-panel" style="margin-bottom:0">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px">
+            <div>
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;opacity:.7;font-weight:600">Privacy-first GPS</div>
+              <div style="font-size:18px;font-weight:800;margin:4px 0">Live Classroom Check-in</div>
+              <div style="font-size:13px;opacity:.8">Your location is only used during scheduled class windows.</div>
             </div>
-            <button class="btn btn-sm" id="checkinBtn" style="background:#10B981;color:white;border:none;display:none" onclick="startStudentSmartAttendance()">
-              <i class="fas fa-location-arrow"></i> Start Live Check-in
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div class="consent-toggle">
+                <div class="toggle-track" id="consentTrack" onclick="toggleLocationConsent()">
+                  <div class="toggle-thumb"></div>
+                </div>
+                <span style="font-size:13px;font-weight:600" id="consentLabel">Location Consent: Off</span>
+              </div>
+              <button class="btn btn-sm" id="checkinBtn" style="background:#10B981;color:white;border:none;display:none" onclick="startStudentSmartAttendance()">
+                <i class="fas fa-location-arrow"></i> Start Live Check-in
+              </button>
+            </div>
+          </div>
+          <div id="smartStatusMsg" style="margin-top:14px;font-size:13px;opacity:.8;padding:10px 14px;background:rgba(255,255,255,.08);border-radius:8px">
+            Enable consent above to allow automatic attendance marking when you arrive in class.
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:14px">
+            <div style="background:rgba(255,255,255,.08);border-radius:10px;padding:12px">
+              <div style="font-size:10px;text-transform:uppercase;opacity:.6;font-weight:600">Active Class</div>
+              <div style="font-size:13px;font-weight:700;margin-top:4px" id="smartClass">—</div>
+            </div>
+            <div style="background:rgba(255,255,255,.08);border-radius:10px;padding:12px">
+              <div style="font-size:10px;text-transform:uppercase;opacity:.6;font-weight:600">Live Status</div>
+              <div style="font-size:13px;font-weight:700;margin-top:4px" id="smartStatus">—</div>
+            </div>
+            <div style="background:rgba(255,255,255,.08);border-radius:10px;padding:12px">
+              <div style="font-size:10px;text-transform:uppercase;opacity:.6;font-weight:600">Auto Attendance</div>
+              <div style="font-size:13px;font-weight:700;margin-top:4px" id="smartAttendanceResult">—</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel 2: QR Code Instant Check-In -->
+        <div style="background:linear-gradient(135deg,#1E1B4B 0%,#2E1065 50%,#3B0764 100%);border-radius:16px;padding:22px 24px;color:white;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 8px 24px rgba(0,0,0,.15)">
+          <div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#C084FC;font-weight:700"><i class="fas fa-qrcode" style="margin-right:5px"></i>QR Verification</div>
+              <span style="background:rgba(192,132,252,.2);color:#E9D5FF;font-size:10px;font-weight:800;padding:2px 8px;border-radius:99px;border:1px solid rgba(192,132,252,.3)"><i class="fas fa-bolt"></i> Instant</span>
+            </div>
+            <div style="font-size:18px;font-weight:800;margin:2px 0 6px">QR Code Check-In</div>
+            <div style="font-size:13px;opacity:.85;margin-bottom:14px;line-height:1.4">Scan the code projected on the classroom screen, or enter the 8-character code.</div>
+            
+            <div style="display:flex;gap:8px;margin-bottom:12px">
+              <input type="text" id="qrTokenInput" placeholder="Code (e.g. 7A8B9C)" maxlength="60"
+                style="flex:1;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:10px;padding:10px 14px;color:white;font-family:monospace;font-size:14px;letter-spacing:1.5px;text-transform:uppercase;outline:none"
+                onkeydown="if(event.key==='Enter') submitQRToken()">
+              <button class="btn" onclick="submitQRToken()" id="submitQrBtn"
+                style="background:linear-gradient(135deg,#9333EA,#7C3AED);color:white;border:none;border-radius:10px;padding:10px 18px;font-weight:700;display:flex;align-items:center;gap:6px;box-shadow:0 4px 12px rgba(147,51,234,.3)">
+                <i class="fas fa-check-circle"></i> Check In
+              </button>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;padding-top:14px;border-top:1px solid rgba(255,255,255,.1);margin-top:auto">
+            <button class="btn btn-sm" onclick="openCameraScanner()" style="background:rgba(255,255,255,.18);color:white;border:none;border-radius:8px;font-weight:600">
+              <i class="fas fa-camera" style="margin-right:6px"></i> Scan with Camera
             </button>
+            <div id="qrScanFeedback" style="font-size:12px;color:#D8B4FE;font-weight:600">Ready to scan</div>
           </div>
         </div>
-        <div id="smartStatusMsg" style="margin-top:14px;font-size:13px;opacity:.8;padding:10px 14px;background:rgba(255,255,255,.08);border-radius:8px">
-          Enable consent above to allow automatic attendance marking when you arrive in class.
-        </div>
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-top:14px">
-          <div style="background:rgba(255,255,255,.08);border-radius:10px;padding:12px">
-            <div style="font-size:10px;text-transform:uppercase;opacity:.6;font-weight:600">Active Class</div>
-            <div style="font-size:14px;font-weight:700;margin-top:4px" id="smartClass">—</div>
+      </div>
+
+      <!-- Camera QR Scanner Modal -->
+      <div class="modal" id="qrScannerModal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.75);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(4px)">
+        <div class="modal-dialog" style="background:#1E293B;border:1px solid #334155;border-radius:20px;padding:24px;width:90%;max-width:440px;color:white;position:relative">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+            <div style="font-size:16px;font-weight:800;display:flex;align-items:center;gap:8px">
+              <i class="fas fa-qrcode" style="color:#C084FC"></i> Scan Attendance QR
+            </div>
+            <button onclick="closeCameraScanner()" style="background:none;border:none;color:#94A3B8;cursor:pointer;font-size:18px"><i class="fas fa-times"></i></button>
           </div>
-          <div style="background:rgba(255,255,255,.08);border-radius:10px;padding:12px">
-            <div style="font-size:10px;text-transform:uppercase;opacity:.6;font-weight:600">Live Status</div>
-            <div style="font-size:14px;font-weight:700;margin-top:4px" id="smartStatus">—</div>
+          <div style="position:relative;width:100%;aspect-ratio:1;background:#0F172A;border-radius:14px;overflow:hidden;margin-bottom:14px">
+            <video id="qrVideo" playsinline style="width:100%;height:100%;object-fit:cover"></video>
+            <div style="position:absolute;inset:24px;border:2px dashed #C084FC;border-radius:12px;pointer-events:none;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 9999px rgba(0,0,0,.4)">
+              <div style="font-size:11px;color:white;background:rgba(0,0,0,.7);padding:4px 10px;border-radius:6px;font-weight:600">Point at teacher's screen</div>
+            </div>
           </div>
-          <div style="background:rgba(255,255,255,.08);border-radius:10px;padding:12px">
-            <div style="font-size:10px;text-transform:uppercase;opacity:.6;font-weight:600">Auto Attendance</div>
-            <div style="font-size:14px;font-weight:700;margin-top:4px" id="smartAttendanceResult">—</div>
+          <div id="scannerMsg" style="font-size:12px;color:#94A3B8;text-align:center;margin-bottom:16px">Position QR code inside the box to scan automatically</div>
+          <div style="display:flex;gap:10px;justify-content:flex-end">
+            <button class="btn btn-secondary btn-sm" onclick="closeCameraScanner()">Cancel</button>
           </div>
         </div>
       </div>
@@ -628,10 +682,116 @@ async function startStudentSmartAttendance() {
   showToast('Live check-in started — broadcasting every 60s', 'success');
 }
 
+/* ═══════════════════════════════════════════
+   QR Code Check-In Logic
+═══════════════════════════════════════════ */
+let qrMediaStream = null;
+let qrScanAnimId = null;
+
+async function submitQRToken(tokenOverride) {
+  const input = document.getElementById('qrTokenInput');
+  const token = (tokenOverride || (input ? input.value : '') || '').trim();
+  if (!token) return showToast('Please enter a QR code or token', 'warning');
+
+  const btn = document.getElementById('submitQrBtn');
+  if (btn) setLoading(btn, true);
+  const feedback = document.getElementById('qrScanFeedback');
+  if (feedback) feedback.innerHTML = '<span style="color:#C084FC"><i class="fas fa-spinner fa-spin"></i> Verifying...</span>';
+
+  try {
+    const res = await api.request('/attendance/qr/scan', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+    });
+
+    if (input) input.value = '';
+    const statusText = res.status === 'late' ? 'Late' : 'Present';
+    if (feedback) {
+      feedback.innerHTML = `<span style="color:#34D399;font-weight:700"><i class="fas fa-check-circle"></i> ${statusText}!</span>`;
+    }
+    showToast(res.message || `Attendance marked as ${statusText} ✓`, 'success');
+
+    // Instantly refresh all stats, gauge, streaks, heatmap & ledger
+    await Promise.all([
+      loadSummary(),
+      loadCalendar(),
+      loadStreak(),
+      loadRecentLedger(),
+    ]);
+  } catch (err) {
+    if (feedback) {
+      feedback.innerHTML = `<span style="color:#F87171"><i class="fas fa-circle-xmark"></i> ${err.message || 'Invalid code'}</span>`;
+    }
+  } finally {
+    if (btn) setLoading(btn, false);
+  }
+}
+
+async function openCameraScanner() {
+  const modal = document.getElementById('qrScannerModal');
+  if (!modal) return;
+  modal.style.display = 'flex';
+
+  const video = document.getElementById('qrVideo');
+  const msg = document.getElementById('scannerMsg');
+
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    if (msg) msg.textContent = 'Camera not accessible in this browser. Please enter the code manually.';
+    return;
+  }
+
+  try {
+    qrMediaStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment' },
+    });
+    video.srcObject = qrMediaStream;
+    await video.play();
+
+    // Check if BarcodeDetector is available
+    if ('BarcodeDetector' in window) {
+      const barcodeDetector = new BarcodeDetector({ formats: ['qr_code'] });
+      const detectFrame = async () => {
+        if (!qrMediaStream) return;
+        try {
+          const barcodes = await barcodeDetector.detect(video);
+          if (barcodes && barcodes.length > 0) {
+            const val = barcodes[0].rawValue;
+            closeCameraScanner();
+            submitQRToken(val);
+            return;
+          }
+        } catch (_) {}
+        qrScanAnimId = requestAnimationFrame(detectFrame);
+      };
+      qrScanAnimId = requestAnimationFrame(detectFrame);
+    } else {
+      if (msg) msg.textContent = 'Camera active. If auto-detect is unsupported, please type the code displayed by teacher.';
+    }
+  } catch (err) {
+    if (msg) msg.textContent = 'Camera permission denied or camera unavailable. Please type the code manually.';
+  }
+}
+
+function closeCameraScanner() {
+  if (qrScanAnimId) {
+    cancelAnimationFrame(qrScanAnimId);
+    qrScanAnimId = null;
+  }
+  if (qrMediaStream) {
+    qrMediaStream.getTracks().forEach(track => track.stop());
+    qrMediaStream = null;
+  }
+  const modal = document.getElementById('qrScannerModal');
+  if (modal) modal.style.display = 'none';
+}
+
 // expose
 window.toggleLocationConsent = toggleLocationConsent;
 window.startStudentSmartAttendance = startStudentSmartAttendance;
 window.buildHeatmap = buildHeatmap;
+window.submitQRToken = submitQRToken;
+window.openCameraScanner = openCameraScanner;
+window.closeCameraScanner = closeCameraScanner;
 </script>
 </body>
 </html>

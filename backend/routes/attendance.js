@@ -22,6 +22,9 @@ const {
   notifyAbsentees,
   getTimetableSlots,
   getAttendanceHeatmap,
+  generateQRToken,
+  scanQRAttendance,
+  getQRScanStatus,
 } = require('../controllers/attendanceController');
 
 const router = express.Router();
@@ -60,5 +63,10 @@ router.get('/heatmap', authorize('collegeAdmin', 'superadmin'), getAttendanceHea
 router.get('/timetable', authorize('faculty', 'collegeAdmin'), getTimetableSlots);
 router.get('/export', authorize('faculty', 'collegeAdmin', 'superadmin'), exportAttendance);
 router.post('/notify-absentees', authorize('collegeAdmin'), notifyAbsentees);
+
+// ── QR Code Attendance ─────────────────────────
+router.post('/qr/generate', authorize('faculty', 'collegeAdmin'), generateQRToken);
+router.post('/qr/scan', authorize('student'), scanQRAttendance);
+router.get('/qr/status/:token', authorize('faculty', 'collegeAdmin'), getQRScanStatus);
 
 module.exports = router;

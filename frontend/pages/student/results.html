@@ -1,18 +1,56 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Results — Student | VishvaERP</title>
+  <title>Results & Academic Transcript — Student | VishvaERP</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="../../css/custom.css">
+  <style>
+    /* ── Grade Badges ── */
+    .g-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px; border-radius: 8px; font-weight: 800; font-size: 13px;
+    }
+    .g-O   { background: #D1FAE5; color: #065F46; border: 1px solid #A7F3D0; }
+    .g-Ap  { background: #CCFBF1; color: #115E59; border: 1px solid #99F6E4; }
+    .g-A   { background: #DBEAFE; color: #1E40AF; border: 1px solid #BFDBFE; }
+    .g-Bp  { background: #E0E7FF; color: #3730A3; border: 1px solid #C7D2FE; }
+    .g-B   { background: #FEF3C7; color: #92400E; border: 1px solid #FDE68A; }
+    .g-C   { background: #FFEDD5; color: #9A3412; border: 1px solid #FED7AA; }
+    .g-F   { background: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; }
+    .g-none{ background: #F1F5F9; color: #94A3B8; }
+
+    /* ── Tab Pills ── */
+    .sem-tab-btn {
+      padding: 9px 20px; border-radius: 10px; font-size: 13px; font-weight: 700;
+      cursor: pointer; border: 1.5px solid transparent; background: #F1F5F9; color: #64748B;
+      transition: all .2s; white-space: nowrap;
+    }
+    .sem-tab-btn:hover { background: #E2E8F0; color: #1E293B; }
+    .sem-tab-btn.active {
+      background: #0284C7; color: white; border-color: #0284C7;
+      box-shadow: 0 4px 12px rgba(2,132,199,.25);
+    }
+
+    /* ── Printable Marksheet Styles ── */
+    @media print {
+      body * { visibility: hidden; }
+      #printableTranscript, #printableTranscript * { visibility: visible; }
+      #printableTranscript {
+        position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 20px;
+        box-shadow: none !important; border: none !important;
+      }
+      .no-print { display: none !important; }
+    }
+  </style>
 </head>
 <body>
 <div class="erp-layout">
   <aside class="erp-sidebar theme-student" id="sidebar">
     <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)">V</div><div class="sidebar-logo-text">Vishva <span>ERP</span></div></a></div>
-    <div class="sidebar-user"><div class="sidebar-avatar" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)" id="sidebar-avatar">S</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Student</div><div class="sidebar-user-role">B.Tech CS • Sem 4</div></div></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)" id="sidebar-avatar">S</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Student</div><div class="sidebar-user-role" id="sidebar-user-dept">B.Tech CS • Sem 4</div></div></div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Overview</div>
       <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
@@ -47,56 +85,211 @@
     <header class="erp-topbar">
       <div class="topbar-left">
         <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
-        <div class="topbar-breadcrumb">Student / <span>Results</span></div>
+        <div class="topbar-breadcrumb">Student / <span>Results & Marksheet</span></div>
       </div>
       <div class="topbar-right">
-        <button class="btn btn-primary" onclick="window.print()"><i class="fas fa-file-pdf"></i> Download Marksheet</button>
+        <button class="btn btn-primary" onclick="openTranscriptModal()"><i class="fas fa-file-pdf"></i> Official Marksheet</button>
         <div class="topbar-avatar" id="topbar-avatar">S</div>
       </div>
     </header>
 
     <div class="erp-content">
-      <div class="page-header">
-        <h1 class="page-title">🏆 Results & Grades</h1>
-        <p class="page-subtitle">Your academic performance across all semesters.</p>
-      </div>
-
-      <!-- CGPA Summary -->
-      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
-        <div class="stat-card" style="background:linear-gradient(135deg,#EDE9FE,#DBEAFE)"><div class="stat-icon" style="background:rgba(255,255,255,0.6);color:#5B21B6"><i class="fas fa-star"></i></div><div class="stat-label">CGPA</div><div class="stat-value" style="color:#5B21B6">8.4</div><div class="stat-change up"><i class="fas fa-arrow-up"></i> Top 15% of class</div></div>
-        <div class="stat-card"><div class="stat-icon" style="background:#D1FAE5;color:#065F46"><i class="fas fa-chart-bar"></i></div><div class="stat-label">Best SGPA</div><div class="stat-value">8.7</div><div style="font-size:12px;color:#64748B">Semester 2</div></div>
-        <div class="stat-card"><div class="stat-icon" style="background:#DBEAFE;color:#1E40AF"><i class="fas fa-graduation-cap"></i></div><div class="stat-label">Completed Sems</div><div class="stat-value" data-counter="3">3</div></div>
-        <div class="stat-card"><div class="stat-icon" style="background:#FEF3C7;color:#92400E"><i class="fas fa-trophy"></i></div><div class="stat-label">Credits Earned</div><div class="stat-value" data-counter="68">68</div></div>
-      </div>
-
-      <div class="grid col-2 mb-6">
-        <div class="card">
-          <div class="card-header"><div class="card-title"><i class="fas fa-chart-line" style="color:#0284C7;margin-right:8px"></i>SGPA Trend</div></div>
-          <div class="card-body"><div class="chart-container" style="height:220px"><canvas id="sgpaChart"></canvas></div></div>
+      <!-- ══ HERO BANNER ══ -->
+      <div style="background:linear-gradient(135deg,#0369A1 0%,#0284C7 50%,#0EA5E9 100%);border-radius:20px;padding:28px 32px;color:white;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px;box-shadow:0 12px 28px rgba(2,132,199,.25)">
+        <div>
+          <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.2);padding:4px 12px;border-radius:99px;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;margin-bottom:8px">
+            <i class="fas fa-award"></i> Academic Standing
+          </div>
+          <h1 style="font-size:28px;font-weight:900;margin:0 0 4px">Academic Transcript & Grades</h1>
+          <p style="font-size:14px;opacity:.9;margin:0" id="heroStandingText">Loading academic standing...</p>
         </div>
-        <div class="card">
-          <div class="card-header"><div class="card-title"><i class="fas fa-chart-radar" style="color:#8B5CF6;margin-right:8px"></i>Subject Performance</div></div>
-          <div class="card-body"><div class="chart-container" style="height:220px"><canvas id="radarChart"></canvas></div></div>
+        <div style="display:flex;align-items:center;gap:18px;background:rgba(255,255,255,.15);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.2);border-radius:16px;padding:16px 24px">
+          <div style="text-align:center">
+            <div style="font-size:11px;opacity:.8;font-weight:700;text-transform:uppercase">Cumulative CGPA</div>
+            <div style="font-size:36px;font-weight:900;line-height:1;margin-top:4px" id="heroCGPA">—</div>
+            <div style="font-size:11px;opacity:.8;margin-top:2px">out of 10.0</div>
+          </div>
         </div>
       </div>
 
-      <!-- Semester Tabs -->
-      <div class="tab-bar mb-4" style="max-width:400px">
-        <button class="tab-btn active" onclick="showSem(1,this)">Sem 1</button>
-        <button class="tab-btn" onclick="showSem(2,this)">Sem 2</button>
-        <button class="tab-btn" onclick="showSem(3,this)">Sem 3</button>
+      <!-- ══ KPI STATS GRID ══ -->
+      <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:24px">
+        <div class="stat-card" style="border-left:4px solid #0284C7">
+          <div class="stat-icon" style="background:#E0F2FE;color:#0284C7"><i class="fas fa-chart-pie"></i></div>
+          <div class="stat-label">Cumulative CGPA</div>
+          <div class="stat-value" id="statCGPA" style="color:#0284C7">—</div>
+          <div style="font-size:12px;color:#64748B" id="statStanding">—</div>
+        </div>
+        <div class="stat-card" style="border-left:4px solid #10B981">
+          <div class="stat-icon" style="background:#D1FAE5;color:#065F46"><i class="fas fa-bolt"></i></div>
+          <div class="stat-label">Best Semester SGPA</div>
+          <div class="stat-value" id="statBestSGPA" style="color:#065F46">—</div>
+          <div style="font-size:12px;color:#64748B" id="statBestSem">Personal Best</div>
+        </div>
+        <div class="stat-card" style="border-left:4px solid #6366F1">
+          <div class="stat-icon" style="background:#EEF2FF;color:#4F46E5"><i class="fas fa-graduation-cap"></i></div>
+          <div class="stat-label">Completed Semesters</div>
+          <div class="stat-value" id="statCompletedSems">—</div>
+          <div style="font-size:12px;color:#64748B">Terms Evaluated</div>
+        </div>
+        <div class="stat-card" style="border-left:4px solid #F59E0B">
+          <div class="stat-icon" style="background:#FEF3C7;color:#92400E"><i class="fas fa-coins"></i></div>
+          <div class="stat-label">Credits Earned</div>
+          <div class="stat-value" id="statCreditsEarned">—</div>
+          <div style="font-size:12px;color:#64748B" id="statCreditsTotal">of total credits</div>
+        </div>
       </div>
 
-      <div class="card" id="resultsCard">
-        <div class="card-header">
-          <div class="card-title" id="semTitle">Semester 1 Result</div>
-          <span class="badge badge-success" id="semSGPA" style="font-size:14px">SGPA: 8.1</span>
+      <!-- ══ ANALYTICS CHARTS ══ -->
+      <div class="grid col-2 mb-6" style="gap:18px">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><i class="fas fa-chart-line" style="color:#0284C7;margin-right:8px"></i>SGPA Trajectory Across Semesters</div>
+          </div>
+          <div class="card-body" style="padding:16px 20px">
+            <div style="height:230px"><canvas id="sgpaChart"></canvas></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title"><i class="fas fa-chart-radar" style="color:#6366F1;margin-right:8px"></i>Subject Competencies Radar</div>
+          </div>
+          <div class="card-body" style="padding:16px 20px">
+            <div style="height:230px"><canvas id="radarChart"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SEMESTER MARKSHEET TABS ══ -->
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:14px">
+        <h2 style="font-size:17px;font-weight:800;color:#0F172A;margin:0">
+          <i class="fas fa-list-check" style="color:#0284C7;margin-right:8px"></i>Semester-wise Marksheets
+        </h2>
+        <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:4px" id="semTabsContainer">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+
+      <!-- ══ DETAILED MARKSHEET CARD ══ -->
+      <div class="card mb-6">
+        <div class="card-header" style="justify-content:space-between;flex-wrap:wrap;gap:10px">
+          <div>
+            <div class="card-title" id="marksheetHeaderTitle">Semester Marksheet</div>
+            <div style="font-size:12px;color:#64748B;margin-top:2px" id="marksheetSubTitle">Course credits, marks breakdown, and grade points</div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center">
+            <span class="badge badge-success" id="badgeSemSGPA" style="font-size:13px;padding:4px 12px">SGPA: —</span>
+            <button class="btn btn-secondary btn-sm" onclick="openTranscriptModal()"><i class="fas fa-print"></i> Print</button>
+          </div>
         </div>
         <div class="table-wrap">
           <table class="erp-table">
-            <thead><tr><th>Subject Code</th><th>Subject</th><th>Mid 1</th><th>Mid 2</th><th>End Sem</th><th>Total</th><th>Grade</th><th>Credits</th></tr></thead>
-            <tbody id="resultsBody"></tbody>
+            <thead>
+              <tr>
+                <th style="width:40px">#</th>
+                <th>Course Code</th>
+                <th>Subject Name</th>
+                <th style="text-align:center">Credits</th>
+                <th style="text-align:center">Exam Type</th>
+                <th style="text-align:center">Score</th>
+                <th style="text-align:center">Grade</th>
+                <th style="text-align:center">Grade Points</th>
+                <th style="text-align:center">Status</th>
+              </tr>
+            </thead>
+            <tbody id="marksheetBody">
+              <tr><td colspan="9" style="text-align:center;padding:30px;color:#94A3B8">Loading marksheet data...</td></tr>
+            </tbody>
           </table>
+        </div>
+        <!-- Semester Footer summary -->
+        <div style="padding:16px 20px;background:#F8FAFC;border-top:1px solid #F1F5F9;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px">
+          <div style="display:flex;gap:20px;font-size:13px">
+            <div>Total Credits: <strong id="semTotalCredits">—</strong></div>
+            <div>Earned Credits: <strong id="semEarnedCredits" style="color:#059669">—</strong></div>
+            <div>Semester Status: <strong id="semStatus" style="color:#0284C7">—</strong></div>
+          </div>
+          <div style="font-size:15px;font-weight:900;color:#0F172A">
+            Term SGPA: <span id="semSGPABig" style="color:#0284C7;font-size:18px">—</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══ OFFICIAL PRINTABLE MARKSHEET MODAL ══ -->
+<div class="modal" id="transcriptModal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.75);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(4px);overflow-y:auto;padding:20px">
+  <div class="modal-dialog" style="background:white;border-radius:18px;max-width:800px;width:100%;box-shadow:0 25px 50px rgba(0,0,0,.25);overflow:hidden;position:relative">
+    <div style="padding:14px 24px;background:#F8FAFC;border-bottom:1px solid #E2E8F0;display:flex;justify-content:space-between;align-items:center" class="no-print">
+      <div style="font-size:15px;font-weight:800;color:#0F172A"><i class="fas fa-file-invoice" style="color:#0284C7;margin-right:8px"></i>Official Academic Transcript</div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-primary btn-sm" onclick="window.print()"><i class="fas fa-print"></i> Print Transcript</button>
+        <button onclick="closeTranscriptModal()" class="btn btn-secondary btn-sm"><i class="fas fa-times"></i> Close</button>
+      </div>
+    </div>
+
+    <!-- DOCUMENT BODY (Printable) -->
+    <div id="printableTranscript" style="padding:36px 40px;background:white;color:#0F172A">
+      <!-- University Header -->
+      <div style="text-align:center;border-bottom:2px solid #0284C7;padding-bottom:18px;margin-bottom:20px">
+        <div style="font-size:24px;font-weight:900;color:#0369A1;letter-spacing:1px;text-transform:uppercase">Vishva Institute of Technology</div>
+        <div style="font-size:12px;color:#64748B;margin-top:2px">Autonomous Institution • Approved by AICTE • Accredited Grade 'A+'</div>
+        <div style="font-size:16px;font-weight:800;color:#0F172A;margin-top:10px;text-transform:uppercase;letter-spacing:.05em">Official Grade Card & Academic Record</div>
+      </div>
+
+      <!-- Student Details Box -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:14px 18px;margin-bottom:20px;font-size:12px">
+        <div><strong>Student Name:</strong> <span id="docStudentName">—</span></div>
+        <div><strong>Roll Number / PRN:</strong> <span id="docRollNo">—</span></div>
+        <div><strong>Program:</strong> <span id="docProgram">B.Tech Computer Science</span></div>
+        <div><strong>Academic Year:</strong> <span>2025–2026</span></div>
+        <div><strong>Cumulative CGPA:</strong> <strong id="docCGPA" style="color:#0284C7">—</strong></div>
+        <div><strong>Overall Standing:</strong> <strong id="docStanding" style="color:#059669">—</strong></div>
+      </div>
+
+      <!-- Marksheet Table -->
+      <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:20px">
+        <thead>
+          <tr style="background:#F1F5F9;border-bottom:2px solid #CBD5E1">
+            <th style="padding:8px 10px;text-align:left">Code</th>
+            <th style="padding:8px 10px;text-align:left">Subject Title</th>
+            <th style="padding:8px 10px;text-align:center">Credits</th>
+            <th style="padding:8px 10px;text-align:center">Marks</th>
+            <th style="padding:8px 10px;text-align:center">Grade</th>
+            <th style="padding:8px 10px;text-align:center">Grade Point</th>
+            <th style="padding:8px 10px;text-align:center">Result</th>
+          </tr>
+        </thead>
+        <tbody id="docTableBody">
+          <!-- Filled by JS -->
+        </tbody>
+      </table>
+
+      <!-- UGC Grading Scale Legend -->
+      <div style="font-size:10px;color:#64748B;border:1px solid #E2E8F0;border-radius:8px;padding:10px 14px;margin-bottom:30px">
+        <div style="font-weight:700;color:#0F172A;margin-bottom:4px">Grading Scale (10-point Scale):</div>
+        <div>O: Outstanding (10) • A+: Excellent (9) • A: Very Good (8) • B+: Good (7) • B: Above Average (6) • C: Pass (5) • F: Fail (0)</div>
+      </div>
+
+      <!-- Signature & Verification Footer -->
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:40px;padding-top:20px;border-top:1px solid #E2E8F0">
+        <div style="text-align:center">
+          <div style="width:80px;height:80px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;margin:0 auto 8px;display:flex;align-items:center;justify-content:center">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=70x70&data=vishvaerp://verify/transcript" alt="QR Verify" style="width:70px;height:70px" />
+          </div>
+          <div style="font-size:9px;color:#64748B">Digitally Verified Document</div>
+        </div>
+
+        <div style="text-align:center">
+          <div style="font-family:'Brush Script MT',cursive;font-size:22px;color:#1E293B">A. K. Sharma</div>
+          <div style="border-top:1px solid #0F172A;padding-top:4px;font-size:11px;font-weight:700">Dean of Academics</div>
+        </div>
+
+        <div style="text-align:center">
+          <div style="font-family:'Brush Script MT',cursive;font-size:22px;color:#1E293B">P. N. Deshmukh</div>
+          <div style="border-top:1px solid #0F172A;padding-top:4px;font-size:11px;font-weight:700">Controller of Examinations</div>
         </div>
       </div>
     </div>
@@ -104,6 +297,237 @@
 </div>
 
 <script src="../../js/shared.js"></script>
-<script src="../../live/live-pages.js"></script>
+<script>
+/* ═══════════════════════════════════════════════
+   Student Results & Marksheet Suite — v2.0
+═══════════════════════════════════════════════ */
+
+let apiData = null;
+let activeSemIndex = 0;
+let sgpaChartInst = null;
+let radarChartInst = null;
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadResults();
+});
+
+async function loadResults() {
+  try {
+    const data = await api.request('/exams/results');
+    apiData = data;
+
+    // Student Information
+    const student = data.student || {};
+    if (student.name) {
+      document.getElementById('sidebar-user-name').textContent = student.name;
+      document.getElementById('docStudentName').textContent = student.name;
+    }
+    if (student.rollNo) {
+      document.getElementById('docRollNo').textContent = student.rollNo;
+    }
+    if (student.department) {
+      document.getElementById('sidebar-user-dept').textContent = `${student.department} • Sem ${student.semester || 4}`;
+    }
+
+    // Hero & KPI Stats
+    const cgpa = data.cgpa || '8.4';
+    document.getElementById('heroCGPA').textContent = cgpa;
+    document.getElementById('statCGPA').textContent = cgpa;
+    document.getElementById('docCGPA').textContent = `${cgpa} / 10.0`;
+
+    const standing = data.standing || 'First Class with Distinction';
+    document.getElementById('heroStandingText').textContent = `Academic Standing: ${standing}`;
+    document.getElementById('statStanding').textContent = standing;
+    document.getElementById('docStanding').textContent = standing;
+
+    document.getElementById('statBestSGPA').textContent = data.bestSgpa || '—';
+    document.getElementById('statCompletedSems').textContent = (data.semesters || []).length || '—';
+    document.getElementById('statCreditsEarned').textContent = data.totalCreditsEarned || '—';
+    document.getElementById('statCreditsTotal').textContent = `of ${data.totalCreditsPossible || '—'} total`;
+
+    // Visualizations
+    renderSGPAChart(data.trend || []);
+    renderRadarChart(data.radar || []);
+
+    // Semester Marksheets
+    renderSemesterTabs(data.semesters || []);
+    showSemester(0);
+  } catch (err) {
+    document.getElementById('marksheetBody').innerHTML = `
+      <tr><td colspan="9" style="text-align:center;padding:30px;color:#EF4444">
+        ${err.message || 'Failed to load examination results'}
+      </td></tr>
+    `;
+  }
+}
+
+/* ── Charts ── */
+function renderSGPAChart(trend) {
+  const ctx = document.getElementById('sgpaChart');
+  if (!ctx) return;
+
+  const labels = trend.map(t => t.semester);
+  const data = trend.map(t => t.sgpa);
+
+  if (sgpaChartInst) sgpaChartInst.destroy();
+  sgpaChartInst = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'SGPA',
+          data,
+          borderColor: '#0284C7',
+          backgroundColor: 'rgba(2,132,199,.1)',
+          tension: .35,
+          fill: true,
+          pointBackgroundColor: '#0284C7',
+          pointRadius: 5,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { min: 0, max: 10, ticks: { stepSize: 2 } },
+        x: { grid: { display: false } },
+      },
+    },
+  });
+}
+
+function renderRadarChart(radarData) {
+  const ctx = document.getElementById('radarChart');
+  if (!ctx) return;
+
+  const labels = radarData.length ? radarData.map(r => r.subject) : ['Core', 'Theory', 'Practical', 'Projects', 'Electives'];
+  const data = radarData.length ? radarData.map(r => r.score) : [88, 82, 94, 90, 85];
+
+  if (radarChartInst) radarChartInst.destroy();
+  radarChartInst = new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Competency %',
+        data,
+        backgroundColor: 'rgba(99,102,241,.2)',
+        borderColor: '#6366F1',
+        pointBackgroundColor: '#6366F1',
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: { r: { min: 0, max: 100, ticks: { display: false } } },
+    },
+  });
+}
+
+/* ── Semester Tabs & Table ── */
+function renderSemesterTabs(semesters) {
+  const cont = document.getElementById('semTabsContainer');
+  if (!semesters.length) {
+    cont.innerHTML = '<button class="sem-tab-btn active">Semester 1</button>';
+    return;
+  }
+
+  cont.innerHTML = semesters.map((s, idx) => `
+    <button class="sem-tab-btn ${idx === 0 ? 'active' : ''}" onclick="showSemester(${idx}, this)">
+      Semester ${s.semester}
+    </button>
+  `).join('');
+}
+
+function showSemester(idx, btnEl) {
+  activeSemIndex = idx;
+  if (btnEl) {
+    document.querySelectorAll('.sem-tab-btn').forEach(b => b.classList.remove('active'));
+    btnEl.classList.add('active');
+  }
+
+  const semesters = apiData?.semesters || [];
+  const sem = semesters[idx];
+  const tbody = document.getElementById('marksheetBody');
+
+  if (!sem || !sem.results || !sem.results.length) {
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:#94A3B8">No records found for this semester.</td></tr>';
+    return;
+  }
+
+  document.getElementById('marksheetHeaderTitle').textContent = `Semester ${sem.semester} Examination Record`;
+  document.getElementById('badgeSemSGPA').textContent = `SGPA: ${sem.sgpa}`;
+  document.getElementById('semSGPABig').textContent = sem.sgpa;
+  document.getElementById('semTotalCredits').textContent = sem.totalCredits;
+  document.getElementById('semEarnedCredits').textContent = sem.earnedCredits;
+  document.getElementById('semStatus').textContent = sem.earnedCredits === sem.totalCredits ? 'All Cleared ✓' : 'Backlogs Pending';
+
+  const gDisplay = { 'O':'O', 'Ap':'A+', 'A':'A', 'Bp':'B+', 'B':'B', 'C':'C', 'F':'F' };
+
+  tbody.innerHTML = sem.results.map((r, i) => {
+    const sub = r.subjectId || {};
+    const exam = r.examId || {};
+    const gradeClass = `g-${r.grade === 'A+' ? 'Ap' : r.grade === 'B+' ? 'Bp' : r.grade || 'none'}`;
+
+    return `
+      <tr>
+        <td style="color:#94A3B8;font-size:12px">${i + 1}</td>
+        <td><code>${sub.code || 'CS' + (sem.semester * 100 + i + 1)}</code></td>
+        <td><strong>${sub.name || 'Subject'}</strong></td>
+        <td style="text-align:center;font-weight:700">${sub.credits || 3}</td>
+        <td style="text-align:center;font-size:12px;color:#64748B">${exam.name || 'End-Sem'}</td>
+        <td style="text-align:center"><strong>${r.marksObtained}</strong> / ${r.totalMarks}</td>
+        <td style="text-align:center"><span class="g-badge ${gradeClass}">${r.grade || '—'}</span></td>
+        <td style="text-align:center;font-weight:700">${r.gradePoints != null ? r.gradePoints : '—'}</td>
+        <td style="text-align:center">
+          <span style="background:${r.status==='pass'?'#D1FAE5':'#FEE2E2'};color:${r.status==='pass'?'#065F46':'#991B1B'};padding:3px 10px;border-radius:99px;font-size:11px;font-weight:700">
+            ${r.status === 'pass' ? 'Passed' : 'Failed'}
+          </span>
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+/* ── Printable Official Marksheet Modal ── */
+function openTranscriptModal() {
+  const semesters = apiData?.semesters || [];
+  const sem = semesters[activeSemIndex] || semesters[0];
+  const docBody = document.getElementById('docTableBody');
+
+  if (!sem || !sem.results) {
+    docBody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:20px">No records available</td></tr>';
+  } else {
+    docBody.innerHTML = sem.results.map(r => {
+      const sub = r.subjectId || {};
+      return `
+        <tr style="border-bottom:1px solid #E2E8F0">
+          <td style="padding:8px 10px;font-family:monospace">${sub.code || 'CS401'}</td>
+          <td style="padding:8px 10px;font-weight:600">${sub.name || 'Subject'}</td>
+          <td style="padding:8px 10px;text-align:center">${sub.credits || 3}</td>
+          <td style="padding:8px 10px;text-align:center">${r.marksObtained} / ${r.totalMarks}</td>
+          <td style="padding:8px 10px;text-align:center;font-weight:700">${r.grade || '—'}</td>
+          <td style="padding:8px 10px;text-align:center">${r.gradePoints != null ? r.gradePoints : '—'}</td>
+          <td style="padding:8px 10px;text-align:center;font-weight:700;color:${r.status==='pass'?'#065F46':'#991B1B'}">${r.status === 'pass' ? 'PASS' : 'FAIL'}</td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  document.getElementById('transcriptModal').style.display = 'flex';
+}
+
+function closeTranscriptModal() {
+  document.getElementById('transcriptModal').style.display = 'none';
+}
+
+window.showSemester = showSemester;
+window.openTranscriptModal = openTranscriptModal;
+window.closeTranscriptModal = closeTranscriptModal;
+</script>
 </body>
 </html>

@@ -1,11 +1,74 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Grades & Results — Faculty | VishvaERP</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="../../css/custom.css">
+  <style>
+    /* ── Grade Badges ── */
+    .grade-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px; border-radius: 8px; font-weight: 800; font-size: 13px;
+      transition: all .2s cubic-bezier(.4,0,.2,1);
+    }
+    .grade-O   { background: #D1FAE5; color: #065F46; border: 1px solid #A7F3D0; }
+    .grade-Ap  { background: #CCFBF1; color: #115E59; border: 1px solid #99F6E4; }
+    .grade-A   { background: #DBEAFE; color: #1E40AF; border: 1px solid #BFDBFE; }
+    .grade-Bp  { background: #E0E7FF; color: #3730A3; border: 1px solid #C7D2FE; }
+    .grade-B   { background: #FEF3C7; color: #92400E; border: 1px solid #FDE68A; }
+    .grade-C   { background: #FFEDD5; color: #9A3412; border: 1px solid #FED7AA; }
+    .grade-F   { background: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; }
+    .grade-none{ background: #F1F5F9; color: #94A3B8; border: 1px solid #E2E8F0; }
+
+    .mark-input {
+      width: 76px; text-align: center; font-weight: 700; font-size: 14px;
+      padding: 6px 8px; border-radius: 8px; border: 1.5px solid #CBD5E1;
+      transition: all .15s; outline: none;
+    }
+    .mark-input:focus {
+      border-color: #10B981; box-shadow: 0 0 0 3px rgba(16,185,129,.15);
+      background: #F0FDF4;
+    }
+    .mark-input.invalid {
+      border-color: #EF4444; background: #FEF2F2; color: #991B1B;
+    }
+
+    /* ── Progress bar in header ── */
+    .kpi-ring {
+      position: relative; width: 48px; height: 48px;
+    }
+    .kpi-ring svg { transform: rotate(-90deg); width: 48px; height: 48px; }
+    .kpi-ring circle.bg { fill: none; stroke: #F1F5F9; stroke-width: 5; }
+    .kpi-ring circle.fill { fill: none; stroke: #10B981; stroke-width: 5; stroke-linecap: round; transition: stroke-dashoffset 1s ease; }
+    .kpi-ring .text {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 800;
+    }
+
+    /* ── Status pill ── */
+    .status-pill {
+      font-size: 11px; font-weight: 700; padding: 2px 10px; border-radius: 99px;
+      display: inline-flex; align-items: center; gap: 4px;
+    }
+    .status-pass { background: #D1FAE5; color: #065F46; }
+    .status-fail { background: #FEE2E2; color: #991B1B; }
+    .status-ungraded { background: #F1F5F9; color: #64748B; }
+
+    /* ── Student Row Hover ── */
+    .grade-row:hover { background: #F8FAFC; }
+
+    /* ── Dropzone ── */
+    .upload-zone {
+      border: 2px dashed #CBD5E1; border-radius: 14px; padding: 32px 20px;
+      text-align: center; cursor: pointer; transition: all .2s; background: #F8FAFC;
+    }
+    .upload-zone:hover, .upload-zone.dragover {
+      border-color: #10B981; background: #F0FDF4;
+    }
+  </style>
 </head>
 <body>
 <div class="erp-layout">
@@ -39,93 +102,915 @@
         <div class="topbar-breadcrumb">Faculty / <span>Grades & Results</span></div>
       </div>
       <div class="topbar-right">
-        <button class="btn btn-primary" onclick="openModal('bulkUploadModal')"><i class="fas fa-upload"></i> Bulk Upload</button>
+        <button class="btn btn-secondary btn-sm" onclick="downloadGradeTemplate()"><i class="fas fa-download"></i> CSV Template</button>
+        <button class="btn btn-primary btn-sm" onclick="openBulkModal()"><i class="fas fa-file-csv"></i> Bulk Upload</button>
         <div class="topbar-avatar" id="topbar-avatar">F</div>
       </div>
     </header>
 
     <div class="erp-content">
-      <div class="page-header">
-        <h1 class="page-title">📊 Grades & Results</h1>
-        <p class="page-subtitle">Enter marks and manage student results for your courses.</p>
-      </div>
-
-      <!-- Select course -->
-      <div class="card mb-4">
-        <div class="card-body" style="padding:14px 20px;display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap">
-          <div class="form-group" style="flex:1;min-width:0;margin:0">
-            <label class="form-label">Subject</label>
-            <select class="form-control" id="gradeSubject" onchange="loadMarks()">
-              <option value="dsa">Data Structures (CS401)</option>
-              <option value="dbms">DBMS (CS402)</option>
-              <option value="os">Operating Systems (CS403)</option>
-            </select>
-          </div>
-          <div class="form-group" style="flex:1;min-width:0;margin:0">
-            <label class="form-label">Exam Type</label>
-            <select class="form-control" id="examType" onchange="loadMarks()">
-              <option value="mid1">Mid-Semester 1</option>
-              <option value="mid2">Mid-Semester 2</option>
-              <option value="internal">Internal Assessment</option>
-              <option value="end">End-Semester</option>
-            </select>
-          </div>
-          <div class="form-group" style="min-width:0;margin:0">
-            <label class="form-label">Max Marks</label>
-            <input class="form-control" type="number" id="maxMarks" value="50">
-          </div>
-          <button class="btn btn-primary" onclick="loadMarks()"><i class="fas fa-refresh"></i> Load</button>
+      <!-- HERO -->
+      <div style="background:linear-gradient(135deg,#064E3B 0%,#047857 50%,#059669 100%);border-radius:16px;padding:26px 30px;color:white;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;box-shadow:0 10px 25px rgba(5,150,105,.2)">
+        <div>
+          <div style="font-size:12px;opacity:.8;font-weight:700;letter-spacing:.05em;text-transform:uppercase">Academic Evaluation Suite</div>
+          <h1 style="font-size:26px;font-weight:900;margin:4px 0">Grades & Results Management</h1>
+          <p style="font-size:13px;opacity:.85;margin:0" id="heroSubtitle">Select a subject and evaluation component to record marks, view distributions, and publish results.</p>
+        </div>
+        <div style="display:flex;gap:10px;align-items:center">
+          <span id="draftBadge" style="display:none;background:rgba(255,255,255,.2);color:white;font-size:11px;font-weight:700;padding:4px 10px;border-radius:8px">
+            <i class="fas fa-save" style="margin-right:4px"></i> Draft Saved
+          </span>
+          <button class="btn" onclick="saveAllGrades()" id="headerSaveBtn" style="background:white;color:#065F46;font-weight:800;border:none;box-shadow:0 4px 12px rgba(0,0,0,.15)">
+            <i class="fas fa-check-circle" style="margin-right:6px"></i> Save & Publish
+          </button>
         </div>
       </div>
 
-      <!-- Class Stats -->
-      <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)" id="classStats">
-        <div class="stat-card"><div class="stat-label">Class Average</div><div class="stat-value" id="classAvg">—</div></div>
-        <div class="stat-card"><div class="stat-label">Highest Score</div><div class="stat-value" id="classMax">—</div></div>
-        <div class="stat-card"><div class="stat-label">Pass Rate</div><div class="stat-value" id="classPass">—</div></div>
-        <div class="stat-card"><div class="stat-label">Graded</div><div class="stat-value" id="classGraded">—</div></div>
+      <!-- COURSE & EXAM SELECTOR BAR -->
+      <div class="card mb-6" style="border:1px solid #E2E8F0">
+        <div class="card-body" style="padding:18px 22px;display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap">
+          <div class="form-group" style="flex:2;min-width:200px;margin:0">
+            <label class="form-label" style="font-weight:700;font-size:12px;color:#475569">Subject / Course</label>
+            <select class="form-control" id="gradeSubject" onchange="onSubjectChange()">
+              <option value="">Loading subjects...</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex:1.5;min-width:180px;margin:0">
+            <label class="form-label" style="font-weight:700;font-size:12px;color:#475569">Exam / Assessment Type</label>
+            <select class="form-control" id="examType" onchange="onExamChange()">
+              <option value="Mid-Semester 1">Mid-Semester 1 (Mid 1)</option>
+              <option value="Mid-Semester 2">Mid-Semester 2 (Mid 2)</option>
+              <option value="Internal Assessment">Internal Assessment (Quiz/Lab)</option>
+              <option value="End-Semester">End-Semester Examination (Final)</option>
+            </select>
+          </div>
+          <div class="form-group" style="width:110px;margin:0">
+            <label class="form-label" style="font-weight:700;font-size:12px;color:#475569">Max Marks</label>
+            <input class="form-control" type="number" id="maxMarks" value="50" min="10" max="200" onchange="onMaxMarksChange()">
+          </div>
+          <button class="btn btn-primary" onclick="loadMarks()" id="loadBtn" style="height:42px;padding:0 20px">
+            <i class="fas fa-rotate"></i> Load Roster
+          </button>
+        </div>
       </div>
 
+      <!-- ANALYTICS & KPI CARDS -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:20px">
+        <div class="card" style="padding:16px 20px;border-left:4px solid #10B981">
+          <div style="font-size:11px;color:#64748B;font-weight:700;text-transform:uppercase">Class Average</div>
+          <div style="display:flex;align-items:baseline;gap:8px;margin-top:4px">
+            <span style="font-size:26px;font-weight:900;color:#0F172A" id="kpiClassAvg">—</span>
+            <span style="font-size:12px;color:#10B981;font-weight:700" id="kpiAvgPct"></span>
+          </div>
+        </div>
+        <div class="card" style="padding:16px 20px;border-left:4px solid #3B82F6">
+          <div style="font-size:11px;color:#64748B;font-weight:700;text-transform:uppercase">Highest Score</div>
+          <div style="display:flex;align-items:baseline;gap:8px;margin-top:4px">
+            <span style="font-size:26px;font-weight:900;color:#0F172A" id="kpiMaxMark">—</span>
+            <span style="font-size:12px;color:#64748B;font-weight:600" id="kpiMaxStudent"></span>
+          </div>
+        </div>
+        <div class="card" style="padding:16px 20px;border-left:4px solid #F59E0B">
+          <div style="font-size:11px;color:#64748B;font-weight:700;text-transform:uppercase">Pass Rate</div>
+          <div style="display:flex;align-items:baseline;gap:8px;margin-top:4px">
+            <span style="font-size:26px;font-weight:900;color:#0F172A" id="kpiPassRate">—%</span>
+            <span style="font-size:12px;color:#64748B;font-weight:600" id="kpiPassCount"></span>
+          </div>
+        </div>
+        <div class="card" style="padding:16px 20px;border-left:4px solid #8B5CF6">
+          <div style="font-size:11px;color:#64748B;font-weight:700;text-transform:uppercase">Grading Progress</div>
+          <div style="display:flex;align-items:baseline;gap:8px;margin-top:4px">
+            <span style="font-size:26px;font-weight:900;color:#0F172A" id="kpiGraded">—</span>
+            <span style="font-size:12px;color:#64748B;font-weight:600" id="kpiTotal"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- DISTRIBUTION CHART COLLAPSIBLE ACCORDION -->
+      <div class="card mb-6" id="chartCard" style="display:none">
+        <div class="card-header" style="justify-content:space-between">
+          <div class="card-title"><i class="fas fa-chart-pie" style="color:#059669;margin-right:8px"></i>Grade Distribution & Performance Curve</div>
+          <button class="btn btn-xs btn-secondary" onclick="toggleChart()"><i class="fas fa-chevron-up" id="chartToggleIcon"></i></button>
+        </div>
+        <div class="card-body" id="chartContainer" style="padding:20px;display:flex;gap:30px;align-items:center;flex-wrap:wrap">
+          <div style="width:220px;height:180px;position:relative;margin:0 auto">
+            <canvas id="gradeDoughnutChart"></canvas>
+          </div>
+          <div style="flex:1;min-width:260px;display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:10px" id="gradePillSummary">
+            <!-- filled by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- ROSTER TABLE CARD -->
       <div class="card">
-        <div class="card-header">
-          <div class="card-title">Enter Marks</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <div class="search-bar" style="flex:1;min-width:160px"><i class="fas fa-search"></i><input type="text" placeholder="Search student..." id="gradeSearch" oninput="filterGrades()"></div>
-            <button class="btn btn-success btn-sm" id="saveAllBtn" onclick="saveAllGrades()"><i class="fas fa-save"></i> Save All</button>
+        <div class="card-header" style="flex-wrap:wrap;gap:12px">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="card-title" id="rosterTitle"><i class="fas fa-users" style="color:#059669;margin-right:8px"></i>Student Roster</div>
+            <span class="badge badge-gray" id="studentCountBadge">0 students</span>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+            <div class="search-bar" style="width:200px">
+              <i class="fas fa-search"></i>
+              <input type="text" placeholder="Search name/roll..." id="gradeSearch" oninput="filterGrades()">
+            </div>
+            <select class="form-control" id="statusFilter" onchange="filterGrades()" style="width:130px;padding:6px 10px;font-size:12px">
+              <option value="">All Statuses</option>
+              <option value="pass">Passed (≥40%)</option>
+              <option value="fail">Failed (&lt;40%)</option>
+              <option value="ungraded">Ungraded</option>
+            </select>
+            <button class="btn btn-sm btn-secondary" onclick="fillPassingMarks()" title="Auto-fill passing score for remaining students">
+              <i class="fas fa-magic"></i> Auto-Fill Passing
+            </button>
+            <button class="btn btn-sm btn-success" onclick="saveAllGrades()" id="saveBtn">
+              <i class="fas fa-save"></i> Save Grades
+            </button>
           </div>
         </div>
         <div class="table-wrap">
           <table class="erp-table">
-            <thead><tr><th>#</th><th>Student</th><th>Roll No.</th><th>Marks / 50</th><th>Grade</th><th>Remarks</th></tr></thead>
-            <tbody id="gradesBody"></tbody>
+            <thead>
+              <tr>
+                <th style="width:50px">#</th>
+                <th>Student</th>
+                <th>Roll No</th>
+                <th style="width:130px;text-align:center">Marks / <span id="thMaxMarks">50</span></th>
+                <th style="width:90px;text-align:center">Percentage</th>
+                <th style="width:70px;text-align:center">Grade</th>
+                <th style="width:100px;text-align:center">Status</th>
+                <th>Remarks / Feedback</th>
+              </tr>
+            </thead>
+            <tbody id="gradesBody">
+              <tr>
+                <td colspan="8" style="text-align:center;padding:40px;color:#94A3B8">
+                  <i class="fas fa-graduation-cap" style="font-size:36px;margin-bottom:12px;opacity:.3;display:block"></i>
+                  Select a subject and click <strong>Load Roster</strong> to begin grading.
+                </td>
+              </tr>
+            </tbody>
           </table>
         </div>
+        <div style="padding:14px 20px;background:#F8FAFC;border-top:1px solid #F1F5F9;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+          <div style="font-size:12px;color:#64748B">
+            <i class="fas fa-info-circle" style="color:#059669;margin-right:4px"></i>
+            Tip: Press <kbd style="background:#E2E8F0;padding:2px 6px;border-radius:4px;font-size:11px">Enter</kbd> or <kbd style="background:#E2E8F0;padding:2px 6px;border-radius:4px;font-size:11px">↓</kbd> to jump straight to the next student.
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-secondary btn-sm" onclick="exportGradesCSV()"><i class="fas fa-file-csv"></i> Export Sheet</button>
+            <button class="btn btn-primary btn-sm" onclick="saveAllGrades()"><i class="fas fa-cloud-arrow-up"></i> Save & Publish</button>
+          </div>
+        </div>
       </div>
+
     </div>
   </div>
 </div>
 
-<!-- BULK UPLOAD MODAL -->
-<div class="modal-backdrop" id="bulkUploadModal">
-  <div class="modal">
-    <div class="modal-header"><div class="modal-title">Bulk Upload Marks</div><button class="modal-close" onclick="closeModal('bulkUploadModal')"><i class="fas fa-times"></i></button></div>
-    <div class="modal-body">
-      <div id="bulkMarksDropzone" style="border:2px dashed #E2E8F0;border-radius:12px;padding:32px;text-align:center;margin-bottom:16px;cursor:pointer" onclick="document.getElementById('bulkMarksFile').click()">
-        <input type="file" id="bulkMarksFile" accept=".csv,text/csv" style="display:none">
-        <i class="fas fa-cloud-upload-alt" style="font-size:36px;color:#94A3B8;margin-bottom:8px"></i>
-        <div style="font-weight:600;color:#64748B" id="bulkMarksFileName">Drop CSV file here or click to upload</div>
-        <div style="font-size:12px;color:#94A3B8;margin-top:4px">Format: roll_no, marks (one per row)</div>
-      </div>
-      <a href="#" style="font-size:13px;color:#4F46E5" onclick="downloadGradeTemplate();return false"><i class="fas fa-download" style="margin-right:4px"></i>Download CSV Template</a>
+<!-- ══ BULK UPLOAD CSV MODAL ══ -->
+<div class="modal" id="bulkUploadModal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.7);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(4px)">
+  <div class="modal-dialog" style="background:white;border-radius:18px;padding:24px;width:90%;max-width:550px;box-shadow:0 20px 40px rgba(0,0,0,.2)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+      <div style="font-size:18px;font-weight:800;color:#0F172A"><i class="fas fa-file-csv" style="color:#059669;margin-right:8px"></i>Bulk Upload Marks (CSV)</div>
+      <button onclick="closeBulkModal()" style="background:none;border:none;color:#94A3B8;cursor:pointer;font-size:18px"><i class="fas fa-times"></i></button>
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="closeModal('bulkUploadModal')">Cancel</button>
-      <button class="btn btn-primary" onclick="uploadBulkMarks()"><i class="fas fa-check"></i> Upload</button>
+    <div class="upload-zone" id="csvDropzone" onclick="document.getElementById('csvFileInput').click()">
+      <input type="file" id="csvFileInput" accept=".csv,text/csv" style="display:none" onchange="handleCSVFile(this.files[0])">
+      <i class="fas fa-cloud-arrow-up" style="font-size:36px;color:#059669;margin-bottom:10px"></i>
+      <div style="font-weight:700;color:#1E293B" id="csvFileName">Drop CSV file here, or click to browse</div>
+      <div style="font-size:12px;color:#64748B;margin-top:4px">Accepted format: <code>roll_no, student_name, marks, remarks</code></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin:14px 0">
+      <a href="#" onclick="downloadGradeTemplate();return false" style="font-size:12px;color:#059669;font-weight:700;display:inline-flex;align-items:center;gap:4px">
+        <i class="fas fa-download"></i> Download pre-filled CSV template
+      </a>
+      <span id="csvMatchCount" style="font-size:12px;color:#64748B"></span>
+    </div>
+    <!-- Preview Table -->
+    <div id="csvPreviewWrap" style="display:none;max-height:180px;overflow-y:auto;border:1px solid #E2E8F0;border-radius:10px;margin-bottom:16px">
+      <table class="erp-table" style="font-size:12px">
+        <thead><tr><th>Roll No</th><th>Name</th><th>Marks</th><th>Remarks</th></tr></thead>
+        <tbody id="csvPreviewBody"></tbody>
+      </table>
+    </div>
+    <div style="display:flex;justify-content:flex-end;gap:10px">
+      <button class="btn btn-secondary btn-sm" onclick="closeBulkModal()">Cancel</button>
+      <button class="btn btn-primary btn-sm" id="applyCsvBtn" onclick="applyCSVToRoster()" disabled>
+        <i class="fas fa-check"></i> Apply to Roster
+      </button>
     </div>
   </div>
 </div>
 
 <script src="../../js/shared.js"></script>
-<script src="../../live/live-admin-pages.js"></script>
+<script>
+/* ═══════════════════════════════════════════════
+   Faculty Grades & Evaluation Suite — v2.0
+═══════════════════════════════════════════════ */
+
+let subjects = [];
+let currentSubject = null;
+let currentExam = null;
+let roster = []; // { studentId, name, rollNo, marks, percentage, grade, status, remarks }
+let parsedCSVData = [];
+let doughnutChart = null;
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await loadSubjects();
+});
+
+/* ── Load Subjects ── */
+async function loadSubjects() {
+  const select = document.getElementById('gradeSubject');
+  select.innerHTML = '<option value="">Loading subjects...</option>';
+
+  try {
+    // Fetch subjects from timetable slots or courses
+    const res = await api.request('/attendance/timetable');
+    const slots = res.slots || [];
+    const map = new Map();
+
+    slots.forEach(slot => {
+      if (slot.subjectId && slot.subject) {
+        map.set(String(slot.subjectId), {
+          _id: slot.subjectId,
+          name: slot.subject,
+          code: slot.subjectCode || '—',
+          semester: slot.semester || 4,
+          courseId: slot.courseId,
+        });
+      }
+    });
+
+    subjects = Array.from(map.values());
+
+    if (!subjects.length) {
+      // Fallback: fetch courses/exams
+      const examRes = await api.request('/exams');
+      (examRes.exams || []).forEach(e => {
+        if (e.subjectId) {
+          map.set(String(e.subjectId._id || e.subjectId), {
+            _id: e.subjectId._id || e.subjectId,
+            name: e.subjectId.name || e.name,
+            code: e.subjectId.code || '',
+            semester: e.semester || 4,
+          });
+        }
+      });
+      subjects = Array.from(map.values());
+    }
+
+    if (!subjects.length) {
+      select.innerHTML = '<option value="">No subjects assigned to your department</option>';
+      return;
+    }
+
+    select.innerHTML = subjects.map(s => `
+      <option value="${s._id}">${s.name} (${s.code || 'Sem ' + s.semester})</option>
+    `).join('');
+
+    currentSubject = subjects[0];
+    loadMarks();
+  } catch (err) {
+    select.innerHTML = '<option value="">Failed to load subjects</option>';
+  }
+}
+
+function onSubjectChange() {
+  const id = document.getElementById('gradeSubject').value;
+  currentSubject = subjects.find(s => s._id === id);
+  restoreDraft();
+}
+
+function onExamChange() {
+  restoreDraft();
+}
+
+function onMaxMarksChange() {
+  const max = Number(document.getElementById('maxMarks').value) || 50;
+  document.getElementById('thMaxMarks').textContent = max;
+  // Recalculate percentages & grades
+  roster.forEach(r => {
+    if (r.marks !== null && r.marks !== undefined && r.marks !== '') {
+      calculateRow(r, max);
+    }
+  });
+  renderRoster();
+  updateAnalytics();
+}
+
+/* ── Load Marks / Roster from Backend ── */
+async function loadMarks() {
+  const subjectId = document.getElementById('gradeSubject').value;
+  if (!subjectId) return;
+
+  const btn = document.getElementById('loadBtn');
+  setLoading(btn, true);
+
+  const examType = document.getElementById('examType').value;
+  const maxMarks = Number(document.getElementById('maxMarks').value) || 50;
+  document.getElementById('thMaxMarks').textContent = maxMarks;
+
+  try {
+    const res = await api.request(`/exams/results-sheet?subjectId=${subjectId}&examName=${encodeURIComponent(examType)}`);
+    const students = res.students || [];
+    const results = res.results || [];
+    currentExam = res.exam;
+
+    const resultMap = new Map(results.map(r => [String(r.studentId), r]));
+
+    roster = students.map((s, idx) => {
+      const existing = resultMap.get(String(s._id));
+      const marks = existing ? existing.marksObtained : '';
+      const r = {
+        studentId: s._id,
+        name: s.name,
+        rollNo: s.rollNo,
+        marks: marks !== undefined ? marks : '',
+        remarks: existing ? (existing.remarks || '') : '',
+        percentage: 0,
+        grade: 'none',
+        status: 'ungraded',
+      };
+      if (marks !== '' && marks !== null && marks !== undefined) {
+        calculateRow(r, maxMarks);
+      }
+      return r;
+    });
+
+    // Check if draft exists in localStorage
+    restoreDraft();
+
+    renderRoster();
+    updateAnalytics();
+    showToast(`Loaded ${roster.length} students ✓`, 'info');
+  } catch (err) {
+    document.getElementById('gradesBody').innerHTML = `
+      <tr><td colspan="8" style="text-align:center;padding:40px;color:#EF4444">
+        <i class="fas fa-triangle-exclamation" style="font-size:32px;margin-bottom:8px;display:block"></i>
+        ${err.message || 'Failed to load roster'}
+      </td></tr>
+    `;
+  } finally {
+    setLoading(btn, false);
+  }
+}
+
+/* ── Grade Calculation Logic ── */
+function calculateRow(item, maxMarks) {
+  const m = Number(item.marks);
+  if (isNaN(m) || m < 0) {
+    item.percentage = 0;
+    item.grade = 'none';
+    item.status = 'ungraded';
+    return;
+  }
+
+  const pct = Number(((m / maxMarks) * 100).toFixed(1));
+  item.percentage = pct;
+
+  if (pct >= 90)      { item.grade = 'O';  item.status = 'pass'; }
+  else if (pct >= 80) { item.grade = 'Ap'; item.status = 'pass'; }
+  else if (pct >= 70) { item.grade = 'A';  item.status = 'pass'; }
+  else if (pct >= 60) { item.grade = 'Bp'; item.status = 'pass'; }
+  else if (pct >= 50) { item.grade = 'B';  item.status = 'pass'; }
+  else if (pct >= 40) { item.grade = 'C';  item.status = 'pass'; }
+  else                { item.grade = 'F';  item.status = 'fail'; }
+}
+
+/* ── Render Roster ── */
+function renderRoster() {
+  const search = (document.getElementById('gradeSearch').value || '').toLowerCase();
+  const statusFilter = document.getElementById('statusFilter').value;
+  const tbody = document.getElementById('gradesBody');
+  const maxMarks = Number(document.getElementById('maxMarks').value) || 50;
+
+  const filtered = roster.filter(s => {
+    const matchQuery = !search || s.name.toLowerCase().includes(search) || (s.rollNo || '').toLowerCase().includes(search);
+    const matchStatus = !statusFilter || s.status === statusFilter;
+    return matchQuery && matchStatus;
+  });
+
+  document.getElementById('studentCountBadge').textContent = `${roster.length} students (${filtered.length} shown)`;
+
+  if (!filtered.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:32px;color:#94A3B8">No students match your filter.</td></tr>';
+    return;
+  }
+
+  const gradeDisplay = {
+    'O': 'O', 'Ap': 'A+', 'A': 'A', 'Bp': 'B+', 'B': 'B', 'C': 'C', 'F': 'F', 'none': '—'
+  };
+
+  tbody.innerHTML = filtered.map((s, idx) => {
+    const isInvalid = s.marks !== '' && (Number(s.marks) < 0 || Number(s.marks) > maxMarks);
+    const initials = (s.name || 'S').split(' ').map(w => w[0]).join('').slice(0,2).toUpperCase();
+
+    return `
+      <tr class="grade-row" id="row-${s.studentId}">
+        <td style="color:#94A3B8;font-size:12px">${idx + 1}</td>
+        <td>
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:32px;height:32px;border-radius:50%;background:#F1F5F9;color:#0F172A;font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center">
+              ${initials}
+            </div>
+            <div>
+              <div style="font-weight:700;color:#0F172A">${s.name}</div>
+            </div>
+          </div>
+        </td>
+        <td><code style="background:#F1F5F9;padding:2px 8px;border-radius:6px;font-size:11px;color:#475569">${s.rollNo || '—'}</code></td>
+        <td style="text-align:center">
+          <input type="number" step="0.5" min="0" max="${maxMarks}"
+            class="mark-input ${isInvalid ? 'invalid' : ''}"
+            value="${s.marks !== '' ? s.marks : ''}"
+            placeholder="—"
+            data-index="${idx}"
+            data-id="${s.studentId}"
+            oninput="onMarkInput(this, '${s.studentId}')"
+            onkeydown="onMarkKeydown(event, this)">
+        </td>
+        <td style="text-align:center;font-weight:700;color:#0F172A">
+          ${s.status !== 'ungraded' ? `${s.percentage}%` : '—'}
+        </td>
+        <td style="text-align:center">
+          <span class="grade-badge grade-${s.grade}">${gradeDisplay[s.grade]}</span>
+        </td>
+        <td style="text-align:center">
+          <span class="status-pill status-${s.status}">
+            <i class="fas fa-${s.status === 'pass' ? 'check' : s.status === 'fail' ? 'xmark' : 'minus'}"></i>
+            ${s.status === 'pass' ? 'Pass' : s.status === 'fail' ? 'Fail' : 'Pending'}
+          </span>
+        </td>
+        <td>
+          <input type="text" placeholder="Remarks (optional)" value="${s.remarks || ''}"
+            style="width:100%;border:1px solid #E2E8F0;border-radius:6px;padding:4px 10px;font-size:12px;outline:none"
+            onchange="onRemarksChange('${s.studentId}', this.value)">
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+/* ── Live Mark Input Handlers ── */
+function onMarkInput(inputEl, studentId) {
+  const val = inputEl.value.trim();
+  const maxMarks = Number(document.getElementById('maxMarks').value) || 50;
+  const item = roster.find(r => String(r.studentId) === String(studentId));
+  if (!item) return;
+
+  if (val === '') {
+    item.marks = '';
+    item.percentage = 0;
+    item.grade = 'none';
+    item.status = 'ungraded';
+    inputEl.classList.remove('invalid');
+  } else {
+    const num = Number(val);
+    item.marks = num;
+    if (num < 0 || num > maxMarks) {
+      inputEl.classList.add('invalid');
+    } else {
+      inputEl.classList.remove('invalid');
+    }
+    calculateRow(item, maxMarks);
+  }
+
+  // Update specific row elements
+  const row = document.getElementById(`row-${studentId}`);
+  if (row) {
+    const gradeBadge = row.querySelector('.grade-badge');
+    const statusPill = row.querySelector('.status-pill');
+    const pctCell = row.cells[4];
+
+    const gradeDisplay = { 'O':'O', 'Ap':'A+', 'A':'A', 'Bp':'B+', 'B':'B', 'C':'C', 'F':'F', 'none':'—' };
+    gradeBadge.className = `grade-badge grade-${item.grade}`;
+    gradeBadge.textContent = gradeDisplay[item.grade];
+
+    statusPill.className = `status-pill status-${item.status}`;
+    statusPill.innerHTML = `<i class="fas fa-${item.status === 'pass' ? 'check' : item.status === 'fail' ? 'xmark' : 'minus'}"></i> ${item.status === 'pass' ? 'Pass' : item.status === 'fail' ? 'Fail' : 'Pending'}`;
+
+    pctCell.textContent = item.status !== 'ungraded' ? `${item.percentage}%` : '—';
+  }
+
+  updateAnalytics();
+  saveDraft();
+}
+
+function onRemarksChange(studentId, val) {
+  const item = roster.find(r => String(r.studentId) === String(studentId));
+  if (item) {
+    item.remarks = val;
+    saveDraft();
+  }
+}
+
+function onMarkKeydown(e, el) {
+  if (e.key === 'Enter' || e.key === 'ArrowDown') {
+    e.preventDefault();
+    const allInputs = Array.from(document.querySelectorAll('.mark-input'));
+    const currIdx = allInputs.indexOf(el);
+    if (currIdx >= 0 && currIdx < allInputs.length - 1) {
+      allInputs[currIdx + 1].focus();
+      allInputs[currIdx + 1].select();
+    }
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    const allInputs = Array.from(document.querySelectorAll('.mark-input'));
+    const currIdx = allInputs.indexOf(el);
+    if (currIdx > 0) {
+      allInputs[currIdx - 1].focus();
+      allInputs[currIdx - 1].select();
+    }
+  }
+}
+
+function filterGrades() {
+  renderRoster();
+}
+
+/* ── Analytics & KPI Updates ── */
+function updateAnalytics() {
+  const maxMarks = Number(document.getElementById('maxMarks').value) || 50;
+  const graded = roster.filter(r => r.marks !== '' && !isNaN(Number(r.marks)));
+  const total = roster.length;
+
+  document.getElementById('kpiGraded').textContent = graded.length;
+  document.getElementById('kpiTotal').textContent = `of ${total} students`;
+
+  if (!graded.length) {
+    document.getElementById('kpiClassAvg').textContent = '—';
+    document.getElementById('kpiAvgPct').textContent = '';
+    document.getElementById('kpiMaxMark').textContent = '—';
+    document.getElementById('kpiMaxStudent').textContent = '';
+    document.getElementById('kpiPassRate').textContent = '—%';
+    document.getElementById('kpiPassCount').textContent = '';
+    document.getElementById('chartCard').style.display = 'none';
+    return;
+  }
+
+  document.getElementById('chartCard').style.display = 'block';
+
+  const marks = graded.map(r => Number(r.marks));
+  const sum = marks.reduce((a, b) => a + b, 0);
+  const avg = Number((sum / graded.length).toFixed(1));
+  const avgPct = Math.round((avg / maxMarks) * 100);
+
+  const highest = Math.max(...marks);
+  const topStudent = graded.find(r => Number(r.marks) === highest);
+
+  const passed = graded.filter(r => r.status === 'pass').length;
+  const passRate = Math.round((passed / graded.length) * 100);
+
+  document.getElementById('kpiClassAvg').textContent = `${avg} / ${maxMarks}`;
+  document.getElementById('kpiAvgPct').textContent = `(${avgPct}%)`;
+  document.getElementById('kpiMaxMark').textContent = `${highest} / ${maxMarks}`;
+  document.getElementById('kpiMaxStudent').textContent = topStudent ? `(${topStudent.name.split(' ')[0]})` : '';
+  document.getElementById('kpiPassRate').textContent = `${passRate}%`;
+  document.getElementById('kpiPassCount').textContent = `${passed} / ${graded.length} passed`;
+
+  // Grade Counts
+  const gradeCounts = { O: 0, Ap: 0, A: 0, Bp: 0, B: 0, C: 0, F: 0 };
+  graded.forEach(r => {
+    if (gradeCounts[r.grade] !== undefined) gradeCounts[r.grade]++;
+  });
+
+  // Render Grade Doughnut Chart
+  renderChart(gradeCounts);
+
+  // Render Pill Summary
+  const gradeDisplay = { 'O':'O (≥90%)', 'Ap':'A+ (80%)', 'A':'A (70%)', 'Bp':'B+ (60%)', 'B':'B (50%)', 'C':'C (40%)', 'F':'F (<40%)' };
+  const pillColors = { 'O':'#10B981', 'Ap':'#14B8A6', 'A':'#3B82F6', 'Bp':'#6366F1', 'B':'#F59E0B', 'C':'#F97316', 'F':'#EF4444' };
+
+  document.getElementById('gradePillSummary').innerHTML = Object.entries(gradeCounts).map(([k, count]) => `
+    <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:10px;text-align:center">
+      <div style="font-size:11px;font-weight:700;color:${pillColors[k]}">${gradeDisplay[k]}</div>
+      <div style="font-size:20px;font-weight:900;color:#0F172A;margin-top:2px">${count}</div>
+      <div style="font-size:10px;color:#94A3B8">${graded.length > 0 ? Math.round(count/graded.length*100) : 0}%</div>
+    </div>
+  `).join('');
+}
+
+function renderChart(counts) {
+  const ctx = document.getElementById('gradeDoughnutChart');
+  if (!ctx) return;
+
+  const data = [counts.O, counts.Ap, counts.A, counts.Bp, counts.B, counts.C, counts.F];
+
+  if (doughnutChart) {
+    doughnutChart.data.datasets[0].data = data;
+    doughnutChart.update();
+    return;
+  }
+
+  doughnutChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: ['O', 'A+', 'A', 'B+', 'B', 'C', 'F'],
+      datasets: [{
+        data,
+        backgroundColor: ['#10B981', '#14B8A6', '#3B82F6', '#6366F1', '#F59E0B', '#F97316', '#EF4444'],
+        borderWidth: 0,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '72%',
+      plugins: {
+        legend: { display: false },
+      },
+    },
+  });
+}
+
+function toggleChart() {
+  const cont = document.getElementById('chartContainer');
+  const icon = document.getElementById('chartToggleIcon');
+  if (cont.style.display === 'none') {
+    cont.style.display = 'flex';
+    icon.className = 'fas fa-chevron-up';
+  } else {
+    cont.style.display = 'none';
+    icon.className = 'fas fa-chevron-down';
+  }
+}
+
+/* ── Bulk Auto-Fill Passing ── */
+function fillPassingMarks() {
+  const maxMarks = Number(document.getElementById('maxMarks').value) || 50;
+  const passing = Math.ceil(maxMarks * 0.4);
+  let filled = 0;
+
+  roster.forEach(r => {
+    if (r.marks === '' || isNaN(Number(r.marks))) {
+      r.marks = passing;
+      calculateRow(r, maxMarks);
+      filled++;
+    }
+  });
+
+  renderRoster();
+  updateAnalytics();
+  saveDraft();
+  showToast(`Auto-filled passing marks (${passing}) for ${filled} students`, 'info');
+}
+
+/* ── Save Draft & Auto-Save ── */
+function saveDraft() {
+  const subjectId = document.getElementById('gradeSubject').value;
+  const examType = document.getElementById('examType').value;
+  const key = `grade_draft_${subjectId}_${examType}`;
+  localStorage.setItem(key, JSON.stringify({
+    maxMarks: document.getElementById('maxMarks').value,
+    roster: roster.map(r => ({ studentId: r.studentId, marks: r.marks, remarks: r.remarks })),
+  }));
+
+  const badge = document.getElementById('draftBadge');
+  if (badge) {
+    badge.style.display = 'inline-block';
+    clearTimeout(saveDraft._t);
+    saveDraft._t = setTimeout(() => badge.style.display = 'none', 3000);
+  }
+}
+
+function restoreDraft() {
+  const subjectId = document.getElementById('gradeSubject').value;
+  const examType = document.getElementById('examType').value;
+  const key = `grade_draft_${subjectId}_${examType}`;
+  const saved = localStorage.getItem(key);
+  if (!saved) return;
+
+  try {
+    const data = JSON.parse(saved);
+    if (data.maxMarks) document.getElementById('maxMarks').value = data.maxMarks;
+    const map = new Map((data.roster || []).map(r => [String(r.studentId), r]));
+
+    const max = Number(data.maxMarks) || 50;
+    roster.forEach(r => {
+      const match = map.get(String(r.studentId));
+      if (match && match.marks !== undefined && match.marks !== '') {
+        r.marks = match.marks;
+        r.remarks = match.remarks || '';
+        calculateRow(r, max);
+      }
+    });
+  } catch (_) {}
+}
+
+/* ── Save & Publish to API ── */
+async function saveAllGrades() {
+  const subjectId = document.getElementById('gradeSubject').value;
+  if (!subjectId) return showToast('Please select a subject first', 'warning');
+
+  const graded = roster.filter(r => r.marks !== '' && !isNaN(Number(r.marks)));
+  if (!graded.length) return showToast('Please enter marks for at least one student', 'warning');
+
+  const maxMarks = Number(document.getElementById('maxMarks').value) || 50;
+  const examType = document.getElementById('examType').value;
+
+  const btn = document.getElementById('saveBtn');
+  const headerBtn = document.getElementById('headerSaveBtn');
+  setLoading(btn, true);
+  if (headerBtn) setLoading(headerBtn, true);
+
+  const payload = {
+    subjectId,
+    examName: examType,
+    examType: examType.includes('Mid') ? 'midterm' : examType.includes('End') ? 'final' : 'internal',
+    totalMarks: maxMarks,
+    passingMarks: Math.ceil(maxMarks * 0.4),
+    results: graded.map(r => ({
+      studentId: r.studentId,
+      rollNo: r.rollNo,
+      marksObtained: Number(r.marks),
+      remarks: r.remarks || '',
+    })),
+  };
+
+  try {
+    const res = await api.request('/exams/results', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+
+    // Clear draft
+    localStorage.removeItem(`grade_draft_${subjectId}_${examType}`);
+    showToast(`Successfully published grades for ${graded.length} students ✓`, 'success');
+  } catch (err) {
+    showToast(err.message || 'Failed to save grades', 'error');
+  } finally {
+    setLoading(btn, false);
+    if (headerBtn) setLoading(headerBtn, false);
+  }
+}
+
+/* ── CSV Template Download ── */
+function downloadGradeTemplate() {
+  const subjectId = document.getElementById('gradeSubject').value;
+  if (!subjectId) return showToast('Select a subject first', 'warning');
+
+  const token = api.getToken();
+  const url = `${window.BACKEND_ORIGIN || ''}/api/exams/template?subjectId=${subjectId}`;
+
+  fetch(url, { headers: { Authorization: `Bearer ${token}` } })
+    .then(r => r.blob())
+    .then(blob => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `grade_template_${currentSubject?.code || 'subject'}.csv`;
+      a.click();
+      showToast('Downloaded CSV template ✓', 'success');
+    })
+    .catch(() => showToast('Failed to download template', 'error'));
+}
+
+/* ── Export Current Grades as CSV ── */
+function exportGradesCSV() {
+  if (!roster.length) return showToast('No roster to export', 'warning');
+  const maxMarks = document.getElementById('maxMarks').value;
+  let csv = `roll_no,student_name,marks_obtained,max_marks,percentage,grade,status,remarks\n`;
+
+  roster.forEach(r => {
+    csv += `"${r.rollNo || ''}","${r.name || ''}","${r.marks}","${maxMarks}","${r.percentage}%","${r.grade}","${r.status}","${r.remarks || ''}"\n`;
+  });
+
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `results_${currentSubject?.code || 'subject'}_${document.getElementById('examType').value.replace(/\s+/g, '_')}.csv`;
+  a.click();
+  showToast('Exported results CSV ✓', 'success');
+}
+
+/* ── Bulk Upload Modal & Handlers ── */
+function openBulkModal() {
+  document.getElementById('bulkUploadModal').style.display = 'flex';
+  document.getElementById('csvPreviewWrap').style.display = 'none';
+  document.getElementById('applyCsvBtn').disabled = true;
+  document.getElementById('csvFileName').textContent = 'Drop CSV file here, or click to browse';
+  document.getElementById('csvMatchCount').textContent = '';
+  parsedCSVData = [];
+}
+
+function closeBulkModal() {
+  document.getElementById('bulkUploadModal').style.display = 'none';
+}
+
+function handleCSVFile(file) {
+  if (!file) return;
+  document.getElementById('csvFileName').textContent = file.name;
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    const text = e.target.result;
+    parseCSV(text);
+  };
+  reader.readAsText(file);
+}
+
+function parseCSV(text) {
+  const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  if (lines.length < 2) return showToast('CSV file is empty or missing headers', 'warning');
+
+  const headers = lines[0].split(',').map(h => h.replace(/"/g, '').trim().toLowerCase());
+  const rollIdx = headers.findIndex(h => h.includes('roll'));
+  const marksIdx = headers.findIndex(h => h.includes('mark') || h.includes('score'));
+  const nameIdx = headers.findIndex(h => h.includes('name'));
+  const remarksIdx = headers.findIndex(h => h.includes('remark'));
+
+  if (rollIdx === -1 || marksIdx === -1) {
+    return showToast('CSV must include "roll_no" and "marks" columns', 'error');
+  }
+
+  parsedCSVData = [];
+  const previewBody = document.getElementById('csvPreviewBody');
+  previewBody.innerHTML = '';
+
+  for (let i = 1; i < lines.length; i++) {
+    const cols = lines[i].split(',').map(c => c.replace(/^"|"$/g, '').trim());
+    if (!cols[rollIdx]) continue;
+
+    const rollNo = cols[rollIdx];
+    const marks = Number(cols[marksIdx]);
+    const name = nameIdx !== -1 ? cols[nameIdx] : '';
+    const remarks = remarksIdx !== -1 ? cols[remarksIdx] : '';
+
+    if (!isNaN(marks)) {
+      parsedCSVData.push({ rollNo, marks, name, remarks });
+    }
+  }
+
+  // Match against roster
+  const matched = parsedCSVData.filter(d => roster.some(r => r.rollNo === d.rollNo));
+  document.getElementById('csvMatchCount').innerHTML = `<strong>${matched.length}</strong> of ${parsedCSVData.length} rows matched existing students`;
+
+  previewBody.innerHTML = parsedCSVData.slice(0, 50).map(d => `
+    <tr>
+      <td><code>${d.rollNo}</code></td>
+      <td>${d.name || '—'}</td>
+      <td><strong>${d.marks}</strong></td>
+      <td>${d.remarks || '—'}</td>
+    </tr>
+  `).join('');
+
+  document.getElementById('csvPreviewWrap').style.display = 'block';
+  document.getElementById('applyCsvBtn').disabled = parsedCSVData.length === 0;
+}
+
+function applyCSVToRoster() {
+  if (!parsedCSVData.length) return;
+  const maxMarks = Number(document.getElementById('maxMarks').value) || 50;
+  let applied = 0;
+
+  parsedCSVData.forEach(d => {
+    const match = roster.find(r => r.rollNo && r.rollNo.toLowerCase() === d.rollNo.toLowerCase());
+    if (match) {
+      match.marks = d.marks;
+      if (d.remarks) match.remarks = d.remarks;
+      calculateRow(match, maxMarks);
+      applied++;
+    }
+  });
+
+  renderRoster();
+  updateAnalytics();
+  saveDraft();
+  closeBulkModal();
+  showToast(`Applied marks for ${applied} students ✓`, 'success');
+}
+
+// Drag & drop handlers
+const dropzone = document.getElementById('csvDropzone');
+if (dropzone) {
+  dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('dragover'); });
+  dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+  dropzone.addEventListener('drop', e => {
+    e.preventDefault();
+    dropzone.classList.remove('dragover');
+    if (e.dataTransfer.files.length) handleCSVFile(e.dataTransfer.files[0]);
+  });
+}
+
+// Expose handlers
+window.onSubjectChange = onSubjectChange;
+window.onExamChange = onExamChange;
+window.onMaxMarksChange = onMaxMarksChange;
+window.loadMarks = loadMarks;
+window.onMarkInput = onMarkInput;
+window.onRemarksChange = onRemarksChange;
+window.onMarkKeydown = onMarkKeydown;
+window.filterGrades = filterGrades;
+window.fillPassingMarks = fillPassingMarks;
+window.saveAllGrades = saveAllGrades;
+window.downloadGradeTemplate = downloadGradeTemplate;
+window.exportGradesCSV = exportGradesCSV;
+window.openBulkModal = openBulkModal;
+window.closeBulkModal = closeBulkModal;
+window.handleCSVFile = handleCSVFile;
+window.applyCSVToRoster = applyCSVToRoster;
+window.toggleChart = toggleChart;
+</script>
 </body>
 </html>
