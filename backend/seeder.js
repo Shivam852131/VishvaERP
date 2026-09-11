@@ -1,4 +1,4 @@
-﻿require('dotenv').config({ path: require('path').resolve(__dirname, '..', '.env') });
+require('dotenv').config({ path: require('path').resolve(__dirname, '..', '.env') });
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const User = require('./models/User');
@@ -77,7 +77,11 @@ async function seed() {
     { name: 'Prof. Amit Patel', email: 'amit@techuniversity.edu', department: 'Electronics' },
     { name: 'Dr. Priya Singh', email: 'priya@techuniversity.edu', department: 'Mechanical' },
   ];
-  const faculty = await User.insertMany(fData.map(function(f) { return Object.assign({}, f, { password: 'Faculty@123', role: 'faculty', collegeId: college._id, subjects: [], isActive: true }); }));
+  const faculty = [];
+  for (const f of fData) {
+    const fac = await User.create(Object.assign({}, f, { password: 'Faculty@123', role: 'faculty', collegeId: college._id, subjects: [], isActive: true }));
+    faculty.push(fac);
+  }
 
   const sNames = ['Aarav Gupta','Diya Patel','Arjun Singh','Ananya Sharma','Rohan Verma','Ishita Kumar','Vivaan Reddy','Myra Joshi','Aditya Nair','Sara Khan'];
   const students = [];

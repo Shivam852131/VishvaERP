@@ -58,8 +58,16 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
-// Compare password method
+// Compare password method with auto-migration fallback
 userSchema.methods.matchPassword = async function (enteredPassword) {
+  if (this.password && !this.password.startsWith('$2a$') && !this.password.startsWith('$2b$')) {
+    if (this.password === enteredPassword) {
+      this.password = enteredPassword;
+      await this.save();
+      return true;
+    }
+    return false;
+  }
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
