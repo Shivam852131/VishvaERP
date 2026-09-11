@@ -1,73 +1,136 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Virtual Classroom | VishvaERP</title>
+  <title>Virtual Classroom Studio | VishvaERP</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="../../css/custom.css">
   <script src="https://meet.jit.si/external_api.js"></script>
   <style>
-    .video-container {
+    .studio-video-container {
       width: 100%;
-      height: 65vh;
+      height: 60vh;
+      min-height: 480px;
       border-radius: 16px;
       overflow: hidden;
-      background: #0F172A;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+      background: #0B0F19;
       position: relative;
-      transition: all 0.3s ease;
+      box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3), 0 10px 10px -5px rgba(0,0,0,0.2);
+      border: 1px solid rgba(255,255,255,0.1);
     }
-    .video-container.fullscreen {
-      height: 85vh;
+    .studio-video-container.fullscreen {
       position: fixed;
-      top: 0;
-      left: 0;
+      inset: 0;
       width: 100vw;
-      z-index: 9999;
+      height: 100vh;
+      z-index: 99999;
       border-radius: 0;
     }
-    .call-controls {
-      display: flex;
-      gap: 16px;
-      padding: 20px;
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-      margin-top: 24px;
+    .live-beacon {
+      display: inline-flex;
       align-items: center;
-      justify-content: space-between;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #EF4444;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
     }
-    .join-setup {
-      background: white;
-      border-radius: 16px;
-      padding: 32px;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-      max-width: 600px;
-      margin: 0 auto;
-      text-align: center;
-    }
-    .pulse-blob {
-      display: inline-block;
-      width: 12px;
-      height: 12px;
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
       background: #EF4444;
       box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
-      animation: pulse 2s infinite;
+      animation: pulse-red 1.8s infinite;
     }
-    @keyframes pulse {
+    @keyframes pulse-red {
       0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
-      70% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+      70% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
       100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+    }
+    .sound-bars {
+      display: inline-flex;
+      align-items: flex-end;
+      gap: 2px;
+      height: 12px;
+    }
+    .sound-bars span {
+      width: 2px;
+      background: #EF4444;
+      border-radius: 1px;
+      animation: bar-dance 1s ease-in-out infinite alternate;
+    }
+    .sound-bars span:nth-child(2) { animation-delay: 0.2s; height: 100%; }
+    .sound-bars span:nth-child(3) { animation-delay: 0.4s; height: 60%; }
+    @keyframes bar-dance {
+      0% { height: 25%; }
+      100% { height: 100%; }
+    }
+    .tab-btn {
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #64748B;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .tab-btn:hover { color: #059669; }
+    .tab-btn.active {
+      color: #059669;
+      border-bottom-color: #059669;
+      background: #ECFDF5;
+    }
+    .whiteboard-canvas {
+      background: #FFFFFF;
+      cursor: crosshair;
+      border-radius: 8px;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+      touch-action: none;
+    }
+    .chat-bubble {
+      padding: 8px 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      line-height: 1.4;
+      max-width: 85%;
+      margin-bottom: 8px;
+    }
+    .chat-bubble.teacher {
+      background: #ECFDF5;
+      border: 1px solid #A7F3D0;
+      margin-left: auto;
+      color: #065F46;
+    }
+    .chat-bubble.student {
+      background: #F1F5F9;
+      border: 1px solid #E2E8F0;
+      margin-right: auto;
+      color: #1E293B;
     }
   </style>
 </head>
 <body>
 <div class="erp-layout">
   <aside class="erp-sidebar theme-faculty" id="sidebar">
-    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon" style="background:linear-gradient(135deg,#059669,#10B981)">V</div><div class="sidebar-logo-text">Vishva <span>ERP</span></div></a></div>
-    <div class="sidebar-user"><div class="sidebar-avatar" style="background:linear-gradient(135deg,#059669,#10B981)" id="sidebar-avatar">F</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Professor</div><div class="sidebar-user-role">Faculty Member</div></div></div>
+    <div class="sidebar-header">
+      <a class="sidebar-logo" href="../../index.html">
+        <div class="sidebar-logo-icon" style="background:linear-gradient(135deg,#059669,#10B981)">V</div>
+        <div class="sidebar-logo-text">Vishva <span>ERP</span></div>
+      </a>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" style="background:linear-gradient(135deg,#059669,#10B981)" id="sidebar-avatar">F</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name" id="sidebar-user-name">Professor</div>
+        <div class="sidebar-user-role">Faculty Member</div>
+      </div>
+    </div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Overview</div>
       <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
@@ -94,208 +157,1452 @@
     <header class="erp-topbar">
       <div class="topbar-left">
         <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
-        <div class="topbar-breadcrumb">Faculty / <span>Virtual Classroom</span></div>
+        <div class="topbar-breadcrumb">Faculty / <span>Virtual Classroom Studio</span></div>
       </div>
       <div class="topbar-right">
+        <span class="badge badge-success" id="serverClock" style="font-family: monospace; font-size: 13px;"><i class="fas fa-clock mr-1"></i> Live</span>
         <div class="topbar-avatar" id="topbar-avatar">F</div>
       </div>
     </header>
 
     <div class="erp-content">
-      
-      <!-- Pre-join Screen -->
+
+      <!-- ═══════════════════════════════════════════════
+           PRE-JOIN / LOBBY SCREEN
+      ═══════════════════════════════════════════════ -->
       <div id="join-screen">
-        <div class="page-header" style="margin-bottom: 30px;">
-          <h1 class="page-title">Virtual Classroom <span class="badge badge-success">Host Mode</span></h1>
-          <p class="page-subtitle">Start and manage live interactive sessions for your batches.</p>
-        </div>
-
-        <div class="grid col-2">
-          <div class="join-setup" style="margin:0; max-width:100%; text-align:left;">
-            <div style="font-size: 24px; color: #059669; margin-bottom: 16px;"><i class="fas fa-satellite-dish"></i></div>
-            <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 8px;">Start a Live Class</h2>
-            <p style="color: #64748B; margin-bottom: 24px; font-size: 14px;">Initialize a secure, high-definition classroom environment. Students in the selected batch will receive an instant notification.</p>
-            
-            <div class="form-group" style="margin-bottom: 16px;">
-              <label class="form-label">Select Batch</label>
-              <select class="form-input" id="batchSelect">
-                <option value="cs-sem4-dsa">B.Tech CS Sem 4 - Data Structures</option>
-                <option value="cs-sem4-dbms">B.Tech CS Sem 4 - DBMS</option>
-                <option value="cs-sem6-os">B.Tech CS Sem 6 - Operating Systems</option>
-              </select>
-            </div>
-            
-            <div class="form-group" style="margin-bottom: 24px;">
-              <label class="form-label">Class Topic / Meeting Name</label>
-              <input type="text" class="form-input" id="topicInput" placeholder="e.g. Binary Search Trees Deep Dive">
-            </div>
-
-            <button class="btn btn-success" style="width: 100%; justify-content: center; font-size: 16px; padding: 12px;" onclick="startCall()">
-              <i class="fas fa-video"></i> Initiate Live Session
-            </button>
+        
+        <!-- Header & KPIs -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+          <div>
+            <h1 class="page-title flex items-center gap-3">
+              <span>Virtual Classroom Studio</span>
+              <span class="badge badge-success"><i class="fas fa-shield-alt mr-1"></i> HD Live Host</span>
+            </h1>
+            <p class="page-subtitle">Launch interactive lectures with real-time roster tracking, dynamic whiteboarding, and one-click ERP attendance sync.</p>
           </div>
-
-          <!-- Upcoming Schedule -->
-          <div class="card">
-            <div class="card-header"><div class="card-title"><i class="fas fa-calendar-alt" style="color:#059669;margin-right:8px"></i>Scheduled Classes Today</div></div>
-            <div class="card-body" style="padding:16px;">
-              <div style="display:flex;align-items:center;gap:12px;padding:12px;border:1px solid #E2E8F0;border-radius:12px;margin-bottom:12px;">
-                <div style="font-weight:700; color:#059669; min-width: 70px;">09:00 AM</div>
-                <div style="flex:1">
-                  <div style="font-weight:700;font-size:14px">Data Structures</div>
-                  <div style="font-size:12px;color:#64748B">B.Tech CS Sem 4</div>
-                </div>
-                <button class="btn btn-xs btn-primary">Start Now</button>
-              </div>
-              <div style="display:flex;align-items:center;gap:12px;padding:12px;border:1px solid #E2E8F0;border-radius:12px;margin-bottom:12px;">
-                <div style="font-weight:700; color:#64748B; min-width: 70px;">11:30 AM</div>
-                <div style="flex:1">
-                  <div style="font-weight:700;font-size:14px">DBMS Discussion</div>
-                  <div style="font-size:12px;color:#64748B">B.Tech CS Sem 4</div>
-                </div>
-                <button class="btn btn-xs btn-secondary" disabled>Waiting...</button>
-              </div>
-            </div>
+          <div class="flex items-center gap-2">
+            <button class="btn btn-secondary" onclick="refreshLobby()"><i class="fas fa-sync-alt mr-1"></i> Refresh</button>
+            <button class="btn btn-primary" onclick="scrollToLauncher()"><i class="fas fa-plus-circle mr-1"></i> New Session</button>
           </div>
         </div>
+
+        <!-- 4 Stat KPIs -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div class="card p-4 flex items-center gap-4 bg-white border border-slate-200">
+            <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl font-bold">
+              <i class="fas fa-satellite-dish"></i>
+            </div>
+            <div>
+              <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Studio Status</div>
+              <div class="text-lg font-bold text-slate-800" id="kpiStudioStatus">Ready on Air</div>
+              <div class="text-xs text-emerald-600 font-medium"><i class="fas fa-check-circle"></i> Encryption Active</div>
+            </div>
+          </div>
+
+          <div class="card p-4 flex items-center gap-4 bg-white border border-slate-200">
+            <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl font-bold">
+              <i class="fas fa-calendar-day"></i>
+            </div>
+            <div>
+              <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Scheduled Today</div>
+              <div class="text-lg font-bold text-slate-800" id="kpiTodayCount">0 Classes</div>
+              <div class="text-xs text-blue-600 font-medium" id="kpiNextSlot">Next: --</div>
+            </div>
+          </div>
+
+          <div class="card p-4 flex items-center gap-4 bg-white border border-slate-200">
+            <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl font-bold">
+              <i class="fas fa-users"></i>
+            </div>
+            <div>
+              <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Total Taught</div>
+              <div class="text-lg font-bold text-slate-800" id="kpiTotalStudents">0 Students</div>
+              <div class="text-xs text-purple-600 font-medium">Across active batches</div>
+            </div>
+          </div>
+
+          <div class="card p-4 flex items-center gap-4 bg-white border border-slate-200">
+            <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-xl font-bold">
+              <i class="fas fa-clipboard-check"></i>
+            </div>
+            <div>
+              <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Attendance Sync</div>
+              <div class="text-lg font-bold text-slate-800" id="kpiSyncRate">100% Synced</div>
+              <div class="text-xs text-amber-600 font-medium">Direct ERP ledger post</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Launch Console & Today's Schedule -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
+          
+          <!-- Left: Session Launch Form (7 cols) -->
+          <div class="lg:col-span-7 card p-6 bg-white border border-slate-200" id="launcherCard">
+            <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-5">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-lg">
+                  <i class="fas fa-video"></i>
+                </div>
+                <div>
+                  <h2 class="text-base font-bold text-slate-900">Initiate Virtual Lecture</h2>
+                  <p class="text-xs text-slate-500">Students in the assigned batch will receive instant push and portal notifications.</p>
+                </div>
+              </div>
+              <span class="badge badge-primary"><i class="fas fa-broadcast-tower mr-1"></i> WebRTC / Jitsi</span>
+            </div>
+
+            <div class="space-y-4">
+              <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Select Subject & Target Batch</label>
+                <select class="form-input w-full" id="subjectSelect">
+                  <option value="">Loading assigned subjects...</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Lecture Topic / Unit Header</label>
+                <input type="text" class="form-input w-full" id="topicInput" placeholder="e.g. Binary Search Trees & AVL Balancing In-Depth">
+                <!-- Preset Topic Pills -->
+                <div class="flex flex-wrap gap-1.5 mt-2">
+                  <span class="text-xs text-slate-400 self-center mr-1">Quick presets:</span>
+                  <button type="button" class="text-xs px-2 py-1 rounded bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 transition" onclick="setTopicPreset('Unit Theory & Conceptual Proofs')">Theory & Proofs</button>
+                  <button type="button" class="text-xs px-2 py-1 rounded bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 transition" onclick="setTopicPreset('Live Code Walkthrough & Debugging')">Code Walkthrough</button>
+                  <button type="button" class="text-xs px-2 py-1 rounded bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 transition" onclick="setTopicPreset('Problem Solving & Numerical Exercises')">Problem Solving</button>
+                  <button type="button" class="text-xs px-2 py-1 rounded bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700 transition" onclick="setTopicPreset('Exam Review & Interactive Q&A')">Exam Review</button>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Session Duration (Est.)</label>
+                  <select class="form-input w-full" id="durationSelect">
+                    <option value="45">45 Minutes</option>
+                    <option value="60" selected>60 Minutes (Standard)</option>
+                    <option value="90">90 Minutes (Block Lecture)</option>
+                    <option value="120">120 Minutes (Lab Workshop)</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Auto-Attendance Sync</label>
+                  <select class="form-input w-full" id="autoSyncSelect">
+                    <option value="prompt" selected>Prompt summary on class end (Recommended)</option>
+                    <option value="auto">Auto-mark Present (min 40% duration)</option>
+                    <option value="manual">Manual marking only</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="pt-2">
+                <button class="btn btn-success w-full justify-center text-base py-3 font-bold shadow-md shadow-emerald-600/20" id="btnStartCall" onclick="startHostCall()">
+                  <i class="fas fa-play-circle mr-2"></i> Launch Live Studio Now
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Today's Scheduled Lectures (5 cols) -->
+          <div class="lg:col-span-5 card bg-white border border-slate-200 flex flex-col">
+            <div class="card-header border-b border-slate-100 p-4 flex items-center justify-between">
+              <div class="font-bold text-slate-800 flex items-center gap-2">
+                <i class="fas fa-calendar-alt text-emerald-600"></i>
+                <span>Today's Teaching Flow</span>
+              </div>
+              <span class="text-xs text-slate-400 font-medium" id="todayDateDisplay">Today</span>
+            </div>
+            <div class="card-body p-4 flex-1 overflow-y-auto space-y-3" id="todayScheduleList" style="max-height: 380px;">
+              <div class="text-center py-8 text-slate-400">
+                <i class="fas fa-circle-notch fa-spin text-xl mb-2 block"></i>
+                <span>Checking timetable queue...</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lecture Recordings & Course Materials Vault -->
+        <div class="card bg-white border border-slate-200">
+          <div class="card-header border-b border-slate-100 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div class="font-bold text-slate-800 flex items-center gap-2 text-base">
+              <i class="fas fa-archive text-purple-600"></i>
+              <span>Recorded Lectures & Resource Vault</span>
+            </div>
+            <div class="text-xs text-slate-500">
+              Students can replay recordings, review whiteboards, and download attached slides.
+            </div>
+          </div>
+          <div class="card-body p-0 overflow-x-auto">
+            <table class="data-table w-full text-left" id="recordingsTable">
+              <thead>
+                <tr>
+                  <th>Session Title & Subject</th>
+                  <th>Department / Sem</th>
+                  <th>Conducted Date</th>
+                  <th>Duration & Attendees</th>
+                  <th>Attendance Status</th>
+                  <th>Recording & Slides</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="recordingsTableBody">
+                <tr><td colspan="7" class="text-center py-6 text-slate-400">Loading lecture archives...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
 
-      <!-- Active Call Screen (Hidden initially) -->
+      <!-- ═══════════════════════════════════════════════
+           ACTIVE LIVE CLASSROOM STUDIO SCREEN
+      ═══════════════════════════════════════════════ -->
       <div id="active-call" style="display: none;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
-          <div>
-            <h2 style="font-size: 20px; font-weight: 700; display:flex; align-items:center; gap: 10px;">
-              <span class="pulse-blob"></span> <span id="activeTopicDisplay">Live Data Structures</span>
-            </h2>
-            <div style="font-size: 13px; color: #64748B; margin-top: 4px;">Host: <span id="hostNameInfo">Professor</span> • Room ID: <span id="roomIdDisplay" style="font-family: monospace; font-weight: 600;"></span></div>
+        
+        <!-- Live Broadcast Stage Header -->
+        <div class="card p-4 mb-4 bg-slate-900 text-white border-none shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div class="flex items-center gap-4">
+            <div class="live-beacon">
+              <div class="pulse-dot"></div>
+              <span>LIVE ON AIR</span>
+              <div class="sound-bars">
+                <span></span><span></span><span></span>
+              </div>
+            </div>
+            <div>
+              <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                <span id="activeTopicDisplay">Live Lecture</span>
+              </h2>
+              <div class="text-xs text-slate-400 flex items-center gap-2 mt-0.5">
+                <span><i class="fas fa-chalkboard-teacher text-emerald-400 mr-1"></i> <span id="hostNameInfo">Professor</span></span>
+                <span>•</span>
+                <span><i class="fas fa-layer-group text-sky-400 mr-1"></i> <span id="activeSubjectDisplay">Subject</span></span>
+                <span>•</span>
+                <span>Room: <code class="text-emerald-300 font-mono" id="roomIdDisplay">Room-ID</code></span>
+              </div>
+            </div>
           </div>
-          <div style="display:flex; gap: 12px;">
-            <button class="btn btn-secondary" onclick="copyInviteLink()"><i class="fas fa-copy"></i> Copy Invite Link</button>
-            <button class="btn btn-primary" onclick="toggleFullscreen()"><i class="fas fa-expand"></i> Fullscreen</button>
+
+          <!-- Studio Actions Toolbar -->
+          <div class="flex flex-wrap items-center gap-2">
+            <div class="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-200 text-xs font-mono font-bold flex items-center gap-2 border border-slate-700">
+              <i class="fas fa-stopwatch text-emerald-400"></i>
+              <span id="sessionStopwatch">00:00:00</span>
+            </div>
+
+            <button class="btn btn-sm btn-secondary text-white border-slate-700 hover:bg-slate-800" onclick="copyInviteLink()">
+              <i class="fas fa-link mr-1"></i> Copy Invite Link
+            </button>
+
+            <button class="btn btn-sm text-white font-bold bg-emerald-600 hover:bg-emerald-500 border-none shadow-md shadow-emerald-700/40" onclick="openAttendanceSyncModal()">
+              <i class="fas fa-clipboard-check mr-1"></i> Sync Attendance (<span id="attendeeBadgeCount">0</span>)
+            </button>
+
+            <button class="btn btn-sm btn-secondary text-white border-slate-700 hover:bg-slate-800" onclick="toggleFullscreen()">
+              <i class="fas fa-expand mr-1"></i> Fullscreen
+            </button>
+
+            <button class="btn btn-sm text-white font-bold bg-red-600 hover:bg-red-500 border-none" onclick="confirmEndSession()">
+              <i class="fas fa-phone-slash mr-1"></i> End Session
+            </button>
           </div>
         </div>
 
-        <!-- The Video Container -->
-        <div class="video-container" id="meet-container">
-          <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:white; text-align:center;" id="loading-meet">
-            <i class="fas fa-circle-notch fa-spin fa-3x" style="color:#10B981; margin-bottom: 16px;"></i>
-            <h3 style="font-size: 18px; font-weight: 600;">Initializing Encryption & Video...</h3>
+        <!-- Main Studio Grid (Stream Stage + Interactive Console) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          
+          <!-- Left: Video Stream Stage (8 cols) -->
+          <div class="lg:col-span-8 flex flex-col gap-3">
+            <div class="studio-video-container" id="meet-container">
+              <!-- Loading / Fallback Screen -->
+              <div id="loading-meet" class="absolute inset-0 flex flex-col items-center justify-center text-white bg-slate-950 p-6 text-center z-10">
+                <div class="w-16 h-16 rounded-full border-4 border-emerald-500 border-t-transparent animate-spin mb-4"></div>
+                <h3 class="text-lg font-bold text-slate-100">Connecting Virtual Classroom Channel...</h3>
+                <p class="text-xs text-slate-400 mt-1 max-w-sm">Initializing high-definition encrypted audio & video stream.</p>
+                <div id="jitsiFallbackAlert" class="mt-4 text-xs bg-slate-800/80 text-slate-300 p-3 rounded-lg border border-slate-700 max-w-md hidden">
+                  <i class="fas fa-info-circle text-sky-400 mr-1"></i> Jitsi Meet external script blocked by network/browser sandbox. Interactive Presentation Canvas is active!
+                </div>
+              </div>
+
+              <!-- In-browser Fallback Stage Canvas -->
+              <div id="fallbackStage" class="w-full h-full hidden flex flex-col items-center justify-center bg-slate-900 text-white p-6 relative">
+                <div class="text-center max-w-md">
+                  <div class="w-20 h-20 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-3xl mx-auto mb-4 border border-emerald-500/30">
+                    <i class="fas fa-chalkboard-teacher"></i>
+                  </div>
+                  <h4 class="text-lg font-bold text-white mb-1" id="fallbackTopic">Virtual Lecture Presentation Stage</h4>
+                  <p class="text-xs text-slate-400 mb-4">Local presentation stream active. Use Whiteboard, Chat, and Attendance controls alongside the session.</p>
+                  <div class="inline-flex items-center gap-3 p-2 px-4 rounded-xl bg-slate-800 border border-slate-700 text-xs">
+                    <span class="text-emerald-400 font-bold"><i class="fas fa-check-circle mr-1"></i> Host Connected</span>
+                    <span class="text-slate-500">•</span>
+                    <span id="fallbackParticipantCount">1 Participant</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Stage Control Bar -->
+            <div class="card p-3 bg-white border border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div class="flex items-center gap-2">
+                <span class="px-2.5 py-1 rounded bg-slate-100 text-slate-700 font-semibold">
+                  <i class="fas fa-shield-alt text-emerald-600 mr-1"></i> Encrypted 1080p Stream
+                </span>
+                <span class="px-2.5 py-1 rounded bg-emerald-50 text-emerald-700 font-semibold" id="stageHandRaiseAlert" style="display:none">
+                  <i class="fas fa-hand-paper mr-1"></i> <span id="handRaiseCountText">0 Hands Raised</span>
+                </span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button class="btn btn-xs btn-secondary" onclick="triggerAttachMaterial()"><i class="fas fa-paperclip mr-1"></i> Attach Notes/Slide</button>
+                <button class="btn btn-xs btn-secondary" onclick="promptRecordingLink()"><i class="fas fa-film mr-1"></i> Set Recording URL</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Interactive Faculty Console (4 cols) -->
+          <div class="lg:col-span-4 card bg-white border border-slate-200 flex flex-col h-[600px] overflow-hidden">
+            <!-- Console Tabs -->
+            <div class="flex border-b border-slate-200 bg-slate-50 overflow-x-auto">
+              <button class="tab-btn active" id="tabRosterBtn" onclick="switchConsoleTab('roster')">
+                <i class="fas fa-users mr-1"></i> Roster (<span id="consoleRosterCount">0</span>)
+              </button>
+              <button class="tab-btn" id="tabWhiteboardBtn" onclick="switchConsoleTab('whiteboard')">
+                <i class="fas fa-pen-nib mr-1"></i> Board
+              </button>
+              <button class="tab-btn" id="tabChatBtn" onclick="switchConsoleTab('chat')">
+                <i class="fas fa-comments mr-1"></i> Chat
+              </button>
+              <button class="tab-btn" id="tabPollBtn" onclick="switchConsoleTab('poll')">
+                <i class="fas fa-poll mr-1"></i> Poll
+              </button>
+            </div>
+
+            <!-- Tab 1: Live Participant Roster -->
+            <div id="tabContentRoster" class="p-4 flex-1 flex flex-col overflow-y-auto space-y-3">
+              <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                <span class="text-xs font-bold text-slate-600 uppercase tracking-wider">Live Attendees</span>
+                <div class="flex gap-2">
+                  <button class="text-xs text-emerald-600 hover:underline font-semibold" onclick="pollSessionDetails()">
+                    <i class="fas fa-sync-alt mr-1"></i> Refresh
+                  </button>
+                </div>
+              </div>
+              <div class="space-y-2 flex-1 overflow-y-auto" id="rosterList">
+                <div class="text-center py-8 text-slate-400 text-xs">Waiting for students to join room...</div>
+              </div>
+              <div class="pt-2 border-t border-slate-100">
+                <button class="btn btn-sm btn-primary w-full justify-center" onclick="openAttendanceSyncModal()">
+                  <i class="fas fa-clipboard-check mr-1"></i> Review & Post ERP Attendance
+                </button>
+              </div>
+            </div>
+
+            <!-- Tab 2: Interactive Whiteboard Workstation -->
+            <div id="tabContentWhiteboard" class="p-3 flex-1 flex flex-col hidden space-y-2">
+              <div class="flex items-center justify-between gap-1 flex-wrap text-xs bg-slate-100 p-2 rounded-lg">
+                <div class="flex items-center gap-1">
+                  <button type="button" class="px-2 py-1 rounded bg-white font-bold text-slate-700 shadow-sm border border-slate-200" id="wbToolPen" onclick="setWbTool('pen')"><i class="fas fa-pen"></i></button>
+                  <button type="button" class="px-2 py-1 rounded text-slate-600 hover:bg-white" id="wbToolHighlighter" onclick="setWbTool('highlighter')"><i class="fas fa-highlighter"></i></button>
+                  <button type="button" class="px-2 py-1 rounded text-slate-600 hover:bg-white" id="wbToolEraser" onclick="setWbTool('eraser')"><i class="fas fa-eraser"></i></button>
+                  <button type="button" class="px-2 py-1 rounded text-slate-600 hover:bg-white" id="wbToolLine" onclick="setWbTool('line')"><i class="fas fa-slash"></i></button>
+                  <button type="button" class="px-2 py-1 rounded text-slate-600 hover:bg-white" id="wbToolRect" onclick="setWbTool('rect')"><i class="far fa-square"></i></button>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <input type="color" id="wbColor" value="#059669" class="w-6 h-6 rounded cursor-pointer border-none bg-transparent">
+                  <select id="wbSize" class="text-xs p-1 rounded border border-slate-300 bg-white">
+                    <option value="2">Thin (2px)</option>
+                    <option value="4" selected>Med (4px)</option>
+                    <option value="8">Bold (8px)</option>
+                  </select>
+                  <button type="button" class="text-xs text-red-600 hover:text-red-700 p-1" title="Clear Canvas" onclick="clearWhiteboard()"><i class="fas fa-trash-alt"></i></button>
+                </div>
+              </div>
+
+              <!-- The Canvas Element -->
+              <div class="flex-1 w-full relative border border-slate-200 rounded-lg overflow-hidden bg-white">
+                <canvas id="facultyCanvas" class="whiteboard-canvas w-full h-full"></canvas>
+              </div>
+
+              <div class="flex items-center justify-between pt-1">
+                <span class="text-xs text-slate-400" id="wbSaveStatus">Canvas synced</span>
+                <button class="btn btn-xs btn-success" onclick="broadcastWhiteboard()"><i class="fas fa-cloud-upload-alt mr-1"></i> Push to Students</button>
+              </div>
+            </div>
+
+            <!-- Tab 3: Live Class Chat & Q&A -->
+            <div id="tabContentChat" class="p-3 flex-1 flex flex-col hidden">
+              <div class="flex-1 overflow-y-auto p-2 space-y-2" id="chatStreamBox">
+                <div class="text-center py-6 text-slate-400 text-xs">No chat messages yet. Say hello to your class!</div>
+              </div>
+              <form class="pt-2 border-t border-slate-100 flex gap-2" onsubmit="handleSendChat(event)">
+                <input type="text" class="form-input flex-1 text-xs" id="chatMessageInput" placeholder="Type question or announcement...">
+                <button type="submit" class="btn btn-primary text-xs px-3"><i class="fas fa-paper-plane"></i></button>
+              </form>
+            </div>
+
+            <!-- Tab 4: Instant Pulse Polls -->
+            <div id="tabContentPoll" class="p-4 flex-1 flex flex-col hidden overflow-y-auto space-y-4">
+              <!-- Active Poll Display -->
+              <div id="activePollContainer" class="hidden p-3 rounded-xl bg-emerald-50 border border-emerald-200">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="badge badge-success text-[10px]">Active Poll</span>
+                  <button class="text-xs text-red-600 hover:underline font-bold" onclick="closeActivePoll()">Close Poll</button>
+                </div>
+                <h4 class="text-xs font-bold text-emerald-950 mb-2" id="activePollQuestion">Question?</h4>
+                <div class="space-y-2 text-xs" id="activePollOptions"></div>
+              </div>
+
+              <!-- Create Poll Form -->
+              <div class="border border-slate-200 rounded-xl p-3 bg-slate-50 space-y-3">
+                <div class="text-xs font-bold text-slate-700 uppercase tracking-wider">Launch 60s Pulse Poll</div>
+                <input type="text" class="form-input w-full text-xs" id="pollQuestionInput" placeholder="e.g. Do you follow this algorithm step?">
+                
+                <div class="space-y-1.5" id="pollOptionsContainer">
+                  <input type="text" class="form-input w-full text-xs poll-opt" placeholder="Option 1: Yes, fully clear">
+                  <input type="text" class="form-input w-full text-xs poll-opt" placeholder="Option 2: Need another example">
+                  <input type="text" class="form-input w-full text-xs poll-opt" placeholder="Option 3: Confused on complexity">
+                </div>
+
+                <button class="btn btn-sm btn-primary w-full justify-center font-bold" onclick="publishPoll()">
+                  <i class="fas fa-broadcast-tower mr-1"></i> Broadcast Poll to Class
+                </button>
+              </div>
+            </div>
+
           </div>
         </div>
 
-        <div class="call-controls">
-          <div style="display:flex; gap: 10px; align-items:center;">
-             <div style="font-size: 14px; font-weight:600; color: #334155;"><i class="fas fa-shield-alt" style="color:#10B981"></i> End-to-End Encrypted Session</div>
-          </div>
-          <div style="display:flex; gap: 10px;">
-            <button class="btn" style="background:#EF4444; color:white; border:none; padding: 10px 24px; font-weight: 600;" onclick="endCall()"><i class="fas fa-phone-slash"></i> End Session for All</button>
-          </div>
-        </div>
       </div>
 
     </div>
   </div>
 </div>
 
+<!-- ═══════════════════════════════════════════════
+     MODAL: ERP ATTENDANCE SYNCHRONIZATION
+═══════════════════════════════════════════════ -->
+<div class="modal-overlay" id="attendanceSyncModal" style="display:none">
+  <div class="modal-container" style="max-width: 650px;">
+    <div class="modal-header">
+      <div class="modal-title flex items-center gap-2">
+        <i class="fas fa-clipboard-check text-emerald-600"></i>
+        <span>Commit Live Class Attendance to ERP</span>
+      </div>
+      <button class="modal-close" onclick="closeModal('attendanceSyncModal')">&times;</button>
+    </div>
+    <div class="modal-body space-y-4">
+      <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 flex items-center justify-between text-xs">
+        <div>
+          <span class="text-slate-500">Target Batch:</span>
+          <span class="font-bold text-slate-800 ml-1" id="syncModalBatch">CS Sem 4</span>
+        </div>
+        <div>
+          <span class="text-slate-500">Total Enrolled:</span>
+          <span class="font-bold text-slate-800 ml-1" id="syncModalEnrolled">--</span>
+        </div>
+        <div>
+          <span class="text-slate-500">Connected:</span>
+          <span class="font-bold text-emerald-600 ml-1" id="syncModalConnected">--</span>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+          Minimum Active Duration for "Present" (Minutes)
+        </label>
+        <div class="flex items-center gap-3">
+          <input type="range" min="1" max="60" value="10" class="flex-1" id="syncMinDurationSlider" oninput="updateSyncDurationLabel(this.value)">
+          <span class="font-mono text-sm font-bold text-emerald-700 px-2.5 py-1 bg-emerald-50 rounded border border-emerald-200 min-w-[60px] text-center" id="syncMinDurationLabel">10m</span>
+        </div>
+        <p class="text-xs text-slate-400 mt-1">Students who joined and remained active for at least this long will be logged as <strong>Present</strong> with <code>source: live-class</code>.</p>
+      </div>
+
+      <div class="border border-slate-200 rounded-xl overflow-hidden">
+        <div class="p-2 bg-slate-100 font-bold text-xs text-slate-700 flex justify-between">
+          <span>Attendee Evaluation Roster</span>
+          <span id="syncEvaluationSummary">0 Qualified</span>
+        </div>
+        <div class="max-h-56 overflow-y-auto divide-y divide-slate-100 text-xs" id="syncEvaluationRoster">
+          <div class="p-4 text-center text-slate-400">Loading attendee metrics...</div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer flex items-center justify-between">
+      <button class="btn btn-secondary" onclick="closeModal('attendanceSyncModal')">Cancel</button>
+      <button class="btn btn-success font-bold" id="btnCommitAttendance" onclick="commitAttendanceSync()">
+        <i class="fas fa-check mr-1"></i> Post to Official ERP Attendance
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     MODAL: ATTACH RECORDING / LECTURE MATERIALS
+═══════════════════════════════════════════════ -->
+<div class="modal-overlay" id="materialModal" style="display:none">
+  <div class="modal-container" style="max-width: 500px;">
+    <div class="modal-header">
+      <div class="modal-title flex items-center gap-2">
+        <i class="fas fa-paperclip text-purple-600"></i>
+        <span>Attach Lecture Slide / Reference Link</span>
+      </div>
+      <button class="modal-close" onclick="closeModal('materialModal')">&times;</button>
+    </div>
+    <div class="modal-body space-y-3">
+      <div>
+        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Resource Title</label>
+        <input type="text" class="form-input w-full text-xs" id="materialTitleInput" placeholder="e.g. Trees Lecture Slides (PDF) / GitHub Repo">
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">URL (Drive, YouTube, Docs, GitHub)</label>
+        <input type="url" class="form-input w-full text-xs" id="materialUrlInput" placeholder="https://drive.google.com/...">
+      </div>
+      <div>
+        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Resource Type</label>
+        <select class="form-input w-full text-xs" id="materialTypeSelect">
+          <option value="slide">Lecture Slides (Presentation)</option>
+          <option value="pdf">Handout / PDF Notes</option>
+          <option value="code">Code Repository / Snippet</option>
+          <option value="link">Reference Article / Link</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer flex items-center justify-between">
+      <button class="btn btn-secondary" onclick="closeModal('materialModal')">Cancel</button>
+      <button class="btn btn-primary font-bold" onclick="saveAttachedMaterial()">Attach Material</button>
+    </div>
+  </div>
+</div>
+
 <script src="../../js/shared.js"></script>
 <script>
-  const user = requireAuth(['faculty']);
-  if(user) {
+  /* ═══════════════════════════════════════════════
+     GLOBAL STATE & VARIABLES
+  ═══════════════════════════════════════════════ */
+  const user = requireAuth(['faculty', 'collegeAdmin', 'superadmin']);
+  let assignedSubjects = [];
+  let currentSession = null;
+  let meetApi = null;
+  let stopwatchInterval = null;
+  let sessionStartTime = null;
+  let pollInterval = null;
+  let rosterData = [];
+
+  // Whiteboard canvas state
+  let wbCanvas = null;
+  let wbCtx = null;
+  let isDrawing = false;
+  let lastX = 0;
+  let lastY = 0;
+  let currentTool = 'pen';
+
+  if (user) {
     document.getElementById('sidebar-user-name').textContent = user.name || 'Professor';
     document.getElementById('hostNameInfo').textContent = user.name || 'Professor';
   }
 
-  let meetApi = null;
-  const meetContainer = document.getElementById('meet-container');
+  /* ═══════════════════════════════════════════════
+     INITIALIZATION & LOBBY DATA
+  ═══════════════════════════════════════════════ */
+  document.addEventListener('DOMContentLoaded', async () => {
+    initClock();
+    await loadLobbyData();
+    initWhiteboard();
+  });
 
-  function startCall() {
-    const topic = document.getElementById('topicInput').value || 'Live Classroom session';
-    const batch = document.getElementById('batchSelect').value;
-    
-    // Create a deterministic room name that the student can easily join
-    // In a real DB, you'd save this to `meetings` table.
-    const roomName = `VishvaErp-${batch}-${new Date().toISOString().split('T')[0]}`;
-    
-    document.getElementById('join-screen').style.display = 'none';
-    document.getElementById('active-call').style.display = 'block';
-    
-    document.getElementById('activeTopicDisplay').textContent = topic;
-    document.getElementById('roomIdDisplay').textContent = roomName;
+  function initClock() {
+    setInterval(() => {
+      const now = new Date();
+      const el = document.getElementById('serverClock');
+      if (el) el.innerHTML = `<i class="fas fa-clock mr-1"></i> ${now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
+    }, 1000);
+  }
 
-    // Simulate socket event being emitted here in production
-    if(window.showToast) {
-       showToast(`Class started. Students in ${batch} notified!`, 'success');
+  async function loadLobbyData() {
+    try {
+      const [subjRes, sessRes, ttRes] = await Promise.all([
+        window.api.request('/academics/subjects', { silent: true }).catch(() => ({ subjects: [] })),
+        window.api.request('/live-classes', { silent: true }).catch(() => ({ sessions: [] })),
+        window.api.request('/timetable/today', { silent: true }).catch(() => 
+          window.api.request('/academics/timetable', { silent: true }).catch(() => ({ timetable: [] }))
+        ),
+      ]);
+
+      assignedSubjects = subjRes.subjects || [];
+      populateSubjectDropdown(assignedSubjects);
+
+      const sessions = sessRes.sessions || [];
+      renderRecordingsVault(sessions);
+      updateKpis(sessions, ttRes);
+      renderTodaySchedule(ttRes, sessions);
+
+    } catch (err) {
+      console.warn('Lobby fetch error:', err);
+    }
+  }
+
+  function populateSubjectDropdown(subjects) {
+    const sel = document.getElementById('subjectSelect');
+    if (!sel) return;
+    if (!subjects || subjects.length === 0) {
+      sel.innerHTML = '<option value="">No subjects assigned</option>';
+      return;
+    }
+    sel.innerHTML = subjects.map(s => {
+      const dept = s.courseId?.department || s.department || 'General';
+      const sem = s.semester ? `Sem ${s.semester}` : '';
+      return `<option value="${s._id}" data-dept="${escapeHTML(dept)}" data-sem="${s.semester || 1}">${escapeHTML(s.name)} (${escapeHTML(s.code || 'SUB')}) — ${escapeHTML(dept)} ${sem}</option>`;
+    }).join('');
+  }
+
+  function updateKpis(sessions, ttRes) {
+    const active = sessions.filter(s => s.status === 'active');
+    const statusEl = document.getElementById('kpiStudioStatus');
+    if (statusEl) {
+      statusEl.textContent = active.length > 0 ? `${active.length} Live Active` : 'Ready on Air';
+      statusEl.className = `text-lg font-bold ${active.length > 0 ? 'text-red-600' : 'text-slate-800'}`;
     }
 
-    // Initialize Jitsi
+    // Cumulative attendees
+    let totalTaught = 0;
+    let syncedSessions = 0;
+    sessions.forEach(s => {
+      totalTaught += (s.attendeesCount || s.attendees?.length || 0);
+      if (s.attendanceSynced) syncedSessions++;
+    });
+    const taughtEl = document.getElementById('kpiTotalStudents');
+    if (taughtEl) taughtEl.textContent = `${totalTaught} Students`;
+
+    const syncEl = document.getElementById('kpiSyncRate');
+    if (syncEl && sessions.length > 0) {
+      const rate = Math.round((syncedSessions / sessions.length) * 100);
+      syncEl.textContent = `${rate}% Synced`;
+    }
+  }
+
+  function renderTodaySchedule(ttRes, sessions) {
+    const container = document.getElementById('todayScheduleList');
+    if (!container) return;
+
+    let slots = ttRes.queue || ttRes.todaySlots || ttRes.timetable || [];
+    if (ttRes.timetable && !ttRes.todaySlots) {
+      const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const todayName = days[new Date().getDay()];
+      slots = (ttRes.timetable || []).filter(s => s.dayOfWeek === todayName);
+    }
+
+    const todayCountEl = document.getElementById('kpiTodayCount');
+    if (todayCountEl) todayCountEl.textContent = `${slots.length} Classes`;
+
+    if (slots.length === 0) {
+      container.innerHTML = `
+        <div class="text-center py-8 text-slate-400 text-xs">
+          <i class="fas fa-calendar-check text-2xl mb-2 text-slate-300 block"></i>
+          No scheduled lectures for today on your timetable. You can still initiate an ad-hoc session anytime!
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = slots.map(slot => {
+      const subjId = slot.subjectId?._id || slot.subjectId;
+      const subjName = slot.subjectId?.name || slot.subject || 'Lecture';
+      const time = slot.startTime ? `${slot.startTime} - ${slot.endTime}` : 'Scheduled';
+      const activeMatch = sessions.find(s => String(s.subjectId?._id || s.subjectId) === String(subjId) && s.status === 'active');
+
+      return `
+        <div class="p-3 rounded-xl border ${activeMatch ? 'border-red-300 bg-red-50/50' : 'border-slate-200 bg-white'} flex items-center justify-between gap-3 text-xs">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg ${activeMatch ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-600'} flex items-center justify-center font-bold">
+              ${activeMatch ? '<i class="fas fa-satellite-dish animate-pulse"></i>' : '<i class="fas fa-clock"></i>'}
+            </div>
+            <div>
+              <div class="font-bold text-slate-800 text-xs">${escapeHTML(subjName)}</div>
+              <div class="text-[11px] text-slate-500">${escapeHTML(time)} • Room ${escapeHTML(slot.room || 'Virtual')}</div>
+            </div>
+          </div>
+          <div>
+            ${activeMatch 
+              ? `<button class="btn btn-xs btn-primary bg-red-600 border-none font-bold text-[11px]" onclick="resumeSession('${activeMatch._id}')">Resume Live</button>`
+              : `<button class="btn btn-xs btn-success font-bold text-[11px]" onclick="quickLaunchSlot('${subjId}', '${escapeHTML(subjName)}')">Start Studio</button>`
+            }
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function renderRecordingsVault(sessions) {
+    const tbody = document.getElementById('recordingsTableBody');
+    if (!tbody) return;
+
+    if (!sessions || sessions.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="7" class="text-center py-6 text-slate-400 text-xs">No lecture recordings or past sessions found.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = sessions.map(sess => {
+      const date = sess.startedAt ? new Date(sess.startedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+      const attendeesCount = sess.attendeesCount || sess.attendees?.length || 0;
+      const duration = sess.recordingDuration || (sess.endedAt && sess.startedAt ? Math.round((new Date(sess.endedAt) - new Date(sess.startedAt)) / 60000) : 0);
+
+      return `
+        <tr class="hover:bg-slate-50 text-xs">
+          <td>
+            <div class="font-bold text-slate-900">${escapeHTML(sess.title)}</div>
+            <div class="text-slate-500 text-[11px]">${escapeHTML(sess.subjectId?.name || 'Subject')} (${escapeHTML(sess.subjectId?.code || '')})</div>
+          </td>
+          <td>
+            <span class="badge badge-secondary text-[10px]">${escapeHTML(sess.department || 'General')} Sem ${sess.semester || 1}</span>
+          </td>
+          <td>${date}</td>
+          <td>
+            <span class="font-bold text-slate-800">${attendeesCount}</span> attendees
+            <span class="text-slate-400 text-[11px] block">${duration > 0 ? duration + ' mins' : 'In progress'}</span>
+          </td>
+          <td>
+            ${sess.attendanceSynced 
+              ? `<span class="badge badge-success text-[10px]"><i class="fas fa-check-circle mr-1"></i> Synced (${sess.syncedAttendanceCount || attendeesCount})</span>`
+              : `<span class="badge badge-warning text-[10px]">Pending Sync</span>`
+            }
+          </td>
+          <td>
+            <div class="flex items-center gap-1.5 flex-wrap">
+              ${sess.recordingUrl 
+                ? `<a href="${escapeHTML(sess.recordingUrl)}" target="_blank" class="text-purple-600 hover:underline font-bold text-[11px]"><i class="fas fa-play mr-1"></i> Watch</a>`
+                : `<span class="text-slate-400 text-[11px]">—</span>`
+              }
+              ${sess.materials && sess.materials.length > 0 
+                ? `<span class="badge badge-info text-[10px]"><i class="fas fa-paperclip mr-1"></i> ${sess.materials.length} Slides</span>`
+                : ''
+              }
+            </div>
+          </td>
+          <td>
+            <div class="flex items-center gap-1">
+              ${sess.status === 'active' 
+                ? `<button class="btn btn-xs btn-primary bg-emerald-600 border-none" onclick="resumeSession('${sess._id}')">Resume</button>`
+                : `<button class="btn btn-xs btn-secondary" onclick="openAttachForSession('${sess._id}')" title="Attach recording or slide"><i class="fas fa-paperclip"></i></button>`
+              }
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  function setTopicPreset(topic) {
+    const input = document.getElementById('topicInput');
+    if (input) input.value = topic;
+  }
+
+  function scrollToLauncher() {
+    const el = document.getElementById('launcherCard');
+    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  function refreshLobby() {
+    loadLobbyData();
+    if (window.showToast) showToast('Lobby refreshed', 'info');
+  }
+
+  function quickLaunchSlot(subjId, subjName) {
+    const sel = document.getElementById('subjectSelect');
+    if (sel) sel.value = subjId;
+    const top = document.getElementById('topicInput');
+    if (top && !top.value.trim()) top.value = `${subjName} - Scheduled Lecture`;
+    startHostCall();
+  }
+
+  /* ═══════════════════════════════════════════════
+     LAUNCH / START SESSION
+  ═══════════════════════════════════════════════ */
+  async function startHostCall() {
+    const sel = document.getElementById('subjectSelect');
+    if (!sel || !sel.value) return showToast('Please select an assigned subject', 'error');
+
+    const subjectId = sel.value;
+    const topic = document.getElementById('topicInput').value.trim() || 'Virtual Classroom Lecture';
+    const opt = sel.options[sel.selectedIndex];
+    const dept = opt?.getAttribute('data-dept') || 'General';
+    const sem = Number(opt?.getAttribute('data-sem')) || 1;
+
+    try {
+      const btn = document.getElementById('btnStartCall');
+      if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> Launching Studio...'; }
+
+      const res = await window.api.request('/live-classes', {
+        method: 'POST',
+        body: JSON.stringify({
+          subjectId,
+          title: topic,
+          department: dept,
+          semester: sem,
+          status: 'active',
+        }),
+      });
+
+      if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-play-circle mr-2"></i> Launch Live Studio Now'; }
+
+      if (res.session) {
+        showToast('Virtual Classroom Studio live on air!', 'success');
+        launchStudioSession(res.session);
+      }
+    } catch (err) {
+      showToast(err.message || 'Failed to start session', 'error');
+      const btn = document.getElementById('btnStartCall');
+      if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-play-circle mr-2"></i> Launch Live Studio Now'; }
+    }
+  }
+
+  function resumeSession(sessionId) {
+    window.api.request(`/live-classes/${sessionId}`).then(res => {
+      if (res.session) launchStudioSession(res.session);
+    }).catch(err => showToast(err.message, 'error'));
+  }
+
+  function launchStudioSession(session) {
+    currentSession = session;
+
+    document.getElementById('join-screen').style.display = 'none';
+    document.getElementById('active-call').style.display = 'block';
+
+    document.getElementById('activeTopicDisplay').textContent = session.title;
+    document.getElementById('activeSubjectDisplay').textContent = session.subjectId?.name || 'Subject';
+    document.getElementById('roomIdDisplay').textContent = session.roomName;
+
+    // Start Stopwatch
+    sessionStartTime = session.startedAt ? new Date(session.startedAt) : new Date();
+    startStopwatch();
+
+    // Init Jitsi / Fallback
+    initStudioStream(session.roomName, session.title);
+
+    // Start Realtime Polling for attendees & chat
+    pollSessionDetails();
+    if (pollInterval) clearInterval(pollInterval);
+    pollInterval = setInterval(pollSessionDetails, 5000);
+  }
+
+  /* ═══════════════════════════════════════════════
+     STREAM INITIALIZATION (Jitsi + Fallback)
+  ═══════════════════════════════════════════════ */
+  function initStudioStream(roomName, topic) {
+    const container = document.getElementById('meet-container');
+    const loading = document.getElementById('loading-meet');
+    const fallback = document.getElementById('fallbackStage');
+
+    // Check if Jitsi script is available
+    if (typeof JitsiMeetExternalAPI === 'undefined') {
+      console.warn('Jitsi script not detected. Launching resilient presentation stage.');
+      loading.style.display = 'none';
+      fallback.classList.remove('hidden');
+      document.getElementById('fallbackTopic').textContent = topic;
+      return;
+    }
+
     setTimeout(() => {
-      document.getElementById('loading-meet').style.display = 'none';
-      const domain = 'meet.jit.si';
-      const options = {
+      try {
+        const domain = 'meet.jit.si';
+        const options = {
           roomName: roomName,
           width: '100%',
           height: '100%',
-          parentNode: meetContainer,
-          lang: 'en',
+          parentNode: container,
           userInfo: {
-              displayName: user ? user.name : 'Professor',
-              role: 'moderator'
+            displayName: user?.name || 'Professor (Host)',
+            role: 'moderator',
           },
           configOverwrite: {
             disableDeepLinking: true,
-            prejoinPageEnabled: false, // Jump straight in
+            prejoinPageEnabled: false,
             startWithAudioMuted: false,
-            startWithVideoMuted: false
+            startWithVideoMuted: false,
+            enableWelcomePage: false,
           },
           interfaceConfigOverwrite: {
             TOOLBAR_BUTTONS: [
-                'microphone', 'camera', 'closedcaptions', 'desktop', 'fullscreen',
-                'fodeviceselection', 'hangup', 'profile', 'info', 'chat', 'recording',
-                'livestreaming', 'etherpad', 'sharedvideo', 'settings', 'raisehand',
-                'videoquality', 'filmstrip', 'invite', 'feedback', 'stats', 'shortcuts',
-                'tileview', 'videobackgroundblur', 'download', 'help', 'mute-everyone', 'security'
+              'microphone', 'camera', 'desktop', 'fullscreen', 'chat',
+              'recording', 'livestreaming', 'raisehand', 'tileview', 'settings',
             ],
             SHOW_CHROME_EXTENSION_BANNER: false,
             BRAND_WATERMARK_LINK: '',
             SHOW_JITSI_WATERMARK: false,
-            SHOW_WATERMARK_FOR_GUESTS: false,
-            SHOW_PROMOTIONAL_CLOSE_PAGE: false,
-            DEFAULT_BACKGROUND: '#0F172A',
-            DEFAULT_LOCAL_DISPLAY_NAME: 'Me',
-          }
-      };
-      
-      meetApi = new JitsiMeetExternalAPI(domain, options);
+            DEFAULT_BACKGROUND: '#0B0F19',
+          },
+        };
 
-      // Listeners
-      meetApi.addEventListener('videoConferenceLeft', () => {
-         endCall();
-       });
+        meetApi = new JitsiMeetExternalAPI(domain, options);
+        loading.style.display = 'none';
 
+        meetApi.addEventListener('videoConferenceLeft', () => {
+          confirmEndSession();
+        });
+
+      } catch (err) {
+        console.error('Jitsi launch error:', err);
+        loading.style.display = 'none';
+        fallback.classList.remove('hidden');
+        document.getElementById('jitsiFallbackAlert').classList.remove('hidden');
+      }
+    }, 800);
+  }
+
+  function startStopwatch() {
+    if (stopwatchInterval) clearInterval(stopwatchInterval);
+    stopwatchInterval = setInterval(() => {
+      const now = new Date();
+      const diff = Math.floor((now - sessionStartTime) / 1000);
+      const hrs = String(Math.floor(diff / 3600)).padStart(2, '0');
+      const mins = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
+      const secs = String(diff % 60).padStart(2, '0');
+      const el = document.getElementById('sessionStopwatch');
+      if (el) el.textContent = `${hrs}:${mins}:${secs}`;
     }, 1000);
   }
 
-  function endCall() {
-    if(meetApi) {
-      meetApi.dispose();
-      meetApi = null;
+  /* ═══════════════════════════════════════════════
+     POLLING & REALTIME DETAILS (Roster, Chat, Poll)
+  ═══════════════════════════════════════════════ */
+  async function pollSessionDetails() {
+    if (!currentSession?._id) return;
+
+    try {
+      const res = await window.api.request(`/live-classes/${currentSession._id}`, { silent: true });
+      if (!res.session) return;
+
+      const session = res.session;
+      rosterData = session.attendees || [];
+
+      // Update Roster tab count & badge
+      const count = rosterData.length;
+      document.getElementById('consoleRosterCount').textContent = count;
+      document.getElementById('attendeeBadgeCount').textContent = count;
+      const fbCount = document.getElementById('fallbackParticipantCount');
+      if (fbCount) fbCount.textContent = `${count + 1} Participants`;
+
+      renderRosterList(rosterData);
+      renderChatStream(session.chatMessages || []);
+      renderActivePoll(session.activePoll);
+
+      // Check hand raises
+      const handsRaised = rosterData.filter(a => a.handRaised);
+      const hrAlert = document.getElementById('stageHandRaiseAlert');
+      if (hrAlert) {
+        if (handsRaised.length > 0) {
+          hrAlert.style.display = 'inline-flex';
+          document.getElementById('handRaiseCountText').textContent = `${handsRaised.length} Hands Raised`;
+        } else {
+          hrAlert.style.display = 'none';
+        }
+      }
+
+    } catch (err) {
+      console.warn('Poll error:', err);
     }
-    document.getElementById('active-call').style.display = 'none';
-    document.getElementById('join-screen').style.display = 'block';
-    if(window.showToast) showToast('Session ended successfully', 'info');
+  }
+
+  function renderRosterList(attendees) {
+    const list = document.getElementById('rosterList');
+    if (!list) return;
+
+    if (!attendees || attendees.length === 0) {
+      list.innerHTML = '<div class="text-center py-8 text-slate-400 text-xs">No students connected yet.<br><span class="text-slate-500 text-[11px]">Share the invite link to let them join!</span></div>';
+      return;
+    }
+
+    list.innerHTML = attendees.map(att => {
+      const duration = att.durationMinutes || (att.leftAt ? Math.round((new Date(att.leftAt) - new Date(att.joinedAt)) / 60000) : Math.round((new Date() - new Date(att.joinedAt)) / 60000));
+      const isQualified = duration >= 10;
+
+      return `
+        <div class="p-2 rounded-lg border border-slate-100 bg-slate-50 hover:bg-slate-100/60 flex items-center justify-between text-xs transition">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-full bg-emerald-600 text-white font-bold flex items-center justify-center text-[11px]">
+              ${(att.name || 'S').charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <div class="font-bold text-slate-800 flex items-center gap-1.5">
+                <span>${escapeHTML(att.name)}</span>
+                ${att.handRaised ? '<span class="text-amber-500 animate-bounce" title="Hand Raised"><i class="fas fa-hand-paper"></i></span>' : ''}
+              </div>
+              <div class="text-[10px] text-slate-500">${escapeHTML(att.rollNumber || 'Student')} • Active ${duration}m</div>
+            </div>
+          </div>
+          <div>
+            ${isQualified 
+              ? '<span class="badge badge-success text-[10px]"><i class="fas fa-check"></i> Eligible</span>'
+              : '<span class="badge badge-secondary text-[10px]">' + duration + 'm</span>'
+            }
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  /* ═══════════════════════════════════════════════
+     CONSOLE TAB SWITCHING
+  ═══════════════════════════════════════════════ */
+  function switchConsoleTab(tab) {
+    ['roster', 'whiteboard', 'chat', 'poll'].forEach(t => {
+      const btn = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}Btn`);
+      const content = document.getElementById(`tabContent${t.charAt(0).toUpperCase() + t.slice(1)}`);
+      if (btn) btn.classList.toggle('active', t === tab);
+      if (content) content.classList.toggle('hidden', t !== tab);
+    });
+
+    if (tab === 'whiteboard') {
+      setTimeout(resizeWhiteboardCanvas, 100);
+    }
+  }
+
+  /* ═══════════════════════════════════════════════
+     WHITEBOARD WORKSTATION
+  ═══════════════════════════════════════════════ */
+  function initWhiteboard() {
+    wbCanvas = document.getElementById('facultyCanvas');
+    if (!wbCanvas) return;
+    wbCtx = wbCanvas.getContext('2d');
+
+    // Pointer events
+    wbCanvas.addEventListener('mousedown', startDraw);
+    wbCanvas.addEventListener('mousemove', draw);
+    wbCanvas.addEventListener('mouseup', stopDraw);
+    wbCanvas.addEventListener('mouseleave', stopDraw);
+
+    // Touch events for tablet/mobile
+    wbCanvas.addEventListener('touchstart', (e) => {
+      const touch = e.touches[0];
+      const rect = wbCanvas.getBoundingClientRect();
+      startDraw({ clientX: touch.clientX, clientY: touch.clientY });
+    });
+    wbCanvas.addEventListener('touchmove', (e) => {
+      const touch = e.touches[0];
+      draw({ clientX: touch.clientX, clientY: touch.clientY });
+      e.preventDefault();
+    });
+    wbCanvas.addEventListener('touchend', stopDraw);
+
+    window.addEventListener('resize', resizeWhiteboardCanvas);
+  }
+
+  function resizeWhiteboardCanvas() {
+    if (!wbCanvas || !wbCtx) return;
+    const parent = wbCanvas.parentElement;
+    if (wbCanvas.width !== parent.clientWidth || wbCanvas.height !== parent.clientHeight) {
+      // Save content before resize
+      const imgData = wbCanvas.toDataURL();
+      wbCanvas.width = parent.clientWidth;
+      wbCanvas.height = parent.clientHeight;
+      const img = new Image();
+      img.src = imgData;
+      img.onload = () => wbCtx.drawImage(img, 0, 0);
+    }
+  }
+
+  function setWbTool(tool) {
+    currentTool = tool;
+    ['pen', 'highlighter', 'eraser', 'line', 'rect'].forEach(t => {
+      const btn = document.getElementById(`wbTool${t.charAt(0).toUpperCase() + t.slice(1)}`);
+      if (btn) {
+        if (t === tool) {
+          btn.className = 'px-2 py-1 rounded bg-white font-bold text-slate-800 shadow-sm border border-slate-300';
+        } else {
+          btn.className = 'px-2 py-1 rounded text-slate-600 hover:bg-white';
+        }
+      }
+    });
+  }
+
+  function startDraw(e) {
+    isDrawing = true;
+    const rect = wbCanvas.getBoundingClientRect();
+    lastX = e.clientX - rect.left;
+    lastY = e.clientY - rect.top;
+  }
+
+  function draw(e) {
+    if (!isDrawing) return;
+    const rect = wbCanvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const color = document.getElementById('wbColor').value || '#059669';
+    const size = Number(document.getElementById('wbSize').value) || 4;
+
+    wbCtx.beginPath();
+    wbCtx.moveTo(lastX, lastY);
+    wbCtx.lineTo(x, y);
+
+    if (currentTool === 'eraser') {
+      wbCtx.strokeStyle = '#FFFFFF';
+      wbCtx.lineWidth = size * 3;
+      wbCtx.globalAlpha = 1.0;
+    } else if (currentTool === 'highlighter') {
+      wbCtx.strokeStyle = color;
+      wbCtx.lineWidth = size * 3;
+      wbCtx.globalAlpha = 0.35;
+    } else {
+      wbCtx.strokeStyle = color;
+      wbCtx.lineWidth = size;
+      wbCtx.globalAlpha = 1.0;
+    }
+
+    wbCtx.lineCap = 'round';
+    wbCtx.lineJoin = 'round';
+    wbCtx.stroke();
+
+    lastX = x;
+    lastY = y;
+  }
+
+  function stopDraw() {
+    isDrawing = false;
+  }
+
+  function clearWhiteboard() {
+    if (!wbCtx || !wbCanvas) return;
+    if (confirm('Clear the entire whiteboard canvas?')) {
+      wbCtx.clearRect(0, 0, wbCanvas.width, wbCanvas.height);
+    }
+  }
+
+  async function broadcastWhiteboard() {
+    if (!currentSession?._id || !wbCanvas) return;
+    try {
+      const dataUrl = wbCanvas.toDataURL('image/png');
+      const statusEl = document.getElementById('wbSaveStatus');
+      if (statusEl) statusEl.textContent = 'Saving...';
+
+      await window.api.request(`/live-classes/${currentSession._id}/whiteboard`, {
+        method: 'POST',
+        body: JSON.stringify({ whiteboardData: dataUrl }),
+      });
+
+      if (statusEl) statusEl.textContent = 'Saved to student portals';
+      showToast('Whiteboard pushed to students!', 'success');
+    } catch (err) {
+      showToast('Whiteboard save failed', 'error');
+    }
+  }
+
+  /* ═══════════════════════════════════════════════
+     IN-CLASS CHAT & Q&A
+  ═══════════════════════════════════════════════ */
+  async function handleSendChat(e) {
+    e.preventDefault();
+    if (!currentSession?._id) return;
+    const input = document.getElementById('chatMessageInput');
+    const msg = input?.value.trim();
+    if (!msg) return;
+
+    try {
+      await window.api.request(`/live-classes/${currentSession._id}/chat`, {
+        method: 'POST',
+        body: JSON.stringify({ message: msg }),
+      });
+      input.value = '';
+      pollSessionDetails();
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  }
+
+  function renderChatStream(messages) {
+    const box = document.getElementById('chatStreamBox');
+    if (!box) return;
+
+    if (!messages || messages.length === 0) {
+      box.innerHTML = '<div class="text-center py-6 text-slate-400 text-xs">No chat messages yet. Say hello to your class!</div>';
+      return;
+    }
+
+    box.innerHTML = messages.map(m => {
+      const isTeacher = m.role === 'faculty' || m.role === 'collegeAdmin';
+      const time = m.timestamp ? new Date(m.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : '';
+      return `
+        <div class="chat-bubble ${isTeacher ? 'teacher' : 'student'}">
+          <div class="flex items-center justify-between gap-2 mb-0.5 text-[10px] ${isTeacher ? 'text-emerald-800 font-bold' : 'text-slate-600 font-semibold'}">
+            <span>${escapeHTML(m.senderName)} ${isTeacher ? '(Host)' : ''}</span>
+            <span class="text-slate-400 font-normal">${time}</span>
+          </div>
+          <div>${escapeHTML(m.message)}</div>
+        </div>
+      `;
+    }).join('');
+
+    box.scrollTop = box.scrollHeight;
+  }
+
+  /* ═══════════════════════════════════════════════
+     INSTANT PULSE POLLS
+  ═══════════════════════════════════════════════ */
+  async function publishPoll() {
+    if (!currentSession?._id) return;
+    const qInput = document.getElementById('pollQuestionInput');
+    const question = qInput?.value.trim();
+    if (!question) return showToast('Please enter a poll question', 'error');
+
+    const optInputs = document.querySelectorAll('.poll-opt');
+    const options = [];
+    optInputs.forEach(inp => {
+      if (inp.value.trim()) options.push(inp.value.trim());
+    });
+    if (options.length < 2) return showToast('Please provide at least 2 options', 'error');
+
+    try {
+      await window.api.request(`/live-classes/${currentSession._id}/poll`, {
+        method: 'POST',
+        body: JSON.stringify({ question, options }),
+      });
+      showToast('Poll published to class!', 'success');
+      qInput.value = '';
+      pollSessionDetails();
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  }
+
+  async function closeActivePoll() {
+    if (!currentSession?._id) return;
+    try {
+      await window.api.request(`/live-classes/${currentSession._id}/poll`, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'close' }),
+      });
+      showToast('Poll closed', 'info');
+      pollSessionDetails();
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  }
+
+  function renderActivePoll(poll) {
+    const container = document.getElementById('activePollContainer');
+    if (!container) return;
+
+    if (!poll || !poll.isOpen) {
+      container.classList.add('hidden');
+      return;
+    }
+
+    container.classList.remove('hidden');
+    document.getElementById('activePollQuestion').textContent = poll.question;
+
+    let totalVotes = 0;
+    (poll.options || []).forEach(o => totalVotes += (o.votes || 0));
+
+    const optsContainer = document.getElementById('activePollOptions');
+    optsContainer.innerHTML = (poll.options || []).map(opt => {
+      const pct = totalVotes > 0 ? Math.round(((opt.votes || 0) / totalVotes) * 100) : 0;
+      return `
+        <div>
+          <div class="flex justify-between font-bold text-slate-700 text-[11px] mb-0.5">
+            <span>${escapeHTML(opt.text)}</span>
+            <span>${opt.votes || 0} votes (${pct}%)</span>
+          </div>
+          <div class="w-full h-2 rounded-full bg-slate-200 overflow-hidden">
+            <div class="h-full bg-emerald-600 rounded-full" style="width: ${pct}%"></div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  /* ═══════════════════════════════════════════════
+     ERP ATTENDANCE SYNCHRONIZATION MODAL
+  ═══════════════════════════════════════════════ */
+  function openAttendanceSyncModal() {
+    if (!currentSession) return showToast('No active session', 'error');
+
+    document.getElementById('syncModalBatch').textContent = `${currentSession.department || 'General'} Sem ${currentSession.semester || 1}`;
+    document.getElementById('syncModalConnected').textContent = `${rosterData.length} students`;
+
+    updateSyncEvaluationList(10);
+    document.getElementById('attendanceSyncModal').style.display = 'flex';
+  }
+
+  function updateSyncDurationLabel(val) {
+    document.getElementById('syncMinDurationLabel').textContent = `${val}m`;
+    updateSyncEvaluationList(Number(val));
+  }
+
+  function updateSyncEvaluationList(minDuration) {
+    const list = document.getElementById('syncEvaluationRoster');
+    if (!list) return;
+
+    if (rosterData.length === 0) {
+      list.innerHTML = '<div class="p-4 text-center text-slate-400">No students have joined this session yet.</div>';
+      document.getElementById('syncEvaluationSummary').textContent = '0 Qualified';
+      return;
+    }
+
+    let qualifiedCount = 0;
+    list.innerHTML = rosterData.map(att => {
+      const duration = att.durationMinutes || (att.leftAt ? Math.round((new Date(att.leftAt) - new Date(att.joinedAt)) / 60000) : Math.round((new Date() - new Date(att.joinedAt)) / 60000));
+      const qualified = duration >= minDuration;
+      if (qualified) qualifiedCount++;
+
+      return `
+        <div class="p-2.5 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-slate-800">${escapeHTML(att.name)}</span>
+            <span class="text-slate-400 text-[11px]">(${escapeHTML(att.rollNumber || 'Roll No')})</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <span class="font-mono text-[11px] text-slate-500">${duration} mins attended</span>
+            ${qualified 
+              ? '<span class="badge badge-success text-[10px]"><i class="fas fa-check"></i> Present</span>' 
+              : '<span class="badge badge-danger text-[10px]"><i class="fas fa-times"></i> Absent (&lt;' + minDuration + 'm)</span>'
+            }
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    document.getElementById('syncEvaluationSummary').textContent = `${qualifiedCount} Qualified for Present`;
+  }
+
+  async function commitAttendanceSync() {
+    if (!currentSession?._id) return;
+    const btn = document.getElementById('btnCommitAttendance');
+    const minDur = Number(document.getElementById('syncMinDurationSlider').value) || 10;
+
+    try {
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-1"></i> Syncing to ERP...';
+
+      const res = await window.api.request(`/live-classes/${currentSession._id}/sync-attendance`, {
+        method: 'POST',
+        body: JSON.stringify({ minDurationMinutes: minDur }),
+      });
+
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-check mr-1"></i> Post to Official ERP Attendance';
+
+      closeModal('attendanceSyncModal');
+      showToast(res.message || 'Attendance posted successfully!', 'success');
+      currentSession.attendanceSynced = true;
+
+    } catch (err) {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-check mr-1"></i> Post to Official ERP Attendance';
+      showToast(err.message || 'Failed to sync attendance', 'error');
+    }
+  }
+
+  /* ═══════════════════════════════════════════════
+     INVITES, FULLSCREEN & SESSION END
+  ═══════════════════════════════════════════════ */
+  function copyInviteLink() {
+    if (!currentSession?.roomName) return;
+    const link = `${window.location.origin}/frontend/pages/student/live-class.html?join=${encodeURIComponent(currentSession.roomName)}`;
+    navigator.clipboard.writeText(link);
+    showToast('Student invite link copied to clipboard!', 'success');
   }
 
   function toggleFullscreen() {
-    meetContainer.classList.toggle('fullscreen');
+    const container = document.getElementById('meet-container');
+    if (container) container.classList.toggle('fullscreen');
   }
 
-  function copyInviteLink() {
-    const room = document.getElementById('roomIdDisplay').textContent;
-    const batch = document.getElementById('batchSelect').value;
-    const link = `${window.location.origin}/frontend/pages/student/live-class.html?join=${room}&batch=${batch}`;
-    navigator.clipboard.writeText(link);
-    if(window.showToast) showToast('Invite link copied to clipboard!', 'success');
+  async function confirmEndSession() {
+    if (!confirm('Are you sure you want to end this live session for all participants?')) return;
+
+    try {
+      if (currentSession?._id) {
+        // Prompt attendance sync if not synced
+        if (!currentSession.attendanceSynced && rosterData.length > 0) {
+          const syncNow = confirm('Would you like to sync ERP attendance before closing?');
+          if (syncNow) {
+            await window.api.request(`/live-classes/${currentSession._id}/sync-attendance`, {
+              method: 'POST',
+              body: JSON.stringify({ minDurationMinutes: 10 }),
+            }).catch(() => {});
+          }
+        }
+
+        await window.api.request(`/live-classes/${currentSession._id}/end`, { method: 'PUT' });
+      }
+
+      if (meetApi) {
+        meetApi.dispose();
+        meetApi = null;
+      }
+      if (stopwatchInterval) clearInterval(stopwatchInterval);
+      if (pollInterval) clearInterval(pollInterval);
+
+      document.getElementById('active-call').style.display = 'none';
+      document.getElementById('join-screen').style.display = 'block';
+
+      showToast('Session ended successfully', 'info');
+      loadLobbyData();
+
+    } catch (err) {
+      showToast(err.message || 'Error ending session', 'error');
+    }
   }
+
+  /* ═══════════════════════════════════════════════
+     MATERIALS & RECORDING ATTACHMENTS
+  ═══════════════════════════════════════════════ */
+  let activeTargetSessionId = null;
+
+  function triggerAttachMaterial() {
+    if (!currentSession?._id) return;
+    openAttachForSession(currentSession._id);
+  }
+
+  function openAttachForSession(sessionId) {
+    activeTargetSessionId = sessionId;
+    document.getElementById('materialTitleInput').value = '';
+    document.getElementById('materialUrlInput').value = '';
+    document.getElementById('materialModal').style.display = 'flex';
+  }
+
+  async function saveAttachedMaterial() {
+    if (!activeTargetSessionId) return;
+    const title = document.getElementById('materialTitleInput').value.trim();
+    const url = document.getElementById('materialUrlInput').value.trim();
+    const type = document.getElementById('materialTypeSelect').value;
+
+    if (!title || !url) return showToast('Please enter both title and valid URL', 'error');
+
+    try {
+      await window.api.request(`/live-classes/${activeTargetSessionId}/materials`, {
+        method: 'POST',
+        body: JSON.stringify({ title, url, type }),
+      });
+      closeModal('materialModal');
+      showToast('Material attached successfully!', 'success');
+      loadLobbyData();
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  }
+
+  async function promptRecordingLink() {
+    if (!currentSession?._id) return;
+    const url = prompt('Enter the video recording URL (Google Drive, YouTube, Zoom, Vimeo):', currentSession.recordingUrl || '');
+    if (url === null) return;
+
+    try {
+      await window.api.request(`/live-classes/${currentSession._id}/recording`, {
+        method: 'POST',
+        body: JSON.stringify({ recordingUrl: url.trim(), recordingDuration: 45 }),
+      });
+      showToast('Recording link updated!', 'success');
+      currentSession.recordingUrl = url.trim();
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  }
+
+  function closeModal(id) {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+  }
+
+  // Register delegate for live-admin-pages.js
+  window.__initFacultyLiveClass = function() {
+    loadLobbyData();
+  };
 </script>
 <script src="../../live/live-admin-pages.js"></script>
 </body>

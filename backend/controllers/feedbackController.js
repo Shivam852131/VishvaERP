@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const asyncHandler = require('../middleware/asyncHandler');
 const Feedback = require('../models/Feedback');
 const { logAudit } = require('../services/auditService');
@@ -39,14 +40,16 @@ const getFeedback = asyncHandler(async (req, res) => {
     ...f.toObject(),
     userId: f.isAnonymous ? { name: 'Anonymous' } : f.userId,
   }));
-  res.json({ success: true, feedbacks: normalized, total, pages: Math.ceil(total / Number(limit)) });
+  res.json({ success: true, feedbacks: normalized, data: normalized, total, pages: Math.ceil(total / Number(limit)) });
 });
 
 const getFeedbackStats = asyncHandler(async (req, res) => {
   const { type, targetId } = req.query;
   const match = { collegeId: req.user.collegeId };
   if (type) match.type = type;
-  if (targetId) match.targetId = require('mongoose').Types.ObjectId(targetId);
+  if (targetId && /^[a-f\d]{24}$/i.test(String(targetId))) {
+    match.targetId = new mongoose.Types.ObjectId(String(targetId));
+  }
   const [avgRatings, totalCount, byType] = await Promise.all([
     Feedback.aggregate([
       { $match: match },
@@ -65,10 +68,19 @@ const getFeedbackStats = asyncHandler(async (req, res) => {
       { $group: { _id: '$type', count: { $sum: 1 }, avgOverall: { $avg: '$ratings.overall' } } },
     ]),
   ]);
-  res.json({
-    success: true, total: totalCount,
-    averages: avgRatings[0] || { avgContent: 0, avgDelivery: 0, avgCommunication: 0, avgOverall: 0 },
+  const averages = avgRatings[0] || { avgContent: 0, avgDelivery: 0, avgCommunication: 0, avgOverall: 0 };
+  const statsObj = {
+    total: totalCount,
+    averages,
     byType,
+  };
+  res.json({
+    success: true,
+    total: totalCount,
+    averages,
+    byType,
+    stats: statsObj,
+    data: statsObj,
   });
 });
 

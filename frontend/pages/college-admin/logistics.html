@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -52,9 +52,14 @@
     </header>
 
     <div class="erp-content">
-      <div class="page-header">
-        <h1 class="page-title">🚌 Logistics & Hostel</h1>
-        <p class="page-subtitle">Manage transport routes, hostels, and room allocations.</p>
+      <div class="page-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+        <div>
+          <h1 class="page-title">🚌 Logistics & Hostel</h1>
+          <p class="page-subtitle">Manage transport routes, hostels, and room allocations.</p>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="btn btn-secondary" onclick="exportLogisticsCSV()"><i class="fas fa-file-csv" style="margin-right:6px"></i> Export CSV Report</button>
+        </div>
       </div>
 
       <div class="stats-grid" style="grid-template-columns:repeat(4,1fr)">
@@ -307,5 +312,11 @@
 
 <script src="../../js/shared.js"></script>
 <script src="../../live/live-admin-pages.js"></script>
+<script>
+window.exportLogisticsCSV = function() {
+  const token = window.api ? window.api.getToken() : localStorage.getItem('token');
+  window.open('/api/logistics/export?token=' + encodeURIComponent(token || ''));
+};
+</script>
 </body>
 </html>

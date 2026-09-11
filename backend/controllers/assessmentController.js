@@ -28,7 +28,7 @@ const getAssessments = asyncHandler(async (req, res) => {
     hasPassed: attemptMap[a._id.toString()]?.passed || false,
   }));
 
-  res.json({ success: true, assessments: enriched, pagination: { page: Number(page), limit: Number(limit), total, pages: Math.ceil(total / Number(limit)) } });
+  res.json({ success: true, assessments: enriched, data: enriched, pagination: { page: Number(page), limit: Number(limit), total, pages: Math.ceil(total / Number(limit)) } });
 });
 
 const getAssessmentById = asyncHandler(async (req, res) => {
@@ -44,21 +44,26 @@ const getAssessmentById = asyncHandler(async (req, res) => {
 });
 
 const createAssessment = asyncHandler(async (req, res) => {
-  const { title, description, category, skillTags, difficulty, questions, timeLimit, passingScore, maxAttempts, isPublic, tags } = req.body;
+  const { title, description, category, skillTags, difficulty, questions, timeLimit, passingScore, maxAttempts, isPublic, isPublished, tags } = req.body;
   if (!title || !category || !questions || !questions.length) {
     return res.status(400).json({ success: false, message: 'title, category, and questions are required' });
   }
 
-  const totalPoints = questions.reduce((sum, q) => sum + (q.points || 1), 0);
+  const normalizedQuestions = questions.map(q => ({
+    ...q,
+    text: q.text || q.questionText || '',
+  }));
+
+  const totalPoints = normalizedQuestions.reduce((sum, q) => sum + (q.points || 1), 0);
   const assessment = await SkillAssessment.create({
     collegeId: req.user.collegeId, createdBy: req.user._id,
     title, description, category, skillTags: skillTags || [], difficulty: difficulty || 'medium',
-    questions, timeLimit: timeLimit || 30, totalPoints, passingScore: passingScore || 60,
-    maxAttempts: maxAttempts || 3, isPublic: isPublic !== false, tags: tags || [],
+    questions: normalizedQuestions, timeLimit: timeLimit || 30, totalPoints, passingScore: passingScore || 60,
+    maxAttempts: maxAttempts || 3, isPublished: isPublished !== undefined ? isPublished : true, isPublic: isPublic !== false, tags: tags || [],
   });
 
   logAudit(req, 'create', 'skill-assessment', { resourceId: assessment._id, description: `Created: ${title}` });
-  res.status(201).json({ success: true, assessment });
+  res.status(201).json({ success: true, assessment, data: assessment });
 });
 
 const startAttempt = asyncHandler(async (req, res) => {
@@ -133,10 +138,36 @@ const submitAttempt = asyncHandler(async (req, res) => {
   await attempt.save();
 
   if (passed) {
-    const skillUpdates = {};
+    let profile = await StudentProfile.findOne({ collegeId: req.user.collegeId, studentId: req.user._id });
+    if (!profile) {
+      profile = await StudentProfile.create({
+        collegeId: req.user.collegeId,
+        studentId: req.user._id,
+        skills: [],
+      });
+    }
+
+    const level = percentage >= 80 ? 'advanced' : percentage >= 60 ? 'intermediate' : 'beginner';
     (assessment.skillTags || []).forEach(tag => {
-      skillUpdates[`skills`] = { $each: [{ name: tag, category: 'technical', level: percentage >= 80 ? 'advanced' : percentage >= 60 ? 'intermediate' : 'beginner', verified: true }] };
+      const existing = (profile.skills || []).find(s => s.name.toLowerCase() === tag.toLowerCase());
+      if (existing) {
+        existing.verified = true;
+        if (level === 'advanced' || (level === 'intermediate' && existing.level === 'beginner')) {
+          existing.level = level;
+        }
+      } else {
+        profile.skills.push({
+          name: tag,
+          category: 'technical',
+          level,
+          verified: true,
+        });
+      }
     });
+
+    const techSkills = profile.skills.filter(s => s.category === 'technical' || s.category === 'tool');
+    profile.skillAssessmentScore = Math.min(100, techSkills.length * 8 + profile.skills.length * 3);
+    await profile.save();
   }
 
   const totalAttempts = await AssessmentAttempt.countDocuments({ assessmentId: assessment._id, status: 'completed' });
@@ -147,13 +178,17 @@ const submitAttempt = asyncHandler(async (req, res) => {
   await SkillAssessment.findByIdAndUpdate(assessment._id, { avgScore: Math.round(avgScore[0]?.avg || 0) });
 
   logAudit(req, 'submit', 'assessment-attempt', { resourceId: attempt._id, description: `Score: ${percentage}%` });
-  res.json({ success: true, attempt: { score, totalPoints: attempt.totalPoints, percentage, passed, timeTaken, answers: gradedAnswers } });
+  const resultPayload = { score, totalPoints: attempt.totalPoints, percentage, passed, timeTaken, answers: gradedAnswers, attemptId: attempt._id };
+  res.json({ success: true, attempt: resultPayload, data: resultPayload });
 });
 
 const getLeaderboard = asyncHandler(async (req, res) => {
   const { assessmentId } = req.query;
   const match = { collegeId: req.user.collegeId, status: 'completed' };
-  if (assessmentId) match.assessmentId = require('mongoose').Types.ObjectId.createFromHexString(assessmentId);
+  const mongoose = require('mongoose');
+  if (assessmentId && mongoose.Types.ObjectId.isValid(assessmentId)) {
+    match.assessmentId = new mongoose.Types.ObjectId(assessmentId);
+  }
 
   const leaderboard = await AssessmentAttempt.aggregate([
     { $match: match },
@@ -172,7 +207,7 @@ const getLeaderboard = asyncHandler(async (req, res) => {
     { $project: { studentId: '$_id', name: '$student.name', avatar: '$student.avatar', department: '$student.department', bestScore: 1, bestTime: 1, totalAttempts: 1, passedAttempts: 1 } },
   ]);
 
-  res.json({ success: true, leaderboard });
+  res.json({ success: true, leaderboard, data: leaderboard });
 });
 
 const getMyStats = asyncHandler(async (req, res) => {

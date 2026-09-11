@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -89,16 +89,22 @@
         <div class="card-header"><div class="card-title"><i class="fas fa-calendar-check" style="color:#10B981;margin-right:8px"></i>Today's Attendance Summary</div><span style="font-size:13px;color:#64748B">Live daily view</span></div>
         <div class="card-body">
           <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px">
-            ${[
-              ['Present','48','text-success','bg-success/10'],
-              ['Absent','4','text-danger','bg-danger/10'],
-              ['On Leave','3','text-warning','bg-warning/10'],
-              ['Late Arrival','2','text-info','bg-info/10'],
-            ].map(([l,v,tc,bg])=>`
-              <div style="background:${bg.replace('text-','').replace('bg-','').replace('/10','22')};padding:16px;border-radius:12px;border:1px solid ${bg.replace('text-','').replace('bg-','').replace('/10','33')}">
-                <div style="font-size:13px;font-weight:600;color:#64748B">${l}</div>
-                <div style="font-size:28px;font-weight:800;margin-top:4px">${v}</div>
-              </div>`).join('')}
+            <div style="background:#D1FAE5;padding:16px;border-radius:12px;border:1px solid #A7F3D0">
+              <div style="font-size:13px;font-weight:600;color:#065F46">Present Faculty</div>
+              <div style="font-size:28px;font-weight:800;margin-top:4px;color:#047857" id="facultyPresentCount">0</div>
+            </div>
+            <div style="background:#FEE2E2;padding:16px;border-radius:12px;border:1px solid #FECACA">
+              <div style="font-size:13px;font-weight:600;color:#991B1B">Absent / Unscheduled</div>
+              <div style="font-size:28px;font-weight:800;margin-top:4px;color:#B91C1C" id="facultyAbsentCount">0</div>
+            </div>
+            <div style="background:#FEF3C7;padding:16px;border-radius:12px;border:1px solid #FDE68A">
+              <div style="font-size:13px;font-weight:600;color:#92400E">On Approved Leave</div>
+              <div style="font-size:28px;font-weight:800;margin-top:4px;color:#B45309" id="facultyOnLeaveCount">0</div>
+            </div>
+            <div style="background:#DBEAFE;padding:16px;border-radius:12px;border:1px solid #BFDBFE">
+              <div style="font-size:13px;font-weight:600;color:#1E40AF">Pending Leave Decisions</div>
+              <div style="font-size:28px;font-weight:800;margin-top:4px;color:#1D4ED8" id="facultyPendingLeaveCount">0</div>
+            </div>
           </div>
         </div>
       </div>

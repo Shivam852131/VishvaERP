@@ -499,6 +499,11 @@ function buildCharts() {
 window.switchTab = switchTab;
 window.renderLedger = renderLedger;
 window.buildHeatmap = buildHeatmap;
+async function loadParentAttendance() {
+  await Promise.all([loadSummary(), loadCalendar(), loadLedger(), loadStreak()]);
+}
+window.loadParentAttendance = loadParentAttendance;
 </script>
+<script src="../../live/live-pages.js"></script>
 </body>
 </html>

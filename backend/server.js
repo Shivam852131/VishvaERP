@@ -177,10 +177,16 @@ app.use('/api/super-admin', require('./routes/superAdmin'));
 app.use('/api/college-admin', require('./routes/collegeAdmin'));
 app.use('/api/attendance', require('./routes/attendance'));
 app.use('/api/exams', require('./routes/exam'));
+app.use('/api/assignments', require('./routes/assignment'));
+app.use('/api/timetable', require('./routes/timetable'));
 app.use('/api/fees', require('./routes/fee'));
 app.use('/api/ai', require('./routes/ai'));
 app.use('/api/leave', require('./routes/leave'));
 app.use('/api/logistics', require('./routes/logistics'));
+app.use('/api/transport', require('./routes/transport'));
+app.use('/api/hostel', require('./routes/hostel'));
+app.use('/api/hostels', require('./routes/hostel'));
+app.use('/api/complaints', require('./routes/grievance'));
 app.use('/api/live-classes', require('./routes/liveClasses'));
 app.use('/api/academics', require('./modules/academicsRoutes'));
 app.use('/api/notices', require('./modules/noticesRoutes'));
@@ -198,11 +204,20 @@ app.use('/api/feedback', require('./routes/feedback'));
 app.use('/api/inventory', require('./routes/inventory'));
 app.use('/api/visitors', require('./routes/visitor'));
 app.use('/api/library', require('./routes/library'));
+app.use('/api/books', require('./routes/library'));
 app.use('/api/verification', require('./routes/verification'));
 app.use('/api/placements', require('./routes/placement'));
+app.use('/api/placement', require('./routes/placement'));
+app.use('/api/career', require('./modules/careerRoutes'));
+app.use('/api/assessments', require('./modules/assessmentRoutes'));
+app.use('/api/placement-drives', require('./modules/placementDriveRoutes'));
+app.use('/api/mentorship', require('./modules/mentorshipRoutes'));
+app.use('/api/intelligence', require('./modules/intelligenceRoutes'));
 app.use('/api/alumni', require('./routes/alumni'));
 app.use('/api/events', require('./routes/event'));
 app.use('/api/face', require('./routes/face'));
+app.use('/api/campus', require('./modules/campusRoutes'));
+app.use('/api/energy', require('./modules/energyRoutes'));
 
 // Fallback for frontend routing (SPA support)
 app.get('*', (req, res) => {

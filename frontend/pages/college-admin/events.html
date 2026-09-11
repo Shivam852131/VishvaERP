@@ -2,19 +2,19 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Events & Calendar | VishvaERP</title>
+  <title>Events &amp; Campus Calendar | VishvaERP</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="../../css/custom.css">
   <style>
-    .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
-    .cal-day{min-height:80px;padding:6px;border:1px solid #E2E8F0;border-radius:6px;background:white;cursor:pointer;transition:all .15s}
-    .cal-day:hover{border-color:#4F46E5;background:#F5F3FF}
-    .cal-day.today{border-color:#4F46E5;background:#EEF2FF}
-    .cal-day.other-month{opacity:.4}
+    .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+    .cal-day{min-height:90px;padding:8px;border:1px solid #E2E8F0;border-radius:10px;background:white;cursor:pointer;transition:all .15s}
+    .cal-day:hover{border-color:#4F46E5;background:#F8FAFC}
+    .cal-day.today{border-color:#4F46E5;background:#EEF2FF;box-shadow:0 0 0 1px #4F46E5}
+    .cal-day.other-month{opacity:.35;background:#F8FAFC}
     .cal-day-num{font-size:12px;font-weight:700;color:#334155;margin-bottom:4px}
-    .cal-event{font-size:10px;padding:2px 4px;border-radius:3px;margin-bottom:2px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .cal-event{font-size:10px;padding:2px 6px;border-radius:4px;margin-bottom:3px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
     .cat-academic{background:#DBEAFE;color:#1D4ED8}.cat-cultural{background:#FCE7F3;color:#BE185D}
     .cat-sports{background:#D1FAE5;color:#065F46}.cat-technical{background:#EDE9FE;color:#5B21B6}
     .cat-workshop{background:#FEF3C7;color:#92400E}.cat-seminar{background:#E0E7FF;color:#3730A3}
@@ -32,27 +32,27 @@
       <div class="nav-section-label">Academics</div>
       <a href="students.html" class="nav-link"><i class="nav-link-icon fas fa-user-graduate"></i> Students</a>
       <a href="faculty.html" class="nav-link"><i class="nav-link-icon fas fa-chalkboard-teacher"></i> Faculty</a>
-      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-open"></i> Courses & Exams</a>
+      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-open"></i> Courses &amp; Exams</a>
       <a href="notices.html" class="nav-link"><i class="nav-link-icon fas fa-bullhorn"></i> Notice Board</a>
       <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-check"></i> Attendance</a>
-      <div class="nav-section-label">Finance & HR</div>
+      <div class="nav-section-label">Finance &amp; HR</div>
       <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-file-invoice-dollar"></i> Fee Management</a>
-      <a href="hr.html" class="nav-link"><i class="nav-link-icon fas fa-user-md"></i> HR & Leave</a>
+      <a href="hr.html" class="nav-link"><i class="nav-link-icon fas fa-user-md"></i> HR &amp; Leave</a>
       <a href="subscription.html" class="nav-link"><i class="nav-link-icon fas fa-credit-card"></i> Subscription</a>
       <div class="nav-section-label">Campus Life</div>
-      <a href="events.html" class="nav-link active"><i class="nav-link-icon fas fa-calendar-alt"></i> Events</a>
+      <a href="events.html" class="nav-link active"><i class="nav-link-icon fas fa-calendar-alt"></i> Events &amp; Calendar</a>
       <a href="grievances.html" class="nav-link"><i class="nav-link-icon fas fa-exclamation-circle"></i> Grievances</a>
       <a href="feedback.html" class="nav-link"><i class="nav-link-icon fas fa-star"></i> Feedback</a>
       <a href="inventory.html" class="nav-link"><i class="nav-link-icon fas fa-boxes"></i> Inventory</a>
       <a href="placement.html" class="nav-link"><i class="nav-link-icon fas fa-briefcase"></i> Placement</a>
       <a href="alumni.html" class="nav-link"><i class="nav-link-icon fas fa-users"></i> Alumni</a>
-      <a href="visitors.html" class="nav-link"><i class="nav-link-icon fas fa-id-card-visitor"></i> Visitors</a>
+      <a href="visitors.html" class="nav-link"><i class="nav-link-icon fas fa-id-badge"></i> Visitors</a>
       <div class="nav-section-label">Smart Campus</div>
       <a href="iot-dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-microchip"></i> IoT Dashboard</a>
       <a href="sustainability.html" class="nav-link"><i class="nav-link-icon fas fa-leaf"></i> Sustainability</a>
       <a href="ai-intelligence.html" class="nav-link"><i class="nav-link-icon fas fa-brain"></i> AI Intelligence</a>
       <div class="nav-section-label">Facilities</div>
-      <a href="logistics.html" class="nav-link"><i class="nav-link-icon fas fa-bus"></i> Logistics & Hostel</a>
+      <a href="logistics.html" class="nav-link"><i class="nav-link-icon fas fa-bus"></i> Logistics &amp; Hostel</a>
       <a href="library.html" class="nav-link"><i class="nav-link-icon fas fa-book"></i> Library</a>
       <div class="nav-section-label">Tools</div>
       <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Hub</a>
@@ -65,67 +65,91 @@
     <header class="erp-topbar">
       <div class="topbar-left">
         <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
-        <div class="topbar-breadcrumb">College Admin / <span>Events & Calendar</span></div>
+        <div class="topbar-breadcrumb">College Admin / <span>Events &amp; Academic Calendar</span></div>
       </div>
       <div class="topbar-right">
         <div class="topbar-avatar" id="topbar-avatar">A</div>
       </div>
     </header>
     <div class="erp-content page-enter">
-      <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
-        <div><h1 class="page-title"><i class="fas fa-calendar-alt"></i> Events & Calendar</h1><p class="page-subtitle">Manage college events and academic calendar</p></div>
-        <button class="btn btn-primary" onclick="openModal('createEventModal')"><i class="fas fa-plus"></i> Create Event</button>
+      <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:20px">
+        <div>
+          <h1 class="page-title"><i class="fas fa-calendar-alt text-indigo-600"></i> Events &amp; Academic Calendar</h1>
+          <p class="page-subtitle">Schedule institution events, monitor RSVP ticketing, and check-in attendees</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button class="btn btn-primary" onclick="openModal('createEventModal')"><i class="fas fa-plus"></i> Create New Event</button>
+        </div>
       </div>
+
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px" id="statsRow">
         <div class="card stat-card"><div class="stat-icon" style="background:#EEF2FF;color:#4F46E5"><i class="fas fa-calendar"></i></div><div class="stat-info"><div class="stat-number" id="totalEvents">0</div><div class="stat-label">Total Events</div></div></div>
-        <div class="card stat-card"><div class="stat-icon" style="background:#ECFDF5;color:#10B981"><i class="fas fa-clock"></i></div><div class="stat-info"><div class="stat-number" id="upcomingEvents">0</div><div class="stat-label">Upcoming</div></div></div>
-        <div class="card stat-card"><div class="stat-icon" style="background:#FEF3C7;color:#D97706"><i class="fas fa-users"></i></div><div class="stat-info"><div class="stat-number" id="totalRegistrations">0</div><div class="stat-label">Registrations</div></div></div>
-        <div class="card stat-card"><div class="stat-icon" style="background:#FEE2E2;color:#EF4444"><i class="fas fa-video"></i></div><div class="stat-info"><div class="stat-number" id="virtualEvents">0</div><div class="stat-label">Virtual Events</div></div></div>
+        <div class="card stat-card"><div class="stat-icon" style="background:#ECFDF5;color:#10B981"><i class="fas fa-clock"></i></div><div class="stat-info"><div class="stat-number" id="upcomingEvents">0</div><div class="stat-label">Upcoming Scheduled</div></div></div>
+        <div class="card stat-card"><div class="stat-icon" style="background:#FEF3C7;color:#D97706"><i class="fas fa-ticket-alt"></i></div><div class="stat-info"><div class="stat-number" id="totalRegistrations">0</div><div class="stat-label">RSVP Passes Issued</div></div></div>
+        <div class="card stat-card"><div class="stat-icon" style="background:#F3E8FF;color:#7C3AED"><i class="fas fa-user-check"></i></div><div class="stat-info"><div class="stat-number" id="attendedEvents">0</div><div class="stat-label">Attendees Verified</div></div></div>
       </div>
+
       <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px">
         <div class="card" style="padding:20px">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
-            <h3 style="font-weight:700;font-size:16px" id="calendarTitle">July 2026</h3>
+            <h3 style="font-weight:700;font-size:16px" id="calendarTitle">Month 2026</h3>
             <div style="display:flex;gap:8px">
               <button class="btn btn-sm btn-secondary" onclick="changeMonth(-1)"><i class="fas fa-chevron-left"></i></button>
               <button class="btn btn-sm btn-secondary" onclick="changeMonth(0)">Today</button>
               <button class="btn btn-sm btn-secondary" onclick="changeMonth(1)"><i class="fas fa-chevron-right"></i></button>
             </div>
           </div>
-          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px">
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:6px">
             ${['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<div style="text-align:center;font-size:11px;font-weight:700;color:#64748B;padding:6px">${d}</div>`).join('')}
           </div>
           <div class="cal-grid" id="calendarGrid"></div>
         </div>
         <div>
           <div class="card" style="padding:16px;margin-bottom:16px">
-            <h3 style="font-weight:700;font-size:14px;margin-bottom:12px"><i class="fas fa-list"></i> Upcoming Events</h3>
+            <h3 style="font-weight:700;font-size:14px;margin-bottom:12px"><i class="fas fa-stream text-blue-600"></i> Upcoming Campus Events</h3>
             <div id="upcomingList"></div>
           </div>
           <div class="card" style="padding:16px">
-            <h3 style="font-weight:700;font-size:14px;margin-bottom:12px"><i class="fas fa-chart-pie"></i> By Category</h3>
+            <h3 style="font-weight:700;font-size:14px;margin-bottom:12px"><i class="fas fa-chart-pie text-indigo-600"></i> By Category</h3>
             <canvas id="categoryChart" height="180"></canvas>
           </div>
         </div>
       </div>
+
+      <!-- Events Roster Table -->
       <div class="card" style="padding:20px;margin-top:20px">
-        <h3 style="font-weight:700;font-size:16px;margin-bottom:16px"><i class="fas fa-list"></i> All Events</h3>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px">
+          <h3 style="font-weight:700;font-size:16px"><i class="fas fa-list text-gray-700"></i> Institutional Events Directory</h3>
+          <div style="display:flex;gap:8px">
+            <input type="text" id="filterEventInput" oninput="filterEventsList()" placeholder="Filter by event title, venue..." style="padding:6px 12px;border:1px solid #E2E8F0;border-radius:8px;font-size:13px">
+          </div>
+        </div>
         <div id="eventsList"></div>
       </div>
     </div>
   </div>
 </div>
 
+<!-- Create Event Modal -->
 <div class="modal-overlay" id="createEventModal">
-  <div class="modal" style="max-width:520px">
-    <div class="modal-header"><h3 class="modal-title">Create Event</h3><button class="modal-close" onclick="closeModal('createEventModal')">&times;</button></div>
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header">
+      <h3 class="modal-title">Schedule New Event</h3>
+      <button class="modal-close" onclick="closeModal('createEventModal')">&times;</button>
+    </div>
     <div class="modal-body">
-      <div class="form-group"><label class="form-label">Title *</label><input class="form-control" id="evTitle" placeholder="Event title"></div>
+      <div class="form-group"><label class="form-label">Event Title *</label><input class="form-control" id="evTitle" placeholder="e.g. National Hackathon 2026"></div>
       <div class="form-group"><label class="form-label">Category *</label>
         <select class="form-control" id="evCategory">
-          <option value="academic">Academic</option><option value="cultural">Cultural</option><option value="sports">Sports</option>
-          <option value="technical">Technical</option><option value="workshop">Workshop</option><option value="seminar">Seminar</option>
-          <option value="holiday">Holiday</option><option value="examination">Examination</option><option value="other">Other</option>
+          <option value="academic">Academic &amp; Conference</option>
+          <option value="technical">Technical / Hackathon</option>
+          <option value="cultural">Cultural Festival</option>
+          <option value="sports">Sports Tournament</option>
+          <option value="workshop">Hands-on Workshop</option>
+          <option value="seminar">Guest Lecture / Seminar</option>
+          <option value="examination">Examination Schedule</option>
+          <option value="holiday">Official Holiday</option>
+          <option value="other">General Event</option>
         </select>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
@@ -136,101 +160,412 @@
         <div class="form-group"><label class="form-label">Start Time</label><input type="time" class="form-control" id="evStartTime"></div>
         <div class="form-group"><label class="form-label">End Time</label><input type="time" class="form-control" id="evEndTime"></div>
       </div>
-      <div class="form-group"><label class="form-label">Venue</label><input class="form-control" id="evVenue" placeholder="e.g. Auditorium, Hall A"></div>
-      <div class="form-group"><label class="form-label">Description</label><textarea class="form-control" id="evDescription" rows="3" placeholder="Event details..."></textarea></div>
-      <div style="display:flex;gap:12px">
-        <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600"><input type="checkbox" id="evVirtual"> Virtual Event</label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600"><input type="checkbox" id="evPublic" checked> Public Event</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="form-group"><label class="form-label">Venue / Room</label><input class="form-control" id="evVenue" placeholder="e.g. Main Auditorium, Lab 4"></div>
+        <div class="form-group"><label class="form-label">Max Seating Capacity</label><input type="number" class="form-control" id="evMaxParticipants" placeholder="e.g. 200 (optional)"></div>
+      </div>
+      <div class="form-group"><label class="form-label">Virtual Meeting Link (if webinar)</label><input class="form-control" id="evMeetingLink" placeholder="https://meet.google.com/xyz or Zoom"></div>
+      <div class="form-group"><label class="form-label">Description &amp; Agenda</label><textarea class="form-control" id="evDescription" rows="3" placeholder="Provide event schedule, prerequisites, and speaker info..."></textarea></div>
+      <div style="display:flex;gap:16px">
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600"><input type="checkbox" id="evVirtual"> Virtual Webinar</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;font-weight:600"><input type="checkbox" id="evPublic" checked> Visible to All</label>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('createEventModal')">Cancel</button>
-      <button class="btn btn-primary" onclick="createEvent()"><i class="fas fa-plus"></i> Create Event</button>
+      <button class="btn btn-primary" onclick="createEvent()"><i class="fas fa-plus"></i> Publish Event</button>
+    </div>
+  </div>
+</div>
+
+<!-- Event Attendees & Ticketing Modal -->
+<div class="modal-overlay" id="attendeesModal">
+  <div class="modal" style="max-width:720px">
+    <div class="modal-header">
+      <div>
+        <h3 class="modal-title" id="attEventTitle">Event Attendees &amp; Ticketing</h3>
+        <p style="font-size:12px;color:#64748B;margin-top:2px" id="attEventSubtitle">Verify tickets &amp; manage gate admission</p>
+      </div>
+      <button class="modal-close" onclick="closeModal('attendeesModal')">&times;</button>
+    </div>
+    <div class="modal-body" style="max-height:75vh;overflow-y:auto">
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">
+        <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:12px;text-align:center">
+          <div style="font-size:11px;color:#64748B;text-transform:uppercase;font-weight:700">Total RSVPs</div>
+          <div style="font-size:20px;font-weight:800;color:#1E293B" id="attTotalRSVP">0</div>
+        </div>
+        <div style="background:#ECFDF5;border:1px solid #A7F3D0;border-radius:10px;padding:12px;text-align:center">
+          <div style="font-size:11px;color:#065F46;text-transform:uppercase;font-weight:700">Checked In</div>
+          <div style="font-size:20px;font-weight:800;color:#047857" id="attCheckedIn">0</div>
+        </div>
+        <div style="background:#EFF6FF;border:1px solid #BFDBFE;border-radius:10px;padding:12px;text-align:center">
+          <div style="font-size:11px;color:#1E40AF;text-transform:uppercase;font-weight:700">Admission Rate</div>
+          <div style="font-size:20px;font-weight:800;color:#1D4ED8" id="attRate">0%</div>
+        </div>
+      </div>
+
+      <!-- Quick Check In Input -->
+      <div style="display:flex;gap:8px;margin-bottom:16px;background:#F1F5F9;padding:10px;border-radius:10px">
+        <input type="text" id="attTicketInput" placeholder="Scan or enter Ticket Pass # (e.g. TKT-XXXX-YYYY)" style="flex:1;padding:8px 12px;border:1px solid #CBD5E1;border-radius:8px;font-size:13px;font-family:monospace">
+        <button class="btn btn-primary btn-sm" onclick="checkInByInput()"><i class="fas fa-check-circle"></i> Check In Ticket</button>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <h4 style="font-weight:700;font-size:14px">Registered Attendees Roster</h4>
+        <button class="btn btn-secondary btn-sm" onclick="exportAttendeesCSV()"><i class="fas fa-download"></i> Export Roster CSV</button>
+      </div>
+
+      <div id="attendeesListContainer" style="border:1px solid #E2E8F0;border-radius:8px;overflow:hidden">
+        <!-- Loaded dynamically -->
+      </div>
     </div>
   </div>
 </div>
 
 <script src="../../js/shared.js"></script>
+<script src="../../live/live-pages.js"></script>
 <script>
-let currentYear=new Date().getFullYear(),currentMonth=new Date().getMonth(),events=[],categoryChart=null;
-async function loadEvents(){
-  const res=await window.api.request('/events?limit=200');
-  events=res.events||[];
-  renderCalendar();renderUpcoming();renderStats();renderCategoryChart();
-}
-function renderCalendar(){
-  const grid=document.getElementById('calendarGrid');
-  const title=document.getElementById('calendarTitle');
-  const d=new Date(currentYear,currentMonth,1);
-  const startDay=d.getDay();const daysInMonth=new Date(currentYear,currentMonth+1,0).getDate();
-  const daysInPrev=new Date(currentYear,currentMonth,0).getDate();
-  const today=new Date();
-  title.textContent=d.toLocaleString('default',{month:'long',year:'numeric'});
-  let html='';
-  const colors={academic:'#DBEAFE',cultural:'#FCE7F3',sports:'#D1FAE5',technical:'#EDE9FE',workshop:'#FEF3C7',seminar:'#E0E7FF',holiday:'#FEE2E2',examination:'#F3E8FF',other:'#F1F5F9'};
-  for(let i=0;i<startDay;i++){
-    const day=daysInPrev-startDay+i+1;
-    html+=`<div class="cal-day other-month"><div class="cal-day-num">${day}</div></div>`;
+let currentYear = new Date().getFullYear();
+let currentMonth = new Date().getMonth();
+let events = [];
+let categoryChart = null;
+let activeEventId = null;
+
+async function loadEvents() {
+  try {
+    const res = await window.api.request('/events?limit=200');
+    events = res.events || res.data || [];
+    renderCalendar();
+    renderUpcoming();
+    renderStats();
+    renderCategoryChart();
+    renderEventsList();
+  } catch (err) {
+    console.error('Failed to load events:', err);
   }
-  for(let day=1;day<=daysInMonth;day++){
-    const date=new Date(currentYear,currentMonth,day);
-    const isToday=date.toDateString()===today.toDateString();
-    const dayEvents=events.filter(e=>{const s=new Date(e.startDate);return s.getDate()===day&&s.getMonth()===currentMonth&&s.getFullYear()===currentYear;});
-    html+=`<div class="cal-day${isToday?' today':''}" onclick="showDayEvents(${day})"><div class="cal-day-num">${day}</div>${dayEvents.slice(0,3).map(e=>`<div class="cal-event cat-${e.category}" style="background:${colors[e.category]||'#F1F5F9'}">${e.title}</div>`).join('')}${dayEvents.length>3?`<div style="font-size:9px;color:#64748B">+${dayEvents.length-3} more</div>`:''}</div>`;
-  }
-  const totalCells=startDay+daysInMonth;const remaining=totalCells%7===0?0:7-totalCells%7;
-  for(let i=1;i<=remaining;i++) html+=`<div class="cal-day other-month"><div class="cal-day-num">${i}</div></div>`;
-  grid.innerHTML=html;
 }
-function changeMonth(delta){
-  if(delta===0){currentYear=new Date().getFullYear();currentMonth=new Date().getMonth();}
-  else{currentMonth+=delta;if(currentMonth>11){currentMonth=0;currentYear++;}if(currentMonth<0){currentMonth=11;currentYear--;}}
+
+function renderCalendar() {
+  const grid = document.getElementById('calendarGrid');
+  const title = document.getElementById('calendarTitle');
+  const d = new Date(currentYear, currentMonth, 1);
+  const startDay = d.getDay();
+  const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+  const daysInPrev = new Date(currentYear, currentMonth, 0).getDate();
+  const today = new Date();
+
+  title.textContent = d.toLocaleString('default', { month: 'long', year: 'numeric' });
+  let html = '';
+  const colors = {
+    academic: '#DBEAFE', cultural: '#FCE7F3', sports: '#D1FAE5', technical: '#EDE9FE',
+    workshop: '#FEF3C7', seminar: '#E0E7FF', holiday: '#FEE2E2', examination: '#F3E8FF', other: '#F1F5F9'
+  };
+
+  for (let i = 0; i < startDay; i++) {
+    const day = daysInPrev - startDay + i + 1;
+    html += `<div class="cal-day other-month"><div class="cal-day-num">${day}</div></div>`;
+  }
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const date = new Date(currentYear, currentMonth, day);
+    const isToday = date.toDateString() === today.toDateString();
+    const dayEvents = events.filter(e => {
+      const s = new Date(e.startDate);
+      return s.getDate() === day && s.getMonth() === currentMonth && s.getFullYear() === currentYear;
+    });
+
+    html += `<div class="cal-day${isToday ? ' today' : ''}" onclick="showDayEvents(${day})">
+      <div class="cal-day-num">${day}</div>
+      ${dayEvents.slice(0, 3).map(e => `<span class="cal-event cat-${e.category}" style="background:${colors[e.category] || '#F1F5F9'}">${escapeHtml(e.title)}</span>`).join('')}
+      ${dayEvents.length > 3 ? `<div style="font-size:9px;color:#64748B;font-weight:700">+${dayEvents.length - 3} more</div>` : ''}
+    </div>`;
+  }
+
+  const totalCells = startDay + daysInMonth;
+  const remaining = totalCells % 7 === 0 ? 0 : 7 - (totalCells % 7);
+  for (let i = 1; i <= remaining; i++) {
+    html += `<div class="cal-day other-month"><div class="cal-day-num">${i}</div></div>`;
+  }
+  grid.innerHTML = html;
+}
+
+function changeMonth(delta) {
+  if (delta === 0) {
+    currentYear = new Date().getFullYear();
+    currentMonth = new Date().getMonth();
+  } else {
+    currentMonth += delta;
+    if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+    if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+  }
   renderCalendar();
 }
-function renderUpcoming(){
-  const upcoming=events.filter(e=>new Date(e.startDate)>=new Date()&&e.status!=='cancelled').sort((a,b)=>new Date(a.startDate)-new Date(b.startDate)).slice(0,8);
-  document.getElementById('upcomingList').innerHTML=upcoming.map(e=>`<div style="padding:8px 0;border-bottom:1px solid #F1F5F9;display:flex;align-items:center;gap:10px"><div style="width:40px;height:40px;background:#EEF2FF;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#4F46E5;font-size:14px;flex-shrink:0"><i class="fas fa-calendar-day"></i></div><div><div style="font-size:13px;font-weight:600">${e.title}</div><div style="font-size:11px;color:#64748B">${new Date(e.startDate).toLocaleDateString('en-US',{month:'short',day:'numeric'})} ${e.startTime||''}</div></div></div>`).join('')||'<div style="padding:16px;text-align:center;color:#94A3B8;font-size:13px">No upcoming events</div>';
+
+function renderUpcoming() {
+  const upcoming = events
+    .filter(e => new Date(e.startDate) >= new Date() && e.status !== 'cancelled')
+    .sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
+    .slice(0, 8);
+
+  document.getElementById('upcomingList').innerHTML = upcoming.map(e => `
+    <div style="padding:10px 0;border-bottom:1px solid #F1F5F9;display:flex;align-items:center;gap:12px">
+      <div style="width:42px;height:42px;background:#EEF2FF;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#4F46E5;font-size:16px;flex-shrink:0">
+        <i class="fas fa-calendar-day"></i>
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHtml(e.title)}</div>
+        <div style="font-size:11px;color:#64748B">${new Date(e.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })} ${e.startTime || ''} &bull; ${escapeHtml(e.venue || 'Campus')}</div>
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="openAttendeesModal('${e._id}')" title="View attendees roster">
+        <i class="fas fa-users"></i>
+      </button>
+    </div>
+  `).join('') || '<div style="padding:20px;text-align:center;color:#94A3B8;font-size:13px">No upcoming events scheduled</div>';
 }
-function renderStats(){
-  const total=events.length;
-  const upcoming=events.filter(e=>new Date(e.startDate)>=new Date()&&e.status!=='cancelled').length;
-  const regs=events.reduce((s,e)=>s+(e.registrations?.length||0),0);
-  const virtual=events.filter(e=>e.isVirtual).length;
-  document.getElementById('totalEvents').textContent=total;
-  document.getElementById('upcomingEvents').textContent=upcoming;
-  document.getElementById('totalRegistrations').textContent=regs;
-  document.getElementById('virtualEvents').textContent=virtual;
+
+function renderStats() {
+  const total = events.length;
+  const upcoming = events.filter(e => new Date(e.startDate) >= new Date() && e.status !== 'cancelled').length;
+  const regs = events.reduce((s, e) => s + (e.registrations?.length || 0), 0);
+  const attended = events.reduce((s, e) => s + (e.registrations?.filter(r => r.status === 'attended').length || 0), 0);
+
+  document.getElementById('totalEvents').textContent = total;
+  document.getElementById('upcomingEvents').textContent = upcoming;
+  document.getElementById('totalRegistrations').textContent = regs;
+  document.getElementById('attendedEvents').textContent = attended;
 }
-function renderCategoryChart(){
-  const cats={};events.forEach(e=>{cats[e.category]=(cats[e.category]||0)+1;});
-  const labels=Object.keys(cats);const data=Object.values(cats);
-  const colors=['#4F46E5','#EC4899','#10B981','#8B5CF6','#F59E0B','#6366F1','#EF4444','#7C3AED','#64748B'];
-  if(categoryChart)categoryChart.destroy();
-  categoryChart=new Chart(document.getElementById('categoryChart'),{type:'doughnut',data:{labels,datasets:[{data,backgroundColor:colors.slice(0,labels.length),borderWidth:0}]},options:{responsive:false,plugins:{legend:{position:'bottom',labels:{font:{size:10},padding:6}}}}});
+
+function renderCategoryChart() {
+  const cats = {};
+  events.forEach(e => { cats[e.category] = (cats[e.category] || 0) + 1; });
+  const labels = Object.keys(cats);
+  const data = Object.values(cats);
+  const colors = ['#4F46E5', '#EC4899', '#10B981', '#8B5CF6', '#F59E0B', '#6366F1', '#EF4444', '#7C3AED', '#64748B'];
+
+  if (categoryChart) categoryChart.destroy();
+  const ctx = document.getElementById('categoryChart');
+  if (!ctx) return;
+  categoryChart = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels,
+      datasets: [{ data, backgroundColor: colors.slice(0, labels.length), borderWidth: 0 }],
+    },
+    options: {
+      responsive: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { size: 10 }, padding: 8 } },
+      },
+    },
+  });
 }
-function renderEventsList(){
-  const list=document.getElementById('eventsList');
-  list.innerHTML=events.map(e=>`<div style="display:flex;align-items:center;gap:12px;padding:12px;border-bottom:1px solid #F1F5F9"><div style="width:44px;height:44px;background:#EEF2FF;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#4F46E5"><i class="fas fa-calendar-day"></i></div><div style="flex:1"><div style="font-weight:600;font-size:14px">${e.title}</div><div style="font-size:12px;color:#64748B">${new Date(e.startDate).toLocaleDateString()} ${e.startTime||''} ${e.venue?'• '+e.venue:''}</div></div><span class="badge cat-${e.category}" style="background:#EEF2FF;color:#4F46E5;font-size:11px">${e.category}</span><span class="badge" style="background:${e.status==='published'?'#D1FAE5':'#F1F5F9'};color:${e.status==='published'?'#065F46':'#64748B'};font-size:11px">${e.status}</span></div>`).join('')||'<div class="empty-state"><div class="empty-state-title">No events yet</div></div>';
+
+function renderEventsList() {
+  const list = document.getElementById('eventsList');
+  const term = (document.getElementById('filterEventInput')?.value || '').trim().toLowerCase();
+
+  const filtered = events.filter(e => {
+    if (!term) return true;
+    return (e.title || '').toLowerCase().includes(term) || (e.venue || '').toLowerCase().includes(term);
+  });
+
+  if (!filtered.length) {
+    list.innerHTML = '<div style="padding:30px;text-align:center;color:#94A3B8;font-size:14px">No events found matching criteria</div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map(e => `
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px;border-bottom:1px solid #F1F5F9;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:14px;flex:1;min-width:260px">
+        <div style="width:46px;height:46px;background:#EEF2FF;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#4F46E5;font-size:18px">
+          <i class="fas fa-calendar-check"></i>
+        </div>
+        <div>
+          <div style="font-weight:700;font-size:15px;color:#1E293B">${escapeHtml(e.title)}</div>
+          <div style="font-size:12px;color:#64748B;margin-top:2px">
+            <i class="fas fa-clock mr-1"></i>${new Date(e.startDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })} ${e.startTime || ''}
+            &bull; <i class="fas fa-map-marker-alt mr-1"></i>${escapeHtml(e.venue || 'Campus')}
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span class="badge" style="background:#EFF6FF;color:#1D4ED8;text-transform:capitalize;font-size:11px;font-weight:600">${e.category}</span>
+        <button class="btn btn-secondary btn-sm" onclick="openAttendeesModal('${e._id}')">
+          <i class="fas fa-ticket-alt text-amber-500 mr-1"></i> ${e.registrations?.length || 0} RSVPs
+        </button>
+        <button class="btn btn-secondary btn-sm" onclick="deleteEventRecord('${e._id}')" title="Delete event">
+          <i class="fas fa-trash text-red-500"></i>
+        </button>
+      </div>
+    </div>
+  `).join('');
 }
-async function createEvent(){
-  const title=document.getElementById('evTitle').value;
-  const category=document.getElementById('evCategory').value;
-  const startDate=document.getElementById('evStartDate').value;
-  if(!title||!startDate){window.showToast('Title and start date are required','error');return;}
-  await window.api.request('/events',{method:'POST',body:JSON.stringify({
-    title,category,startDate,endDate:document.getElementById('evEndDate').value||undefined,
-    startTime:document.getElementById('evStartTime').value,endTime:document.getElementById('evEndTime').value,
-    venue:document.getElementById('evVenue').value,description:document.getElementById('evDescription').value,
-    isVirtual:document.getElementById('evVirtual').checked,isPublic:document.getElementById('evPublic').checked,
-    targetAudience:['all'],
-  })});
-  window.closeModal('createEventModal');window.showToast('Event created','success');loadEvents();
+
+function filterEventsList() {
+  renderEventsList();
 }
-function showDayEvents(day){
-  const dayEvents=events.filter(e=>{const s=new Date(e.startDate);return s.getDate()===day&&s.getMonth()===currentMonth&&s.getFullYear()===currentYear;});
-  if(dayEvents.length)window.showToast(`${dayEvents.length} event(s) on this day`,'info');
+
+async function createEvent() {
+  const title = document.getElementById('evTitle').value.trim();
+  const category = document.getElementById('evCategory').value;
+  const startDate = document.getElementById('evStartDate').value;
+  if (!title || !startDate) {
+    if (window.showToast) window.showToast('Title and start date are required', 'error');
+    else alert('Title and start date are required');
+    return;
+  }
+
+  const payload = {
+    title,
+    category,
+    startDate,
+    endDate: document.getElementById('evEndDate').value || undefined,
+    startTime: document.getElementById('evStartTime').value,
+    endTime: document.getElementById('evEndTime').value,
+    venue: document.getElementById('evVenue').value.trim(),
+    maxParticipants: document.getElementById('evMaxParticipants').value || undefined,
+    meetingLink: document.getElementById('evMeetingLink').value.trim(),
+    description: document.getElementById('evDescription').value.trim(),
+    isVirtual: document.getElementById('evVirtual').checked,
+    isPublic: document.getElementById('evPublic').checked,
+    targetAudience: ['all'],
+  };
+
+  try {
+    await window.api.request('/events', { method: 'POST', body: JSON.stringify(payload) });
+    window.closeModal('createEventModal');
+    if (window.showToast) window.showToast('Event published successfully', 'success');
+    loadEvents();
+  } catch (e) {
+    alert('Failed to create event: ' + (e.message || 'Unknown error'));
+  }
 }
-loadEvents();renderEventsList();
+
+async function deleteEventRecord(id) {
+  if (!confirm('Are you sure you want to cancel and delete this event?')) return;
+  try {
+    await window.api.request('/events/' + id, { method: 'DELETE' });
+    if (window.showToast) window.showToast('Event deleted', 'info');
+    loadEvents();
+  } catch (e) {
+    alert('Failed to delete: ' + (e.message || 'Unknown error'));
+  }
+}
+
+// Open Attendees & Ticketing Modal
+window.openAttendeesModal = async function(eventId) {
+  activeEventId = eventId;
+  const modal = document.getElementById('attendeesModal');
+  const container = document.getElementById('attendeesListContainer');
+  container.innerHTML = '<div style="padding:20px;text-align:center;color:#94A3B8">Loading registered attendees...</div>';
+  modal.classList.add('open');
+
+  try {
+    const res = await window.api.request('/events/' + eventId);
+    const ev = res.event || res.data;
+    if (!ev) return;
+
+    document.getElementById('attEventTitle').textContent = ev.title;
+    document.getElementById('attEventSubtitle').textContent = `${new Date(ev.startDate).toLocaleDateString()} @ ${ev.venue || 'Campus'}`;
+
+    const total = ev.registrations?.length || 0;
+    const attended = (ev.registrations || []).filter(r => r.status === 'attended').length;
+    const rate = total > 0 ? Math.round((attended / total) * 100) : 0;
+
+    document.getElementById('attTotalRSVP').textContent = total;
+    document.getElementById('attCheckedIn').textContent = attended;
+    document.getElementById('attRate').textContent = rate + '%';
+
+    if (!total) {
+      container.innerHTML = '<div style="padding:30px;text-align:center;color:#94A3B8">No attendees have registered for this event yet</div>';
+      return;
+    }
+
+    container.innerHTML = `
+      <table style="width:100%;font-size:13px;border-collapse:collapse">
+        <thead>
+          <tr style="background:#F8FAFC;border-bottom:1px solid #E2E8F0;text-align:left">
+            <th style="padding:8px 12px">Ticket #</th>
+            <th style="padding:8px 12px">Attendee</th>
+            <th style="padding:8px 12px">Status</th>
+            <th style="padding:8px 12px;text-align:right">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${(ev.registrations || []).map(r => `
+            <tr style="border-bottom:1px solid #F1F5F9">
+              <td style="padding:8px 12px;font-family:monospace;font-weight:700;color:#2563EB">${escapeHtml(r.ticketNumber || 'TKT-PENDING')}</td>
+              <td style="padding:8px 12px">
+                <div style="font-weight:600">${escapeHtml(r.userId?.name || 'Attendee')}</div>
+                <div style="font-size:11px;color:#64748B">${escapeHtml(r.userId?.email || r.userId?.rollNo || '')}</div>
+              </td>
+              <td style="padding:8px 12px">
+                ${r.status === 'attended'
+                  ? '<span class="badge" style="background:#D1FAE5;color:#065F46;font-size:11px"><i class="fas fa-check-circle mr-1"></i>Admitted</span>'
+                  : '<span class="badge" style="background:#FEF3C7;color:#92400E;font-size:11px"><i class="fas fa-clock mr-1"></i>Registered</span>'}
+              </td>
+              <td style="padding:8px 12px;text-align:right">
+                ${r.status !== 'attended'
+                  ? `<button class="btn btn-sm btn-primary" onclick="checkInTicket('${r.ticketNumber}')"><i class="fas fa-check"></i> Admit</button>`
+                  : `<span style="font-size:11px;color:#059669;font-weight:600">Checked-in</span>`}
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  } catch (e) {
+    container.innerHTML = `<div style="padding:20px;text-align:center;color:#EF4444">Failed to load attendees: ${e.message}</div>`;
+  }
+};
+
+window.checkInTicket = async function(ticketNumber) {
+  if (!activeEventId || !ticketNumber) return;
+  try {
+    await window.api.request(`/events/${activeEventId}/checkin-attendee`, {
+      method: 'POST',
+      body: JSON.stringify({ ticketNumber }),
+    });
+    if (window.showToast) window.showToast('Attendee admitted successfully', 'success');
+    openAttendeesModal(activeEventId);
+    loadEvents();
+  } catch (e) {
+    alert('Check-in failed: ' + (e.message || 'Invalid ticket'));
+  }
+};
+
+window.checkInByInput = function() {
+  const tkt = document.getElementById('attTicketInput').value.trim();
+  if (!tkt) return;
+  checkInTicket(tkt);
+  document.getElementById('attTicketInput').value = '';
+};
+
+window.exportAttendeesCSV = function() {
+  if (!activeEventId) return;
+  window.location.href = `/api/events/${activeEventId}/export-attendees`;
+};
+
+function showDayEvents(day) {
+  const dayEvents = events.filter(e => {
+    const s = new Date(e.startDate);
+    return s.getDate() === day && s.getMonth() === currentMonth && s.getFullYear() === currentYear;
+  });
+  if (dayEvents.length) {
+    if (window.showToast) window.showToast(`${dayEvents.length} event(s) scheduled on this date`, 'info');
+  }
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+window.loadEvents = loadEvents;
+
+loadEvents();
 </script>
 </body>
 </html>

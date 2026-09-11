@@ -549,7 +549,11 @@
         if (job.skills.length > 4) skillsHtml += '<span style="font-size:11px;color:var(--text-muted,#94A3B8);margin-left:4px">+' + (job.skills.length - 4) + ' more</span>';
       }
 
-      var hasApplied = allApplications.some(function(a) { return a.jobId === job._id || a.jobId === job.id; });
+      var hasApplied = allApplications.some(function(a) {
+        var aJobId = (a.jobId && (a.jobId._id || a.jobId.id)) || a.jobId;
+        var currentId = job._id || job.id;
+        return aJobId && currentId && String(aJobId) === String(currentId);
+      });
 
       return '<div class="job-card">' +
         '<div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:12px">' +
@@ -869,7 +873,7 @@
 
     try {
       var jobsRes = await api.request('/placements/jobs', { silent: true });
-      allJobs = (jobsRes && jobsRes.data) ? jobsRes.data : (Array.isArray(jobsRes) ? jobsRes : []);
+      allJobs = (jobsRes && (jobsRes.jobs || jobsRes.data)) ? (jobsRes.jobs || jobsRes.data) : (Array.isArray(jobsRes) ? jobsRes : []);
       filterJobs();
     } catch (e) {
       allJobs = [];
@@ -884,7 +888,7 @@
 
     try {
       var appsRes = await api.request('/placements/applications', { silent: true });
-      allApplications = (appsRes && appsRes.data) ? appsRes.data : (Array.isArray(appsRes) ? appsRes : []);
+      allApplications = (appsRes && (appsRes.applications || appsRes.data)) ? (appsRes.applications || appsRes.data) : (Array.isArray(appsRes) ? appsRes : []);
       renderApplications(allApplications);
       document.getElementById('statApplications').textContent = allApplications.length;
     } catch (e) {

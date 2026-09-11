@@ -10,7 +10,7 @@ const companySchema = new mongoose.Schema({
   address: { type: String },
   logo: { type: String },
   description: { type: String },
-  size: { type: String, enum: ['startup', 'small', 'medium', 'large', 'enterprise'] },
+  size: { type: String, enum: ['startup', 'small', 'medium', 'large', 'enterprise', '1-10', '11-50', '51-200', '201-500', '500-1000', '1000+'] },
   isVerified: { type: Boolean, default: false },
 }, { timestamps: true });
 

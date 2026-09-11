@@ -11,7 +11,9 @@ const {
   applyLateFees, waiveFee, applyDiscount,
   getFeeAnalytics, getFeeSummary,
   getAssignableStudents,
+  exportFeesCSV,
 } = require('../controllers/feeController');
+const { downloadFeeReceipt } = require('../controllers/reportController');
 
 const router = express.Router();
 
@@ -41,8 +43,10 @@ router.get('/assignable-students', authorize('collegeAdmin'), getAssignableStude
 router.get('/installments', getInstallments);
 
 router.post('/late-fees/apply', authorize('collegeAdmin'), applyLateFees);
+router.get('/export', authorize('collegeAdmin', 'superadmin'), exportFeesCSV);
 
 router.get('/:id', getFeeById);
+router.get('/:id/receipt', downloadFeeReceipt);
 router.post('/:id/pay', authorize('collegeAdmin', 'student', 'parent'), payFee);
 router.post('/:id/create-order', authorize('collegeAdmin', 'student', 'parent'), createFeeOrder);
 router.get('/:id/payment-status', authorize('collegeAdmin', 'student', 'parent'), getFeePaymentStatus);

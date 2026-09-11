@@ -1,7 +1,7 @@
 const asyncHandler = require('../middleware/asyncHandler');
 const StudentProfile = require('../models/StudentProfile');
 const User = require('../models/User');
-const PlacementJob = require('../models/Placement');
+const { PlacementJob } = require('../models/Placement');
 const Result = require('../models/Result');
 const { SkillAssessment, AssessmentAttempt } = require('../models/SkillAssessment');
 const { emitDataChange } = require('../utils/realtime');
@@ -51,14 +51,94 @@ const updateMyProfile = asyncHandler(async (req, res) => {
 
 const getStudentProfile = asyncHandler(async (req, res) => {
   const { studentId } = req.params;
-  const profile = await StudentProfile.findOne({ collegeId: req.user.collegeId, studentId })
-    .populate('skills.endorsedBy', 'name avatar');
+  const profile = await StudentProfile.findOneAndUpdate(
+    { collegeId: req.user.collegeId, studentId },
+    { $inc: { profileViews: 1 } },
+    { new: true }
+  ).populate('skills.endorsedBy', 'name avatar');
   if (!profile) return res.status(404).json({ success: false, message: 'Profile not found' });
-  await StudentProfile.findOneAndUpdate(
-    { _id: profile._id },
-    { $inc: { profileViews: 1 } }
-  );
-  res.json({ success: true, profile });
+  res.json({ success: true, profile, data: profile });
+});
+
+const addSkill = asyncHandler(async (req, res) => {
+  const { name, category, level, yearsOfExperience } = req.body;
+  if (!name) return res.status(400).json({ success: false, message: 'Skill name is required' });
+
+  let profile = await StudentProfile.findOne({ collegeId: req.user.collegeId, studentId: req.user._id });
+  if (!profile) {
+    profile = await StudentProfile.create({
+      collegeId: req.user.collegeId,
+      studentId: req.user._id,
+      skills: [],
+    });
+  }
+
+  const existingIdx = (profile.skills || []).findIndex(s => s.name.toLowerCase() === name.trim().toLowerCase());
+  if (existingIdx !== -1) {
+    if (category) profile.skills[existingIdx].category = category;
+    if (level) profile.skills[existingIdx].level = level;
+    if (yearsOfExperience !== undefined) profile.skills[existingIdx].yearsOfExperience = Number(yearsOfExperience);
+  } else {
+    profile.skills.push({
+      name: name.trim(),
+      category: category || 'technical',
+      level: level || 'beginner',
+      yearsOfExperience: Number(yearsOfExperience || 0),
+      verified: false,
+    });
+  }
+
+  const techSkills = profile.skills.filter(s => s.category === 'technical' || s.category === 'tool');
+  profile.skillAssessmentScore = Math.min(100, techSkills.length * 8 + profile.skills.length * 3);
+  await profile.save();
+
+  logAudit(req, 'update', 'student-profile-skill', { resourceId: profile._id, description: `Added skill ${name}` });
+  res.json({ success: true, message: 'Skill added/updated successfully', profile, skills: profile.skills, data: profile });
+});
+
+const deleteSkill = asyncHandler(async (req, res) => {
+  const { skillName } = req.params;
+  const profile = await StudentProfile.findOne({ collegeId: req.user.collegeId, studentId: req.user._id });
+  if (!profile) return res.status(404).json({ success: false, message: 'Profile not found' });
+
+  profile.skills = (profile.skills || []).filter(s => s.name.toLowerCase() !== decodeURIComponent(skillName).toLowerCase());
+  const techSkills = profile.skills.filter(s => s.category === 'technical' || s.category === 'tool');
+  profile.skillAssessmentScore = Math.min(100, techSkills.length * 8 + profile.skills.length * 3);
+  await profile.save();
+
+  logAudit(req, 'delete', 'student-profile-skill', { resourceId: profile._id, description: `Removed skill ${skillName}` });
+  res.json({ success: true, message: 'Skill removed', profile, skills: profile.skills, data: profile });
+});
+
+const endorseSkill = asyncHandler(async (req, res) => {
+  const { studentId, skillName } = req.params;
+  const targetId = studentId || req.body.studentId;
+  const name = skillName || req.body.skillName;
+
+  if (!targetId || !name) {
+    return res.status(400).json({ success: false, message: 'Student ID and skill name are required' });
+  }
+
+  const profile = await StudentProfile.findOne({ collegeId: req.user.collegeId, studentId: targetId });
+  if (!profile) return res.status(404).json({ success: false, message: 'Student profile not found' });
+
+  const skill = (profile.skills || []).find(s => s.name.toLowerCase() === name.trim().toLowerCase());
+  if (!skill) return res.status(404).json({ success: false, message: 'Skill not found in profile' });
+
+  if (!skill.endorsedBy) skill.endorsedBy = [];
+  const alreadyEndorsed = skill.endorsedBy.some(id => String(id) === String(req.user._id));
+  if (alreadyEndorsed) {
+    return res.status(400).json({ success: false, message: 'You have already endorsed this skill' });
+  }
+
+  skill.endorsedBy.push(req.user._id);
+  if (req.user.role === 'faculty' || req.user.role === 'collegeAdmin' || skill.endorsedBy.length >= 2) {
+    skill.verified = true;
+  }
+  await profile.save();
+
+  logAudit(req, 'update', 'student-profile-skill-endorse', { resourceId: profile._id, description: `Endorsed ${name} for student` });
+  res.json({ success: true, message: 'Skill endorsed successfully', skill, profile, data: profile });
 });
 
 const getCareerInsights = asyncHandler(async (req, res) => {
@@ -354,13 +434,39 @@ Be specific, actionable, and encouraging. Format as structured JSON.`;
 
   let recommendations;
   try {
-    const jsonMatch = response.match(/\{[\s\S]*\}/);
-    recommendations = jsonMatch ? JSON.parse(jsonMatch[0]) : { rawAdvice: response };
+    const response = await askAI(prompt, 'You are an expert career counselor for engineering students. Provide concise, actionable career advice. Always respond with valid JSON.', { maxTokens: 1200 });
+    const jsonMatch = response && response.match(/\{[\s\S]*\}/);
+    recommendations = jsonMatch ? JSON.parse(jsonMatch[0]) : null;
   } catch {
-    recommendations = { rawAdvice: response };
+    recommendations = null;
   }
 
-  res.json({ success: true, recommendations });
+  if (!recommendations || Object.keys(recommendations).length === 0) {
+    recommendations = {
+      careerPaths: [
+        'Full Stack Software Engineering & Cloud Native Systems',
+        'Data Engineering, Machine Learning & Analytics',
+        'Site Reliability & DevSecOps Engineering',
+      ],
+      skillsToLearn: [
+        { skill: 'Docker & Kubernetes', reason: 'High industry adoption for microservices orchestration.' },
+        { skill: 'System Design & Scalability', reason: 'Crucial for high-paying product company technical rounds.' },
+        { skill: 'Cloud Architecture (AWS / Azure)', reason: 'Industry-standard cloud competency boosts ATS resume score.' },
+      ],
+      projectIdeas: [
+        { title: 'Distributed Real-Time Pub/Sub Queue', description: 'Build an event streaming broker with WebSocket sync and Redis cache.' },
+        { title: 'Automated Code Reviewer with Security AST Scanning', description: 'Analyze code complexity, potential leaks, and lint issues automatically.' },
+      ],
+      certification: 'AWS Certified Solutions Architect – Associate',
+      interviewTips: [
+        'Practice LeetCode medium algorithms within a 25-minute strict time limit.',
+        'Clarify constraints and explain Big-O tradeoffs before writing solutions.',
+        'Structure behavioral answers using the STAR (Situation, Task, Action, Result) method.',
+      ],
+    };
+  }
+
+  res.json({ success: true, recommendations, data: recommendations });
 });
 
 const getSkillAnalytics = asyncHandler(async (req, res) => {
@@ -411,7 +517,26 @@ const getSkillAnalytics = asyncHandler(async (req, res) => {
       avgReadiness,
       readinessDistribution,
     },
+    data: {
+      totalProfiles: profiles.length,
+      topSkills,
+      topInterests,
+      categoryCount,
+      avgReadiness,
+      readinessDistribution,
+    },
   });
 });
 
-module.exports = { getMyProfile, updateMyProfile, getStudentProfile, getCareerInsights, getSkillAnalytics, getLearningPaths, getAIRecommendations };
+module.exports = {
+  getMyProfile,
+  updateMyProfile,
+  getStudentProfile,
+  addSkill,
+  deleteSkill,
+  endorseSkill,
+  getCareerInsights,
+  getSkillAnalytics,
+  getLearningPaths,
+  getAIRecommendations,
+};

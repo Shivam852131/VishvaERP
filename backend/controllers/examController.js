@@ -200,7 +200,14 @@ const getStudentResults = asyncHandler(async (req, res) => {
   let studentId = req.params.studentId || req.user._id;
   if (req.user.role === 'parent' && !req.params.studentId) {
     const parent = await User.findById(req.user._id).select('children');
-    studentId = parent?.children?.[0];
+    let children = (parent?.children || []).map(String);
+    if (!children.length) {
+      const linked = await User.find({ collegeId: req.user.collegeId, role: 'student', parentId: req.user._id }).select('_id');
+      children = linked.map(s => String(s._id));
+    }
+    studentId = req.query.studentId && children.includes(String(req.query.studentId))
+      ? req.query.studentId
+      : children[0];
   }
 
   if (!studentId) {

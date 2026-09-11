@@ -14,6 +14,17 @@ const downloadFeeReceipt = asyncHandler(async (req, res) => {
     return res.status(404).json({ success: false, message: 'Fee record not found' });
   }
 
+  if (req.user.role === 'student' && String(fee.studentId?._id || fee.studentId) !== String(req.user._id)) {
+    return res.status(403).json({ success: false, message: 'Access denied' });
+  }
+  if (req.user.role === 'parent') {
+    const parent = await User.findById(req.user._id).select('children');
+    const childIds = (parent?.children || []).map(String);
+    if (!childIds.includes(String(fee.studentId?._id || fee.studentId))) {
+      return res.status(403).json({ success: false, message: 'Access denied' });
+    }
+  }
+
   const user = fee.studentId || await User.findById(fee.studentId);
   const college = await College.findById(req.user.collegeId);
 

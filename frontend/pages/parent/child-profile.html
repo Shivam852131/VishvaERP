@@ -1,17 +1,48 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Child Profile | VishvaERP</title>
+  <title>Child 360° Profile | VishvaERP</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="../../css/custom.css">
+  <style>
+    .glass-panel {
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      border-radius: 16px;
+    }
+    .profile-tab-btn {
+      padding: 10px 20px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+      border: none;
+      background: transparent;
+      color: #64748B;
+    }
+    .profile-tab-btn.active {
+      background: white;
+      color: #D97706;
+      box-shadow: 0 4px 12px rgba(217, 119, 6, 0.12);
+    }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; animation: fadeIn 0.25s ease-out; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
 </head>
 <body>
 <div class="erp-layout">
   <aside class="erp-sidebar theme-parent" id="sidebar">
-    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon"><img src="../../icons/logo.png" alt="Vi"></div><div class="sidebar-logo-text">Vishva <span>ERP</span></div></a></div>
-    <div class="sidebar-user"><div class="sidebar-avatar" id="sidebar-avatar">P</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Parent</div><div class="sidebar-user-role">Ward: Priya Patel</div></div></div>
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon" style="background:linear-gradient(135deg,#D97706,#F59E0B)">V</div><div class="sidebar-logo-text">Vishva <span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" style="background:linear-gradient(135deg,#D97706,#F59E0B)" id="sidebar-avatar">P</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Parent</div><div class="sidebar-user-role" id="sidebar-ward-name">Ward Profile</div></div></div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Ward Overview</div>
       <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
@@ -33,68 +64,267 @@
     <header class="erp-topbar">
       <div class="topbar-left">
         <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
-        <div class="topbar-breadcrumb">Parent / <span>Child Profile</span></div>
+        <div class="topbar-breadcrumb">Parent / <span>Child 360° Profile</span></div>
       </div>
-      <div class="topbar-right"><div class="topbar-avatar" id="topbar-avatar">P</div></div>
+      <div class="topbar-right">
+        <!-- Multi-Ward Switcher (if multiple children) -->
+        <div id="childSwitcherContainer" style="display:none;align-items:center;gap:8px">
+          <label style="font-size:12px;font-weight:700;color:#64748B">Viewing Ward:</label>
+          <select id="childSwitcherSelect" class="form-control" style="font-size:12px;padding:4px 10px;height:32px;font-weight:600;border-color:#F59E0B">
+          </select>
+        </div>
+        <div class="topbar-avatar" id="topbar-avatar" style="background:linear-gradient(135deg,#D97706,#F59E0B);color:white">P</div>
+      </div>
     </header>
 
-    <div class="erp-content">
-      <div class="page-header">
-        <h1 class="page-title">👤 Child Profile</h1>
-        <p class="page-subtitle">View detailed demographic and academic information.</p>
+    <div class="erp-content page-enter">
+      <!-- HERO WARD BANNER -->
+      <div style="background:linear-gradient(135deg,#FFFBEB 0%,#FEF3C7 50%,#FDE68A 100%);border-radius:24px;padding:28px 32px;margin-bottom:24px;display:flex;align-items:center;gap:28px;flex-wrap:wrap;box-shadow:0 12px 28px rgba(217,119,6,0.12);border:1px solid rgba(245,158,11,0.25);position:relative;overflow:hidden">
+        
+        <div class="avatar avatar-xl" id="childProfileAvatar" style="width:96px;height:96px;font-size:38px;background:linear-gradient(135deg,#D97706,#B45309);color:white;box-shadow:0 10px 20px rgba(180,83,9,0.25);flex-shrink:0;border:4px solid white">
+          S
+        </div>
+        
+        <div style="flex:1;min-width:260px">
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:4px">
+            <h1 style="font-size:26px;font-weight:900;color:#78350F;margin:0" id="childProfileName">Student</h1>
+            <span class="badge badge-success" id="childProfileStatus" style="font-size:11px;font-weight:800;padding:3px 10px">Active Enrollment</span>
+          </div>
+          <div style="font-size:14px;color:#92400E;font-weight:600;margin-bottom:8px" id="childProfileMeta">
+            Enrollment No: — • Roll No: —
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <span class="badge badge-warning" id="childProfileProgram" style="background:#FDE68A;color:#92400E;font-weight:700">Department pending</span>
+            <span class="badge badge-gray" id="childProfileSemester" style="font-weight:700">Semester pending</span>
+            <span class="badge badge-info" id="childProfileCollege" style="background:#E0F2FE;color:#0369A1;font-weight:700">Campus Verified</span>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:8px;min-width:180px">
+          <a href="attendance.html" class="btn btn-sm btn-primary" style="background:linear-gradient(135deg,#D97706,#B45309);border:none;justify-content:center">
+            <i class="fas fa-calendar-check"></i> Attendance Tracker
+          </a>
+          <a href="results.html" class="btn btn-sm btn-secondary" style="background:white;justify-content:center;border-color:#F59E0B;color:#92400E">
+            <i class="fas fa-poll"></i> Term Marksheets
+          </a>
+          <a href="fees.html" class="btn btn-sm btn-secondary" style="background:white;justify-content:center;border-color:#F59E0B;color:#92400E">
+            <i class="fas fa-credit-card"></i> Fee Payments
+          </a>
+        </div>
       </div>
 
-      <div class="card mb-6">
-        <div class="card-body" style="display:flex;gap:24px;align-items:center;padding:24px;flex-wrap:wrap">
-          <div class="avatar avatar-xl" style="width:100px;height:100px;font-size:36px;background:linear-gradient(135deg,#D97706,#F59E0B)">P</div>
-          <div style="flex:1">
-            <h2 style="font-size:24px;font-weight:900;color:#0F172A;margin-bottom:4px" id="childProfileName">Student</h2>
-            <div style="font-size:14px;color:#64748B;margin-bottom:12px" id="childProfileMeta">Enrollment No: — • Roll No: —</div>
-            <div style="display:flex;gap:8px;flex-wrap:wrap">
-              <span class="badge badge-warning" id="childProfileProgram">Program pending</span>
-              <span class="badge badge-gray" id="childProfileSemester">Semester pending</span>
-              <span class="badge badge-success" id="childProfileStatus">Active Enrollment</span>
+      <!-- 4 KEY VITALS -->
+      <div class="stats-grid mb-6" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px">
+        <div class="stat-card" style="border-left:4px solid #10B981">
+          <div class="stat-icon" style="background:#D1FAE5;color:#065F46"><i class="fas fa-check-double"></i></div>
+          <div class="stat-label">Attendance Health</div>
+          <div class="stat-value" id="childVitalAttendance" style="color:#059669">—%</div>
+          <div class="stat-change up" id="childVitalAttendanceBadge"><i class="fas fa-shield-alt"></i> On-track</div>
+        </div>
+
+        <div class="stat-card" style="border-left:4px solid #8B5CF6">
+          <div class="stat-icon" style="background:#EDE9FE;color:#6D28D9"><i class="fas fa-graduation-cap"></i></div>
+          <div class="stat-label">Cumulative CGPA</div>
+          <div class="stat-value" id="childVitalCGPA" style="color:#7C3AED">—</div>
+          <div class="stat-change up" id="childVitalCGPABadge"><i class="fas fa-star"></i> Academic Standing</div>
+        </div>
+
+        <div class="stat-card" style="border-left:4px solid #3B82F6">
+          <div class="stat-icon" style="background:#DBEAFE;color:#1E40AF"><i class="fas fa-book-open"></i></div>
+          <div class="stat-label">Enrolled Subjects</div>
+          <div class="stat-value" id="childVitalSubjects" style="color:#2563EB">—</div>
+          <div class="stat-change up"><i class="fas fa-chalkboard-teacher"></i> Current Semester</div>
+        </div>
+
+        <div class="stat-card" style="border-left:4px solid #F59E0B">
+          <div class="stat-icon" style="background:#FEF3C7;color:#92400E"><i class="fas fa-rupee-sign"></i></div>
+          <div class="stat-label">Fee Clearance</div>
+          <div class="stat-value" id="childVitalFees" style="color:#D97706">—</div>
+          <div class="stat-change" id="childVitalFeesBadge"><i class="fas fa-clock"></i> Checking dues...</div>
+        </div>
+      </div>
+
+      <!-- TABS NAVIGATION -->
+      <div style="background:#F1F5F9;padding:6px;border-radius:14px;display:inline-flex;gap:6px;margin-bottom:20px;flex-wrap:wrap">
+        <button class="profile-tab-btn active" onclick="switchProfileTab('academics')"><i class="fas fa-graduation-cap mr-1"></i> Academic & Faculty</button>
+        <button class="profile-tab-btn" onclick="switchProfileTab('demographics')"><i class="fas fa-user-circle mr-1"></i> Demographics & Contact</button>
+        <button class="profile-tab-btn" onclick="switchProfileTab('facilities')"><i class="fas fa-building mr-1"></i> Campus Services & Living</button>
+      </div>
+
+      <!-- TAB 1: ACADEMIC & FACULTY -->
+      <div id="tab-academics" class="tab-panel active">
+        <div class="grid col-2 mb-6" style="gap:24px">
+          <!-- ASSIGNED MENTOR CARD -->
+          <div class="card" style="box-shadow:0 4px 12px rgba(0,0,0,0.03);border:1px solid #E2E8F0">
+            <div class="card-header border-b border-gray-100">
+              <div class="card-title"><i class="fas fa-user-tie text-amber-600 mr-2"></i>Assigned Faculty Mentor</div>
+              <span class="badge badge-warning">Official Guide</span>
+            </div>
+            <div class="card-body" style="padding:22px" id="mentorCardBody">
+              <div style="display:flex;align-items:center;gap:18px">
+                <div class="avatar avatar-lg" style="width:64px;height:64px;font-size:24px;background:#FEF3C7;color:#D97706" id="mentorAvatar">F</div>
+                <div style="flex:1">
+                  <h3 style="font-size:18px;font-weight:800;color:#1E293B;margin:0" id="mentorName">Assigned Faculty Mentor</h3>
+                  <div style="font-size:13px;color:#64748B;margin-top:2px" id="mentorDesignation">Department Faculty</div>
+                  <div style="font-size:12px;color:#059669;margin-top:4px" id="mentorContact"><i class="fas fa-envelope mr-1"></i> mentor@college.edu</div>
+                </div>
+              </div>
+              <div style="margin-top:18px;padding-top:16px;border-top:1px solid #F1F5F9;display:flex;justify-content:space-between;align-items:center">
+                <span style="font-size:12px;color:#64748B">Available for parent discussions</span>
+                <a href="../messages.html" class="btn btn-sm btn-primary" style="background:#D97706;border:none">
+                  <i class="fas fa-comment-dots"></i> Message Mentor
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- ENROLLMENT SUMMARY -->
+          <div class="card" style="box-shadow:0 4px 12px rgba(0,0,0,0.03);border:1px solid #E2E8F0">
+            <div class="card-header border-b border-gray-100">
+              <div class="card-title"><i class="fas fa-university text-amber-600 mr-2"></i>Institutional Details</div>
+            </div>
+            <div class="card-body" style="padding:0">
+              <table class="erp-table">
+                <tbody>
+                  <tr><td style="color:#64748B;width:40%">Institution</td><td style="font-weight:700" data-profile="college">—</td></tr>
+                  <tr><td style="color:#64748B">Admission Date</td><td style="font-weight:700" data-profile="admissionDate">—</td></tr>
+                  <tr><td style="color:#64748B">Program / Branch</td><td style="font-weight:700" id="detailProgram">—</td></tr>
+                  <tr><td style="color:#64748B">Current Term</td><td style="font-weight:700" id="detailTerm">—</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ENROLLED SUBJECTS TABLE -->
+        <div class="card" style="box-shadow:0 4px 12px rgba(0,0,0,0.03);border:1px solid #E2E8F0">
+          <div class="card-header border-b border-gray-100">
+            <div class="card-title"><i class="fas fa-layer-group text-amber-600 mr-2"></i>Registered Curriculum Courses</div>
+            <span class="badge badge-gray" id="subjectCountBadge">0 Courses</span>
+          </div>
+          <div class="card-body" style="padding:0;overflow-x:auto">
+            <table class="erp-table">
+              <thead>
+                <tr>
+                  <th style="width:60px">#</th>
+                  <th>Course Code</th>
+                  <th>Subject Name</th>
+                  <th style="text-align:center">Credits</th>
+                  <th>Faculty Instructor</th>
+                  <th style="text-align:center">Status</th>
+                </tr>
+              </thead>
+              <tbody id="childSubjectsBody">
+                <tr><td colspan="6" style="text-align:center;padding:30px;color:#94A3B8">Loading curriculum subjects...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB 2: DEMOGRAPHICS & CONTACT -->
+      <div id="tab-demographics" class="tab-panel">
+        <div class="grid col-2" style="gap:24px">
+          <div class="card" style="box-shadow:0 4px 12px rgba(0,0,0,0.03);border:1px solid #E2E8F0">
+            <div class="card-header border-b border-gray-100">
+              <div class="card-title"><i class="fas fa-id-card text-amber-600 mr-2"></i>Student Identification</div>
+            </div>
+            <div class="card-body" style="padding:0">
+              <table class="erp-table">
+                <tbody>
+                  <tr><td style="color:#64748B;width:40%">Date of Birth</td><td style="font-weight:700" data-profile="dateOfBirth">—</td></tr>
+                  <tr><td style="color:#64748B">Gender</td><td style="font-weight:700" data-profile="gender">—</td></tr>
+                  <tr><td style="color:#64748B">Blood Group</td><td style="font-weight:700" data-profile="bloodGroup">—</td></tr>
+                  <tr><td style="color:#64748B">Student Email</td><td style="font-weight:700" data-profile="email">—</td></tr>
+                  <tr><td style="color:#64748B">Student Mobile</td><td style="font-weight:700" data-profile="phone">—</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card" style="box-shadow:0 4px 12px rgba(0,0,0,0.03);border:1px solid #E2E8F0">
+            <div class="card-header border-b border-gray-100">
+              <div class="card-title"><i class="fas fa-house-user text-amber-600 mr-2"></i>Guardian & Residence</div>
+            </div>
+            <div class="card-body" style="padding:0">
+              <table class="erp-table">
+                <tbody>
+                  <tr><td style="color:#64748B;width:40%">Guardian Name</td><td style="font-weight:700" id="parentGuardianName">—</td></tr>
+                  <tr><td style="color:#64748B">Guardian Contact</td><td style="font-weight:700" id="parentGuardianPhone">—</td></tr>
+                  <tr><td style="color:#64748B">Registered Email</td><td style="font-weight:700" id="parentGuardianEmail">—</td></tr>
+                  <tr><td style="color:#64748B">Permanent Address</td><td style="font-weight:700" id="childPermanentAddress">Campus Residence / Registered Address</td></tr>
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="grid col-2">
-        <div class="card">
-          <div class="card-header"><div class="card-title"><i class="fas fa-info-circle text-warning border-warning" style="margin-right:8px"></i>Personal details</div></div>
-          <div class="card-body" style="padding:0">
-            <table class="erp-table">
-              <tbody>
-                <tr><td style="color:#64748B;width:40%">Date of Birth</td><td style="font-weight:600" data-profile="dateOfBirth">—</td></tr>
-                <tr><td style="color:#64748B">Gender</td><td style="font-weight:600" data-profile="gender">—</td></tr>
-                <tr><td style="color:#64748B">Blood Group</td><td style="font-weight:600" data-profile="bloodGroup">—</td></tr>
-                <tr><td style="color:#64748B">Email Address</td><td style="font-weight:600" data-profile="email">—</td></tr>
-                <tr><td style="color:#64748B">Phone Number</td><td style="font-weight:600" data-profile="phone">—</td></tr>
-              </tbody>
-            </table>
+      <!-- TAB 3: CAMPUS SERVICES & LIVING -->
+      <div id="tab-facilities" class="tab-panel">
+        <div class="grid col-2" style="gap:24px">
+          <!-- HOSTEL LIVING -->
+          <div class="card" style="box-shadow:0 4px 12px rgba(0,0,0,0.03);border:1px solid #E2E8F0">
+            <div class="card-header border-b border-gray-100">
+              <div class="card-title"><i class="fas fa-hotel text-amber-600 mr-2"></i>Hostel Residence Allocation</div>
+              <span class="badge badge-info" id="hostelBadge">Residence</span>
+            </div>
+            <div class="card-body" style="padding:22px">
+              <div style="display:flex;align-items:center;gap:18px;margin-bottom:16px">
+                <div style="width:56px;height:56px;background:#EDE9FE;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#6D28D9;font-size:24px">
+                  <i class="fas fa-bed"></i>
+                </div>
+                <div>
+                  <h4 style="font-size:17px;font-weight:800;color:#1E293B;margin:0" id="hostelNameText">Not Allocated</h4>
+                  <div style="font-size:13px;color:#64748B" id="hostelRoomText">Day Scholar or Unassigned</div>
+                </div>
+              </div>
+              <div style="font-size:12px;color:#64748B;background:#F8FAFC;padding:12px;border-radius:10px;border-left:3px solid #8B5CF6">
+                <i class="fas fa-shield-alt mr-1 text-purple-600"></i> Campus security & warden helpdesk is monitored 24/7. Curfew gate closes at 10:00 PM IST.
+              </div>
+            </div>
           </div>
-        </div>
-        
-        <div class="card">
-           <div class="card-header"><div class="card-title"><i class="fas fa-university text-warning" style="margin-right:8px"></i>Institution details</div></div>
-          <div class="card-body" style="padding:0">
-            <table class="erp-table">
-              <tbody>
-                <tr><td style="color:#64748B;width:40%">College</td><td style="font-weight:600" data-profile="college">—</td></tr>
-                <tr><td style="color:#64748B">Admission Date</td><td style="font-weight:600" data-profile="admissionDate">—</td></tr>
-                <tr><td style="color:#64748B">Transport Route</td><td style="font-weight:600" data-profile="transportRoute">—</td></tr>
-                <tr><td style="color:#64748B">Hostel Allocation</td><td style="font-weight:600" data-profile="hostelRoom">—</td></tr>
-                <tr><td style="color:#64748B">Mentor</td><td style="font-weight:600" data-profile="mentor">—</td></tr>
-              </tbody>
-            </table>
+
+          <!-- COMMUTE TRANSPORT -->
+          <div class="card" style="box-shadow:0 4px 12px rgba(0,0,0,0.03);border:1px solid #E2E8F0">
+            <div class="card-header border-b border-gray-100">
+              <div class="card-title"><i class="fas fa-bus text-amber-600 mr-2"></i>Campus Commute & Transport</div>
+              <span class="badge badge-warning" id="transportBadge">Transport</span>
+            </div>
+            <div class="card-body" style="padding:22px">
+              <div style="display:flex;align-items:center;gap:18px;margin-bottom:16px">
+                <div style="width:56px;height:56px;background:#FEF3C7;border-radius:14px;display:flex;align-items:center;justify-content:center;color:#D97706;font-size:24px">
+                  <i class="fas fa-route"></i>
+                </div>
+                <div>
+                  <h4 style="font-size:17px;font-weight:800;color:#1E293B;margin:0" id="transportRouteText">Not Enrolled</h4>
+                  <div style="font-size:13px;color:#64748B" id="transportBusText">Self Commute / Hosteler</div>
+                </div>
+              </div>
+              <div style="font-size:12px;color:#64748B;background:#F8FAFC;padding:12px;border-radius:10px;border-left:3px solid #F59E0B">
+                <i class="fas fa-location-dot mr-1 text-amber-600"></i> Live GPS fleet tracking is enabled on all active college bus routes during morning and evening transit.
+              </div>
+            </div>
           </div>
         </div>
       </div>
+
     </div>
   </div>
 </div>
 
 <script src="../../js/shared.js"></script>
+<script>
+function switchProfileTab(tab) {
+  document.querySelectorAll('.profile-tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  const btn = event?.currentTarget || document.querySelector(`[onclick="switchProfileTab('${tab}')"]`);
+  if (btn) btn.classList.add('active');
+  const panel = document.getElementById(`tab-${tab}`);
+  if (panel) panel.classList.add('active');
+}
+window.switchProfileTab = switchProfileTab;
+</script>
 <script src="../../live/live-pages.js"></script>
 </body>
 </html>

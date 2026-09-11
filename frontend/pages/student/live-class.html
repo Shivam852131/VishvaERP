@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -8,57 +8,115 @@
   <link rel="stylesheet" href="../../css/custom.css">
   <script src="https://meet.jit.si/external_api.js"></script>
   <style>
-    .video-container {
+    .student-video-container {
       width: 100%;
-      height: 65vh;
+      height: 60vh;
+      min-height: 460px;
       border-radius: 16px;
       overflow: hidden;
-      background: #0F172A;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+      background: #0B0F19;
       position: relative;
-      transition: all 0.3s ease;
+      box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3), 0 10px 10px -5px rgba(0,0,0,0.2);
+      border: 1px solid rgba(255,255,255,0.1);
     }
-    .video-container.fullscreen {
-      height: 85vh;
+    .student-video-container.fullscreen {
       position: fixed;
-      top: 0;
-      left: 0;
+      inset: 0;
       width: 100vw;
-      z-index: 9999;
+      height: 100vh;
+      z-index: 99999;
       border-radius: 0;
     }
-    .call-controls {
-      display: flex;
-      gap: 16px;
-      padding: 20px;
-      background: white;
-      border-radius: 16px;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-      margin-top: 24px;
-      align-items: center;
-      justify-content: space-between;
+    .live-radar {
+      position: relative;
     }
-    .pulse-blob {
-      display: inline-block;
-      width: 12px;
-      height: 12px;
+    .live-radar::before {
+      content: '';
+      position: absolute;
+      inset: -4px;
+      border-radius: inherit;
+      background: linear-gradient(135deg, #0284C7, #38BDF8);
+      opacity: 0.25;
+      filter: blur(8px);
+      z-index: -1;
+      animation: pulse-glow 2.5s infinite;
+    }
+    @keyframes pulse-glow {
+      0%, 100% { opacity: 0.25; }
+      50% { opacity: 0.55; }
+    }
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
-      background: #0EA5E9;
-      box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.7);
-      animation: pulse 2s infinite;
+      background: #0284C7;
+      box-shadow: 0 0 0 0 rgba(2, 132, 199, 0.7);
+      animation: pulse-blue 1.8s infinite;
     }
-    @keyframes pulse {
-      0% { box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.7); }
-      70% { box-shadow: 0 0 0 10px rgba(14, 165, 233, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(14, 165, 233, 0); }
+    @keyframes pulse-blue {
+      0% { box-shadow: 0 0 0 0 rgba(2, 132, 199, 0.7); }
+      70% { box-shadow: 0 0 0 8px rgba(2, 132, 199, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(2, 132, 199, 0); }
+    }
+    .tab-btn {
+      padding: 10px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #64748B;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .tab-btn:hover { color: #0284C7; }
+    .tab-btn.active {
+      color: #0284C7;
+      border-bottom-color: #0284C7;
+      background: #F0F9FF;
+    }
+    .chat-bubble {
+      padding: 8px 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      line-height: 1.4;
+      max-width: 85%;
+      margin-bottom: 8px;
+    }
+    .chat-bubble.teacher {
+      background: #ECFDF5;
+      border: 1px solid #A7F3D0;
+      margin-right: auto;
+      color: #065F46;
+    }
+    .chat-bubble.student-me {
+      background: #E0F2FE;
+      border: 1px solid #BAE6FD;
+      margin-left: auto;
+      color: #0369A1;
+    }
+    .chat-bubble.student-peer {
+      background: #F1F5F9;
+      border: 1px solid #E2E8F0;
+      margin-right: auto;
+      color: #1E293B;
     }
   </style>
 </head>
 <body>
 <div class="erp-layout">
   <aside class="erp-sidebar theme-student" id="sidebar">
-    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)">V</div><div class="sidebar-logo-text">Vishva <span>ERP</span></div></a></div>
-    <div class="sidebar-user"><div class="sidebar-avatar" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)" id="sidebar-avatar">S</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Student</div><div class="sidebar-user-role" id="sidebar-user-role">B.Tech CS • Sem 4</div></div></div>
+    <div class="sidebar-header">
+      <a class="sidebar-logo" href="../../index.html">
+        <div class="sidebar-logo-icon" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)">V</div>
+        <div class="sidebar-logo-text">Vishva <span>ERP</span></div>
+      </a>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)" id="sidebar-avatar">S</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name" id="sidebar-user-name">Student</div>
+        <div class="sidebar-user-role" id="sidebar-user-role">B.Tech CS • Sem 4</div>
+      </div>
+    </div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Overview</div>
       <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
@@ -98,96 +156,336 @@
         <div class="topbar-breadcrumb">Student / <span>Virtual Classroom</span></div>
       </div>
       <div class="topbar-right">
+        <span class="badge badge-info" id="studentClock" style="font-family: monospace; font-size: 13px;"><i class="fas fa-clock mr-1"></i> Live</span>
         <div class="topbar-avatar" id="topbar-avatar">S</div>
       </div>
     </header>
 
     <div class="erp-content">
-      
-      <!-- List Classes Screen -->
+
+      <!-- ═══════════════════════════════════════════════
+           STUDENT LOBBY / PRE-JOIN SCREEN
+      ═══════════════════════════════════════════════ -->
       <div id="join-screen">
-        <div class="page-header" style="margin-bottom: 30px;">
-          <h1 class="page-title">Virtual Classroom</h1>
-          <p class="page-subtitle">Join active online lectures and interactive sessions.</p>
+
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+          <div>
+            <h1 class="page-title flex items-center gap-3">
+              <span>Virtual Classroom</span>
+              <span class="badge badge-info"><i class="fas fa-video mr-1"></i> Live Academic Portal</span>
+            </h1>
+            <p class="page-subtitle">Join live interactive lectures, review real-time teacher whiteboards, and automatically log ERP attendance.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button class="btn btn-secondary" onclick="loadStudentLobby()"><i class="fas fa-sync-alt mr-1"></i> Refresh</button>
+          </div>
         </div>
 
-        <div class="grid col-2">
-          <!-- Active Classes -> Student can join these right now -->
-          <div class="card">
-            <div class="card-header"><div class="card-title"><i class="pulse-blob" style="margin-right:8px"></i> Live Right Now</div></div>
-            <div class="card-body" style="padding:16px;">
-              
-              <div style="display:flex;align-items:center;padding:16px;border:1px solid #BAE6FD;border-radius:12px;background:#F0F9FF;margin-bottom:12px;">
-                <div style="flex:1">
-                  <div style="display:flex;gap:8px;align-items:center;margin-bottom:4px">
-                    <span class="badge badge-info">Active</span>
-                    <span style="font-size:12px;color:#64748B"><i class="fas fa-user-tie"></i> Prof. Rajesh Kumar</span>
-                  </div>
-                  <div style="font-weight:700;font-size:16px;color:#0284C7">Data Structures - Trees Deep Dive</div>
-                  <div style="font-size:12px;color:#64748B;margin-top:4px">Started 10 mins ago</div>
-                </div>
-                <button class="btn btn-primary" onclick="joinCall('VishvaErp-cs-sem4-dsa-today', 'Data Structures - Trees')"><i class="fas fa-sign-in-alt"></i> Join Session</button>
-              </div>
-
+        <!-- 4 Stat KPIs -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div class="card p-4 flex items-center gap-4 bg-white border border-slate-200">
+            <div class="w-12 h-12 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center text-xl font-bold">
+              <i class="fas fa-broadcast-tower"></i>
+            </div>
+            <div>
+              <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Live Lectures</div>
+              <div class="text-lg font-bold text-slate-800" id="kpiActiveCount">0 Active Now</div>
+              <div class="text-xs text-sky-600 font-medium" id="kpiActiveSubtext">Checking streams...</div>
             </div>
           </div>
 
-          <!-- Upcoming Classes -->
-          <div class="card">
-            <div class="card-header"><div class="card-title"><i class="fas fa-clock" style="color:#64748B;margin-right:8px"></i> Upcoming Schedule</div></div>
-            <div class="card-body" style="padding:16px;">
-              <div style="display:flex;align-items:center;gap:12px;padding:12px;border:1px solid #E2E8F0;border-radius:12px;margin-bottom:12px;">
-                <div style="font-weight:700; color:#64748B; min-width: 70px;">11:30 AM</div>
-                <div style="flex:1">
-                  <div style="font-weight:700;font-size:14px">DBMS Review</div>
-                  <div style="font-size:12px;color:#64748B">Prof. Anjali Sharma</div>
-                </div>
-                <button class="btn btn-xs btn-secondary" disabled>Waiting for Host...</button>
-              </div>
+          <div class="card p-4 flex items-center gap-4 bg-white border border-slate-200">
+            <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl font-bold">
+              <i class="fas fa-calendar-day"></i>
+            </div>
+            <div>
+              <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Today's Queue</div>
+              <div class="text-lg font-bold text-slate-800" id="kpiTodayCount">0 Lectures</div>
+              <div class="text-xs text-indigo-600 font-medium" id="kpiNextLecture">Next: --</div>
+            </div>
+          </div>
+
+          <div class="card p-4 flex items-center gap-4 bg-white border border-slate-200">
+            <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl font-bold">
+              <i class="fas fa-fingerprint"></i>
+            </div>
+            <div>
+              <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Auto Attendance</div>
+              <div class="text-lg font-bold text-emerald-600">Active Sync</div>
+              <div class="text-xs text-slate-500 font-medium">Logged on &ge; 10 mins</div>
+            </div>
+          </div>
+
+          <div class="card p-4 flex items-center gap-4 bg-white border border-slate-200">
+            <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl font-bold">
+              <i class="fas fa-photo-video"></i>
+            </div>
+            <div>
+              <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Lecture Vault</div>
+              <div class="text-lg font-bold text-slate-800" id="kpiVaultCount">0 Archives</div>
+              <div class="text-xs text-purple-600 font-medium">Recordings & Slides</div>
             </div>
           </div>
         </div>
-        
-        <!-- Join by ID card -->
-        <div class="card mt-6" style="max-width: 500px">
-          <div class="card-header"><div class="card-title"><i class="fas fa-link" style="margin-right:8px"></i> Join via ID/Link</div></div>
-          <div style="padding:20px; display:flex; gap:10px;">
-            <input type="text" id="manualRoomId" class="form-input" placeholder="Paste class Room ID here...">
-            <button class="btn btn-secondary" onclick="joinManual()">Join</button>
+
+        <!-- HERO: LIVE RIGHT NOW RADAR BANNER -->
+        <div id="liveNowHeroContainer" class="mb-6">
+          <!-- Injected dynamically: If active lecture exists, shows glowing live hero card -->
+        </div>
+
+        <!-- Schedule & Manual Join Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
+          
+          <!-- Left: Today's Scheduled Lectures (7 cols) -->
+          <div class="lg:col-span-7 card bg-white border border-slate-200 flex flex-col">
+            <div class="card-header border-b border-slate-100 p-4 flex items-center justify-between">
+              <div class="font-bold text-slate-800 flex items-center gap-2">
+                <i class="fas fa-calendar-alt text-sky-600"></i>
+                <span>Today's Academic Schedule</span>
+              </div>
+              <span class="text-xs text-slate-400 font-medium" id="todayScheduleDate">Today</span>
+            </div>
+            <div class="card-body p-4 flex-1 overflow-y-auto space-y-3" id="todayLectureList" style="max-height: 380px;">
+              <div class="text-center py-8 text-slate-400 text-xs">Loading today's schedule...</div>
+            </div>
+          </div>
+
+          <!-- Right: Join by Room Code / Invite Link (5 cols) -->
+          <div class="lg:col-span-5 card p-6 bg-white border border-slate-200 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center text-lg">
+                  <i class="fas fa-key"></i>
+                </div>
+                <div>
+                  <h3 class="text-base font-bold text-slate-900">Direct Room Connect</h3>
+                  <p class="text-xs text-slate-500">Have an invite link or room ID from your professor?</p>
+                </div>
+              </div>
+
+              <div class="space-y-4">
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Room ID or Invite URL</label>
+                  <input type="text" class="form-input w-full text-xs" id="manualRoomId" placeholder="e.g. VishvaErp-CS401-2026-09-11 or paste full link">
+                </div>
+                <div>
+                  <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Your Display Name</label>
+                  <input type="text" class="form-input w-full text-xs bg-slate-50" id="studentDisplayName" readonly>
+                </div>
+              </div>
+            </div>
+
+            <div class="pt-4 mt-4 border-t border-slate-100">
+              <button class="btn btn-primary w-full justify-center text-sm py-2.5 font-bold shadow-md shadow-sky-600/20" onclick="joinManualRoom()">
+                <i class="fas fa-sign-in-alt mr-2"></i> Join Live Classroom
+              </button>
+            </div>
           </div>
         </div>
+
+        <!-- On-Demand Lecture Recordings & Resources Vault -->
+        <div class="card bg-white border border-slate-200">
+          <div class="card-header border-b border-slate-100 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div class="font-bold text-slate-800 flex items-center gap-2 text-base">
+              <i class="fas fa-play-circle text-purple-600"></i>
+              <span>On-Demand Lecture Vault & Study Materials</span>
+            </div>
+            <div class="text-xs text-slate-500">
+              Replay recorded lectures, review professor whiteboard snapshots, and download slides.
+            </div>
+          </div>
+          <div class="card-body p-0 overflow-x-auto">
+            <table class="data-table w-full text-left" id="studentVaultTable">
+              <thead>
+                <tr>
+                  <th>Lecture Title & Subject</th>
+                  <th>Professor</th>
+                  <th>Date & Time</th>
+                  <th>Duration</th>
+                  <th>Video Recording</th>
+                  <th>Study Materials & Slides</th>
+                </tr>
+              </thead>
+              <tbody id="studentVaultTableBody">
+                <tr><td colspan="6" class="text-center py-6 text-slate-400 text-xs">Loading lecture archives...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
 
-      <!-- Active Call Screen (Hidden initially) -->
+      <!-- ═══════════════════════════════════════════════
+           STUDENT ACTIVE LIVE CLASSROOM SCREEN
+      ═══════════════════════════════════════════════ -->
       <div id="active-call" style="display: none;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
-          <div>
-            <h2 style="font-size: 20px; font-weight: 700; display:flex; align-items:center; gap: 10px;">
-              <span class="pulse-blob"></span> <span id="activeTopicDisplay">Live Session</span>
-            </h2>
-            <div style="font-size: 13px; color: #64748B; margin-top: 4px;">Connected as: <span id="studentNameInfo">Student</span></div>
+        
+        <!-- Stream Stage Topbar -->
+        <div class="card p-4 mb-4 bg-slate-900 text-white border-none shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div class="flex items-center gap-4">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/20 border border-sky-500/40 text-sky-400 text-xs font-bold">
+              <div class="pulse-dot"></div>
+              <span>CONNECTED LIVE</span>
+            </div>
+            <div>
+              <h2 class="text-base font-bold text-white flex items-center gap-2">
+                <span id="activeLectureTitle">Live Lecture</span>
+              </h2>
+              <div class="text-xs text-slate-400 flex items-center gap-2 mt-0.5">
+                <span><i class="fas fa-chalkboard-teacher text-sky-400 mr-1"></i> <span id="activeTeacherName">Professor</span></span>
+                <span>•</span>
+                <span class="text-emerald-300"><i class="fas fa-check-circle mr-1"></i> Attendance Logged</span>
+              </div>
+            </div>
           </div>
-          <div style="display:flex; gap: 12px;">
-            <button class="btn btn-primary" onclick="toggleFullscreen()"><i class="fas fa-expand"></i> Fullscreen</button>
+
+          <!-- Student Toolbar -->
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- Connected Timer -->
+            <div class="px-3 py-1.5 rounded-lg bg-slate-800 text-slate-200 text-xs font-mono font-bold flex items-center gap-2 border border-slate-700">
+              <i class="fas fa-clock text-sky-400"></i>
+              <span id="studentAttendanceTimer">Connected: 00:00</span>
+            </div>
+
+            <!-- Raise Hand Toggle Button -->
+            <button class="btn btn-sm font-bold border-none transition" id="btnRaiseHand" onclick="toggleRaiseHand()" style="background:#F59E0B; color:white;">
+              <i class="fas fa-hand-paper mr-1"></i> <span id="raiseHandLabel">Raise Hand</span>
+            </button>
+
+            <!-- Fullscreen Toggle -->
+            <button class="btn btn-sm btn-secondary text-white border-slate-700 hover:bg-slate-800" onclick="toggleFullscreen()">
+              <i class="fas fa-expand mr-1"></i> Fullscreen
+            </button>
+
+            <!-- Leave Call Button -->
+            <button class="btn btn-sm text-white font-bold bg-red-600 hover:bg-red-500 border-none" onclick="leaveStudentCall()">
+              <i class="fas fa-sign-out-alt mr-1"></i> Leave Class
+            </button>
           </div>
         </div>
 
-        <!-- The Video Container -->
-        <div class="video-container" id="meet-container">
-          <div style="position:absolute; top:50%; left:50%; transform:translate(-50%, -50%); color:white; text-align:center;" id="loading-meet">
-            <i class="fas fa-circle-notch fa-spin fa-3x" style="color:#0EA5E9; margin-bottom: 16px;"></i>
-            <h3 style="font-size: 18px; font-weight: 600;">Connecting to Classroom...</h3>
+        <!-- Main Classroom Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+          
+          <!-- Left: Video Player Stage (8 cols) -->
+          <div class="lg:col-span-8 flex flex-col gap-3">
+            <div class="student-video-container" id="meet-container">
+              <!-- Loading / Connecting Indicator -->
+              <div id="loading-meet" class="absolute inset-0 flex flex-col items-center justify-center text-white bg-slate-950 p-6 text-center z-10">
+                <div class="w-16 h-16 rounded-full border-4 border-sky-500 border-t-transparent animate-spin mb-4"></div>
+                <h3 class="text-lg font-bold text-slate-100">Joining Virtual Classroom Channel...</h3>
+                <p class="text-xs text-slate-400 mt-1 max-w-sm">Connecting encrypted video and audio feed.</p>
+              </div>
+
+              <!-- In-browser Fallback Stage -->
+              <div id="fallbackStage" class="w-full h-full hidden flex flex-col items-center justify-center bg-slate-900 text-white p-6 relative">
+                <div class="text-center max-w-md">
+                  <div class="w-20 h-20 rounded-2xl bg-sky-500/20 text-sky-400 flex items-center justify-center text-3xl mx-auto mb-4 border border-sky-500/30">
+                    <i class="fas fa-video"></i>
+                  </div>
+                  <h4 class="text-lg font-bold text-white mb-1" id="fallbackTopic">Virtual Lecture Session</h4>
+                  <p class="text-xs text-slate-400 mb-4">You are connected to the live lecture. Use the tabs on the right to interact with live chat, whiteboard, and taking lecture notes.</p>
+                  <div class="inline-flex items-center gap-2 p-2 px-4 rounded-xl bg-slate-800 border border-slate-700 text-xs text-emerald-400 font-bold">
+                    <i class="fas fa-check-circle"></i> Presence Recorded for Attendance
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Attendance Eligibility Status Bar -->
+            <div class="card p-3 bg-white border border-slate-200 flex items-center justify-between gap-3 text-xs">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+                <span class="font-bold text-slate-700" id="attendanceSyncStatusText">Attendance Eligibility: Active (10m required)</span>
+              </div>
+              <div class="text-slate-500">
+                <i class="fas fa-shield-alt text-emerald-600 mr-1"></i> Verified by VishvaERP Smart Attendance
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Interactive Student Console (4 cols) -->
+          <div class="lg:col-span-4 card bg-white border border-slate-200 flex flex-col h-[600px] overflow-hidden">
+            <!-- Tabs -->
+            <div class="flex border-b border-slate-200 bg-slate-50 overflow-x-auto">
+              <button class="tab-btn active" id="tabChatBtn" onclick="switchConsoleTab('chat')">
+                <i class="fas fa-comments mr-1"></i> Class Chat
+              </button>
+              <button class="tab-btn" id="tabWhiteboardBtn" onclick="switchConsoleTab('whiteboard')">
+                <i class="fas fa-chalkboard mr-1"></i> Whiteboard
+              </button>
+              <button class="tab-btn" id="tabNotesBtn" onclick="switchConsoleTab('notes')">
+                <i class="fas fa-sticky-note mr-1"></i> My Notes
+              </button>
+              <button class="tab-btn" id="tabPollBtn" onclick="switchConsoleTab('poll')">
+                <i class="fas fa-poll mr-1"></i> Live Poll <span id="pollBadgeAlert" class="hidden text-red-500 font-bold">•</span>
+              </button>
+            </div>
+
+            <!-- Tab 1: Live Chat & Q&A -->
+            <div id="tabContentChat" class="p-3 flex-1 flex flex-col">
+              <div class="flex-1 overflow-y-auto p-2 space-y-2" id="chatStreamBox">
+                <div class="text-center py-6 text-slate-400 text-xs">No chat messages yet.</div>
+              </div>
+              <form class="pt-2 border-t border-slate-100 flex gap-2" onsubmit="handleSendChat(event)">
+                <input type="text" class="form-input flex-1 text-xs" id="chatMessageInput" placeholder="Ask question to professor...">
+                <button type="submit" class="btn btn-primary text-xs px-3"><i class="fas fa-paper-plane"></i></button>
+              </form>
+            </div>
+
+            <!-- Tab 2: Shared Whiteboard Viewer -->
+            <div id="tabContentWhiteboard" class="p-3 flex-1 flex flex-col hidden space-y-2">
+              <div class="flex items-center justify-between text-xs pb-1 border-b border-slate-100">
+                <span class="font-bold text-slate-700">Professor's Live Canvas</span>
+                <button class="text-sky-600 hover:underline font-bold" onclick="pollSessionDetails()"><i class="fas fa-sync-alt mr-1"></i> Refresh</button>
+              </div>
+              <div class="flex-1 w-full border border-slate-200 rounded-lg overflow-hidden bg-white flex items-center justify-center relative" id="whiteboardViewerContainer">
+                <div class="text-center p-6 text-slate-400 text-xs" id="whiteboardPlaceholder">
+                  <i class="fas fa-pen-nib text-2xl text-slate-300 mb-2 block"></i>
+                  Professor hasn't drawn on the board yet.
+                </div>
+                <img id="whiteboardImg" class="w-full h-full object-contain hidden" alt="Whiteboard Snapshot">
+              </div>
+              <div class="flex justify-end">
+                <button class="btn btn-xs btn-secondary" onclick="downloadWhiteboardPng()"><i class="fas fa-download mr-1"></i> Save Board PNG</button>
+              </div>
+            </div>
+
+            <!-- Tab 3: My In-Class Lecture Notes -->
+            <div id="tabContentNotes" class="p-3 flex-1 flex flex-col hidden space-y-2">
+              <div class="flex items-center justify-between text-xs pb-1 border-b border-slate-100">
+                <span class="font-bold text-slate-700">My Lecture Scratchpad</span>
+                <span class="text-emerald-600 text-[11px]" id="notesSavedLabel"><i class="fas fa-check"></i> Auto-saved</span>
+              </div>
+              <textarea class="form-input flex-1 w-full text-xs font-mono p-2.5 resize-none" id="studentNotesArea" placeholder="Jot key theorems, formulas, and homework points here..." oninput="autoSaveNotes()"></textarea>
+              <div class="flex justify-between items-center pt-1">
+                <span class="text-[11px] text-slate-400">Saved to local browser storage</span>
+                <button class="btn btn-xs btn-secondary" onclick="exportNotesTxt()"><i class="fas fa-file-export mr-1"></i> Export Notes (.txt)</button>
+              </div>
+            </div>
+
+            <!-- Tab 4: Active Class Poll -->
+            <div id="tabContentPoll" class="p-4 flex-1 flex flex-col hidden overflow-y-auto space-y-4">
+              <div id="activePollBox" class="p-3 rounded-xl bg-sky-50 border border-sky-200">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="badge badge-info text-[10px]">Lecture Pulse Poll</span>
+                  <span class="text-xs text-sky-700 font-bold" id="pollStatusLabel">Vote Open</span>
+                </div>
+                <h4 class="text-xs font-bold text-slate-900 mb-3" id="studentPollQuestion">Loading poll...</h4>
+                
+                <form id="studentPollForm" class="space-y-2 text-xs" onsubmit="submitPollVote(event)">
+                  <div id="studentPollOptions" class="space-y-1.5"></div>
+                  <button type="submit" class="btn btn-sm btn-primary w-full justify-center mt-3 font-bold" id="btnVoteSubmit">
+                    Submit My Vote
+                  </button>
+                </form>
+              </div>
+            </div>
+
           </div>
         </div>
 
-        <div class="call-controls">
-          <div style="display:flex; gap: 10px; align-items:center;">
-             <div style="font-size: 14px; font-weight:600; color: #334155;"><i class="fas fa-info-circle" style="color:#0EA5E9"></i> Connected securely.</div>
-          </div>
-          <div style="display:flex; gap: 10px;">
-            <button class="btn" style="background:#EF4444; color:white; border:none; padding: 10px 24px; font-weight: 600;" onclick="leaveCall()"><i class="fas fa-sign-out-alt"></i> Leave Session</button>
-          </div>
-        </div>
       </div>
 
     </div>
@@ -196,104 +494,676 @@
 
 <script src="../../js/shared.js"></script>
 <script>
+  /* ═══════════════════════════════════════════════
+     STATE & AUTH
+  ═══════════════════════════════════════════════ */
   const user = requireAuth(['student']);
-  if(user) {
+  let activeSessionId = null;
+  let currentSession = null;
+  let meetApi = null;
+  let joinTimestamp = null;
+  let attendanceInterval = null;
+  let pollInterval = null;
+  let isHandRaised = false;
+
+  if (user) {
     document.getElementById('sidebar-user-name').textContent = user.name || 'Student';
-    document.getElementById('studentNameInfo').textContent = user.name || 'Student';
+    const roleEl = document.getElementById('sidebar-user-role');
+    if (roleEl) roleEl.textContent = `${user.department || 'B.Tech CS'} • Sem ${user.semester || 4}`;
+    const nameInput = document.getElementById('studentDisplayName');
+    if (nameInput) nameInput.value = `${user.name || 'Student'} (${user.rollNo || 'Roll No'})`;
   }
 
-  let meetApi = null;
-  const meetContainer = document.getElementById('meet-container');
+  /* ═══════════════════════════════════════════════
+     INITIALIZATION & LOBBY DATA
+  ═══════════════════════════════════════════════ */
+  document.addEventListener('DOMContentLoaded', async () => {
+    initClock();
+    await loadStudentLobby();
 
-  // If there's a ?join= roomId in the URL, automatically prompt or join.
-  window.addEventListener('DOMContentLoaded', () => {
+    // Check query params (?join=roomName)
     const params = new URLSearchParams(window.location.search);
-    const joinId = params.get('join');
-    if(joinId) {
-       joinCall(joinId, 'Invited Class Session');
+    const joinCode = params.get('join');
+    if (joinCode) {
+      handleAutoJoinParam(joinCode);
     }
   });
 
-  function joinManual() {
-    const room = document.getElementById('manualRoomId').value.trim();
-    if(!room) return showToast('Please enter a valid room ID', 'error');
-    joinCall(room, 'Joined Class Session');
-  }
-
-  function joinCall(roomName, topic) {
-    // Replace the placeholder token so invite links can always resolve to today's room.
-    const finalRoomName = roomName.replace('today', new Date().toISOString().split('T')[0]);
-
-    document.getElementById('join-screen').style.display = 'none';
-    document.getElementById('active-call').style.display = 'block';
-    
-    document.getElementById('activeTopicDisplay').textContent = topic;
-
-    if(window.showToast) {
-       showToast(`Joining classroom...`, 'success');
-    }
-
-    // Initialize Jitsi
-    setTimeout(() => {
-      document.getElementById('loading-meet').style.display = 'none';
-      const domain = 'meet.jit.si';
-      const options = {
-          roomName: finalRoomName,
-          width: '100%',
-          height: '100%',
-          parentNode: meetContainer,
-          lang: 'en',
-          userInfo: {
-              displayName: user ? user.name : 'Student',
-              role: 'participant'
-          },
-          configOverwrite: {
-            disableDeepLinking: true,
-            prejoinPageEnabled: false, 
-            startWithAudioMuted: true, // students join muted
-            startWithVideoMuted: false
-          },
-          interfaceConfigOverwrite: {
-            TOOLBAR_BUTTONS: [
-                'microphone', 'camera', 'desktop', 'fullscreen',
-                'chat', 'raisehand', 'videoquality', 'tileview', 'videobackgroundblur'
-            ], // Limiting participant tools
-            SHOW_CHROME_EXTENSION_BANNER: false,
-            BRAND_WATERMARK_LINK: '',
-            SHOW_JITSI_WATERMARK: false,
-            DEFAULT_BACKGROUND: '#0F172A',
-            DEFAULT_LOCAL_DISPLAY_NAME: 'Me',
-          }
-      };
-      
-      meetApi = new JitsiMeetExternalAPI(domain, options);
-
-      meetApi.addEventListener('videoConferenceLeft', () => {
-         leaveCall();
-       });
-
+  function initClock() {
+    setInterval(() => {
+      const now = new Date();
+      const el = document.getElementById('studentClock');
+      if (el) el.innerHTML = `<i class="fas fa-clock mr-1"></i> ${now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
     }, 1000);
   }
 
-  function leaveCall() {
-    if(meetApi) {
-      meetApi.dispose();
-      meetApi = null;
-    }
-    document.getElementById('active-call').style.display = 'none';
-    document.getElementById('join-screen').style.display = 'block';
-    
-    // Clear URL params if exists
-    const url = new URL(window.location);
-    url.search = '';
-    window.history.replaceState({}, document.title, url);
+  async function loadStudentLobby() {
+    try {
+      const [sessionRes, ttRes, recordingsRes] = await Promise.all([
+        window.api.request('/live-classes', { silent: true }).catch(() => ({ sessions: [] })),
+        window.api.request('/timetable/today', { silent: true }).catch(() => 
+          window.api.request('/academics/timetable', { silent: true }).catch(() => ({ timetable: [] }))
+        ),
+        window.api.request('/live-classes/recordings', { silent: true }).catch(() => ({ recordings: [] })),
+      ]);
 
-    if(window.showToast) showToast('Left the session', 'info');
+      const sessions = sessionRes.sessions || [];
+      const activeSessions = sessions.filter(s => s.status === 'active');
+      renderLiveRadarHero(activeSessions);
+
+      const kpiActive = document.getElementById('kpiActiveCount');
+      if (kpiActive) kpiActive.textContent = `${activeSessions.length} Active Now`;
+      const kpiSub = document.getElementById('kpiActiveSubtext');
+      if (kpiSub) kpiSub.textContent = activeSessions.length > 0 ? 'Live lecture in progress' : 'No active streams right now';
+
+      renderTodaySchedule(ttRes, activeSessions);
+      renderVaultTable(recordingsRes.recordings || []);
+
+    } catch (err) {
+      console.warn('Lobby error:', err);
+    }
+  }
+
+  /* ═══════════════════════════════════════════════
+     HERO: LIVE RIGHT NOW RADAR
+  ═══════════════════════════════════════════════ */
+  function renderLiveRadarHero(activeSessions) {
+    const container = document.getElementById('liveNowHeroContainer');
+    if (!container) return;
+
+    if (!activeSessions || activeSessions.length === 0) {
+      container.innerHTML = '';
+      return;
+    }
+
+    const firstActive = activeSessions[0];
+    const teacher = firstActive.facultyId?.name || 'Professor';
+    const subjName = firstActive.subjectId?.name || 'Academic Lecture';
+    const topic = firstActive.title;
+    const started = firstActive.startedAt ? new Date(firstActive.startedAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : 'Just now';
+
+    container.innerHTML = `
+      <div class="card live-radar p-6 bg-gradient-to-r from-sky-900 via-sky-800 to-indigo-900 text-white border-none shadow-xl rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div class="flex items-start gap-4">
+          <div class="w-14 h-14 rounded-2xl bg-sky-500/30 border border-sky-400/40 text-sky-200 flex items-center justify-center text-2xl">
+            <i class="fas fa-satellite-dish animate-pulse"></i>
+          </div>
+          <div>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/20 border border-red-500/40 text-red-300 text-xs font-bold mb-2">
+              <span class="w-2 h-2 rounded-full bg-red-400 animate-ping"></span>
+              <span>BROADCASTING LIVE RIGHT NOW</span>
+            </div>
+            <h2 class="text-xl font-bold text-white mb-1">${escapeHTML(topic)}</h2>
+            <div class="text-xs text-sky-200 flex flex-wrap items-center gap-3">
+              <span><i class="fas fa-book mr-1 text-sky-400"></i> ${escapeHTML(subjName)}</span>
+              <span>•</span>
+              <span><i class="fas fa-user-tie mr-1 text-sky-400"></i> ${escapeHTML(teacher)}</span>
+              <span>•</span>
+              <span><i class="fas fa-clock mr-1 text-sky-400"></i> Started at ${started}</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3 self-start md:self-center">
+          <button class="btn btn-primary bg-sky-500 hover:bg-sky-400 text-white font-bold py-3 px-6 text-sm border-none shadow-lg shadow-sky-500/30" onclick="joinSessionById('${firstActive._id}')">
+            <i class="fas fa-sign-in-alt mr-2"></i> Join Live Studio
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  function renderTodaySchedule(ttRes, activeSessions) {
+    const list = document.getElementById('todayLectureList');
+    if (!list) return;
+
+    let slots = ttRes.queue || ttRes.todaySlots || ttRes.timetable || [];
+    if (ttRes.timetable && !ttRes.todaySlots) {
+      const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const todayName = days[new Date().getDay()];
+      slots = (ttRes.timetable || []).filter(s => s.dayOfWeek === todayName);
+    }
+
+    const todayKpi = document.getElementById('kpiTodayCount');
+    if (todayKpi) todayKpi.textContent = `${slots.length} Lectures`;
+
+    if (slots.length === 0) {
+      list.innerHTML = `
+        <div class="text-center py-8 text-slate-400 text-xs">
+          <i class="fas fa-calendar-check text-2xl mb-2 text-slate-300 block"></i>
+          No lectures scheduled for today on your timetable.
+        </div>`;
+      return;
+    }
+
+    list.innerHTML = slots.map(slot => {
+      const subjId = slot.subjectId?._id || slot.subjectId;
+      const subjName = slot.subjectId?.name || slot.subject || 'Lecture';
+      const time = slot.startTime ? `${slot.startTime} - ${slot.endTime}` : 'Scheduled';
+      const activeMatch = activeSessions.find(s => String(s.subjectId?._id || s.subjectId) === String(subjId));
+
+      return `
+        <div class="p-3 rounded-xl border ${activeMatch ? 'border-sky-300 bg-sky-50/50' : 'border-slate-200 bg-white'} flex items-center justify-between gap-3 text-xs">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg ${activeMatch ? 'bg-sky-100 text-sky-600' : 'bg-slate-100 text-slate-600'} flex items-center justify-center font-bold">
+              ${activeMatch ? '<i class="fas fa-satellite-dish animate-pulse"></i>' : '<i class="fas fa-clock"></i>'}
+            </div>
+            <div>
+              <div class="font-bold text-slate-800 text-xs">${escapeHTML(subjName)}</div>
+              <div class="text-[11px] text-slate-500">${escapeHTML(time)} • Room ${escapeHTML(slot.room || 'Virtual')}</div>
+            </div>
+          </div>
+          <div>
+            ${activeMatch 
+              ? `<button class="btn btn-xs btn-primary font-bold text-[11px]" onclick="joinSessionById('${activeMatch._id}')"><i class="fas fa-sign-in-alt mr-1"></i> Join Now</button>`
+              : `<span class="badge badge-secondary text-[10px]">Waiting for Host</span>`
+            }
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function renderVaultTable(recordings) {
+    const tbody = document.getElementById('studentVaultTableBody');
+    if (!tbody) return;
+
+    const vaultKpi = document.getElementById('kpiVaultCount');
+    if (vaultKpi) vaultKpi.textContent = `${recordings.length} Archives`;
+
+    if (!recordings || recordings.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center py-6 text-slate-400 text-xs">No lecture recordings or study materials available yet.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = recordings.map(rec => {
+      const date = rec.startedAt ? new Date(rec.startedAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+      const duration = rec.recordingDuration || (rec.endedAt && rec.startedAt ? Math.round((new Date(rec.endedAt) - new Date(rec.startedAt)) / 60000) : 45);
+
+      return `
+        <tr class="hover:bg-slate-50 text-xs">
+          <td>
+            <div class="font-bold text-slate-900">${escapeHTML(rec.title)}</div>
+            <div class="text-slate-500 text-[11px]">${escapeHTML(rec.subjectId?.name || 'Subject')} (${escapeHTML(rec.subjectId?.code || '')})</div>
+          </td>
+          <td>${escapeHTML(rec.facultyId?.name || 'Professor')}</td>
+          <td>${date}</td>
+          <td>${duration} mins</td>
+          <td>
+            ${rec.recordingUrl 
+              ? `<a href="${escapeHTML(rec.recordingUrl)}" target="_blank" class="text-purple-600 hover:underline font-bold text-xs"><i class="fas fa-play-circle mr-1"></i> Watch Video</a>`
+              : `<span class="text-slate-400 text-xs">Processing</span>`
+            }
+          </td>
+          <td>
+            <div class="flex items-center gap-1.5 flex-wrap">
+              ${rec.materials && rec.materials.length > 0 
+                ? rec.materials.map(m => `<a href="${escapeHTML(m.url)}" target="_blank" class="badge badge-info text-[10px] hover:underline"><i class="fas fa-download mr-1"></i> ${escapeHTML(m.title)}</a>`).join('')
+                : '<span class="text-slate-400 text-xs">—</span>'
+              }
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  /* ═══════════════════════════════════════════════
+     JOIN LIVE CLASSROOM (API & Jitsi Stream)
+  ═══════════════════════════════════════════════ */
+  async function joinSessionById(sessionId) {
+    try {
+      const joinRes = await window.api.request(`/live-classes/${sessionId}/join`, { method: 'POST' });
+      const detailRes = await window.api.request(`/live-classes/${sessionId}`);
+
+      if (detailRes.session) {
+        launchStudentClass(detailRes.session);
+      }
+    } catch (err) {
+      showToast(err.message || 'Failed to join session', 'error');
+    }
+  }
+
+  function handleAutoJoinParam(joinCode) {
+    window.api.request('/live-classes', { silent: true }).then(res => {
+      const match = (res.sessions || []).find(s => s.roomName === joinCode || s._id === joinCode);
+      if (match) {
+        joinSessionById(match._id);
+      } else {
+        document.getElementById('manualRoomId').value = joinCode;
+      }
+    }).catch(() => {});
+  }
+
+  function joinManualRoom() {
+    const raw = document.getElementById('manualRoomId').value.trim();
+    if (!raw) return showToast('Please enter a valid room ID or link', 'error');
+
+    let roomName = raw;
+    if (raw.includes('join=')) {
+      const url = new URL(raw, window.location.origin);
+      roomName = url.searchParams.get('join') || raw;
+    }
+
+    window.api.request('/live-classes', { silent: true }).then(res => {
+      const match = (res.sessions || []).find(s => s.roomName === roomName || s._id === roomName);
+      if (match) {
+        joinSessionById(match._id);
+      } else {
+        // Direct launch with placeholder session
+        launchStudentClass({
+          _id: 'adhoc',
+          title: 'Live Classroom Session',
+          roomName: roomName,
+          facultyId: { name: 'Professor' },
+        });
+      }
+    }).catch(() => {
+      launchStudentClass({
+        _id: 'adhoc',
+        title: 'Live Classroom Session',
+        roomName: roomName,
+        facultyId: { name: 'Professor' },
+      });
+    });
+  }
+
+  function launchStudentClass(session) {
+    currentSession = session;
+    activeSessionId = session._id;
+    joinTimestamp = new Date();
+
+    document.getElementById('join-screen').style.display = 'none';
+    document.getElementById('active-call').style.display = 'block';
+
+    document.getElementById('activeLectureTitle').textContent = session.title;
+    document.getElementById('activeTeacherName').textContent = session.facultyId?.name || 'Professor';
+
+    // Start Attendance stopwatch
+    startStudentAttendanceTimer();
+
+    // Init Jitsi / Fallback
+    initStudentStream(session.roomName, session.title);
+
+    // Load Notes from LocalStorage
+    loadSavedNotes(session._id);
+
+    // Poll for chat, whiteboard, poll
+    pollSessionDetails();
+    if (pollInterval) clearInterval(pollInterval);
+    pollInterval = setInterval(pollSessionDetails, 5000);
+  }
+
+  function initStudentStream(roomName, topic) {
+    const container = document.getElementById('meet-container');
+    const loading = document.getElementById('loading-meet');
+    const fallback = document.getElementById('fallbackStage');
+
+    if (typeof JitsiMeetExternalAPI === 'undefined') {
+      console.warn('Jitsi script not available. Showing student interactive stage.');
+      loading.style.display = 'none';
+      fallback.classList.remove('hidden');
+      document.getElementById('fallbackTopic').textContent = topic;
+      return;
+    }
+
+    setTimeout(() => {
+      try {
+        const domain = 'meet.jit.si';
+        const options = {
+          roomName: roomName,
+          width: '100%',
+          height: '100%',
+          parentNode: container,
+          userInfo: {
+            displayName: user?.name ? `${user.name} (${user.rollNo || 'Student'})` : 'Student',
+            role: 'participant',
+          },
+          configOverwrite: {
+            disableDeepLinking: true,
+            prejoinPageEnabled: false,
+            startWithAudioMuted: true, // students start muted
+            startWithVideoMuted: false,
+          },
+          interfaceConfigOverwrite: {
+            TOOLBAR_BUTTONS: [
+              'microphone', 'camera', 'chat', 'raisehand', 'fullscreen', 'tileview',
+            ],
+            SHOW_CHROME_EXTENSION_BANNER: false,
+            BRAND_WATERMARK_LINK: '',
+            SHOW_JITSI_WATERMARK: false,
+            DEFAULT_BACKGROUND: '#0B0F19',
+          },
+        };
+
+        meetApi = new JitsiMeetExternalAPI(domain, options);
+        loading.style.display = 'none';
+
+        meetApi.addEventListener('videoConferenceLeft', () => {
+          leaveStudentCall();
+        });
+
+      } catch (err) {
+        console.error('Jitsi error:', err);
+        loading.style.display = 'none';
+        fallback.classList.remove('hidden');
+      }
+    }, 800);
+  }
+
+  function startStudentAttendanceTimer() {
+    if (attendanceInterval) clearInterval(attendanceInterval);
+    attendanceInterval = setInterval(() => {
+      const now = new Date();
+      const diffSec = Math.floor((now - joinTimestamp) / 1000);
+      const mins = Math.floor(diffSec / 60);
+      const secs = String(diffSec % 60).padStart(2, '0');
+
+      const timerEl = document.getElementById('studentAttendanceTimer');
+      if (timerEl) timerEl.textContent = `Connected: ${mins}:${secs}`;
+
+      // Check 10 min qualification threshold
+      const statusEl = document.getElementById('attendanceSyncStatusText');
+      if (statusEl) {
+        if (mins >= 10) {
+          statusEl.innerHTML = `<span class="text-emerald-600 font-bold"><i class="fas fa-check-circle mr-1"></i> Attendance Eligible: Met ${mins}m / 10m threshold</span>`;
+        } else {
+          statusEl.innerHTML = `Attendance Progress: ${mins}m connected (Minimum 10m required for Present)`;
+        }
+      }
+    }, 1000);
+  }
+
+  /* ═══════════════════════════════════════════════
+     STUDENT REALTIME POLLING (Whiteboard, Chat, Poll)
+  ═══════════════════════════════════════════════ */
+  async function pollSessionDetails() {
+    if (!activeSessionId || activeSessionId === 'adhoc') return;
+
+    try {
+      const res = await window.api.request(`/live-classes/${activeSessionId}`, { silent: true });
+      if (!res.session) return;
+      const session = res.session;
+
+      renderChatStream(session.chatMessages || []);
+      updateWhiteboardMirror(session.whiteboardData);
+      renderStudentPoll(session.activePoll);
+
+    } catch (err) {
+      console.warn('Student poll error:', err);
+    }
+  }
+
+  function updateWhiteboardMirror(dataUrl) {
+    const placeholder = document.getElementById('whiteboardPlaceholder');
+    const img = document.getElementById('whiteboardImg');
+    if (!img) return;
+
+    if (dataUrl && dataUrl.startsWith('data:image')) {
+      placeholder.classList.add('hidden');
+      img.classList.remove('hidden');
+      img.src = dataUrl;
+    } else {
+      placeholder.classList.remove('hidden');
+      img.classList.add('hidden');
+    }
+  }
+
+  function downloadWhiteboardPng() {
+    const img = document.getElementById('whiteboardImg');
+    if (!img || !img.src || img.classList.contains('hidden')) {
+      return showToast('No whiteboard snapshot available to download', 'info');
+    }
+    const a = document.createElement('a');
+    a.href = img.src;
+    a.download = `whiteboard_${Date.now()}.png`;
+    a.click();
+    showToast('Whiteboard saved as image!', 'success');
+  }
+
+  /* ═══════════════════════════════════════════════
+     STUDENT CHAT & NOTES
+  ═══════════════════════════════════════════════ */
+  async function handleSendChat(e) {
+    e.preventDefault();
+    if (!activeSessionId) return;
+    const input = document.getElementById('chatMessageInput');
+    const msg = input?.value.trim();
+    if (!msg) return;
+
+    try {
+      await window.api.request(`/live-classes/${activeSessionId}/chat`, {
+        method: 'POST',
+        body: JSON.stringify({ message: msg }),
+      });
+      input.value = '';
+      pollSessionDetails();
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  }
+
+  function renderChatStream(messages) {
+    const box = document.getElementById('chatStreamBox');
+    if (!box) return;
+
+    if (!messages || messages.length === 0) {
+      box.innerHTML = '<div class="text-center py-6 text-slate-400 text-xs">No chat messages yet.</div>';
+      return;
+    }
+
+    box.innerHTML = messages.map(m => {
+      const isTeacher = m.role === 'faculty' || m.role === 'collegeAdmin';
+      const isMe = String(m.senderId) === String(user?._id);
+      let bubbleClass = 'chat-bubble student-peer';
+      if (isTeacher) bubbleClass = 'chat-bubble teacher';
+      else if (isMe) bubbleClass = 'chat-bubble student-me';
+
+      const time = m.timestamp ? new Date(m.timestamp).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : '';
+
+      return `
+        <div class="${bubbleClass}">
+          <div class="flex items-center justify-between gap-2 mb-0.5 text-[10px] ${isTeacher ? 'text-emerald-800 font-bold' : isMe ? 'text-sky-800 font-bold' : 'text-slate-600 font-semibold'}">
+            <span>${escapeHTML(m.senderName)} ${isTeacher ? '(Host / Faculty)' : isMe ? '(You)' : ''}</span>
+            <span class="text-slate-400 font-normal">${time}</span>
+          </div>
+          <div>${escapeHTML(m.message)}</div>
+        </div>
+      `;
+    }).join('');
+
+    box.scrollTop = box.scrollHeight;
+  }
+
+  function loadSavedNotes(sessionId) {
+    const area = document.getElementById('studentNotesArea');
+    if (!area) return;
+    const key = `vishva_notes_${sessionId}`;
+    area.value = localStorage.getItem(key) || '';
+  }
+
+  function autoSaveNotes() {
+    const area = document.getElementById('studentNotesArea');
+    if (!area || !activeSessionId) return;
+    const key = `vishva_notes_${activeSessionId}`;
+    localStorage.setItem(key, area.value);
+
+    const label = document.getElementById('notesSavedLabel');
+    if (label) {
+      label.innerHTML = '<i class="fas fa-check"></i> Auto-saved';
+    }
+  }
+
+  function exportNotesTxt() {
+    const area = document.getElementById('studentNotesArea');
+    const text = area?.value || '';
+    if (!text.trim()) return showToast('No notes written to export', 'info');
+
+    const blob = new Blob([`VishvaERP Live Class Notes\nLecture: ${currentSession?.title || 'Session'}\nDate: ${new Date().toLocaleString()}\n\n${text}`], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `notes_${currentSession?.title || 'class'}.txt`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('Notes exported as text file!', 'success');
+  }
+
+  /* ═══════════════════════════════════════════════
+     STUDENT POLL VOTING
+  ═══════════════════════════════════════════════ */
+  function renderStudentPoll(poll) {
+    const box = document.getElementById('activePollBox');
+    const alertDot = document.getElementById('pollBadgeAlert');
+    if (!box) return;
+
+    if (!poll || !poll.isOpen) {
+      box.innerHTML = '<div class="text-center py-6 text-slate-400 text-xs">No active poll right now.</div>';
+      if (alertDot) alertDot.classList.add('hidden');
+      return;
+    }
+
+    if (alertDot) alertDot.classList.remove('hidden');
+    document.getElementById('studentPollQuestion').textContent = poll.question;
+
+    const hasVoted = (poll.voters || []).some(vId => String(vId) === String(user?._id));
+    const optsContainer = document.getElementById('studentPollOptions');
+    const submitBtn = document.getElementById('btnVoteSubmit');
+
+    if (hasVoted) {
+      document.getElementById('pollStatusLabel').textContent = 'Your vote has been recorded';
+      let totalVotes = 0;
+      (poll.options || []).forEach(o => totalVotes += (o.votes || 0));
+
+      optsContainer.innerHTML = (poll.options || []).map(opt => {
+        const pct = totalVotes > 0 ? Math.round(((opt.votes || 0) / totalVotes) * 100) : 0;
+        return `
+          <div class="mb-2">
+            <div class="flex justify-between font-bold text-slate-700 text-xs mb-0.5">
+              <span>${escapeHTML(opt.text)}</span>
+              <span>${pct}% (${opt.votes || 0})</span>
+            </div>
+            <div class="w-full h-2 rounded-full bg-slate-200 overflow-hidden">
+              <div class="h-full bg-sky-600 rounded-full" style="width: ${pct}%"></div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      if (submitBtn) submitBtn.style.display = 'none';
+    } else {
+      document.getElementById('pollStatusLabel').textContent = 'Vote Open';
+      optsContainer.innerHTML = (poll.options || []).map(opt => `
+        <label class="flex items-center gap-2.5 p-2 rounded-lg border border-slate-200 bg-white hover:bg-sky-50 cursor-pointer text-xs">
+          <input type="radio" name="pollOption" value="${escapeHTML(opt.id)}" class="text-sky-600">
+          <span class="font-medium text-slate-800">${escapeHTML(opt.text)}</span>
+        </label>
+      `).join('');
+
+      if (submitBtn) {
+        submitBtn.style.display = 'block';
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit My Vote';
+      }
+    }
+  }
+
+  async function submitPollVote(e) {
+    e.preventDefault();
+    if (!activeSessionId) return;
+
+    const selected = document.querySelector('input[name="pollOption"]:checked');
+    if (!selected) return showToast('Please pick an option to vote', 'error');
+
+    const optId = selected.value;
+    try {
+      await window.api.request(`/live-classes/${activeSessionId}/poll`, {
+        method: 'POST',
+        body: JSON.stringify({ optionId: optId }),
+      });
+      showToast('Your vote was submitted!', 'success');
+      pollSessionDetails();
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  }
+
+  /* ═══════════════════════════════════════════════
+     RAISE HAND, FULLSCREEN & LEAVE CALL
+  ═══════════════════════════════════════════════ */
+  async function toggleRaiseHand() {
+    if (!activeSessionId) return;
+    try {
+      const res = await window.api.request(`/live-classes/${activeSessionId}/raise-hand`, { method: 'POST' });
+      isHandRaised = res.handRaised;
+
+      const btn = document.getElementById('btnRaiseHand');
+      const label = document.getElementById('raiseHandLabel');
+      if (btn && label) {
+        if (isHandRaised) {
+          btn.style.background = '#EF4444';
+          label.textContent = 'Lower Hand';
+          showToast('Hand raised! Host notified.', 'info');
+        } else {
+          btn.style.background = '#F59E0B';
+          label.textContent = 'Raise Hand';
+          showToast('Hand lowered', 'info');
+        }
+      }
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
   }
 
   function toggleFullscreen() {
-    meetContainer.classList.toggle('fullscreen');
+    const container = document.getElementById('meet-container');
+    if (container) container.classList.toggle('fullscreen');
   }
+
+  async function leaveStudentCall() {
+    if (!confirm('Leave this live class session?')) return;
+
+    try {
+      if (activeSessionId && activeSessionId !== 'adhoc') {
+        await window.api.request(`/live-classes/${activeSessionId}/leave`, { method: 'POST' }).catch(() => {});
+      }
+
+      if (meetApi) {
+        meetApi.dispose();
+        meetApi = null;
+      }
+      if (attendanceInterval) clearInterval(attendanceInterval);
+      if (pollInterval) clearInterval(pollInterval);
+
+      document.getElementById('active-call').style.display = 'none';
+      document.getElementById('join-screen').style.display = 'block';
+
+      // Clear ?join param
+      const url = new URL(window.location);
+      url.search = '';
+      window.history.replaceState({}, document.title, url);
+
+      showToast('Left virtual classroom. Attendance recorded.', 'info');
+      loadStudentLobby();
+
+    } catch (err) {
+      showToast(err.message || 'Error leaving session', 'error');
+    }
+  }
+
+  function switchConsoleTab(tab) {
+    ['chat', 'whiteboard', 'notes', 'poll'].forEach(t => {
+      const btn = document.getElementById(`tab${t.charAt(0).toUpperCase() + t.slice(1)}Btn`);
+      const content = document.getElementById(`tabContent${t.charAt(0).toUpperCase() + t.slice(1)}`);
+      if (btn) btn.classList.toggle('active', t === tab);
+      if (content) content.classList.toggle('hidden', t !== tab);
+    });
+  }
+
+  // Register delegate for live-admin-pages.js
+  window.__initStudentLiveClass = function() {
+    loadStudentLobby();
+  };
 </script>
 <script src="../../live/live-admin-pages.js"></script>
 </body>

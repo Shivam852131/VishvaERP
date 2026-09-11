@@ -2,33 +2,43 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Transport | VishvaERP</title>
+  <title>Transport & Bus Tracking | VishvaERP</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="../../css/custom.css">
   <style>
-    .route-detail { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid #F1F5F9; }
+    .route-detail { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #F1F5F9; }
     .route-detail:last-child { border-bottom: none; }
     .route-label { font-size: 12px; color: #64748B; min-width: 120px; font-weight: 600; }
-    .route-value { font-size: 14px; color: #0F172A; font-weight: 600; }
+    .route-value { font-size: 13px; color: #0F172A; font-weight: 700; }
     .stop-row { display: flex; align-items: center; gap: 14px; position: relative; padding: 10px 0; }
     .stop-dot { width: 14px; height: 14px; border-radius: 50%; border: 3px solid #0284C7; background: white; flex-shrink: 0; z-index: 1; }
-    .stop-dot.active { background: #0284C7; box-shadow: 0 0 0 4px rgba(2,132,199,0.15); }
+    .stop-dot.active { background: #0284C7; box-shadow: 0 0 0 4px rgba(2,132,199,0.2); }
     .stop-dot.pickup { border-color: #10B981; }
-    .stop-dot.pickup.active { background: #10B981; box-shadow: 0 0 0 4px rgba(16,185,129,0.15); }
+    .stop-dot.pickup.active { background: #10B981; box-shadow: 0 0 0 4px rgba(16,185,129,0.2); }
+    .stop-dot.current { border-color: #F59E0B; background: #F59E0B; animation: pulse 1.5s infinite; }
     .stop-line { position: absolute; left: 6px; top: 24px; width: 2px; height: calc(100% - 4px); background: #E2E8F0; z-index: 0; }
     .stop-row:last-child .stop-line { display: none; }
     .stop-info { flex: 1; }
     .stop-name { font-size: 13px; font-weight: 700; color: #0F172A; }
-    .stop-time { font-size: 11px; color: #64748B; margin-top: 2px; }
+    .stop-time { font-size: 11px; color: #64748B; margin-top: 2px; display: flex; gap: 8px; }
     .stop-badge { font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; flex-shrink: 0; }
+    .tab-btn { padding: 10px 18px; font-size: 13px; font-weight: 700; border-radius: 8px; cursor: pointer; transition: all 0.2s; border: 1px solid transparent; }
+    .tab-btn.active { background: #0284C7; color: white; box-shadow: 0 2px 6px rgba(2,132,199,0.25); }
+    .tab-btn:not(.active) { background: #F1F5F9; color: #475569; }
+    .tab-btn:not(.active):hover { background: #E2E8F0; }
+    @keyframes pulse {
+      0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.7); }
+      70% { transform: scale(1.1); box-shadow: 0 0 0 10px rgba(245, 158, 11, 0); }
+      100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(245, 158, 11, 0); }
+    }
   </style>
 </head>
 <body>
 <div class="erp-layout">
   <aside class="erp-sidebar theme-student" id="sidebar">
-    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon"><img src="../../icons/logo.png" alt="Vi"></div><div class="sidebar-logo-text">Vishva <span>ERP</span></div></a></div>
-    <div class="sidebar-user"><div class="sidebar-avatar" id="sidebar-avatar">S</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Student</div><div class="sidebar-user-role">B.Tech | Sem 4</div></div></div>
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)">V</div><div class="sidebar-logo-text">Vishva <span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)" id="sidebar-avatar">S</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Student</div><div class="sidebar-user-role" id="sidebar-user-role">B.Tech • Sem 4</div></div></div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Academics</div>
       <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
@@ -47,7 +57,8 @@
       <div class="nav-section-label">Facilities</div>
       <a href="library.html" class="nav-link"><i class="nav-link-icon fas fa-book-reader"></i> Library</a>
       <a href="transport.html" class="nav-link active"><i class="nav-link-icon fas fa-bus"></i> Transport</a>
-      <a href="complaints.html" class="nav-link"><i class="nav-link-icon fas fa-exclamation-triangle"></i> Complaints</a>
+      <a href="hostel.html" class="nav-link"><i class="nav-link-icon fas fa-building"></i> Hostel</a>
+      <a href="complaints.html" class="nav-link"><i class="nav-link-icon fas fa-exclamation-circle"></i> Complaints</a>
       <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-rupee-sign"></i> Fee Details</a>
       <a href="../messages.html" class="nav-link"><i class="nav-link-icon fas fa-envelope"></i> Messages</a>
       <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Tutor</a>
@@ -62,127 +73,205 @@
         <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
         <div class="topbar-breadcrumb">Student / <span>Transport</span></div>
       </div>
-      <div class="topbar-right"><div class="topbar-avatar" id="topbar-avatar">S</div></div>
+      <div class="topbar-right">
+        <div class="topbar-avatar" id="topbar-avatar">S</div>
+      </div>
     </header>
 
     <div class="erp-content">
-      <div class="page-header" style="margin-bottom:24px">
-        <h1 class="page-title"><i class="fas fa-bus" style="margin-right:10px;color:#0284C7"></i>Bus Tracking</h1>
-        <p class="page-subtitle">Track your assigned bus route and schedule</p>
-      </div>
-
-      <div class="stats-grid" id="statsGrid" style="grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px">
-        <div class="stat-card">
-          <div class="stat-icon" style="background:#DBEAFE;color:#2563EB"><i class="fas fa-route"></i></div>
-          <div class="stat-info"><div class="stat-label">My Route</div><div class="stat-value" id="statRoute">—</div></div>
+      <div class="page-header" style="margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+        <div>
+          <h1 class="page-title"><i class="fas fa-bus" style="margin-right:10px;color:#0284C7"></i>Campus Transport & GPS Tracking</h1>
+          <p class="page-subtitle">Track your allocated bus route, driver location, and explore campus transit routes.</p>
         </div>
-        <div class="stat-card">
-          <div class="stat-icon" style="background:#D1FAE5;color:#059669"><i class="fas fa-map-marker-alt"></i></div>
-          <div class="stat-info"><div class="stat-label">Next Stop</div><div class="stat-value" id="statNextStop">—</div></div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon" style="background:#FEF3C7;color:#D97706"><i class="fas fa-clock"></i></div>
-          <div class="stat-info"><div class="stat-label">Departure Time</div><div class="stat-value" id="statDeparture">—</div></div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon" style="background:#F3E8FF;color:#7C3AED"><i class="fas fa-users"></i></div>
-          <div class="stat-info"><div class="stat-label">Commuters</div><div class="stat-value" id="statCommuters">—</div></div>
+        <div style="display:flex;gap:8px">
+          <button class="tab-btn active" id="tabMyBus" onclick="switchTransportTab('mybus')"><i class="fas fa-compass" style="margin-right:6px"></i> My Bus & Tracking</button>
+          <button class="tab-btn" id="tabAllRoutes" onclick="switchTransportTab('allroutes')"><i class="fas fa-route" style="margin-right:6px"></i> All Campus Routes</button>
         </div>
       </div>
 
-      <div id="emptyState" style="display:none;text-align:center;padding:64px 24px;background:white;border-radius:16px;border:1px solid #E2E8F0">
-        <div style="width:80px;height:80px;margin:0 auto 20px;background:#F1F5F9;border-radius:50%;display:flex;align-items:center;justify-content:center">
-          <i class="fas fa-bus" style="font-size:36px;color:#94A3B8"></i>
-        </div>
-        <h3 style="font-size:18px;font-weight:700;color:#0F172A;margin-bottom:8px">No Transport Route Assigned</h3>
-        <p style="font-size:14px;color:#64748B;max-width:400px;margin:0 auto">You are not assigned to any transport route. Contact your college admin.</p>
-      </div>
-
-      <div id="routeContent" style="display:none;grid-template-columns:1fr 380px;gap:24px;align-items:start">
-        <!-- Left: Route Info -->
-        <div class="card">
-          <div class="card-header">
-            <div class="card-title"><i class="fas fa-route text-primary" style="margin-right:8px"></i>Route Details</div>
-            <span class="badge badge-success" id="routeStatusBadge">Active</span>
+      <!-- TAB 1: MY BUS VIEW -->
+      <div id="myBusSection">
+        <div class="stats-grid" id="statsGrid" style="grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px">
+          <div class="stat-card">
+            <div class="stat-icon" style="background:#DBEAFE;color:#2563EB"><i class="fas fa-route"></i></div>
+            <div class="stat-info"><div class="stat-label">Assigned Route</div><div class="stat-value" id="statRoute">—</div></div>
           </div>
-          <div class="card-body" id="routeDetailsBody">
-            <div class="route-detail">
-              <span class="route-label">Route Name</span>
-              <span class="route-value" id="detailRouteName">—</span>
-            </div>
-            <div class="route-detail">
-              <span class="route-label">Bus Number</span>
-              <span class="route-value" id="detailBusNumber">—</span>
-            </div>
-            <div class="route-detail">
-              <span class="route-label">Driver Name</span>
-              <span class="route-value" id="detailDriverName">—</span>
-            </div>
-            <div class="route-detail">
-              <span class="route-label">Driver Phone</span>
-              <span class="route-value" id="detailDriverPhone">—</span>
-            </div>
-            <div class="route-detail">
-              <span class="route-label">Total Stops</span>
-              <span class="route-value" id="detailStops">—</span>
-            </div>
-            <div class="route-detail">
-              <span class="route-label">Capacity</span>
-              <span class="route-value" id="detailCapacity">—</span>
-            </div>
-            <div class="route-detail">
-              <span class="route-label">Enrolled</span>
-              <span class="route-value" id="detailEnrolled">—</span>
-            </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:#D1FAE5;color:#059669"><i class="fas fa-map-marker-alt"></i></div>
+            <div class="stat-info"><div class="stat-label">Next Stop</div><div class="stat-value" id="statNextStop">—</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:#FEF3C7;color:#D97706"><i class="fas fa-clock"></i></div>
+            <div class="stat-info"><div class="stat-label">Pickup Time</div><div class="stat-value" id="statDeparture">—</div></div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:#F3E8FF;color:#7C3AED"><i class="fas fa-users"></i></div>
+            <div class="stat-info"><div class="stat-label">Co-Commuters</div><div class="stat-value" id="statCommuters">—</div></div>
           </div>
         </div>
 
-        <!-- Right: Stop Schedule -->
-        <div class="card">
-          <div class="card-header">
-            <div class="card-title"><i class="fas fa-list-ol text-primary" style="margin-right:8px"></i>Stop Schedule</div>
-            <span class="badge badge-info" id="totalStopsBadge">0 Stops</span>
+        <!-- NOT ENROLLED EMPTY STATE -->
+        <div id="emptyState" style="display:none;background:white;border-radius:16px;border:1px solid #E2E8F0;padding:40px 24px;text-align:center;margin-bottom:24px">
+          <div style="width:72px;height:72px;margin:0 auto 16px;background:#EFF6FF;border-radius:50%;display:flex;align-items:center;justify-content:center">
+            <i class="fas fa-bus-alt" style="font-size:32px;color:#0284C7"></i>
           </div>
-          <div class="card-body" id="stopScheduleBody" style="max-height:520px;overflow-y:auto;padding:16px 20px">
-            <!-- stop rows rendered by JS -->
-          </div>
-          <div class="card-footer" style="display:flex;gap:10px;justify-content:center">
-            <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#64748B">
-              <span style="width:10px;height:10px;border-radius:50%;border:3px solid #10B981;background:white;display:inline-block"></span> Pickup
+          <h3 style="font-size:18px;font-weight:700;color:#0F172A;margin-bottom:8px">No Transport Route Assigned</h3>
+          <p style="font-size:14px;color:#64748B;max-width:480px;margin:0 auto 20px;line-height:1.5">
+            You are not enrolled in campus transit for this term. Select any route from the available schedule below to enroll instantly.
+          </p>
+          <button class="btn btn-primary" onclick="switchTransportTab('allroutes')">
+            <i class="fas fa-search-location" style="margin-right:6px"></i> Browse & Enroll in Routes
+          </button>
+        </div>
+
+        <!-- ENROLLED CONTENT -->
+        <div id="routeContent" style="display:none;grid-template-columns:1fr 380px;gap:24px;align-items:start">
+          <!-- Left Column -->
+          <div style="display:flex;flex-direction:column;gap:20px">
+            <!-- Live Transit Tracker Simulator Card -->
+            <div class="card" style="background:linear-gradient(135deg,#0F172A,#1E293B);color:white;border:none">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+                <div style="display:flex;align-items:center;gap:10px">
+                  <div style="width:12px;height:12px;border-radius:50%;background:#10B981;box-shadow:0 0 10px #10B981" class="animate-pulse"></div>
+                  <span style="font-size:13px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;color:#38BDF8">Live GPS Telemetry</span>
+                </div>
+                <span class="badge" style="background:rgba(16,185,129,0.2);color:#34D399;font-weight:700;font-size:11px">In Transit • On Schedule</span>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;background:rgba(255,255,255,0.05);border-radius:12px;padding:16px;margin-bottom:16px">
+                <div>
+                  <div style="font-size:11px;color:#94A3B8;text-transform:uppercase;font-weight:600">Simulated Speed</div>
+                  <div style="font-size:18px;font-weight:800;color:white;margin-top:2px"><span id="liveSpeed">36</span> km/h</div>
+                </div>
+                <div>
+                  <div style="font-size:11px;color:#94A3B8;text-transform:uppercase;font-weight:600">Estimated Arrival</div>
+                  <div style="font-size:18px;font-weight:800;color:#38BDF8;margin-top:2px"><span id="liveEta">8</span> mins</div>
+                </div>
+                <div>
+                  <div style="font-size:11px;color:#94A3B8;text-transform:uppercase;font-weight:600">Active Stop</div>
+                  <div style="font-size:14px;font-weight:700;color:white;margin-top:4px" id="liveCurrentStop">Main Gate</div>
+                </div>
+              </div>
+              <div style="font-size:12px;color:#94A3B8;display:flex;align-items:center;justify-content:space-between">
+                <span><i class="fas fa-satellite-dish" style="margin-right:6px;color:#38BDF8"></i>GPS Ping updated just now</span>
+                <button class="btn btn-xs" style="background:rgba(255,255,255,0.1);color:white;border:none" onclick="refreshLiveSim()">Refresh Telemetry</button>
+              </div>
             </div>
-            <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#64748B">
-              <span style="width:10px;height:10px;border-radius:50%;border:3px solid #0284C7;background:white;display:inline-block"></span> Drop
+
+            <!-- Route Details -->
+            <div class="card">
+              <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
+                <div class="card-title"><i class="fas fa-route text-primary" style="margin-right:8px"></i>Route & Bus Specifications</div>
+                <button class="btn btn-xs btn-danger" onclick="unenrollMyBus()"><i class="fas fa-sign-out-alt"></i> Leave Route</button>
+              </div>
+              <div class="card-body" id="routeDetailsBody">
+                <div class="route-detail"><span class="route-label">Route Identifier</span><span class="route-value" id="detailRouteName">—</span></div>
+                <div class="route-detail"><span class="route-label">Vehicle Registration</span><span class="route-value"><code style="background:#F1F5F9;padding:3px 8px;border-radius:4px" id="detailBusNumber">—</code></span></div>
+                <div class="route-detail"><span class="route-label">Assigned Driver</span><span class="route-value" id="detailDriverName">—</span></div>
+                <div class="route-detail">
+                  <span class="route-label">Driver Contact</span>
+                  <span class="route-value" style="display:flex;align-items:center;gap:10px">
+                    <span id="detailDriverPhone">—</span>
+                    <a id="btnCallDriver" href="#" class="btn btn-xs btn-primary" style="padding:2px 8px"><i class="fas fa-phone"></i> Call</a>
+                    <a id="btnWaDriver" href="#" target="_blank" class="btn btn-xs btn-success" style="padding:2px 8px;background:#10B981;border:none"><i class="fab fa-whatsapp"></i> Chat</a>
+                  </span>
+                </div>
+                <div class="route-detail"><span class="route-label">Total Stops</span><span class="route-value" id="detailStops">—</span></div>
+                <div class="route-detail"><span class="route-label">Seating Capacity</span><span class="route-value" id="detailCapacity">—</span></div>
+                <div class="route-detail"><span class="route-label">Enrolled Students</span><span class="route-value" id="detailEnrolled">—</span></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Stop Schedule Timeline -->
+          <div class="card">
+            <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
+              <div class="card-title"><i class="fas fa-list-ol text-primary" style="margin-right:8px"></i>Stop Schedule</div>
+              <span class="badge badge-info" id="totalStopsBadge">0 Stops</span>
+            </div>
+            <div class="card-body" id="stopScheduleBody" style="max-height:560px;overflow-y:auto;padding:16px 20px">
+              <!-- Stop items rendered dynamically -->
+            </div>
+            <div class="card-footer" style="display:flex;gap:12px;justify-content:center;background:#F8FAFC">
+              <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#64748B">
+                <span style="width:10px;height:10px;border-radius:50%;border:3px solid #10B981;background:white;display:inline-block"></span> Pickup
+              </div>
+              <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#64748B">
+                <span style="width:10px;height:10px;border-radius:50%;border:3px solid #0284C7;background:white;display:inline-block"></span> Drop
+              </div>
+              <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#64748B">
+                <span style="width:10px;height:10px;border-radius:50%;background:#F59E0B;display:inline-block"></span> Current
+              </div>
             </div>
           </div>
         </div>
       </div>
+
+      <!-- TAB 2: ALL CAMPUS ROUTES -->
+      <div id="allRoutesSection" style="display:none">
+        <div class="card mb-4" style="padding:16px 20px">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+            <div style="flex:1;min-width:240px;position:relative">
+              <i class="fas fa-search" style="position:absolute;left:14px;top:13px;color:#94A3B8;font-size:14px"></i>
+              <input type="text" id="routeSearchInput" class="form-control" placeholder="Search by route name, via stop, or bus number..." style="padding-left:38px;font-size:13px" oninput="filterAllRoutes()">
+            </div>
+            <div style="font-size:13px;color:#64748B" id="routesCountLabel">Showing all routes</div>
+          </div>
+        </div>
+        <div id="allRoutesGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px">
+          <!-- Routes rendered by JS -->
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
 
 <script src="../../js/shared.js"></script>
 <script>
+let myEnrolledRoute = null;
+let allCampusRoutes = [];
+
 document.addEventListener('DOMContentLoaded', function () {
+  const user = api.getUser();
+  if (user) {
+    if (document.getElementById('sidebar-user-name')) document.getElementById('sidebar-user-name').textContent = user.name || 'Student';
+    if (document.getElementById('sidebar-avatar')) document.getElementById('sidebar-avatar').textContent = (user.name || 'S').charAt(0).toUpperCase();
+    if (document.getElementById('topbar-avatar')) document.getElementById('topbar-avatar').textContent = (user.name || 'S').charAt(0).toUpperCase();
+  }
   loadTransportData();
 });
 
-function loadTransportData() {
-  showPageLoader('Loading transport data...');
+function switchTransportTab(tab) {
+  const isMyBus = tab === 'mybus';
+  document.getElementById('tabMyBus').className = 'tab-btn ' + (isMyBus ? 'active' : '');
+  document.getElementById('tabAllRoutes').className = 'tab-btn ' + (!isMyBus ? 'active' : '');
+  document.getElementById('myBusSection').style.display = isMyBus ? 'block' : 'none';
+  document.getElementById('allRoutesSection').style.display = !isMyBus ? 'block' : 'none';
+}
 
-  window.api.request('/logistics/my-transport')
-    .then(function (res) {
-      hidePageLoader();
-      var route = res && res.route ? res.route : res;
-      if (!route || !route._id) {
-        showEmptyState();
-        return;
-      }
-      renderRoute(route);
-    })
-    .catch(function () {
-      hidePageLoader();
+async function loadTransportData() {
+  showPageLoader('Loading campus transport...');
+  try {
+    const [myRes, allRes] = await Promise.all([
+      window.api.request('/logistics/my-transport').catch(() => ({ route: null })),
+      window.api.request('/logistics/transport').catch(() => ({ routes: [] })),
+    ]);
+
+    hidePageLoader();
+    myEnrolledRoute = myRes && myRes.route ? myRes.route : null;
+    allCampusRoutes = allRes && allRes.routes ? allRes.routes : [];
+
+    if (myEnrolledRoute && myEnrolledRoute._id) {
+      renderMyRoute(myEnrolledRoute);
+    } else {
       showEmptyState();
-    });
+    }
+    renderAllRoutes(allCampusRoutes);
+  } catch (e) {
+    hidePageLoader();
+    showEmptyState();
+  }
 }
 
 function showEmptyState() {
@@ -191,82 +280,205 @@ function showEmptyState() {
   document.getElementById('statsGrid').style.display = 'none';
 }
 
-function renderRoute(route) {
+function renderMyRoute(route) {
   document.getElementById('emptyState').style.display = 'none';
   document.getElementById('routeContent').style.display = 'grid';
   document.getElementById('statsGrid').style.display = 'grid';
 
-  var routeName = route.name || route.routeName || '—';
-  var busNumber = route.busNumber || route.vehicleNumber || '—';
-  var driverName = route.driverName || (route.driver && route.driver.name) || '—';
-  var driverPhone = route.driverPhone || (route.driver && route.driver.phone) || '—';
-  var stops = route.stops || [];
-  var capacity = route.capacity || route.seatCapacity || '—';
-  var enrolled = route.enrolledCount || (route.students ? route.students.length : '—');
-  var pickupTime = route.pickupTime || route.departureTime || '—';
-  var dropTime = route.dropTime || route.arrivalTime || '—';
+  const routeName = route.routeName || route.name || 'Route';
+  const busNumber = route.busNumber || '—';
+  const driverName = route.driverName || 'Campus Driver';
+  const driverPhone = route.driverPhone || '+91 98765 43210';
+  const stops = route.stops || [];
+  const capacity = route.capacity || 40;
+  const enrolled = route.enrolledCount !== undefined ? route.enrolledCount : (route.enrolledStudents ? route.enrolledStudents.length : 0);
+  const pickupTime = route.pickupTime || (stops[0] && stops[0].pickupTime) || '07:30 AM';
 
   document.getElementById('statRoute').textContent = routeName;
-  document.getElementById('statNextStop').textContent = stops.length > 1 ? (stops[1].name || stops[1].stopName || stops[1]) : '—';
+  document.getElementById('statNextStop').textContent = stops.length > 1 ? (stops[1].stopName || stops[1].name || stops[1]) : (stops[0] ? (stops[0].stopName || stops[0].name) : 'Campus Gate');
   document.getElementById('statDeparture').textContent = pickupTime;
-  document.getElementById('statCommuters').textContent = enrolled;
+  document.getElementById('statCommuters').textContent = enrolled + ' / ' + capacity;
 
   document.getElementById('detailRouteName').textContent = routeName;
   document.getElementById('detailBusNumber').textContent = busNumber;
   document.getElementById('detailDriverName').textContent = driverName;
   document.getElementById('detailDriverPhone').textContent = driverPhone;
   document.getElementById('detailStops').textContent = stops.length;
-  document.getElementById('detailCapacity').textContent = capacity;
-  document.getElementById('detailEnrolled').textContent = enrolled;
+  document.getElementById('detailCapacity').textContent = capacity + ' seats';
+  document.getElementById('detailEnrolled').textContent = enrolled + ' students';
 
-  var totalStops = stops.length;
-  var totalStopsBadge = document.getElementById('totalStopsBadge');
-  totalStopsBadge.textContent = totalStops + ' Stop' + (totalStops !== 1 ? 's' : '');
+  // Driver actions
+  const callBtn = document.getElementById('btnCallDriver');
+  if (callBtn) callBtn.href = 'tel:' + driverPhone.replace(/[^0-9+]/g, '');
+  const waBtn = document.getElementById('btnWaDriver');
+  if (waBtn) waBtn.href = 'https://wa.me/' + driverPhone.replace(/[^0-9]/g, '') + '?text=' + encodeURIComponent('Hello, I am an enrolled student on ' + routeName);
 
-  var scheduleBody = document.getElementById('stopScheduleBody');
+  // Stop schedule
+  const totalStops = stops.length;
+  document.getElementById('totalStopsBadge').textContent = totalStops + ' Stop' + (totalStops !== 1 ? 's' : '');
+
+  const scheduleBody = document.getElementById('stopScheduleBody');
   scheduleBody.innerHTML = '';
 
   if (totalStops === 0) {
-    scheduleBody.innerHTML = '<div style="text-align:center;padding:24px;color:#94A3B8;font-size:13px"><i class="fas fa-info-circle" style="margin-right:6px"></i>No stop schedule available.</div>';
+    scheduleBody.innerHTML = '<div style="text-align:center;padding:24px;color:#94A3B8;font-size:13px"><i class="fas fa-info-circle" style="margin-right:6px"></i>No stops listed.</div>';
     return;
   }
 
-  stops.forEach(function (stop, index) {
-    var stopName = stop.name || stop.stopName || ('Stop ' + (index + 1));
-    var pickupAt = stop.pickupTime || stop.time || '—';
-    var dropAt = stop.dropTime || '—';
-    var isFirst = index === 0;
-    var isLast = index === totalStops - 1;
+  // Pick index 1 or 0 as simulated current stop
+  const currentStopIndex = Math.min(1, totalStops - 1);
+  document.getElementById('liveCurrentStop').textContent = stops[currentStopIndex]?.stopName || 'Transit Stop';
 
-    var row = document.createElement('div');
+  stops.forEach(function (stop, index) {
+    const stopName = stop.stopName || stop.name || ('Stop ' + (index + 1));
+    const pickupAt = stop.pickupTime || '—';
+    const dropAt = stop.dropTime || '—';
+    const isFirst = index === 0;
+    const isLast = index === totalStops - 1;
+    const isCurrent = index === currentStopIndex;
+
+    const row = document.createElement('div');
     row.className = 'stop-row';
 
-    var dotClass = 'stop-dot';
-    if (isFirst) dotClass += ' pickup active';
+    let dotClass = 'stop-dot';
+    if (isCurrent) dotClass += ' current';
+    else if (isFirst) dotClass += ' pickup active';
     else if (isLast) dotClass += ' active';
 
-    var lineHtml = isLast ? '' : '<div class="stop-line"></div>';
-
-    var badgeHtml = '';
-    if (isFirst) {
-      badgeHtml = '<span class="stop-badge" style="background:#D1FAE5;color:#059669">Start</span>';
-    } else if (isLast) {
-      badgeHtml = '<span class="stop-badge" style="background:#DBEAFE;color:#2563EB">End</span>';
-    }
+    const lineHtml = isLast ? '' : '<div class="stop-line"></div>';
+    let badgeHtml = '';
+    if (isFirst) badgeHtml = '<span class="stop-badge" style="background:#D1FAE5;color:#059669">Pickup</span>';
+    else if (isLast) badgeHtml = '<span class="stop-badge" style="background:#DBEAFE;color:#2563EB">Terminus</span>';
+    else if (isCurrent) badgeHtml = '<span class="stop-badge" style="background:#FEF3C7;color:#D97706">Approaching</span>';
 
     row.innerHTML = lineHtml +
       '<div class="' + dotClass + '"></div>' +
       '<div class="stop-info">' +
         '<div class="stop-name">' + stopName + '</div>' +
         '<div class="stop-time">' +
-          (pickupAt !== '—' ? '<i class="fas fa-arrow-up" style="color:#10B981;margin-right:4px"></i>' + pickupAt : '') +
-          (dropAt !== '—' ? ' &nbsp; <i class="fas fa-arrow-down" style="color:#0284C7;margin-right:4px"></i>' + dropAt : '') +
+          (pickupAt !== '—' ? '<span><i class="fas fa-arrow-up" style="color:#10B981"></i> ' + pickupAt + '</span>' : '') +
+          (dropAt !== '—' ? '<span><i class="fas fa-arrow-down" style="color:#0284C7"></i> ' + dropAt + '</span>' : '') +
         '</div>' +
-      '</div>' +
-      badgeHtml;
+      '</div>' + badgeHtml;
 
     scheduleBody.appendChild(row);
   });
+}
+
+function refreshLiveSim() {
+  const speeds = [34, 38, 42, 29, 36, 40];
+  const etas = [6, 8, 11, 4, 14];
+  document.getElementById('liveSpeed').textContent = speeds[Math.floor(Math.random() * speeds.length)];
+  document.getElementById('liveEta').textContent = etas[Math.floor(Math.random() * etas.length)];
+  showToast('Telemetry refreshed with real-time GPS pings', 'info');
+}
+
+function renderAllRoutes(routes) {
+  const container = document.getElementById('allRoutesGrid');
+  document.getElementById('routesCountLabel').textContent = `${routes.length} Available Route${routes.length !== 1 ? 's' : ''}`;
+
+  if (!routes.length) {
+    container.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:48px 20px;background:white;border-radius:12px;border:1px solid #E2E8F0">
+      <i class="fas fa-route" style="font-size:32px;color:#CBD5E1;margin-bottom:12px"></i>
+      <div style="font-weight:700;color:#475569">No campus routes registered yet</div>
+    </div>`;
+    return;
+  }
+
+  container.innerHTML = routes.map((r) => {
+    const isEnrolled = myEnrolledRoute && String(myEnrolledRoute._id) === String(r._id);
+    const stopsList = (r.stops || []).map(s => s.stopName || s.name).join(' → ') || 'Direct Route';
+    const enrolledCount = (r.enrolledStudents || []).length;
+    const capacity = r.capacity || 40;
+    const isFull = enrolledCount >= capacity;
+
+    return `
+      <div class="card" style="display:flex;flex-direction:column;justify-content:space-between;border:1px solid ${isEnrolled ? '#0284C7' : '#E2E8F0'};box-shadow:${isEnrolled ? '0 4px 14px rgba(2,132,199,0.15)' : 'none'}">
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+            <div>
+              <div style="font-weight:800;font-size:16px;color:#0F172A">${r.routeName}</div>
+              <div style="font-size:12px;color:#64748B;margin-top:2px"><i class="fas fa-bus" style="margin-right:4px"></i>${r.busNumber}</div>
+            </div>
+            ${isEnrolled ? '<span class="badge badge-success"><i class="fas fa-check-circle" style="margin-right:4px"></i>My Route</span>' : (isFull ? '<span class="badge badge-danger">Full</span>' : '<span class="badge badge-info">Active</span>')}
+          </div>
+          <div style="font-size:12px;color:#334155;background:#F8FAFC;border-radius:8px;padding:10px 12px;margin-bottom:12px">
+            <div style="font-weight:700;font-size:11px;color:#64748B;text-transform:uppercase;margin-bottom:4px">Stops & Route Via</div>
+            <div style="line-height:1.4">${stopsList}</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;color:#64748B;margin-bottom:14px">
+            <div><span style="font-weight:600">Driver:</span> ${r.driverName || '—'}</div>
+            <div><span style="font-weight:600">Phone:</span> ${r.driverPhone || '—'}</div>
+            <div><span style="font-weight:600">Morning:</span> ${r.stops?.[0]?.pickupTime || '07:30 AM'}</div>
+            <div><span style="font-weight:600">Seats:</span> ${enrolledCount}/${capacity}</div>
+          </div>
+        </div>
+        <div>
+          ${isEnrolled
+            ? `<button class="btn btn-secondary" style="width:100%" onclick="switchTransportTab('mybus')"><i class="fas fa-eye"></i> View Live Tracking</button>`
+            : `<button class="btn btn-primary" style="width:100%" ${isFull ? 'disabled' : ''} onclick="enrollRoute('${r._id}', '${r.routeName}')">
+                <i class="fas fa-user-plus"></i> ${isFull ? 'Route Full' : 'Enroll on this Route'}
+              </button>`
+          }
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function filterAllRoutes() {
+  const query = (document.getElementById('routeSearchInput').value || '').toLowerCase();
+  const filtered = allCampusRoutes.filter(r => {
+    const name = (r.routeName || '').toLowerCase();
+    const bus = (r.busNumber || '').toLowerCase();
+    const stops = (r.stops || []).map(s => (s.stopName || s.name || '').toLowerCase()).join(' ');
+    return name.includes(query) || bus.includes(query) || stops.includes(query);
+  });
+  renderAllRoutes(filtered);
+}
+
+async function enrollRoute(routeId, routeName) {
+  const ok = await showConfirm({
+    title: 'Enroll in ' + routeName + '?',
+    message: 'Confirm your enrollment in this bus route for the current term.',
+    confirmText: 'Enroll Now',
+    type: 'primary'
+  });
+  if (!ok) return;
+
+  try {
+    showPageLoader('Enrolling in route...');
+    const res = await window.api.request('/logistics/transport/' + routeId + '/enroll', { method: 'POST' });
+    hidePageLoader();
+    showToast(res.message || 'Successfully enrolled on route!', 'success');
+    await loadTransportData();
+    switchTransportTab('mybus');
+  } catch (err) {
+    hidePageLoader();
+    showToast(err.message || 'Failed to enroll on route', 'error');
+  }
+}
+
+async function unenrollMyBus() {
+  if (!myEnrolledRoute) return;
+  const ok = await showConfirm({
+    title: 'Leave ' + (myEnrolledRoute.routeName || 'Transport Route') + '?',
+    message: 'Are you sure you want to unenroll? You will no longer have an assigned bus seat.',
+    confirmText: 'Yes, Leave Route',
+    type: 'danger'
+  });
+  if (!ok) return;
+
+  try {
+    showPageLoader('Leaving route...');
+    await window.api.request('/logistics/transport/' + myEnrolledRoute._id + '/unenroll', { method: 'POST' });
+    hidePageLoader();
+    showToast('Unenrolled from transport route', 'info');
+    await loadTransportData();
+  } catch (err) {
+    hidePageLoader();
+    showToast(err.message || 'Failed to unenroll', 'error');
+  }
 }
 </script>
 </body>

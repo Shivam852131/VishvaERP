@@ -1,17 +1,108 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Fees — Student | VishvaERP</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Fee Portal & Online Payments — Student | VishvaERP</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="../../css/custom.css">
+  <style>
+    /* ── Fintech Fee Styles ── */
+    .fee-kpi-card {
+      background: white;
+      border: 1px solid #E2E8F0;
+      border-radius: 16px;
+      padding: 20px 24px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+      position: relative;
+      overflow: hidden;
+      transition: all 0.2s ease;
+    }
+    .fee-kpi-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(2, 132, 199, 0.08);
+      border-color: #BAE6FD;
+    }
+    .fee-kpi-badge {
+      position: absolute;
+      right: 16px;
+      top: 16px;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+    .stepper-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      overflow-x: auto;
+      padding: 16px 4px;
+    }
+    .stepper-node {
+      flex: 1;
+      min-width: 180px;
+      background: white;
+      border: 1.5px solid #E2E8F0;
+      border-radius: 12px;
+      padding: 14px 16px;
+      position: relative;
+      transition: all 0.2s;
+    }
+    .stepper-node.is-paid {
+      border-color: #10B981;
+      background: #F0FDF4;
+    }
+    .stepper-node.is-active {
+      border-color: #0284C7;
+      box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+      background: #F0F9FF;
+    }
+    .stepper-node.is-overdue {
+      border-color: #EF4444;
+      background: #FEF2F2;
+    }
+    .payment-method-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border: 2px solid #E2E8F0;
+      border-radius: 12px;
+      background: white;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .payment-method-card:hover {
+      border-color: #0284C7;
+      background: #F0F9FF;
+    }
+    .payment-method-card input[type="radio"]:checked + .method-details {
+      color: #0284C7;
+    }
+    .payment-method-card.selected {
+      border-color: #0284C7;
+      background: #F0F9FF;
+    }
+  </style>
 </head>
 <body>
 <div class="erp-layout">
   <aside class="erp-sidebar theme-student" id="sidebar">
-    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)">V</div><div class="sidebar-logo-text">Vishva <span>ERP</span></div></a></div>
-    <div class="sidebar-user"><div class="sidebar-avatar" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)" id="sidebar-avatar">S</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Student</div><div class="sidebar-user-role">B.Tech CS • Sem 4</div></div></div>
+    <div class="sidebar-header">
+      <a class="sidebar-logo" href="../../index.html">
+        <div class="sidebar-logo-icon" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)">V</div>
+        <div class="sidebar-logo-text">Vishva <span>ERP</span></div>
+      </a>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)" id="sidebar-avatar">S</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name" id="sidebar-user-name">Student</div>
+        <div class="sidebar-user-role">B.Tech CS • Sem 4</div>
+      </div>
+    </div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Overview</div>
       <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
@@ -27,9 +118,8 @@
       <a href="skills.html" class="nav-link"><i class="nav-link-icon fas fa-tools"></i> Skills Profile</a>
       <a href="mentorship.html" class="nav-link"><i class="nav-link-icon fas fa-user-tie"></i> Mentorship</a>
       <a href="placements.html" class="nav-link"><i class="nav-link-icon fas fa-briefcase"></i> Placements</a>
-      <a href="assessments.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-check"></i> Skill Assessments</a>
       <div class="nav-section-label">Finance</div>
-      <a href="fees.html" class="nav-link active"><i class="nav-link-icon fas fa-receipt"></i> Fees</a>
+      <a href="fees.html" class="nav-link active"><i class="nav-link-icon fas fa-receipt"></i> Fees & Payments</a>
       <div class="nav-section-label">Facilities</div>
       <a href="library.html" class="nav-link"><i class="nav-link-icon fas fa-book"></i> Library</a>
       <a href="transport.html" class="nav-link"><i class="nav-link-icon fas fa-bus"></i> Transport</a>
@@ -38,7 +128,9 @@
       <div class="nav-section-label">Tools</div>
       <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-brain"></i> AI Services</a>
     </nav>
-    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+    <div class="sidebar-footer">
+      <button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </div>
   </aside>
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
@@ -46,133 +138,748 @@
     <header class="erp-topbar">
       <div class="topbar-left">
         <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
-        <div class="topbar-breadcrumb">Student / <span>Fees</span></div>
+        <div class="topbar-breadcrumb">Student / <span>Fees & Payments</span></div>
       </div>
       <div class="topbar-right">
-        <button class="btn btn-primary" onclick="openStudentFeeModal()"><i class="fas fa-credit-card"></i> Pay Now</button>
+        <div style="font-size:12px;font-weight:600;color:#64748B" id="liveFeeClock"></div>
+        <button class="btn btn-secondary" onclick="exportStudentFeeStatement()"><i class="fas fa-file-csv"></i> Statement</button>
+        <button class="btn btn-primary" onclick="triggerFastCheckout()"><i class="fas fa-credit-card"></i> Pay Outstanding</button>
         <div class="topbar-avatar" id="topbar-avatar">S</div>
       </div>
     </header>
 
     <div class="erp-content">
-      <div class="page-header">
-        <h1 class="page-title">💳 Fee Portal</h1>
-        <p class="page-subtitle">View and pay your college fees securely.</p>
+      <!-- Outstanding Dues / Status Hero Banner -->
+      <div id="studentOutstandingHero" style="border-radius:18px;padding:24px 28px;margin-bottom:24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;box-shadow:0 10px 25px rgba(0,0,0,0.05);transition:all 0.3s ease">
+        <!-- Injected via JavaScript -->
       </div>
 
-      <!-- Outstanding Fee Banner -->
-      <div id="studentOutstandingBanner" style="background:linear-gradient(135deg,#EF4444,#DC2626);border-radius:16px;padding:20px 24px;color:white;display:none;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px"></div>
+      <!-- 4 Fintech KPI Cards -->
+      <div class="grid col-4 mb-6">
+        <div class="fee-kpi-card">
+          <div class="fee-kpi-badge" style="background:#E0F2FE;color:#0284C7">Academic Year</div>
+          <div style="font-size:12px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.5px">Total Billed</div>
+          <div style="font-size:26px;font-weight:900;color:#0F172A;margin:6px 0" id="kpiTotalBilled">₹0</div>
+          <div style="font-size:12px;color:#64748B" id="kpiBilledMeta">Includes tuition, labs & exam</div>
+        </div>
 
-      <!-- Stats -->
-      <div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
-        <div class="stat-card"><div class="stat-icon" style="background:#D1FAE5;color:#065F46"><i class="fas fa-check-circle"></i></div><div class="stat-label">Total Paid</div><div class="stat-value" id="studentTotalPaid">₹0</div></div>
-        <div class="stat-card"><div class="stat-icon" style="background:#FEE2E2;color:#991B1B"><i class="fas fa-hourglass-half"></i></div><div class="stat-label">Pending Amount</div><div class="stat-value" id="studentPendingAmount" style="color:#EF4444">₹0</div></div>
-        <div class="stat-card"><div class="stat-icon" style="background:#DBEAFE;color:#1E40AF"><i class="fas fa-percentage"></i></div><div class="stat-label">Total Fee (Program)</div><div class="stat-value" id="studentTotalFee">₹0</div></div>
+        <div class="fee-kpi-card">
+          <div class="fee-kpi-badge" style="background:#DCFCE7;color:#15803D" id="kpiClearedPercentBadge">0% Cleared</div>
+          <div style="font-size:12px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.5px">Total Cleared</div>
+          <div style="font-size:26px;font-weight:900;color:#10B981;margin:6px 0" id="kpiTotalPaid">₹0</div>
+          <div class="w-full bg-slate-100 rounded-full h-2 mt-2 overflow-hidden">
+            <div id="kpiPaidProgress" class="bg-emerald-500 h-2 rounded-full transition-all duration-500" style="width:0%"></div>
+          </div>
+        </div>
+
+        <div class="fee-kpi-card">
+          <div class="fee-kpi-badge" style="background:#FEF3C7;color:#B45309" id="kpiPendingCountBadge">Active</div>
+          <div style="font-size:12px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.5px">Pending Dues</div>
+          <div style="font-size:26px;font-weight:900;color:#F59E0B;margin:6px 0" id="kpiPendingAmount">₹0</div>
+          <div style="font-size:12px;color:#64748B" id="kpiNextDueMeta">No upcoming deadlines</div>
+        </div>
+
+        <div class="fee-kpi-card">
+          <div class="fee-kpi-badge" style="background:#FEE2E2;color:#B91C1C" id="kpiOverdueBadge">Clear</div>
+          <div style="font-size:12px;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:0.5px">Overdue Amount</div>
+          <div style="font-size:26px;font-weight:900;color:#EF4444;margin:6px 0" id="kpiOverdueAmount">₹0</div>
+          <div style="font-size:12px;color:#64748B" id="kpiLateFineMeta">Late fee grace period active</div>
+        </div>
       </div>
 
-      <!-- View Tabs -->
-      <div style="display:flex;gap:8px;margin-bottom:16px">
-        <button class="btn btn-sm btn-primary" id="viewAllTab" onclick="switchStudentFeeView('all')" style="background:linear-gradient(135deg,#0284C7,#0EA5E9);border:none">All Fees</button>
-        <button class="btn btn-sm btn-secondary" id="viewInstTab" onclick="switchStudentFeeView('installments')"><i class="fas fa-list-ol"></i> Installments</button>
+      <!-- Navigation Filter Tabs -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px">
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-sm btn-primary" id="tabAllFees" onclick="switchStudentTab('all')">
+            <i class="fas fa-file-invoice"></i> Fee Records Ledger
+          </button>
+          <button class="btn btn-sm btn-secondary" id="tabInstallments" onclick="switchStudentTab('installments')">
+            <i class="fas fa-list-ol"></i> Installment Plan
+          </button>
+          <button class="btn btn-sm btn-secondary" id="tabReceipts" onclick="switchStudentTab('receipts')">
+            <i class="fas fa-receipt"></i> Payment History & Receipts
+          </button>
+        </div>
+
+        <div style="display:flex;gap:10px;align-items:center">
+          <select id="feeSemesterFilter" class="form-control" style="height:36px;font-size:13px;border-radius:8px;padding:4px 12px" onchange="renderActiveStudentFeeView()">
+            <option value="all">All Semesters</option>
+            <option value="4" selected>Semester 4 (Current)</option>
+            <option value="3">Semester 3</option>
+            <option value="2">Semester 2</option>
+            <option value="1">Semester 1</option>
+          </select>
+        </div>
       </div>
 
-      <!-- Fee Records -->
-      <div class="card" id="studentFeesCard">
-        <div class="card-header"><div class="card-title">Fee Records</div></div>
+      <!-- TAB 1: Fee Records Ledger -->
+      <div class="card" id="viewAllFeesCard">
+        <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
+          <div class="card-title"><i class="fas fa-book" style="color:#0284C7;margin-right:8px"></i>Fee Ledger (Semester Schedule)</div>
+          <span style="font-size:12px;color:#64748B">Instant PDF receipt generation available on cleared records</span>
+        </div>
         <div class="table-wrap">
           <table class="erp-table">
-            <thead><tr><th>#</th><th>Description</th><th>Amount</th><th>Due Date</th><th>Receipt</th><th>Status</th><th>Action</th></tr></thead>
-            <tbody id="feeHistory"></tbody>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Fee Description</th>
+                <th>Category</th>
+                <th>Amount Billed</th>
+                <th>Due Date</th>
+                <th>Receipt / Ref</th>
+                <th>Status</th>
+                <th style="text-align:right">Action</th>
+              </tr>
+            </thead>
+            <tbody id="studentFeeTableBody"></tbody>
           </table>
         </div>
       </div>
 
-      <!-- Installments Table (hidden by default) -->
-      <div class="card" id="studentInstCard" style="display:none">
-        <div class="card-header"><div class="card-title"><i class="fas fa-list-ol" style="color:#8B5CF6;margin-right:8px"></i>Installment Tracker</div></div>
+      <!-- TAB 2: Installment Plan Stepper -->
+      <div class="card" id="viewInstallmentsCard" style="display:none">
+        <div class="card-header">
+          <div class="card-title"><i class="fas fa-list-ol" style="color:#8B5CF6;margin-right:8px"></i>Installment Payment Stepper</div>
+          <span style="font-size:12px;color:#64748B">Pay installments sequentially to maintain continuous course enrollment</span>
+        </div>
+        <div class="card-body">
+          <div id="studentInstallmentsList" class="space-y-4"></div>
+        </div>
+      </div>
+
+      <!-- TAB 3: Payment History & Receipts -->
+      <div class="card" id="viewReceiptsCard" style="display:none">
+        <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
+          <div class="card-title"><i class="fas fa-history" style="color:#10B981;margin-right:8px"></i>Transaction History & Verified Receipts</div>
+          <span style="font-size:12px;color:#64748B">All receipts are GST-compliant and university-verified</span>
+        </div>
         <div class="table-wrap">
           <table class="erp-table">
-            <thead><tr><th>#</th><th>Fee Type</th><th>Installment</th><th>Amount</th><th>Due Date</th><th>Late Fee</th><th>Status</th><th>Action</th></tr></thead>
-            <tbody id="studentInstBody"></tbody>
+            <thead>
+              <tr>
+                <th>Txn Date</th>
+                <th>Receipt No</th>
+                <th>Fee Item</th>
+                <th>Amount Paid</th>
+                <th>Payment Mode</th>
+                <th>Payment ID</th>
+                <th style="text-align:right">Receipt Action</th>
+              </tr>
+            </thead>
+            <tbody id="studentReceiptsTableBody"></tbody>
           </table>
         </div>
       </div>
+
     </div>
   </div>
 </div>
 
-<!-- PAY NOW MODAL -->
+<!-- SECURE CHECKOUT MODAL -->
 <div class="modal-backdrop" id="payNowModal">
-  <div class="modal" style="max-width:480px">
-    <div class="modal-header">
-      <div class="modal-title"><i class="fas fa-shield-halved" style="color:#059669;margin-right:8px"></i><span id="studentFeePaymentTitle">Secure Payment</span></div>
-      <button class="modal-close" onclick="closeModal('payNowModal')"><i class="fas fa-times"></i></button>
+  <div class="modal" style="max-width:520px;border-radius:20px;overflow:hidden">
+    <div class="modal-header" style="background:linear-gradient(135deg,#0284C7,#0EA5E9);color:white;padding:20px 24px">
+      <div class="modal-title" style="color:white">
+        <i class="fas fa-shield-halved" style="margin-right:8px"></i>
+        <span id="checkoutModalTitle">Secure Fee Checkout</span>
+      </div>
+      <button class="modal-close" onclick="closeModal('payNowModal')" style="color:white"><i class="fas fa-times"></i></button>
     </div>
-    <div class="modal-body" style="padding:20px 24px">
-      <!-- Step Indicator -->
-      <div id="studentPaymentSteps"></div>
+    <div class="modal-body" style="padding:24px">
+      <!-- Step Progression -->
+      <div id="checkoutStepIndicator" style="margin-bottom:20px"></div>
 
-      <!-- Fee Summary -->
-      <div id="studentFeePaymentSummary" style="background:linear-gradient(135deg,#F0FDF4,#ECFDF5);border-radius:14px;padding:20px;margin-bottom:16px;border:1px solid #BBF7D0">
-        <div style="font-size:11px;font-weight:700;color:#065F46;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px">Outstanding Amount</div>
-        <div style="font-size:28px;font-weight:900;color:#059669">₹55,000</div>
-        <div style="font-size:12px;color:#64748B;margin-top:4px">Tuition Fee IV — Due by Apr 15, 2026</div>
+      <!-- Fee Summary Card -->
+      <div id="checkoutSummaryBox" style="background:linear-gradient(135deg,#F0F9FF,#E0F2FE);border:1.5px solid #BAE6FD;border-radius:14px;padding:18px 20px;margin-bottom:18px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div>
+            <div style="font-size:11px;font-weight:700;color:#0369A1;text-transform:uppercase;letter-spacing:0.5px">Selected Fee</div>
+            <div style="font-size:16px;font-weight:800;color:#0C4A6E" id="checkoutFeeName">Tuition Fee - Semester 4</div>
+            <div style="font-size:12px;color:#0284C7;margin-top:2px" id="checkoutFeeMeta">Due: Apr 15, 2026</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:11px;font-weight:700;color:#0369A1;text-transform:uppercase;letter-spacing:0.5px">Pending Dues</div>
+            <div style="font-size:24px;font-weight:900;color:#0284C7" id="checkoutPendingDisplay">₹0</div>
+          </div>
+        </div>
       </div>
 
       <!-- Amount Input -->
-      <div class="form-group">
-        <label class="form-label" style="font-weight:700;color:#1E293B">Amount to Pay</label>
+      <div class="form-group mb-4">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <label class="form-label" style="font-weight:700;color:#1E293B;margin:0">Amount to Pay (INR)</label>
+          <button type="button" class="text-xs font-semibold text-sky-600 hover:underline" onclick="setCheckoutMaxAmount()">Pay Full Amount</button>
+        </div>
         <div style="position:relative">
-          <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:16px;font-weight:700;color:#64748B">₹</span>
-          <input class="form-control" type="number" value="55000" id="payAmount" style="padding-left:30px;font-size:18px;font-weight:700;border:2px solid #E2E8F0;border-radius:10px;height:48px">
+          <span style="position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:18px;font-weight:700;color:#64748B">₹</span>
+          <input class="form-control" type="number" id="payAmountInput" style="padding-left:34px;font-size:18px;font-weight:800;border:2px solid #CBD5E1;border-radius:10px;height:48px">
         </div>
-        <div style="font-size:11px;color:#64748B;margin-top:4px" id="payAmountHint">Enter amount (full or partial payment)</div>
+        <div style="font-size:11px;color:#64748B;margin-top:4px" id="payAmountHint">Enter amount (partial or full payment)</div>
       </div>
 
-      <!-- Payment Methods -->
-      <div class="form-group">
-        <label class="form-label" style="font-weight:700;color:#1E293B">Payment Method</label>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-          <label style="display:flex;align-items:center;gap:8px;padding:12px;border:2px solid #4F46E5;border-radius:10px;background:#EDE9FE;cursor:pointer;transition:all 0.15s"><input type="radio" name="payMode" value="UPI" checked style="accent-color:#4F46E5"> <span style="font-size:13px;font-weight:600;color:#1E293B">UPI</span></label>
-          <label style="display:flex;align-items:center;gap:8px;padding:12px;border:2px solid #E2E8F0;border-radius:10px;background:white;cursor:pointer;transition:all 0.15s" onmouseover="this.style.borderColor='#93C5FD'" onmouseout="this.style.borderColor='#E2E8F0'"><input type="radio" name="payMode" value="Net Banking" style="accent-color:#4F46E5"> <span style="font-size:13px;font-weight:600;color:#1E293B">Net Banking</span></label>
-          <label style="display:flex;align-items:center;gap:8px;padding:12px;border:2px solid #E2E8F0;border-radius:10px;background:white;cursor:pointer;transition:all 0.15s" onmouseover="this.style.borderColor='#93C5FD'" onmouseout="this.style.borderColor='#E2E8F0'"><input type="radio" name="payMode" value="Debit Card" style="accent-color:#4F46E5"> <span style="font-size:13px;font-weight:600;color:#1E293B">Debit Card</span></label>
-          <label style="display:flex;align-items:center;gap:8px;padding:12px;border:2px solid #E2E8F0;border-radius:10px;background:white;cursor:pointer;transition:all 0.15s" onmouseover="this.style.borderColor='#93C5FD'" onmouseout="this.style.borderColor='#E2E8F0'"><input type="radio" name="payMode" value="Credit Card" style="accent-color:#4F46E5"> <span style="font-size:13px;font-weight:600;color:#1E293B">Credit Card</span></label>
+      <!-- Payment Method Selection -->
+      <div class="form-group mb-4">
+        <label class="form-label" style="font-weight:700;color:#1E293B">Choose Payment Method</label>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px">
+          <label class="payment-method-card selected" id="methodUPI">
+            <input type="radio" name="checkoutMethod" value="UPI" checked style="accent-color:#0284C7" onchange="updateMethodUI()">
+            <div class="method-details">
+              <div style="font-size:13px;font-weight:700"><i class="fas fa-qrcode text-sky-600 mr-1.5"></i> UPI / QR</div>
+              <div style="font-size:11px;color:#64748B">GPay, PhonePe, Paytm</div>
+            </div>
+          </label>
+
+          <label class="payment-method-card" id="methodCard">
+            <input type="radio" name="checkoutMethod" value="Cards" style="accent-color:#0284C7" onchange="updateMethodUI()">
+            <div class="method-details">
+              <div style="font-size:13px;font-weight:700"><i class="fas fa-credit-card text-emerald-600 mr-1.5"></i> Cards</div>
+              <div style="font-size:11px;color:#64748B">Visa, Mastercard, RuPay</div>
+            </div>
+          </label>
+
+          <label class="payment-method-card" id="methodNB">
+            <input type="radio" name="checkoutMethod" value="Net Banking" style="accent-color:#0284C7" onchange="updateMethodUI()">
+            <div class="method-details">
+              <div style="font-size:13px;font-weight:700"><i class="fas fa-building-columns text-indigo-600 mr-1.5"></i> Net Banking</div>
+              <div style="font-size:11px;color:#64748B">All Major Indian Banks</div>
+            </div>
+          </label>
+
+          <label class="payment-method-card" id="methodWallets">
+            <input type="radio" name="checkoutMethod" value="Wallets" style="accent-color:#0284C7" onchange="updateMethodUI()">
+            <div class="method-details">
+              <div style="font-size:13px;font-weight:700"><i class="fas fa-wallet text-amber-600 mr-1.5"></i> Wallets</div>
+              <div style="font-size:11px;color:#64748B">Amazon Pay, Mobikwik</div>
+            </div>
+          </label>
         </div>
       </div>
 
-      <!-- Security Info -->
-      <div style="padding:12px 14px;border-radius:10px;background:#F8FAFC;border:1px solid #E2E8F0;color:#475569;margin-bottom:12px">
-        <div style="display:flex;align-items:center;gap:8px"><i class="fas fa-shield-halved" style="color:#0284C7;font-size:14px"></i><span style="font-size:12px;font-weight:600;color:#0F172A">256-bit SSL encrypted • PCI DSS compliant</span></div>
-        <div style="font-size:11px;color:#94A3B8;margin-top:4px;padding-left:22px">Powered by Razorpay • UPI, cards, net banking, wallets</div>
+      <!-- Security Trust Footer -->
+      <div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:12px 16px;display:flex;align-items:center;gap:12px;margin-bottom:14px">
+        <i class="fas fa-lock text-emerald-600 text-lg"></i>
+        <div style="font-size:11px;color:#475569">
+          <strong style="color:#0F172A">256-bit Bank Grade Security</strong> • Transactions processed via Razorpay Payment Gateway. Real-time reconciliation.
+        </div>
       </div>
 
-      <!-- Payment Status -->
-      <div id="studentPaymentStatus" style="display:none;padding:12px 16px;border-radius:10px;margin-bottom:12px"></div>
-
-      <!-- Retry Button (hidden by default) -->
-      <div id="studentRetrySection" style="display:none;text-align:center;margin-bottom:12px">
-        <button class="btn btn-primary" style="background:#EF4444;border-color:#EF4444" onclick="retryStudentPayment()"><i class="fas fa-redo"></i> Retry Payment</button>
-      </div>
+      <!-- Live Payment Status Alert -->
+      <div id="studentPaymentStatus" style="display:none;margin-bottom:12px"></div>
     </div>
-    <div class="modal-footer" style="padding:16px 24px;border-top:1px solid #F1F5F9">
+    <div class="modal-footer" style="padding:16px 24px;border-top:1px solid #F1F5F9;background:#FAFAFA">
       <button class="btn btn-secondary" onclick="closeModal('payNowModal')" style="flex:1">Cancel</button>
-      <button class="btn btn-success" id="studentFeePayButton" onclick="processPayment()" style="flex:2;background:linear-gradient(135deg,#059669,#10B981);border:none;padding:12px 24px;font-weight:700">
-        <i class="fas fa-lock"></i> Pay Securely
+      <button class="btn btn-primary" id="studentCheckoutSubmitBtn" onclick="executeStudentPayment()" style="flex:2;background:linear-gradient(135deg,#0284C7,#0EA5E9);border:none;padding:12px 24px;font-weight:800;font-size:14px">
+        <i class="fas fa-lock"></i> Complete Payment
       </button>
     </div>
   </div>
 </div>
 
-<!-- RECEIPT MODAL -->
+<!-- RECEIPT PREVIEW MODAL -->
 <div class="modal-backdrop" id="receiptModal">
-  <div class="modal" style="max-width:440px">
-    <div class="modal-header"><div class="modal-title"><i class="fas fa-file-invoice" style="color:#059669;margin-right:8px"></i>Payment Receipt</div><button class="modal-close" onclick="closeModal('receiptModal')"><i class="fas fa-times"></i></button></div>
-    <div class="modal-body" style="padding:24px"></div>
+  <div class="modal" style="max-width:460px;border-radius:20px;overflow:hidden">
+    <div class="modal-header" style="background:#F0FDF4;border-bottom:1px solid #DCFCE7;padding:18px 24px">
+      <div class="modal-title" style="color:#166534">
+        <i class="fas fa-file-circle-check text-emerald-600 mr-2"></i> Payment Receipt
+      </div>
+      <button class="modal-close" onclick="closeModal('receiptModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body" id="receiptModalBody" style="padding:24px">
+      <!-- Injected Receipt Details -->
+    </div>
   </div>
 </div>
 
 <script src="../../js/shared.js"></script>
 <script src="../../live/payment-gateway.js"></script>
 <script src="../../live/live-pages.js"></script>
+
+<script>
+// ════════════════════════════════════════════════════════════════════════════
+// STUDENT FEES ADVANCED WORKSTATION CONTROLLER
+// ════════════════════════════════════════════════════════════════════════════
+(function() {
+  let studentFees = [];
+  let studentInstallments = [];
+  let activeTab = 'all';
+  let selectedFee = null;
+  let selectedInstallmentId = null;
+
+  function updateClock() {
+    const el = document.getElementById('liveFeeClock');
+    if (el) {
+      const now = new Date();
+      el.textContent = now.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short' }) + ' • ' + now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+    }
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  function formatMoney(amount) {
+    return '₹' + Number(amount || 0).toLocaleString('en-IN');
+  }
+
+  function formatDate(d) {
+    if (!d) return '-';
+    return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  async function loadStudentFeesData() {
+    try {
+      const [feesRes, instRes] = await Promise.all([
+        window.api.request('/fees', { silent: true }),
+        window.api.request('/fees/installments', { silent: true }).catch(() => ({ fees: [] })),
+      ]);
+
+      studentFees = feesRes.fees || [];
+      studentInstallments = instRes.fees || [];
+
+      renderKPIs();
+      renderHeroBanner();
+      renderActiveStudentFeeView();
+    } catch (err) {
+      console.error('Failed to load fees data', err);
+      window.showToast?.('Unable to load fee ledger', 'error');
+    }
+  }
+
+  function renderKPIs() {
+    const totalBilled = studentFees.reduce((sum, f) => sum + Number(f.amount || 0), 0);
+    const totalPaid = studentFees.reduce((sum, f) => sum + Number(f.paidAmount || 0), 0);
+    const pendingTotal = studentFees.filter(f => f.status !== 'paid' && f.status !== 'waived')
+      .reduce((sum, f) => sum + Math.max(Number(f.amount || 0) - Number(f.paidAmount || 0), 0), 0);
+    const overdueTotal = studentFees.filter(f => (f.status === 'overdue' || (f.status !== 'paid' && f.status !== 'waived' && new Date(f.dueDate) < new Date())))
+      .reduce((sum, f) => sum + Math.max(Number(f.amount || 0) - Number(f.paidAmount || 0), 0), 0);
+
+    const clearedPercent = totalBilled > 0 ? Math.round((totalPaid / totalBilled) * 100) : 100;
+
+    const elBilled = document.getElementById('kpiTotalBilled');
+    if (elBilled) elBilled.textContent = formatMoney(totalBilled);
+
+    const elPaid = document.getElementById('kpiTotalPaid');
+    if (elPaid) elPaid.textContent = formatMoney(totalPaid);
+
+    const elPercent = document.getElementById('kpiClearedPercentBadge');
+    if (elPercent) elPercent.textContent = `${clearedPercent}% Cleared`;
+
+    const elProgress = document.getElementById('kpiPaidProgress');
+    if (elProgress) elProgress.style.width = `${Math.min(clearedPercent, 100)}%`;
+
+    const elPending = document.getElementById('kpiPendingAmount');
+    if (elPending) elPending.textContent = formatMoney(pendingTotal);
+
+    const elOverdue = document.getElementById('kpiOverdueAmount');
+    if (elOverdue) elOverdue.textContent = formatMoney(overdueTotal);
+
+    const elOverdueBadge = document.getElementById('kpiOverdueBadge');
+    if (elOverdueBadge) {
+      if (overdueTotal > 0) {
+        elOverdueBadge.textContent = 'Attention Needed';
+        elOverdueBadge.style.background = '#FEE2E2';
+        elOverdueBadge.style.color = '#B91C1C';
+      } else {
+        elOverdueBadge.textContent = 'Clear';
+        elOverdueBadge.style.background = '#DCFCE7';
+        elOverdueBadge.style.color = '#15803D';
+      }
+    }
+  }
+
+  function renderHeroBanner() {
+    const hero = document.getElementById('studentOutstandingHero');
+    if (!hero) return;
+
+    const pendingFees = studentFees.filter(f => f.status !== 'paid' && f.status !== 'waived')
+      .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+    const nextPending = pendingFees[0];
+
+    if (nextPending) {
+      const pendingAmt = Math.max(Number(nextPending.amount || 0) - Number(nextPending.paidAmount || 0), 0);
+      const isOverdue = new Date(nextPending.dueDate) < new Date();
+
+      hero.style.background = isOverdue
+        ? 'linear-gradient(135deg,#DC2626,#B91C1C)'
+        : 'linear-gradient(135deg,#0284C7,#0369A1)';
+      hero.style.color = 'white';
+
+      hero.innerHTML = `
+        <div style="display:flex;align-items:center;gap:18px">
+          <div style="width:52px;height:52px;border-radius:14px;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;font-size:24px">
+            <i class="fas ${isOverdue ? 'fa-triangle-exclamation text-amber-300' : 'fa-receipt text-white'}"></i>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;opacity:0.9">
+              ${isOverdue ? '⚠️ OVERDUE FEE NOTICE' : 'UPCOMING FEE DUES'}
+            </div>
+            <div style="font-size:28px;font-weight:900;margin:2px 0">${formatMoney(pendingAmt)}</div>
+            <div style="font-size:13px;opacity:0.95">
+              ${String(nextPending.feeType || 'College Fee').toUpperCase()}${nextPending.semester ? ` • Semester ${nextPending.semester}` : ''} • Due Date: <strong>${formatDate(nextPending.dueDate)}</strong>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="btn" style="background:white;color:${isOverdue ? '#DC2626' : '#0284C7'};font-weight:800;border:none;box-shadow:0 4px 12px rgba(0,0,0,0.15)" onclick="openStudentCheckout('${nextPending._id}')">
+            <i class="fas fa-bolt"></i> Pay Now Securely
+          </button>
+        </div>
+      `;
+    } else {
+      hero.style.background = 'linear-gradient(135deg,#059669,#10B981)';
+      hero.style.color = 'white';
+      hero.innerHTML = `
+        <div style="display:flex;align-items:center;gap:16px">
+          <div style="width:52px;height:52px;border-radius:14px;background:rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;font-size:24px">
+            <i class="fas fa-shield-check text-white"></i>
+          </div>
+          <div>
+            <div style="font-size:18px;font-weight:900">All Academic Fees Cleared!</div>
+            <div style="font-size:13px;opacity:0.95">Your tuition and institutional fees are completely up to date for this session.</div>
+          </div>
+        </div>
+        <button class="btn" style="background:rgba(255,255,255,0.2);color:white;border:1px solid rgba(255,255,255,0.4)" onclick="switchStudentTab('receipts')">
+          <i class="fas fa-download"></i> View Receipts
+        </button>
+      `;
+    }
+  }
+
+  function switchStudentTab(tab) {
+    activeTab = tab;
+    document.getElementById('viewAllFeesCard').style.display = tab === 'all' ? '' : 'none';
+    document.getElementById('viewInstallmentsCard').style.display = tab === 'installments' ? '' : 'none';
+    document.getElementById('viewReceiptsCard').style.display = tab === 'receipts' ? '' : 'none';
+
+    document.getElementById('tabAllFees').className = tab === 'all' ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-secondary';
+    document.getElementById('tabInstallments').className = tab === 'installments' ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-secondary';
+    document.getElementById('tabReceipts').className = tab === 'receipts' ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-secondary';
+
+    renderActiveStudentFeeView();
+  }
+
+  function renderActiveStudentFeeView() {
+    const semFilter = document.getElementById('feeSemesterFilter')?.value || 'all';
+    const filtered = studentFees.filter(f => semFilter === 'all' || String(f.semester) === String(semFilter));
+
+    if (activeTab === 'all') {
+      renderAllFeesTable(filtered);
+    } else if (activeTab === 'installments') {
+      renderInstallmentsView(filtered);
+    } else if (activeTab === 'receipts') {
+      renderReceiptsTable(filtered);
+    }
+  }
+
+  function renderAllFeesTable(fees) {
+    const tbody = document.getElementById('studentFeeTableBody');
+    if (!tbody) return;
+
+    if (!fees.length) {
+      tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="empty-state-title">No fee records found for selected filter</div></div></td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = fees.map((f, i) => {
+      const pending = Math.max(Number(f.amount || 0) - Number(f.paidAmount || 0), 0);
+      const isPaid = f.status === 'paid';
+      const isOverdue = f.status === 'overdue' || (!isPaid && f.status !== 'waived' && new Date(f.dueDate) < new Date());
+
+      let statusBadge = `<span class="badge badge-gray">Pending</span>`;
+      if (isPaid) statusBadge = `<span class="badge badge-success"><i class="fas fa-check-circle mr-1"></i> Paid</span>`;
+      else if (f.status === 'partial') statusBadge = `<span class="badge badge-warning"><i class="fas fa-hourglass-half mr-1"></i> Partial (₹${f.paidAmount})</span>`;
+      else if (f.status === 'waived') statusBadge = `<span class="badge badge-info"><i class="fas fa-gift mr-1"></i> Waived</span>`;
+      else if (isOverdue) statusBadge = `<span class="badge badge-danger"><i class="fas fa-triangle-exclamation mr-1"></i> Overdue</span>`;
+
+      let actionBtn = '-';
+      if (isPaid) {
+        actionBtn = `
+          <button class="btn btn-xs btn-secondary" onclick="window.downloadFeeReceipt('${f._id}')" title="Download Verified PDF Receipt">
+            <i class="fas fa-file-pdf text-red-600"></i> Receipt
+          </button>
+        `;
+      } else if (pending > 0) {
+        actionBtn = `
+          <button class="btn btn-xs btn-primary" onclick="openStudentCheckout('${f._id}')" style="background:linear-gradient(135deg,#0284C7,#0EA5E9);border:none;font-weight:700">
+            <i class="fas fa-credit-card"></i> Pay ${formatMoney(pending)}
+          </button>
+        `;
+      }
+
+      return `
+        <tr>
+          <td style="color:#94A3B8;font-size:12px">${i + 1}</td>
+          <td>
+            <div style="font-weight:800;color:#0F172A">${String(f.feeType || 'Tuition Fee').toUpperCase()}</div>
+            <div style="font-size:11px;color:#64748B">${f.semester ? `Semester ${f.semester}` : 'Academic Term'}${f.feeStructureId?.name ? ` • ${f.feeStructureId.name}` : ''}</div>
+          </td>
+          <td><span class="badge badge-gray">${f.feeType || 'academic'}</span></td>
+          <td style="font-weight:800;color:#0F172A">
+            ${formatMoney(f.amount)}
+            ${f.discountAmount ? `<div style="font-size:10px;color:#8B5CF6">Discount: -${formatMoney(f.discountAmount)}</div>` : ''}
+          </td>
+          <td style="font-size:13px;color:#334155">${formatDate(f.dueDate)}</td>
+          <td>
+            ${f.receiptNo ? `<code style="font-size:11px;background:#F1F5F9;padding:3px 8px;border-radius:6px;font-weight:700">${f.receiptNo}</code>` : '<span style="color:#94A3B8">-</span>'}
+          </td>
+          <td>${statusBadge}</td>
+          <td style="text-align:right;white-space:nowrap">${actionBtn}</td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  function renderInstallmentsView(fees) {
+    const container = document.getElementById('studentInstallmentsList');
+    if (!container) return;
+
+    const installmentFees = fees.filter(f => f.installmentEnabled && f.installments?.length);
+
+    if (!installmentFees.length) {
+      container.innerHTML = `
+        <div class="empty-state" style="padding:48px 24px">
+          <i class="fas fa-list-check" style="font-size:36px;color:#94A3B8;margin-bottom:12px"></i>
+          <div class="empty-state-title">No Installment Schedules Configured</div>
+          <div style="font-size:13px;color:#64748B">Your current fee structures do not require installment splitting.</div>
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = installmentFees.map(f => {
+      const totalInst = f.installments.length;
+      const clearedInst = f.installments.filter(i => i.status === 'paid').length;
+
+      return `
+        <div style="border:1px solid #E2E8F0;border-radius:14px;padding:20px;background:white">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px">
+            <div>
+              <div style="font-size:16px;font-weight:800;color:#0F172A">${String(f.feeType || 'Fee').toUpperCase()} Installment Plan</div>
+              <div style="font-size:12px;color:#64748B">${clearedInst} of ${totalInst} installments cleared (${formatMoney(f.paidAmount)} paid of ${formatMoney(f.amount)})</div>
+            </div>
+            <span class="badge ${clearedInst === totalInst ? 'badge-success' : 'badge-warning'}">
+              ${clearedInst === totalInst ? 'Completed' : `${totalInst - clearedInst} Pending`}
+            </span>
+          </div>
+
+          <div class="stepper-container">
+            ${f.installments.map((inst, idx) => {
+              const isPaid = inst.status === 'paid';
+              const isOverdue = inst.status === 'overdue' || (!isPaid && new Date(inst.dueDate) < new Date());
+              const pending = Math.max(Number(inst.amount || 0) - Number(inst.paidAmount || 0), 0);
+
+              let nodeClass = isPaid ? 'is-paid' : isOverdue ? 'is-overdue' : 'is-active';
+
+              return `
+                <div class="stepper-node ${nodeClass}">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+                    <span style="font-size:11px;font-weight:800;text-transform:uppercase;color:#64748B">Inst #${inst.installmentNumber || idx + 1}</span>
+                    <span class="badge ${isPaid ? 'badge-success' : isOverdue ? 'badge-danger' : 'badge-primary'}" style="font-size:10px">
+                      ${isPaid ? 'Paid' : isOverdue ? 'Overdue' : 'Due'}
+                    </span>
+                  </div>
+                  <div style="font-size:18px;font-weight:900;color:#0F172A">${formatMoney(inst.amount)}</div>
+                  <div style="font-size:11px;color:#64748B;margin:4px 0">Due: ${formatDate(inst.dueDate)}</div>
+                  ${inst.lateFee ? `<div style="font-size:11px;color:#EF4444;font-weight:700">Late fee: ${formatMoney(inst.lateFee)}</div>` : ''}
+
+                  ${!isPaid && pending > 0 ? `
+                    <button class="btn btn-xs btn-primary w-full mt-3" onclick="openStudentCheckout('${f._id}', '${inst._id}')" style="background:linear-gradient(135deg,#0284C7,#0EA5E9);border:none;font-weight:700">
+                      Pay ${formatMoney(pending)}
+                    </button>
+                  ` : `
+                    <div style="margin-top:12px;font-size:11px;font-weight:700;color:#10B981">
+                      <i class="fas fa-check-double mr-1"></i> Cleared
+                    </div>
+                  `}
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function renderReceiptsTable(fees) {
+    const tbody = document.getElementById('studentReceiptsTableBody');
+    if (!tbody) return;
+
+    const receipts = [];
+    fees.forEach(f => {
+      if (f.paidAmount > 0 && f.receiptNo) {
+        receipts.push({
+          feeId: f._id,
+          receiptNo: f.receiptNo,
+          feeType: f.feeType,
+          semester: f.semester,
+          amount: f.paidAmount,
+          date: f.paidDate || f.updatedAt,
+          method: f.paymentMethod || 'Online (Razorpay)',
+          paymentId: f.paymentHistory?.[f.paymentHistory.length - 1]?.razorpayPaymentId || `PAY-${String(f._id).slice(-8)}`,
+        });
+      }
+    });
+
+    if (!receipts.length) {
+      tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state"><div class="empty-state-title">No payment receipts available yet</div></div></td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = receipts.map(r => `
+      <tr>
+        <td style="font-size:13px;color:#334155">${formatDate(r.date)}</td>
+        <td>
+          <code style="font-size:12px;font-weight:800;color:#0284C7;background:#F0F9FF;padding:3px 8px;border-radius:6px">${r.receiptNo}</code>
+        </td>
+        <td style="font-weight:700;color:#0F172A">${String(r.feeType || 'Tuition').toUpperCase()}${r.semester ? ` • Sem ${r.semester}` : ''}</td>
+        <td style="font-weight:800;color:#10B981">${formatMoney(r.amount)}</td>
+        <td><span class="badge badge-gray">${r.method}</span></td>
+        <td style="font-family:monospace;font-size:11px;color:#64748B">${r.paymentId}</td>
+        <td style="text-align:right">
+          <button class="btn btn-xs btn-primary" onclick="window.downloadFeeReceipt('${r.feeId}')" style="background:#0284C7;border:none">
+            <i class="fas fa-download mr-1"></i> Download PDF
+          </button>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  window.openStudentCheckout = function(feeId, installmentId) {
+    selectedFee = studentFees.find(f => String(f._id) === String(feeId)) || null;
+    selectedInstallmentId = installmentId || null;
+
+    if (!selectedFee) {
+      window.showToast?.('Fee record not found', 'error');
+      return;
+    }
+
+    let pending = Math.max(Number(selectedFee.amount || 0) - Number(selectedFee.paidAmount || 0), 0);
+    let title = `${String(selectedFee.feeType || 'Fee').toUpperCase()} Payment`;
+
+    if (selectedInstallmentId && selectedFee.installments?.length) {
+      const inst = selectedFee.installments.find(i => String(i._id) === String(selectedInstallmentId));
+      if (inst) {
+        pending = Math.max(Number(inst.amount || 0) - Number(inst.paidAmount || 0), 0);
+        title = `Installment #${inst.installmentNumber} Payment`;
+      }
+    }
+
+    document.getElementById('checkoutModalTitle').textContent = title;
+    document.getElementById('checkoutFeeName').textContent = `${String(selectedFee.feeType || 'Fee').toUpperCase()}${selectedFee.semester ? ` - Sem ${selectedFee.semester}` : ''}`;
+    document.getElementById('checkoutFeeMeta').textContent = `Due Date: ${formatDate(selectedFee.dueDate)}`;
+    document.getElementById('checkoutPendingDisplay').textContent = formatMoney(pending);
+
+    const input = document.getElementById('payAmountInput');
+    if (input) {
+      input.value = pending;
+      input.max = pending;
+      input.min = 1;
+    }
+
+    const hint = document.getElementById('payAmountHint');
+    if (hint) hint.textContent = `Maximum payable balance: ${formatMoney(pending)}`;
+
+    window.PaymentGateway?.hideStatus('studentPaymentStatus');
+    window.openModal?.('payNowModal');
+  };
+
+  window.triggerFastCheckout = function() {
+    const next = studentFees.filter(f => f.status !== 'paid' && f.status !== 'waived')
+      .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate))[0];
+    if (next) {
+      openStudentCheckout(next._id);
+    } else {
+      window.showToast?.('All fees are already fully paid!', 'success');
+    }
+  };
+
+  window.setCheckoutMaxAmount = function() {
+    if (!selectedFee) return;
+    let pending = Math.max(Number(selectedFee.amount || 0) - Number(selectedFee.paidAmount || 0), 0);
+    if (selectedInstallmentId && selectedFee.installments?.length) {
+      const inst = selectedFee.installments.find(i => String(i._id) === String(selectedInstallmentId));
+      if (inst) pending = Math.max(Number(inst.amount || 0) - Number(inst.paidAmount || 0), 0);
+    }
+    const input = document.getElementById('payAmountInput');
+    if (input) input.value = pending;
+  };
+
+  window.updateMethodUI = function() {
+    const selected = document.querySelector('input[name="checkoutMethod"]:checked')?.value || 'UPI';
+    ['methodUPI', 'methodCard', 'methodNB', 'methodWallets'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove('selected');
+    });
+    if (selected === 'UPI') document.getElementById('methodUPI')?.classList.add('selected');
+    if (selected === 'Cards') document.getElementById('methodCard')?.classList.add('selected');
+    if (selected === 'Net Banking') document.getElementById('methodNB')?.classList.add('selected');
+    if (selected === 'Wallets') document.getElementById('methodWallets')?.classList.add('selected');
+  };
+
+  window.executeStudentPayment = async function() {
+    if (!selectedFee) return;
+
+    let pending = Math.max(Number(selectedFee.amount || 0) - Number(selectedFee.paidAmount || 0), 0);
+    if (selectedInstallmentId && selectedFee.installments?.length) {
+      const inst = selectedFee.installments.find(i => String(i._id) === String(selectedInstallmentId));
+      if (inst) pending = Math.max(Number(inst.amount || 0) - Number(inst.paidAmount || 0), 0);
+    }
+
+    const inputVal = Number(document.getElementById('payAmountInput')?.value || pending);
+    if (inputVal <= 0 || inputVal > pending) {
+      window.showToast?.(`Amount must be between ₹1 and ${formatMoney(pending)}`, 'error');
+      return;
+    }
+
+    const btn = document.getElementById('studentCheckoutSubmitBtn');
+    if (btn) btn.disabled = true;
+
+    try {
+      await window.PaymentGateway.startCheckout({
+        fee: selectedFee,
+        installmentId: selectedInstallmentId,
+        amount: inputVal,
+        statusContainerId: 'studentPaymentStatus',
+        accentColor: '#0284C7',
+        title: 'Fee Payment',
+        onSuccess: async function(payload) {
+          window.showToast?.('Payment successful! Receipt generated.', 'success');
+          setTimeout(() => {
+            window.closeModal?.('payNowModal');
+            loadStudentFeesData();
+          }, 1200);
+        },
+        onFailure: function(err) {
+          if (btn) btn.disabled = false;
+        }
+      });
+    } catch (err) {
+      if (btn) btn.disabled = false;
+    }
+  };
+
+  window.exportStudentFeeStatement = function() {
+    let csv = 'Fee Description,Semester,Billed Amount,Paid Amount,Pending Amount,Due Date,Status,Receipt No\n';
+    studentFees.forEach(f => {
+      const pending = Math.max(Number(f.amount || 0) - Number(f.paidAmount || 0), 0);
+      csv += `"${f.feeType || 'Tuition'}","${f.semester || ''}",${f.amount || 0},${f.paidAmount || 0},${pending},"${f.dueDate ? new Date(f.dueDate).toLocaleDateString() : ''}","${f.status || ''}","${f.receiptNo || ''}"\n`;
+    });
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `student-fee-statement-${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+    window.showToast?.('Fee statement CSV downloaded', 'success');
+  };
+
+  window.switchStudentTab = switchStudentTab;
+  window.__initStudentFees = loadStudentFeesData;
+
+  document.addEventListener('DOMContentLoaded', () => {
+    loadStudentFeesData();
+  });
+})();
+</script>
 </body>
 </html>

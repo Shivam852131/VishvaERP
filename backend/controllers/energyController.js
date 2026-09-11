@@ -91,13 +91,28 @@ const getEnergyDashboard = asyncHandler(async (req, res) => {
       goals: goalsProgress,
       trends,
     },
+    data: {
+      consumptionByType,
+      dailyTrend,
+      buildingConsumption,
+      totalCostLast30Days: totalCost[0]?.total || 0,
+      goals: goalsProgress,
+      trends,
+    },
   });
 });
 
 const createGoal = asyncHandler(async (req, res) => {
-  const goal = await SustainabilityGoal.create({ collegeId: req.user.collegeId, ...req.body });
+  const payload = { ...req.body };
+  if (payload.target !== undefined && payload.targetValue === undefined) {
+    payload.targetValue = Number(payload.target);
+  }
+  if (payload.current !== undefined && payload.currentValue === undefined) {
+    payload.currentValue = Number(payload.current);
+  }
+  const goal = await SustainabilityGoal.create({ collegeId: req.user.collegeId, ...payload });
   logAudit(req, 'create', 'sustainability-goal', { resourceId: goal._id, description: `Goal: ${goal.title}` });
-  res.status(201).json({ success: true, goal });
+  res.status(201).json({ success: true, goal, data: goal });
 });
 
 const getGoals = asyncHandler(async (req, res) => {
@@ -106,7 +121,7 @@ const getGoals = asyncHandler(async (req, res) => {
     ...g.toObject(),
     progress: g.targetValue > 0 ? Math.round((g.currentValue / g.targetValue) * 100) : 0,
   }));
-  res.json({ success: true, goals: enriched });
+  res.json({ success: true, goals: enriched, data: enriched });
 });
 
 const updateGoal = asyncHandler(async (req, res) => {
@@ -119,11 +134,24 @@ const updateGoal = asyncHandler(async (req, res) => {
   res.json({ success: true, goal });
 });
 
+const toggleMilestone = asyncHandler(async (req, res) => {
+  const { id, index } = req.params;
+  const goal = await SustainabilityGoal.findOne({ _id: id, collegeId: req.user.collegeId });
+  if (!goal) return res.status(404).json({ success: false, message: 'Goal not found' });
+  const idx = Number(index);
+  if (goal.milestones && goal.milestones[idx]) {
+    goal.milestones[idx].completed = !goal.milestones[idx].completed;
+    if (goal.milestones[idx].completed) goal.milestones[idx].completedAt = new Date();
+    await goal.save();
+  }
+  res.json({ success: true, goal, data: goal });
+});
+
 const deleteGoal = asyncHandler(async (req, res) => {
   const goal = await SustainabilityGoal.findOneAndDelete({ _id: req.params.id, collegeId: req.user.collegeId });
   if (!goal) return res.status(404).json({ success: false, message: 'Goal not found' });
-  logAudit(req, 'delete', 'sustainability-goal', { resourceId: goal._id, description: `Deleted: ${goal.title}` });
-  res.json({ success: true, message: 'Goal deleted' });
+  logAudit(req, 'delete', 'sustainability-goal', { resourceId: goal._id, description: `Deleted Goal: ${goal.title}` });
+  res.json({ success: true, message: 'Goal deleted successfully' });
 });
 
-module.exports = { logEnergy, getEnergyLogs, getEnergyDashboard, createGoal, getGoals, updateGoal, deleteGoal };
+module.exports = { logEnergy, getEnergyLogs, getEnergyDashboard, createGoal, getGoals, updateGoal, deleteGoal, toggleMilestone };

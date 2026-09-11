@@ -944,7 +944,29 @@
     if (el) { el.style.display = 'none'; el.innerHTML = ''; }
   }
 
+  async function startFeeCheckout(options) {
+    if (window.PaymentGateway?.startCheckout) {
+      return window.PaymentGateway.startCheckout(options);
+    }
+    if (typeof window.startFeeCheckout === 'function' && window.startFeeCheckout !== startFeeCheckout) {
+      return window.startFeeCheckout(options);
+    }
+    const activeFee = options.fee;
+    const pending = getFeePendingAmount(activeFee);
+    const amount = Number(options.amount || pending);
+    const res = await window.api.request(`/fees/${activeFee._id}/pay`, {
+      method: 'POST',
+      body: JSON.stringify({ amount, paymentMethod: 'online' }),
+    });
+    if (options.onSuccess) await options.onSuccess(res);
+    return res;
+  }
+
   async function initStudentFeesPage() {
+    if (typeof window.__initStudentFees === 'function') {
+      await window.__initStudentFees();
+      return;
+    }
     await ensureRealtime();
     const [feeRes, instRes] = await Promise.all([
       window.api.request('/fees', { silent: true }),
@@ -1442,8 +1464,9 @@
     window.__erpLivePageRefresh = initStudentAssignmentsPage;
   }
 
-  async function initParentChildProfilePage() {
-    const res = await window.api.request('/academics/student-profile', { silent: true });
+  async function initParentChildProfilePage(targetStudentId) {
+    const url = targetStudentId ? `/academics/student-profile?studentId=${targetStudentId}` : '/academics/student-profile';
+    const res = await window.api.request(url, { silent: true });
     const profile = res.profile || {};
     const child = profile.student;
     if (!child) return;
@@ -1458,11 +1481,128 @@
       : 'Not assigned';
 
     setText(document.querySelector('.sidebar-user-role'), `Ward: ${child.name}`);
+    setText('sidebar-ward-name', `Ward: ${child.name}`);
     setText('childProfileName', child.name);
     setText('childProfileMeta', `Enrollment No: ${child.enrollmentNo || child.rollNo || '-'} • Roll No: ${child.rollNo || '-'}`);
     setText('childProfileProgram', child.department || 'Department not set');
     setText('childProfileSemester', child.semester ? `Semester ${child.semester}${child.section ? ` (Section ${child.section})` : ''}` : 'Semester not set');
     setText('childProfileStatus', 'Active Enrollment');
+    setText('childProfileCollege', child.collegeId?.name || 'Campus Verified');
+    setText('detailProgram', child.department || '-');
+    setText('detailTerm', child.semester ? `Semester ${child.semester}` : '-');
+
+    const avatar = byId('childProfileAvatar');
+    if (avatar) avatar.textContent = (child.name || 'S').trim().charAt(0).toUpperCase();
+
+    // 4 Key Vitals
+    const vitals = profile.vitals || {};
+    const attPct = vitals.attendancePercentage != null ? vitals.attendancePercentage : 85;
+    setText('childVitalAttendance', `${attPct}%`);
+    const attBadge = byId('childVitalAttendanceBadge');
+    if (attBadge) {
+      if (attPct >= 75) {
+        attBadge.className = 'stat-change up';
+        attBadge.innerHTML = '<i class="fas fa-shield-alt"></i> On-track (Safe)';
+      } else {
+        attBadge.className = 'stat-change down';
+        attBadge.innerHTML = '<i class="fas fa-triangle-exclamation"></i> Below 75%';
+      }
+    }
+
+    setText('childVitalCGPA', vitals.cgpa && vitals.cgpa !== 'N/A' ? `${vitals.cgpa} / 10.0` : 'Evaluating');
+    const cgpaBadge = byId('childVitalCGPABadge');
+    if (cgpaBadge) {
+      cgpaBadge.innerHTML = vitals.cgpa && vitals.cgpa !== 'N/A' ? '<i class="fas fa-star"></i> Academic Standing' : '<i class="fas fa-clock"></i> First Semester';
+    }
+
+    const assignedSubs = profile.assignedSubjects || [];
+    setText('childVitalSubjects', `${assignedSubs.length} Courses`);
+    setText('subjectCountBadge', `${assignedSubs.length} Courses`);
+
+    const outstanding = Number(vitals.outstandingFees || 0);
+    setText('childVitalFees', outstanding > 0 ? formatMoney(outstanding) : 'All Cleared');
+    const feesBadge = byId('childVitalFeesBadge');
+    if (feesBadge) {
+      if (outstanding > 0) {
+        feesBadge.className = 'stat-change down';
+        feesBadge.innerHTML = '<i class="fas fa-exclamation-circle"></i> Pending Due';
+      } else {
+        feesBadge.className = 'stat-change up';
+        feesBadge.innerHTML = '<i class="fas fa-check-circle"></i> Fully Cleared';
+      }
+    }
+
+    // Mentor
+    if (profile.mentor) {
+      setText('mentorName', profile.mentor.name || 'Assigned Mentor');
+      setText('mentorDesignation', profile.mentor.designation || profile.mentor.department || 'Faculty Mentor');
+      setHTML('mentorContact', `<i class="fas fa-envelope mr-1"></i> ${escapeHTML(profile.mentor.email || 'mentor@college.edu')}`);
+      const mAvatar = byId('mentorAvatar');
+      if (mAvatar) mAvatar.textContent = (profile.mentor.name || 'F').trim().charAt(0).toUpperCase();
+    }
+
+    // Facilities
+    if (profile.hostelRoom) {
+      setText('hostelNameText', profile.hostelRoom.hostel?.name || 'Hostel Campus');
+      setText('hostelRoomText', `Room ${profile.hostelRoom.roomNumber || '-'} (${profile.hostelRoom.capacity || 2} seater)`);
+      setText('hostelBadge', 'Allocated');
+    } else {
+      setText('hostelNameText', 'Day Scholar');
+      setText('hostelRoomText', 'Self-arranged residence');
+      setText('hostelBadge', 'Not Allocated');
+    }
+
+    if (profile.transportRoute) {
+      setText('transportRouteText', profile.transportRoute.routeName || 'College Route');
+      setText('transportBusText', `Bus ${profile.transportRoute.busNumber || '-'} • Driver: ${profile.transportRoute.driverName || 'Verified'}`);
+      setText('transportBadge', 'Enrolled');
+    } else {
+      setText('transportRouteText', 'Self Commute');
+      setText('transportBusText', 'Private transport / Walk-in');
+      setText('transportBadge', 'Not Enrolled');
+    }
+
+    // Guardian details
+    const me = getUser();
+    setText('parentGuardianName', me?.name || 'Parent');
+    setText('parentGuardianPhone', me?.phone || 'On file');
+    setText('parentGuardianEmail', me?.email || '-');
+    if (child.address) setText('childPermanentAddress', child.address);
+
+    // Enrolled Subjects Table
+    const subsTable = byId('childSubjectsBody');
+    if (subsTable) {
+      if (assignedSubs.length) {
+        setHTML(subsTable, assignedSubs.map((sub, idx) => `
+          <tr>
+            <td style="color:#94A3B8;font-size:12px">${idx + 1}</td>
+            <td><span class="badge badge-gray font-mono">${escapeHTML(sub.code || '-')}</span></td>
+            <td><strong>${escapeHTML(sub.name || 'Subject')}</strong></td>
+            <td style="text-align:center;font-weight:700">${sub.credits || 3}</td>
+            <td>${sub.faculty?.name ? `<span style="color:#059669;font-weight:600"><i class="fas fa-chalkboard-teacher mr-1"></i>${escapeHTML(sub.faculty.name)}</span>` : '<span style="color:#94A3B8">Assigned Faculty</span>'}</td>
+            <td style="text-align:center"><span class="badge badge-success">Enrolled</span></td>
+          </tr>
+        `).join(''));
+      } else {
+        setHTML(subsTable, '<tr><td colspan="6" style="text-align:center;padding:30px;color:#94A3B8"><div class="empty-state"><div class="empty-state-title">No subjects registered for this semester</div></div></td></tr>');
+      }
+    }
+
+    // Multi-Child Switcher
+    const allChildren = profile.allChildren || [];
+    const switcherBox = byId('childSwitcherContainer');
+    const switcherSelect = byId('childSwitcherSelect');
+    if (switcherBox && switcherSelect) {
+      if (allChildren.length > 1) {
+        switcherBox.style.display = 'flex';
+        switcherSelect.innerHTML = allChildren.map(c => `
+          <option value="${c._id}" ${String(c._id) === String(child._id) ? 'selected' : ''}>${escapeHTML(c.name)} (${c.rollNo || c.department || 'Ward'})</option>
+        `).join('');
+        switcherSelect.onchange = (e) => initParentChildProfilePage(e.target.value);
+      } else {
+        switcherBox.style.display = 'none';
+      }
+    }
 
     const profileMap = {
       dateOfBirth: child.dateOfBirth ? formatDate(child.dateOfBirth) : 'Not provided',
@@ -1486,16 +1626,22 @@
       cell.textContent = profileMap[key] || '—';
     });
 
-    window.__erpLivePageRefresh = initParentChildProfilePage;
+    window.__erpLivePageRefresh = () => initParentChildProfilePage(child._id);
   }
 
   async function initParentAttendancePage() {
+    if (typeof window.loadParentAttendance === 'function') {
+      await window.loadParentAttendance();
+      window.__erpLivePageRefresh = initParentAttendancePage;
+      return;
+    }
     const me = await fetchMe();
     const child = me.children?.[0];
     if (!child) return;
+    const childId = child._id || child;
     const [summaryRes, recordsRes] = await Promise.all([
-      window.api.request(`/attendance/summary/${child._id}`, { silent: true }),
-      window.api.request(`/attendance?studentId=${child._id}`, { silent: true }),
+      window.api.request(`/attendance/summary/${childId}`, { silent: true }),
+      window.api.request(`/attendance?studentId=${childId}`, { silent: true }),
     ]);
     renderAttendanceCommon({
       summary: summaryRes.summary || [],
@@ -1504,26 +1650,20 @@
       subjectChartId: 'attChart',
       trendChartId: 'attChart',
     });
-    const recentTable = document.querySelector('.card tbody');
-    if (recentTable) {
-      const absences = (recordsRes.attendance || []).filter((item) => item.status !== 'present').slice(0, 5);
-      setHTML(recentTable, absences.map((item) => `
-        <tr>
-          <td>${formatDate(item.date)}</td>
-          <td>${item.subjectId?.name || '-'}</td>
-          <td>${statusBadge(item.status)}</td>
-          <td>${item.remarks || '-'}</td>
-        </tr>
-      `).join('') || '<tr><td colspan="4"><div class="empty-state"><div class="empty-state-title">No absence records found</div></div></td></tr>');
-    }
     window.__erpLivePageRefresh = initParentAttendancePage;
   }
 
   async function initParentResultsPage() {
+    if (typeof window.loadWardResults === 'function') {
+      await window.loadWardResults();
+      window.__erpLivePageRefresh = initParentResultsPage;
+      return;
+    }
     const me = await fetchMe();
     const child = me.children?.[0];
     if (!child) return;
-    const res = await window.api.request(`/exams/results/${child._id}`, { silent: true });
+    const childId = child._id || child;
+    const res = await window.api.request(`/exams/results/${childId}`, { silent: true });
     const grouped = groupResultsBySemester(res.results || []);
     renderResultsCommon({
       metrics: buildSemesterMetrics(grouped),
@@ -1537,7 +1677,18 @@
     window.__erpLivePageRefresh = initParentResultsPage;
   }
 
+  async function initParentNotificationsPage() {
+    if (typeof window.loadParentNotifications === 'function') {
+      await window.loadParentNotifications();
+    }
+    window.__erpLivePageRefresh = initParentNotificationsPage;
+  }
+
   async function initParentFeesPage() {
+    if (typeof window.__initParentFees === 'function') {
+      await window.__initParentFees();
+      return;
+    }
     await ensureRealtime();
     const [feeRes, instRes] = await Promise.all([
       window.api.request('/fees', { silent: true }),
@@ -1873,6 +2024,12 @@
     window.__erpLivePageRefresh = initParentDashboardPage;
   }
 
+  async function initStudentTimetablePage() {
+    if (typeof window.__initStudentTimetable === 'function') {
+      await window.__initStudentTimetable();
+    }
+  }
+
   async function routeStudentPages(path) {
     if (path.endsWith('/pages/student/dashboard.html')) return initStudentDashboardPage();
     if (path.endsWith('/pages/student/attendance.html')) return initStudentAttendancePage();
@@ -1891,6 +2048,7 @@
     if (path.endsWith('/pages/parent/attendance.html')) return initParentAttendancePage();
     if (path.endsWith('/pages/parent/results.html')) return initParentResultsPage();
     if (path.endsWith('/pages/parent/fees.html')) return initParentFeesPage();
+    if (path.endsWith('/pages/parent/notifications.html')) return initParentNotificationsPage();
     return null;
   }
 

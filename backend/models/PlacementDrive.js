@@ -28,6 +28,13 @@ const placementDriveSchema = new mongoose.Schema({
   }],
   totalRegistrations: { type: Number, default: 0 },
   totalSelected: { type: Number, default: 0 },
+  registeredStudents: [{
+    studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    registeredAt: { type: Date, default: Date.now },
+    status: { type: String, enum: ['registered', 'shortlisted', 'cleared_round', 'rejected', 'selected'], default: 'registered' },
+    currentRound: { type: Number, default: 0 },
+    notes: { type: String },
+  }],
   status: { type: String, enum: ['upcoming', 'ongoing', 'completed', 'cancelled'], default: 'upcoming' },
   attachments: [{ type: String }],
   notes: { type: String },

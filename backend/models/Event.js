@@ -18,8 +18,10 @@ const eventSchema = new mongoose.Schema({
   maxParticipants: { type: Number },
   registrations: [{
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    ticketNumber: { type: String },
     registeredAt: { type: Date, default: Date.now },
-    status: { type: String, enum: ['registered', 'waitlisted', 'cancelled'], default: 'registered' },
+    status: { type: String, enum: ['registered', 'waitlisted', 'attended', 'cancelled'], default: 'registered' },
+    attendedAt: { type: Date },
   }],
   attachments: [{ type: String }],
   coverImage: { type: String },

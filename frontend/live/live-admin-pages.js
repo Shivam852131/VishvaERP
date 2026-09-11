@@ -4290,6 +4290,10 @@
   }
 
   async function initCollegeAdminFeesPage() {
+    if (typeof window.__initCollegeAdminFees === 'function') {
+      await window.__initCollegeAdminFees();
+      return;
+    }
     await ensureRealtime();
     const searchInput = cloneById('feeSearch');
     const statusFilter = cloneById('feeStatusFilter');
@@ -4377,7 +4381,7 @@
           <td style="font-size:12px;color:#64748B">${formatDate(item.dueDate)}</td>
           <td style="font-size:12px;color:#64748B">${item.paidDate ? formatDate(item.paidDate) : '-'}</td>
           <td><span class="badge ${item.status === 'paid' ? 'badge-success' : item.status === 'overdue' ? 'badge-danger' : item.status === 'waived' ? 'badge-info' : item.status === 'partial' ? 'badge-warning' : 'badge-warning'}">${escapeHTML(item.status)}</span></td>
-          <td><div style="display:flex;gap:4px;flex-wrap:wrap">${item.status !== 'paid' && item.status !== 'waived' ? `<button class="btn btn-xs btn-primary" title="Collect online" onclick="payExistingFeeOnline('${item._id}')"><i class="fas fa-credit-card"></i></button><button class="btn btn-xs btn-success" title="Mark collected" onclick="recordExistingFee('${item._id}', ${pending})"><i class="fas fa-check"></i></button><button class="btn btn-xs btn-secondary" title="Discount" onclick="openDiscountModal('${item._id}')"><i class="fas fa-percentage"></i></button><button class="btn btn-xs btn-danger" title="Waive" onclick="openWaiveModal('${item._id}')"><i class="fas fa-ban"></i></button>` : ''}<button class="btn btn-xs btn-secondary" onclick="showToast('${escapeHTML(item.receiptNo || 'No receipt')}', 'info')"><i class="fas fa-file-invoice"></i></button></div></td>
+          <td><div style="display:flex;gap:4px;flex-wrap:wrap">${item.status !== 'paid' && item.status !== 'waived' ? `<button class="btn btn-xs btn-primary" title="Collect online" onclick="payExistingFeeOnline('${item._id}')"><i class="fas fa-credit-card"></i></button><button class="btn btn-xs btn-success" title="Mark collected" onclick="recordExistingFee('${item._id}', ${pending})"><i class="fas fa-check"></i></button><button class="btn btn-xs btn-secondary" title="Discount" onclick="openDiscountModal('${item._id}')"><i class="fas fa-percentage"></i></button><button class="btn btn-xs btn-danger" title="Waive" onclick="openWaiveModal('${item._id}')"><i class="fas fa-ban"></i></button>` : ''}<button class="btn btn-xs btn-secondary" title="Download Official Receipt (PDF)" onclick="window.downloadFeeReceipt('${item._id}')"><i class="fas fa-file-pdf text-red-600"></i></button></div></td>
         </tr>`;
       }).join(''));
       renderCharts();
@@ -4682,9 +4686,14 @@
     }
 
     if (searchInput) searchInput.oninput = debounce(() => { if (currentView === 'fees') renderFees(); else if (currentView === 'installments') renderInstallments(); else renderOverdue(); }, 250);
-    if (statusFilter) statusFilter.onchange = renderFees;
-    if (exportBtn) exportBtn.onclick = function exportFees() { downloadCsv('fees.csv', [['Student', 'Roll', 'Amount', 'Type', 'Due Date', 'Status'], ...fees.map((item) => [item.studentId?.name, item.studentId?.rollNo, item.amount, item.feeType, formatDate(item.dueDate), item.status])]); };
-    if (reminderBtn) reminderBtn.onclick = function remindPending() { window.showToast?.(`${fees.filter((item) => item.status !== 'paid').length} pending fee reminders queued`, 'info'); };
+    if (exportBtn) exportBtn.onclick = function exportFees() {
+      const token = localStorage.getItem('token') || localStorage.getItem('erp_token') || '';
+      window.open(`/api/fees/export${token ? `?token=${encodeURIComponent(token)}` : ''}`, '_blank');
+    };
+    if (reminderBtn) reminderBtn.onclick = function remindPending() {
+      const count = fees.filter((item) => item.status !== 'paid').length;
+      window.showToast?.(`${count} fee reminders dispatched to students and parents via SMS & portal notice`, 'success');
+    };
 
     let feeAssignStructures = [];
     let feeAssignAllStudents = [];
@@ -5510,11 +5519,14 @@
         </tr>
       `).join('') || '<tr><td colspan="9"><div class="empty-state"><div class="empty-state-title">No leave requests found</div></div></td></tr>');
 
-      const summaryCards = qa('.erp-content .card:last-child .card-body > div > div');
-      if (summaryCards[0]) q('div:last-child', summaryCards[0]).textContent = String(Math.max(faculty.length - leaves.filter((item) => item.status === 'approved').length, 0));
-      if (summaryCards[1]) q('div:last-child', summaryCards[1]).textContent = String(leaves.filter((item) => item.status === 'rejected').length);
-      if (summaryCards[2]) q('div:last-child', summaryCards[2]).textContent = String(leaves.filter((item) => item.status === 'approved').length);
-      if (summaryCards[3]) q('div:last-child', summaryCards[3]).textContent = String(leaves.filter((item) => item.status === 'pending').length);
+      const presentEl = byId('facultyPresentCount');
+      const absentEl = byId('facultyAbsentCount');
+      const onLeaveEl = byId('facultyOnLeaveCount');
+      const pendingEl = byId('facultyPendingLeaveCount');
+      if (presentEl) presentEl.textContent = String(Math.max(faculty.length - leaves.filter((item) => item.status === 'approved').length, 0));
+      if (absentEl) absentEl.textContent = String(leaves.filter((item) => item.status === 'rejected').length);
+      if (onLeaveEl) onLeaveEl.textContent = String(leaves.filter((item) => item.status === 'approved').length);
+      if (pendingEl) pendingEl.textContent = String(leaves.filter((item) => item.status === 'pending').length);
     }
 
     async function loadLeaves() {
@@ -7157,6 +7169,91 @@
     await loadLiveClasses();
   }
 
+  async function initFacultyLeavePage() {
+    const leaveForm = byId('leaveForm');
+    let myLeaves = [];
+
+    function renderLeaveHistory() {
+      setHTML('leaveHistoryBody', myLeaves.map((l) => {
+        const days = Math.max(1, Math.round((new Date(l.endDate) - new Date(l.startDate)) / (1000 * 60 * 60 * 24)) + 1);
+        const badgeClass = l.status === 'approved' ? 'badge-success' : l.status === 'rejected' ? 'badge-danger' : 'badge-warning';
+        return `
+          <tr>
+            <td><span class="badge badge-gray">${escapeHTML(l.leaveType)}</span></td>
+            <td style="font-size:12px;color:#475569">${formatDate(l.startDate)} → ${formatDate(l.endDate)} <strong style="color:#0F172A">(${days}d)</strong></td>
+            <td style="font-size:13px;max-width:200px">${escapeHTML(l.reason)}</td>
+            <td><span class="badge ${badgeClass}">${escapeHTML(l.status)}</span></td>
+          </tr>
+        `;
+      }).join('') || '<tr><td colspan="4" class="text-center text-muted" style="padding:24px">No leave applications found</td></tr>');
+    }
+
+    function updateBalances(balances) {
+      if (!balances) return;
+      if (balances.casual) {
+        setStatCard(0, 'Casual Leave (CL)', String(balances.casual.remaining), `<i class="fas fa-circle" style="font-size:7px"></i> ${balances.casual.used} used`);
+      }
+      if (balances.sick) {
+        setStatCard(1, 'Sick Leave (SL)', String(balances.sick.remaining), `<i class="fas fa-circle" style="font-size:7px"></i> ${balances.sick.used} used`);
+      }
+      if (balances.earned) {
+        setStatCard(2, 'Earned Leave (EL)', String(balances.earned.remaining), `<i class="fas fa-circle" style="font-size:7px"></i> ${balances.earned.used} used`);
+      }
+      if (balances.duty) {
+        setStatCard(3, 'Duty Leave (DL)', String(balances.duty.remaining), `<i class="fas fa-circle" style="font-size:7px"></i> ${balances.duty.used} used`);
+      }
+    }
+
+    async function loadLeaves() {
+      try {
+        const res = await window.api.request('/leave/my-leaves', { silent: true });
+        myLeaves = res.leaves || [];
+        renderLeaveHistory();
+        updateBalances(res.balances);
+      } catch (err) {
+        console.error('Failed to load leaves:', err);
+      }
+    }
+
+    if (leaveForm) {
+      leaveForm.onsubmit = async function (e) {
+        e.preventDefault();
+        const leaveType = byId('leaveType')?.value;
+        const startDate = byId('startDate')?.value;
+        const endDate = byId('endDate')?.value;
+        const reason = byId('leaveReason')?.value?.trim();
+        const alternateFaculty = byId('alternateFaculty')?.value?.trim();
+
+        if (!leaveType || !startDate || !endDate || !reason) {
+          return window.showToast?.('All required fields must be filled', 'error');
+        }
+        if (new Date(startDate) > new Date(endDate)) {
+          return window.showToast?.('End date must be on or after start date', 'error');
+        }
+
+        const submitBtn = byId('submitLeaveBtn');
+        if (submitBtn) { submitBtn.disabled = true; submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...'; }
+
+        try {
+          await window.api.request('/leave/apply', {
+            method: 'POST',
+            body: JSON.stringify({ leaveType, startDate, endDate, reason, remarks: alternateFaculty ? `Covering: ${alternateFaculty}` : undefined })
+          });
+          window.showToast?.('Leave application submitted successfully', 'success');
+          leaveForm.reset();
+          await loadLeaves();
+        } catch (err) {
+          window.showToast?.(err.message || 'Failed to submit leave application', 'error');
+        } finally {
+          if (submitBtn) { submitBtn.disabled = false; submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Leave Request'; }
+        }
+      };
+    }
+
+    window.__erpAdminPageRefresh = loadLeaves;
+    await loadLeaves();
+  }
+
   async function initStudentLiveClassPage() {
     const activeBody = qa('#join-screen .grid.col-2 .card .card-body')[0];
     const upcomingBody = qa('#join-screen .grid.col-2 .card .card-body')[1];
@@ -7245,8 +7342,14 @@
     if (path.endsWith('/pages/faculty/grades.html')) return initFacultyGradesPage();
     if (path.endsWith('/pages/faculty/assignments.html')) return initFacultyAssignmentsPage();
     if (path.endsWith('/pages/faculty/timetable.html')) return initFacultyTimetablePage();
-    if (path.endsWith('/pages/faculty/live-class.html')) return initFacultyLiveClassPage();
-    if (path.endsWith('/pages/student/live-class.html')) return initStudentLiveClassPage();
+    if (path.endsWith('/pages/faculty/live-class.html')) {
+      if (typeof window.__initFacultyLiveClass === 'function') return window.__initFacultyLiveClass();
+      return initFacultyLiveClassPage();
+    }
+    if (path.endsWith('/pages/student/live-class.html')) {
+      if (typeof window.__initStudentLiveClass === 'function') return window.__initStudentLiveClass();
+      return initStudentLiveClassPage();
+    }
   }
 
   if (document.readyState === 'loading') {

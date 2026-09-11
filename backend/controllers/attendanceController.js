@@ -247,9 +247,14 @@ const getAttendance = asyncHandler(async (req, res) => {
 
   if (req.user.role === 'parent') {
     const parent = await User.findById(req.user._id).select('children');
-    query.studentId = req.query.studentId && (parent?.children || []).some((childId) => String(childId) === String(req.query.studentId))
+    let children = (parent?.children || []).map(String);
+    if (!children.length) {
+      const linked = await User.find({ collegeId: req.user.collegeId, role: 'student', parentId: req.user._id }).select('_id');
+      children = linked.map(s => String(s._id));
+    }
+    query.studentId = req.query.studentId && children.includes(String(req.query.studentId))
       ? req.query.studentId
-      : parent?.children?.[0];
+      : children[0];
   }
 
   const attendance = await Attendance.find(query)
@@ -271,13 +276,23 @@ const getStudentAttendanceSummary = asyncHandler(async (req, res) => {
 
   if (req.user.role === 'parent' && !req.params.studentId) {
     const parent = await User.findById(req.user._id).select('children');
-    studentId = parent?.children?.[0];
+    let children = (parent?.children || []).map(String);
+    if (!children.length) {
+      const linked = await User.find({ collegeId: req.user.collegeId, role: 'student', parentId: req.user._id }).select('_id');
+      children = linked.map(s => String(s._id));
+    }
+    studentId = req.query.studentId && children.includes(String(req.query.studentId))
+      ? req.query.studentId
+      : children[0];
   }
 
   if (!studentId) return res.json({ success: true, summary: [] });
 
-  const summary = await computeStudentSummary(collegeId, studentId, subjectId);
-  res.json({ success: true, summary });
+  const [summary, studentDoc] = await Promise.all([
+    computeStudentSummary(collegeId, studentId, subjectId),
+    User.findById(studentId).select('name rollNo department semester')
+  ]);
+  res.json({ success: true, summary, student: studentDoc });
 });
 
 // @desc    Get student attendance calendar (daily status for heatmap)
@@ -289,7 +304,14 @@ const getStudentCalendar = asyncHandler(async (req, res) => {
 
   if (req.user.role === 'parent' && !req.params.studentId) {
     const parent = await User.findById(req.user._id).select('children');
-    studentId = parent?.children?.[0];
+    let children = (parent?.children || []).map(String);
+    if (!children.length) {
+      const linked = await User.find({ collegeId: req.user.collegeId, role: 'student', parentId: req.user._id }).select('_id');
+      children = linked.map(s => String(s._id));
+    }
+    studentId = req.query.studentId && children.includes(String(req.query.studentId))
+      ? req.query.studentId
+      : children[0];
   }
 
   if (!studentId) return res.json({ success: true, calendar: [] });
@@ -418,7 +440,14 @@ const getAttendanceStreak = asyncHandler(async (req, res) => {
 
   if (req.user.role === 'parent' && !req.params.studentId) {
     const parent = await User.findById(req.user._id).select('children');
-    studentId = parent?.children?.[0];
+    let children = (parent?.children || []).map(String);
+    if (!children.length) {
+      const linked = await User.find({ collegeId: req.user.collegeId, role: 'student', parentId: req.user._id }).select('_id');
+      children = linked.map(s => String(s._id));
+    }
+    studentId = req.query.studentId && children.includes(String(req.query.studentId))
+      ? req.query.studentId
+      : children[0];
   }
 
   if (!studentId) return res.json({ success: true, currentStreak: 0, longestStreak: 0 });

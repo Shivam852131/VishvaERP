@@ -2,7 +2,19 @@ const express = require('express');
 const { protect } = require('../middleware/auth');
 const { authorize, sameCollege } = require('../middleware/rbac');
 const { requireSubscription } = require('../middleware/subscription');
-const { createEvent, getEvents, getEventById, updateEvent, deleteEvent, registerForEvent, cancelRegistration, getCalendarEvents, getEventStats } = require('../controllers/eventController');
+const {
+  createEvent,
+  getEvents,
+  getEventById,
+  updateEvent,
+  deleteEvent,
+  registerForEvent,
+  checkInAttendee,
+  cancelRegistration,
+  getCalendarEvents,
+  getEventStats,
+  exportAttendees,
+} = require('../controllers/eventController');
 
 const router = express.Router();
 router.use(protect, sameCollege, requireSubscription);
@@ -12,7 +24,8 @@ router.route('/')
   .get(getEvents);
 
 router.get('/calendar', getCalendarEvents);
-router.get('/stats', authorize('collegeAdmin', 'superadmin'), getEventStats);
+router.get('/stats', authorize('collegeAdmin', 'superadmin', 'faculty'), getEventStats);
+
 router.route('/:id')
   .get(getEventById)
   .put(authorize('collegeAdmin', 'superadmin', 'faculty'), updateEvent)
@@ -20,5 +33,8 @@ router.route('/:id')
 
 router.post('/:id/register', registerForEvent);
 router.post('/:id/cancel', cancelRegistration);
+router.post('/:id/checkin-attendee', authorize('collegeAdmin', 'superadmin', 'faculty'), checkInAttendee);
+router.post('/:id/verify-ticket', authorize('collegeAdmin', 'superadmin', 'faculty'), checkInAttendee);
+router.get('/:id/export-attendees', authorize('collegeAdmin', 'superadmin', 'faculty'), exportAttendees);
 
 module.exports = router;

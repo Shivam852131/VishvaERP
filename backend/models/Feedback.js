@@ -3,9 +3,9 @@ const mongoose = require('mongoose');
 const feedbackSchema = new mongoose.Schema({
   collegeId: { type: mongoose.Schema.Types.ObjectId, ref: 'College', required: true },
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  type: { type: String, enum: ['course', 'faculty', 'institution', 'event'], required: true },
+  type: { type: String, enum: ['course', 'faculty', 'institution', 'event', 'facility'], required: true },
   targetId: { type: mongoose.Schema.Types.ObjectId, refPath: 'targetModel' },
-  targetModel: { type: String, enum: ['Subject', 'User', 'College', 'Event'] },
+  targetModel: { type: String, enum: ['Subject', 'User', 'College', 'Event', 'Facility'] },
   ratings: {
     content: { type: Number, min: 1, max: 5 },
     delivery: { type: Number, min: 1, max: 5 },

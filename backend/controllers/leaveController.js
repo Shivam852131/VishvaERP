@@ -25,19 +25,39 @@ const applyLeave = asyncHandler(async (req, res) => {
     res.status(201).json({ success: true, message: 'Leave application submitted successfully', leave });
   });
 
-// @desc    Get leave requests for a user
+// @desc    Get leave requests for a user with annual quotas
 const getMyLeaves = asyncHandler(async (req, res) => {
-    const leaves = await Leave.find({ userId: req.user._id }).sort({ createdAt: -1 });
-    res.json({ success: true, leaves });
+    const leaves = await Leave.find({ userId: req.user._id, collegeId: req.user.collegeId })
+      .populate('approvedBy', 'name role')
+      .sort({ createdAt: -1 });
+
+    const currentYear = new Date().getFullYear();
+    const approvedThisYear = leaves.filter(l => l.status === 'approved' && new Date(l.startDate).getFullYear() === currentYear);
+
+    const calcDays = (type) => approvedThisYear
+      .filter(l => l.leaveType === type)
+      .reduce((sum, l) => sum + Math.max(1, Math.round((new Date(l.endDate) - new Date(l.startDate)) / (1000 * 60 * 60 * 24)) + 1), 0);
+
+    const balances = {
+      casual: { total: 12, used: calcDays('casual'), remaining: Math.max(0, 12 - calcDays('casual')) },
+      sick: { total: 10, used: calcDays('sick'), remaining: Math.max(0, 10 - calcDays('sick')) },
+      earned: { total: 15, used: calcDays('earned'), remaining: Math.max(0, 15 - calcDays('earned')) },
+      duty: { total: 10, used: calcDays('duty'), remaining: Math.max(0, 10 - calcDays('duty')) },
+    };
+
+    res.json({ success: true, leaves, balances });
   });
 
 // @desc    Get all pending leave requests (Admin)
 const getAllLeaves = asyncHandler(async (req, res) => {
     const { status } = req.query;
     const query = { collegeId: req.user.collegeId };
-    if (status) query.status = status;
+    if (status && status !== 'all') query.status = status;
 
-    const leaves = await Leave.find(query).populate('userId', 'name role department designation').sort({ createdAt: -1 });
+    const leaves = await Leave.find(query)
+      .populate('userId', 'name role department designation email phone')
+      .populate('approvedBy', 'name role')
+      .sort({ createdAt: -1 });
     res.json({ success: true, leaves });
   });
 
@@ -51,7 +71,7 @@ const updateLeaveStatus = asyncHandler(async (req, res) => {
     );
     if (!leave) return res.status(404).json({ success: false, message: 'Leave record not found' });
     logAudit(req, 'update', 'leave', { resourceId: leave._id, description: `Leave ${status}`, metadata: { status, remarks } });
-    emitDataChange(req, { collegeId: String(req.user.collegeId), roles: ['superadmin'], resource: 'leaves', action: 'updated' });
+    emitDataChange(req, { collegeId: String(req.user.collegeId), roles: ['superadmin', 'collegeAdmin', 'faculty'], resource: 'leaves', action: 'updated' });
     
     res.json({ success: true, message: `Leave ${status} successfully`, leave });
   });

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -51,6 +51,7 @@
         <div class="topbar-breadcrumb">College Admin / <span>Fee Management</span></div>
       </div>
       <div class="topbar-right">
+        <button class="btn btn-secondary" onclick="window.open('/api/fees/export?token=' + encodeURIComponent(localStorage.getItem('token') || localStorage.getItem('erp_token') || ''), '_blank')"><i class="fas fa-file-csv"></i> Export CSV</button>
         <button class="btn btn-secondary" id="sendReminderBtn"><i class="fas fa-bell"></i> Send Reminders</button>
         <button class="btn btn-primary" onclick="openModal('assignFeeFromFeesModal');loadFeesAssignData()"><i class="fas fa-user-plus"></i> Assign Fee</button>
         <button class="btn btn-primary" onclick="openModal('collectOnlineModal')"><i class="fas fa-credit-card"></i> Collect Online</button>

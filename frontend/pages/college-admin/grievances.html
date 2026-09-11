@@ -151,7 +151,8 @@ function viewGrievance(id){
   loadGrievanceDetail(id);
 }
 async function loadGrievanceDetail(id){
-  const g=await window.api.request(`/grievances/${id}`);
+  const res=await window.api.request(`/grievances/${id}`);
+  const g=res.grievance || res;
   document.getElementById('modalTitle').textContent=g.subject||'Grievance Details';
   document.getElementById('modalTrackingId').textContent=g.trackingId||'';
   document.getElementById('modalSubject').textContent=g.subject||'';
@@ -164,10 +165,17 @@ async function loadGrievanceDetail(id){
   const statusColors={open:'#EF4444',resolved:'#10B981','in-progress':'#F59E0B',closed:'#64748B'};
   document.getElementById('modalStatus').innerHTML=`<span class="badge" style="background:${statusColors[g.status]||'#64748B'}22;color:${statusColors[g.status]||'#64748B'};font-size:12px;padding:3px 10px;border-radius:20px;text-transform:capitalize">${g.status||'N/A'}</span>`;
   const responses=g.responses||[];
-  document.getElementById('modalResponses').innerHTML=responses.length?responses.map(r=>`<div style="padding:12px;background:#F8FAFC;border-radius:8px;margin-bottom:8px;border-left:3px solid ${r.isAdmin?'#4F46E5':'#10B981'}">
-    <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-weight:600;font-size:13px;color:#1E293B">${r.author||'Admin'}</span><span style="font-size:11px;color:#94A3B8">${r.createdAt?new Date(r.createdAt).toLocaleString():''}</span></div>
-    <div style="font-size:13px;color:#475569;line-height:1.5">${r.text||''}</div>
-  </div>`).join(''):'<div style="text-align:center;padding:12px;color:#94A3B8;font-size:13px">No responses yet</div>';
+  document.getElementById('modalResponses').innerHTML=responses.length?responses.map(r=>{
+    const isAdmin = r.from === 'admin' || (r.responder && (r.responder.role === 'collegeAdmin' || r.responder.role === 'superadmin'));
+    const author = (r.responder && r.responder.name) || (isAdmin ? 'College Admin' : (g.raisedBy?.name || 'Student'));
+    return `<div style="padding:12px;background:#F8FAFC;border-radius:8px;margin-bottom:8px;border-left:3px solid ${isAdmin?'#4F46E5':'#10B981'}">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+        <span style="font-weight:700;font-size:13px;color:#1E293B"><i class="fas ${isAdmin?'fa-user-shield':'fa-user'}" style="margin-right:4px"></i>${author}</span>
+        <span style="font-size:11px;color:#94A3B8">${r.createdAt?new Date(r.createdAt).toLocaleString():''}</span>
+      </div>
+      <div style="font-size:13px;color:#475569;line-height:1.5;white-space:pre-wrap">${r.message || r.text || ''}</div>
+    </div>`;
+  }).join(''):'<div style="text-align:center;padding:12px;color:#94A3B8;font-size:13px">No responses yet</div>';
 }
 function closeGrievanceModal(){
   document.getElementById('grievanceModal').style.display='none';
@@ -177,7 +185,7 @@ async function submitResponse(){
   const text=document.getElementById('responseText').value.trim();
   if(!text){window.showToast('Please enter a response','error');return;}
   if(!currentGrievanceId)return;
-  await window.api.request(`/grievances/${currentGrievanceId}/respond`,{method:'POST',body:JSON.stringify({text})});
+  await window.api.request(`/grievances/${currentGrievanceId}/respond`,{method:'POST',body:JSON.stringify({message:text, text})});
   document.getElementById('responseText').value='';
   window.showToast('Response sent','success');
   loadGrievanceDetail(currentGrievanceId);

@@ -132,31 +132,66 @@
   }
 
   async function startCheckout(options) {
-    const { fee, amount, onSuccess, onPending, onFailure, onFinally, notes, modalId, accentColor, title } = options || {};
+    const { fee, amount, installmentId, onSuccess, onPending, onFailure, onFinally, notes, modalId, accentColor, title } = options || {};
 
     if (!fee?._id) throw new Error('Fee record is missing');
-    const pendingAmount = getFeePendingAmount(fee);
-    if (pendingAmount <= 0) throw new Error('Fee already fully paid');
+    const pendingAmount = installmentId && fee.installments?.length
+      ? Math.max(Number((fee.installments.find(i => String(i._id) === String(installmentId)) || {}).amount || 0) - Number((fee.installments.find(i => String(i._id) === String(installmentId)) || {}).paidAmount || 0), 0)
+      : getFeePendingAmount(fee);
+    if (pendingAmount <= 0) throw new Error('Fee or installment already fully paid');
 
     const payAmount = Number(amount || pendingAmount);
     if (payAmount <= 0 || payAmount > pendingAmount) throw new Error(`Enter amount between ₹1 and ${formatMoney(pendingAmount)}`);
 
-    await ensureRazorpayCheckout();
-    if (!window.Razorpay) throw new Error('Payment gateway failed to load');
-
     const statusContainerId = options?.statusContainerId || 'paymentStatus';
     showStatus(statusContainerId, 'Creating secure payment order...', 'processing');
 
-    const orderRes = await window.api.request(`/fees/${fee._id}/create-order`, { method: 'POST' });
-    if (!orderRes?.order || !orderRes?.key) throw new Error('Failed to create payment order');
+    const endpoint = installmentId ? `/fees/${fee._id}/installments/${installmentId}/create-order` : `/fees/${fee._id}/create-order`;
+    const orderRes = await window.api.request(endpoint, { method: 'POST' });
+    if (!orderRes?.order) throw new Error('Failed to create payment order');
+
+    const finalize = () => { if (typeof onFinally === 'function') onFinally(); };
+
+    // If sandbox mode or Razorpay not available, simulate payment confirmation
+    if (orderRes.isSandbox || String(orderRes.order.id).startsWith('order_sandbox_')) {
+      showStatus(statusContainerId, 'Simulating secure transaction processing...', 'processing');
+      await new Promise((r) => setTimeout(r, 1200));
+
+      showStatus(statusContainerId, 'Verifying payment with institution server...', 'processing');
+      try {
+        const verifyRes = await window.api.request('/fees/verify-payment', {
+          method: 'POST',
+          body: JSON.stringify({
+            razorpayOrderId: orderRes.order.id,
+            razorpayPaymentId: `pay_sandbox_${Date.now()}`,
+            razorpaySignature: 'sandbox_simulated_signature',
+            feeId: orderRes.feeId,
+            installmentId,
+          }),
+        });
+
+        const payload = { order: orderRes.order, verify: verifyRes, feeId: orderRes.feeId };
+        showStatus(statusContainerId, 'Payment verified successfully! Generating receipt...', 'success');
+        if (typeof onSuccess === 'function') await onSuccess(payload);
+        finalize();
+        return payload;
+      } catch (err) {
+        showStatus(statusContainerId, err.message || 'Payment verification failed', 'error');
+        if (typeof onFailure === 'function') await onFailure(err);
+        finalize();
+        throw err;
+      }
+    }
+
+    // Live Razorpay mode
+    await ensureRazorpayCheckout();
+    if (!window.Razorpay) throw new Error('Payment gateway failed to load');
 
     showStatus(statusContainerId, 'Opening Razorpay checkout...', 'processing');
-
     const user = window.api?.getUser?.() || JSON.parse(localStorage.getItem('erp_user') || '{}');
 
     return new Promise((resolve, reject) => {
       let settled = false;
-      const finalize = () => { if (typeof onFinally === 'function') onFinally(); };
 
       const finishResolve = async (payload) => {
         if (settled) return;
@@ -203,6 +238,7 @@
                 razorpayPaymentId: response.razorpay_payment_id,
                 razorpaySignature: response.razorpay_signature,
                 feeId: orderRes.feeId,
+                installmentId,
               }),
             }).catch(async () => {
               if (typeof onPending === 'function') await onPending(response);
@@ -225,7 +261,25 @@
 
   async function downloadReceipt(feeId) {
     showToast('Generating receipt...', 'info');
-    window.open(`/api/reports/fee-receipt/${feeId}`, '_blank');
+    const token = localStorage.getItem('token') || localStorage.getItem('erp_token') || sessionStorage.getItem('token') || '';
+    try {
+      const response = await fetch(`/api/reports/fee-receipt/${feeId}`, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      });
+      if (!response.ok) throw new Error('Receipt generation failed');
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `fee-receipt-${feeId}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      showToast('Receipt downloaded successfully', 'success');
+    } catch (e) {
+      window.open(`/api/reports/fee-receipt/${feeId}${token ? `?token=${encodeURIComponent(token)}` : ''}`, '_blank');
+    }
   }
 
   async function initiatePaymentFlow(options) {
@@ -334,4 +388,7 @@
     escapeHTML,
     pollPaymentStatus,
   };
+
+  window.startFeeCheckout = startCheckout;
+  window.downloadFeeReceipt = downloadReceipt;
 })();

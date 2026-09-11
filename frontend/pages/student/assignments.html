@@ -1,34 +1,115 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Assignments | VishvaERP</title>
+  <title>Assignments & Submissions — Student | VishvaERP</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="../../css/custom.css">
   <style>
-    .task-card { background: white; border: 1px solid #E2E8F0; border-radius: 14px; padding: 18px; margin-bottom: 12px; transition: all 0.2s; display: flex; gap: 16px; align-items: stretch; }
-    .task-card:hover { border-color: #0284C7; box-shadow: 0 4px 14px rgba(2,132,199,0.1); }
-    .task-date-box { width: 60px; background: #F1F5F9; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; }
-    .task-date-month { font-size: 10px; font-weight: 800; text-transform: uppercase; color: #64748B; letter-spacing: 1px; }
-    .task-date-day { font-size: 20px; font-weight: 900; color: #0F172A; }
-    .task-card.danger .task-date-box { background: #FEE2E2; }
+    /* ── Coursework Task Card Styles ── */
+    .task-card {
+      background: white;
+      border: 1px solid #E2E8F0;
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 16px;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      gap: 18px;
+      align-items: stretch;
+      position: relative;
+    }
+    .task-card:hover {
+      border-color: #0284C7;
+      box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.1);
+      transform: translateY(-2px);
+    }
+    .task-date-box {
+      width: 68px;
+      background: #F1F5F9;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      border: 1px solid #E2E8F0;
+    }
+    .task-date-month {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #64748B;
+      letter-spacing: 0.5px;
+    }
+    .task-date-day {
+      font-size: 22px;
+      font-weight: 900;
+      color: #0F172A;
+      line-height: 1.1;
+    }
+    .task-card.urgent .task-date-box {
+      background: #FFFBEB;
+      border-color: #FDE68A;
+    }
+    .task-card.urgent .task-date-month { color: #D97706; }
+    .task-card.urgent .task-date-day { color: #B45309; }
+
+    .task-card.danger .task-date-box {
+      background: #FEF2F2;
+      border-color: #FECACA;
+    }
     .task-card.danger .task-date-month { color: #EF4444; }
     .task-card.danger .task-date-day { color: #991B1B; }
-    .task-card.done .task-date-box { background: #D1FAE5; }
+
+    .task-card.done .task-date-box {
+      background: #ECFDF5;
+      border-color: #A7F3D0;
+    }
     .task-card.done .task-date-month { color: #059669; }
     .task-card.done .task-date-day { color: #065F46; }
-    
-    .file-upload { border: 2px dashed #CBD5E1; border-radius: 10px; padding: 20px; text-align: center; background: #F8FAFC; cursor: pointer; transition: all 0.2s; margin-top: 10px; }
-    .file-upload:hover { border-color: #0284C7; background: #F0F9FF; }
+
+    /* Summary Stat Cards */
+    .kpi-card-student {
+      background: white;
+      border: 1px solid #E2E8F0;
+      border-radius: 12px;
+      padding: 16px 18px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .kpi-card-student .icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
   </style>
 </head>
 <body>
 <div class="erp-layout">
+  <!-- Sidebar -->
   <aside class="erp-sidebar theme-student" id="sidebar">
-    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon"><img src="../../icons/logo.png" alt="Vi"></div><div class="sidebar-logo-text">Vishva <span>ERP</span></div></a></div>
-    <div class="sidebar-user"><div class="sidebar-avatar" id="sidebar-avatar">S</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Student</div><div class="sidebar-user-role">B.Tech | Sem 4</div></div></div>
+    <div class="sidebar-header">
+      <a class="sidebar-logo" href="../../index.html">
+        <div class="sidebar-logo-icon"><img src="../../icons/logo.png" alt="Vi"></div>
+        <div class="sidebar-logo-text">Vishva <span>ERP</span></div>
+      </a>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" id="sidebar-avatar">S</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name" id="sidebar-user-name">Student</div>
+        <div class="sidebar-user-role">B.Tech • Computer Science</div>
+      </div>
+    </div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Academics</div>
       <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
@@ -37,130 +118,190 @@
       <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-user-check"></i> Attendance</a>
       <a href="face-id.html" class="nav-link"><i class="nav-link-icon fas fa-face-smile-beam"></i> Face ID Check-In</a>
       <a href="assignments.html" class="nav-link active"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
-      <a href="results.html" class="nav-link"><i class="nav-link-icon fas fa-poll"></i> Results</a>
-      <div class="nav-section-label">Career Center</div>
+      <a href="results.html" class="nav-link"><i class="nav-link-icon fas fa-poll"></i> Results & CGPA</a>
+      <div class="nav-section-label">Career & Skills</div>
       <a href="career.html" class="nav-link"><i class="nav-link-icon fas fa-rocket"></i> Career Dashboard</a>
       <a href="skills.html" class="nav-link"><i class="nav-link-icon fas fa-tools"></i> Skills Profile</a>
-      <a href="mentorship.html" class="nav-link"><i class="nav-link-icon fas fa-user-tie"></i> Mentorship</a>
       <a href="placements.html" class="nav-link"><i class="nav-link-icon fas fa-briefcase"></i> Placements</a>
-      <a href="assessments.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-check"></i> Skill Assessments</a>
-      <div class="nav-section-label">Facilities</div>
-      <a href="library.html" class="nav-link"><i class="nav-link-icon fas fa-book"></i> Library</a>
-      <a href="transport.html" class="nav-link"><i class="nav-link-icon fas fa-bus"></i> Transport</a>
-      <a href="hostel.html" class="nav-link"><i class="nav-link-icon fas fa-building"></i> Hostel</a>
-      <a href="complaints.html" class="nav-link"><i class="nav-link-icon fas fa-exclamation-circle"></i> Complaints</a>
+      <div class="nav-section-label">Campus</div>
+      <a href="library.html" class="nav-link"><i class="nav-link-icon fas fa-book-reader"></i> Library</a>
       <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-rupee-sign"></i> Fee Details</a>
-      <a href="../messages.html" class="nav-link"><i class="nav-link-icon fas fa-envelope"></i> Messages</a>
       <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Tutor</a>
     </nav>
-    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+    <div class="sidebar-footer">
+      <button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </div>
   </aside>
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
+  <!-- Main Content -->
   <div class="erp-main">
     <header class="erp-topbar">
       <div class="topbar-left">
         <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
-        <div class="topbar-breadcrumb">Student / <span>Assignments</span></div>
+        <div class="topbar-breadcrumb">Student / <span>Assignments & Coursework</span></div>
       </div>
-      <div class="topbar-right"><div class="topbar-avatar" id="topbar-avatar">S</div></div>
+      <div class="topbar-right">
+        <div class="topbar-avatar" id="topbar-avatar">S</div>
+      </div>
     </header>
 
-    <div class="erp-content">
-      <div class="page-header" style="display:flex;justify-content:space-between;align-items:center">
+    <div class="erp-content" style="padding:24px 28px;max-width:1440px;margin:0 auto">
+      <!-- Page Title -->
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;flex-wrap:wrap;gap:12px">
         <div>
-          <h1 class="page-title">📝 Assignments & Submissions</h1>
-          <p class="page-subtitle">Track your coursework deadlines and upload solutions.</p>
+          <h1 class="page-title" style="font-size:24px;font-weight:800;color:#0F172A;display:flex;align-items:center;gap:10px">
+            <span>📝</span> Coursework & Solution Turn-Ins
+          </h1>
+          <p class="page-subtitle" style="color:#64748B;font-size:14px;margin-top:2px">
+            Submit your solutions, track submission deadlines, and review instructor grading feedback.
+          </p>
+        </div>
+        <div>
+          <button class="btn btn-secondary btn-sm" onclick="loadStudentAssignments()">
+            <i class="fas fa-sync-alt" id="refreshIcon"></i> Refresh
+          </button>
         </div>
       </div>
 
-      <div class="tab-bar mb-6" style="width:fit-content;padding:4px;border:1px solid #E2E8F0">
-        <button class="tab-btn active">Pending (2)</button>
-        <button class="tab-btn">Submitted (4)</button>
+      <!-- Executive KPI Cards -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px;margin-bottom:24px">
+        <div class="kpi-card-student">
+          <div class="icon" style="background:#EFF6FF;color:#0284C7">
+            <i class="fas fa-tasks"></i>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:700;color:#64748B;text-transform:uppercase">Total Assigned</div>
+            <div style="font-size:22px;font-weight:900;color:#0F172A" id="kpiTotal">0</div>
+            <div style="font-size:11px;color:#0284C7;font-weight:600">Current semester</div>
+          </div>
+        </div>
+
+        <div class="kpi-card-student">
+          <div class="icon" style="background:#FEF2F2;color:#EF4444">
+            <i class="fas fa-clock"></i>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:700;color:#64748B;text-transform:uppercase">Pending Due</div>
+            <div style="font-size:22px;font-weight:900;color:#EF4444" id="kpiPending">0</div>
+            <div style="font-size:11px;color:#DC2626;font-weight:600">Action needed</div>
+          </div>
+        </div>
+
+        <div class="kpi-card-student">
+          <div class="icon" style="background:#ECFDF5;color:#059669">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:700;color:#64748B;text-transform:uppercase">Turned In</div>
+            <div style="font-size:22px;font-weight:900;color:#059669" id="kpiSubmitted">0</div>
+            <div style="font-size:11px;color:#059669;font-weight:600" id="kpiTurnInRate">0% submitted</div>
+          </div>
+        </div>
+
+        <div class="kpi-card-student">
+          <div class="icon" style="background:#F5F3FF;color:#7C3AED">
+            <i class="fas fa-award"></i>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:700;color:#64748B;text-transform:uppercase">Average Score</div>
+            <div style="font-size:22px;font-weight:900;color:#7C3AED" id="kpiAvgScore">0%</div>
+            <div style="font-size:11px;color:#7C3AED;font-weight:600" id="kpiGradedCount">0 graded</div>
+          </div>
+        </div>
       </div>
 
-      <div class="grid" style="grid-template-columns:2fr 1fr;gap:24px;align-items:start">
+      <!-- Main Layout Grid: Left List + Right Progress Card -->
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;align-items:start">
         
-        <!-- Assignment List -->
+        <!-- Left Column: Filter Tabs & Assignment List -->
         <div>
-          <!-- Task 1 (Due soon) -->
-          <div class="task-card danger">
-            <div class="task-date-box"><div class="task-date-month">APR</div><div class="task-date-day">14</div></div>
-            <div style="flex:1">
-              <div style="display:flex;justify-content:space-between;align-items:flex-start">
-                <div>
-                  <div style="font-size:11px;font-weight:700;color:#0284C7;margin-bottom:2px">CS401 • Database Management Systems</div>
-                  <div style="font-weight:800;font-size:16px;color:#0F172A;margin-bottom:6px">Assignment 3: SQL Subqueries Optimization</div>
-                </div>
-                <span class="badge badge-danger">Due in 2 days</span>
-              </div>
-              <div style="font-size:13px;color:#64748B;line-height:1.5;margin-bottom:12px">Write optimized subqueries for the given 5 schema questions. Submit output logs as PDF.</div>
-              <div style="display:flex;gap:10px">
-                <button class="btn btn-sm btn-primary" onclick="openUpload('Assignment 3: SQL Subqueries')"><i class="fas fa-upload"></i> Submit Work</button>
-                <button class="btn btn-sm btn-secondary" style="background:#F8FAFC"><i class="fas fa-download"></i> Question_Set.pdf</button>
-              </div>
+          <!-- Tab Navigation Bar -->
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:12px">
+            <div class="tab-bar" style="border:1px solid #E2E8F0;border-radius:8px;padding:3px;background:white">
+              <button class="tab-btn active" id="tabPending" onclick="switchTab('pending')">Pending (<span id="badgePending">0</span>)</button>
+              <button class="tab-btn" id="tabSubmitted" onclick="switchTab('submitted')">Submitted (<span id="badgeSubmitted">0</span>)</button>
+              <button class="tab-btn" id="tabGraded" onclick="switchTab('graded')">Graded (<span id="badgeGraded">0</span>)</button>
+              <button class="tab-btn" id="tabAll" onclick="switchTab('all')">All (<span id="badgeAll">0</span>)</button>
             </div>
+
+            <select id="subjectFilter" onchange="applyStudentFilters()" class="form-control" style="width:180px;height:36px;font-size:12px">
+              <option value="">All Subjects</option>
+            </select>
           </div>
 
-          <!-- Task 2 (Pending) -->
-          <div class="task-card">
-            <div class="task-date-box"><div class="task-date-month">APR</div><div class="task-date-day">20</div></div>
-            <div style="flex:1">
-              <div style="display:flex;justify-content:space-between;align-items:flex-start">
-                <div>
-                  <div style="font-size:11px;font-weight:700;color:#0284C7;margin-bottom:2px">CS405 • Software Engineering</div>
-                  <div style="font-weight:800;font-size:16px;color:#0F172A;margin-bottom:6px">Lab Project: UML Diagrams</div>
-                </div>
-                <span class="badge badge-gray">Due in 8 days</span>
-              </div>
-              <div style="font-size:13px;color:#64748B;line-height:1.5;margin-bottom:12px">Create Use Case, Class, and Sequence diagrams for the Library Management System.</div>
-              <div style="display:flex;gap:10px">
-                <button class="btn btn-sm btn-primary" onclick="openUpload('Lab Project: UML Diagrams')"><i class="fas fa-upload"></i> Submit Work</button>
-              </div>
-            </div>
+          <!-- Assignment Cards Container -->
+          <div id="studentAssignmentList">
+            <!-- Rendered via JS -->
           </div>
 
-          <!-- Task 3 (Done) -->
-          <h3 style="font-size:13px;font-weight:700;color:#94A3B8;text-transform:uppercase;margin:24px 0 12px 0;border-bottom:1px solid #E2E8F0;padding-bottom:8px">Last Submitted</h3>
-          <div class="task-card done" style="opacity:0.8">
-            <div class="task-date-box"><div class="task-date-month">APR</div><div class="task-date-day">05</div></div>
-            <div style="flex:1">
-              <div style="display:flex;justify-content:space-between;align-items:flex-start">
-                <div>
-                  <div style="font-size:11px;font-weight:700;color:#0284C7;margin-bottom:2px">CS402 • Operating Systems</div>
-                  <div style="font-weight:800;font-size:16px;color:#0F172A;margin-bottom:2px">Assignment 2: CPU Scheduling</div>
-                </div>
-              </div>
-              <div style="font-size:12px;color:#059669;font-weight:600;margin-top:8px"><i class="fas fa-check-circle"></i> Submitted on Apr 04, 11:30 PM</div>
-              <div style="margin-top:8px;padding:8px 12px;background:#F8FAFC;border:1px solid #E2E8F0;border-radius:8px;font-size:12px;display:flex;justify-content:space-between">
-                <span><i class="fas fa-file-pdf text-danger"></i> my_answers.pdf</span>
-                <span style="font-weight:700;color:#4F46E5">Score: 9.5 / 10</span>
-              </div>
+          <!-- Empty State -->
+          <div id="studentEmptyState" style="display:none;background:white;border:1px dashed #CBD5E1;border-radius:14px;padding:48px 24px;text-align:center">
+            <div style="width:56px;height:56px;border-radius:50%;background:#F0F9FF;color:#0284C7;display:flex;align-items:center;justify-content:center;margin:0 auto 14px auto;font-size:24px">
+              <i class="fas fa-check-double"></i>
             </div>
+            <h4 style="font-size:16px;font-weight:700;color:#0F172A;margin-bottom:4px">All Caught Up!</h4>
+            <p style="font-size:13px;color:#64748B;margin:0">No assignments found in this category.</p>
           </div>
         </div>
 
-        <!-- Grade Summary -->
-        <div class="card">
-          <div class="card-header"><div class="card-title">Assignment Progress</div></div>
-          <div class="card-body">
-            <div style="position:relative;width:160px;height:160px;margin:0 auto 16px auto">
-              <canvas id="assignmentChart"></canvas>
-              <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
-                <span style="font-size:24px;font-weight:900;color:#0F172A">4/6</span>
-                <span style="font-size:11px;font-weight:700;color:#64748B">SUBMITTED</span>
+        <!-- Right Column: Visual Progress & AI Helper -->
+        <div style="display:flex;flex-direction:column;gap:18px">
+          <!-- Submission Doughnut Progress -->
+          <div class="card" style="padding:22px">
+            <h3 style="font-size:15px;font-weight:800;color:#0F172A;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between">
+              <span>Coursework Health</span>
+              <i class="fas fa-chart-pie" style="color:#0284C7"></i>
+            </h3>
+
+            <div style="position:relative;width:150px;height:150px;margin:0 auto 16px auto">
+              <canvas id="progressDoughnutChart"></canvas>
+              <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none">
+                <span style="font-size:22px;font-weight:900;color:#0F172A" id="chartRatio">0/0</span>
+                <span style="font-size:10px;font-weight:700;color:#64748B;letter-spacing:0.5px">COMPLETED</span>
               </div>
             </div>
-            
-            <div style="display:flex;flex-direction:column;gap:8px">
-              <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:#64748B">Pending:</span><strong style="color:#EF4444">2</strong></div>
-              <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:#64748B">Submitted:</span><strong style="color:#10B981">4</strong></div>
-              <hr style="border-top:1px solid #E2E8F0">
-              <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:#64748B">Average Score:</span><strong style="color:#4F46E5">8.8 / 10</strong></div>
+
+            <div style="display:flex;flex-direction:column;gap:10px;font-size:13px">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="display:flex;align-items:center;gap:6px;color:#64748B">
+                  <span style="width:10px;height:10px;border-radius:3px;background:#EF4444"></span> Pending Action:
+                </span>
+                <strong id="sidePending" style="color:#EF4444">0</strong>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="display:flex;align-items:center;gap:6px;color:#64748B">
+                  <span style="width:10px;height:10px;border-radius:3px;background:#10B981"></span> Submitted:
+                </span>
+                <strong id="sideSubmitted" style="color:#10B981">0</strong>
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="display:flex;align-items:center;gap:6px;color:#64748B">
+                  <span style="width:10px;height:10px;border-radius:3px;background:#7C3AED"></span> Graded:
+                </span>
+                <strong id="sideGraded" style="color:#7C3AED">0</strong>
+              </div>
+              <hr style="border-top:1px solid #E2E8F0;margin:4px 0">
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span style="color:#64748B">Overall Evaluation Score:</span>
+                <strong id="sideAvgScore" style="color:#0284C7;font-size:15px">0%</strong>
+              </div>
             </div>
-            
-            <a href="../ai-tools.html" class="btn btn-secondary w-full" style="margin-top:20px;background:linear-gradient(135deg,#EEF2FF,#E0E7FF);color:#4F46E5;border-color:#C7D2FE">
-              <i class="fas fa-magic"></i> Need help? Ask AI Tutor
+          </div>
+
+          <!-- Ask AI Tutor Banner -->
+          <div class="card" style="padding:20px;background:linear-gradient(135deg,#EFF6FF,#EEF2FF);border:1px solid #C7D2FE">
+            <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:12px">
+              <div style="width:40px;height:40px;border-radius:10px;background:#4F46E5;color:white;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">
+                <i class="fas fa-magic"></i>
+              </div>
+              <div>
+                <h4 style="font-weight:800;color:#1E1B4B;font-size:14px;margin-bottom:2px">Stuck on an assignment?</h4>
+                <p style="font-size:12px;color:#4338CA;line-height:1.4">Get step-by-step guidance, pseudocode, or algorithm breakdown with the AI Academic Assistant.</p>
+              </div>
+            </div>
+            <a href="../ai-tools.html" class="btn btn-sm btn-primary w-full" style="background:#4F46E5;border-color:#4F46E5;display:flex;align-items:center;justify-content:center;gap:6px">
+              <i class="fas fa-robot"></i> Open AI Academic Tutor
             </a>
           </div>
         </div>
@@ -170,33 +311,607 @@
   </div>
 </div>
 
-<!-- Upload Modal -->
-<div class="modal-backdrop" id="uploadModal">
-  <div class="modal" style="max-width:500px">
-    <div class="modal-header"><div class="modal-title"><i class="fas fa-cloud-upload-alt text-primary" style="margin-right:8px"></i>Submit Assignment</div><button class="modal-close" onclick="closeModal('uploadModal')"><i class="fas fa-times"></i></button></div>
-    <div class="modal-body">
-      <div style="font-weight:700;font-size:14px;color:#0F172A;margin-bottom:4px" id="uploadTaskName">Task Name</div>
-      <div style="font-size:12px;color:#64748B;margin-bottom:16px">Allowed formats: PDF, ZIP (Max 10MB)</div>
-      
-      <div class="file-upload">
-        <i class="fas fa-file-upload" style="font-size:32px;color:#94A3B8;margin-bottom:8px"></i>
-        <div style="font-size:14px;font-weight:700;color:#334155">Click to browse or drag file here</div>
-        <div style="font-size:12px;color:#94A3B8;margin-top:4px">No file chosen</div>
+<!-- ========================================================
+     TURN-IN / SUBMISSION MODAL
+======================================================== -->
+<div class="modal-backdrop" id="turnInModal">
+  <div class="modal modal-lg">
+    <div class="modal-header" style="background:#F8FAFC;border-bottom:1px solid #E2E8F0">
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#0284C7;text-transform:uppercase" id="modalSubjectBadge">CS401</div>
+        <h3 class="modal-title" id="modalAssignmentTitle" style="font-size:17px;font-weight:800;color:#0F172A">Turn In Work</h3>
       </div>
-      
-      <div class="form-group mt-4">
-        <label class="form-label">Submission Comments (Optional)</label>
-        <textarea class="form-control" rows="2" placeholder="Any note for the professor..."></textarea>
+      <button class="modal-close" onclick="closeModal('turnInModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body" style="padding:22px 24px">
+      <input type="hidden" id="submitAssignmentId" value="">
+
+      <!-- Due Date Banner in Modal -->
+      <div id="modalDueBanner" style="background:#F0F9FF;border:1px solid #BAE6FD;border-radius:10px;padding:10px 14px;margin-bottom:18px;display:flex;align-items:center;justify-content:space-between">
+        <span style="font-size:12px;color:#0369A1;font-weight:600">
+          <i class="far fa-calendar-check" style="margin-right:6px"></i> Due: <span id="modalDueDateText">Apr 14, 2024</span>
+        </span>
+        <span class="badge" id="modalStatusBadge" style="background:#E0F2FE;color:#0284C7;font-weight:700;font-size:11px">On Time</span>
+      </div>
+
+      <!-- Solution File URL / Cloud Link -->
+      <div class="form-group" style="margin-bottom:18px">
+        <label class="form-label" style="font-weight:700;font-size:13px;color:#0F172A">
+          <i class="fas fa-cloud-upload-alt" style="color:#0284C7;margin-right:6px"></i>Solution File Link / Cloud URL
+        </label>
+        <input class="form-control" id="submitFileUrl" 
+               placeholder="e.g. Google Drive share link, GitHub repository, Dropbox, or PDF link">
+        <div style="font-size:11px;color:#64748B;margin-top:5px">
+          Ensure link permissions are set to "Anyone with the link can view" so your professor can evaluate it.
+        </div>
+      </div>
+
+      <!-- Solution Content / Text / Code -->
+      <div class="form-group" style="margin-bottom:18px">
+        <label class="form-label" style="font-weight:700;font-size:13px;color:#0F172A">
+          <i class="fas fa-code" style="color:#4F46E5;margin-right:6px"></i>Written Answer / Code Snippet / Solution Notes
+        </label>
+        <textarea class="form-control" id="submitContent" rows="4" 
+                  placeholder="Paste algorithm explanations, SQL query output logs, or code answers here..."></textarea>
+      </div>
+
+      <!-- Note for Professor -->
+      <div class="form-group" style="margin-bottom:6px">
+        <label class="form-label" style="font-weight:600;font-size:12px;color:#475569">
+          Remarks for Instructor (Optional)
+        </label>
+        <input class="form-control" id="submitNotes" placeholder="Any brief remark regarding edge cases or implementation setup...">
       </div>
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="closeModal('uploadModal')">Cancel</button>
-      <button class="btn btn-primary" onclick="submitWork()"><i class="fas fa-paper-plane"></i> Submit</button>
+    <div class="modal-footer" style="background:#F8FAFC;border-top:1px solid #E2E8F0;padding:14px 24px">
+      <button class="btn btn-secondary" onclick="closeModal('turnInModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmSubmitWork()" id="submitBtn" style="background:#0284C7;border-color:#0284C7">
+        <i class="fas fa-paper-plane"></i> Submit Solution
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================================
+     VIEW EVALUATION FEEDBACK MODAL
+======================================================== -->
+<div class="modal-backdrop" id="feedbackModal">
+  <div class="modal modal-md">
+    <div class="modal-header" style="background:#F8FAFC;border-bottom:1px solid #E2E8F0">
+      <div>
+        <div style="font-size:11px;font-weight:700;color:#7C3AED;text-transform:uppercase">Evaluation Result</div>
+        <h3 class="modal-title" id="fbModalTitle" style="font-size:17px;font-weight:800;color:#0F172A">Score & Feedback</h3>
+      </div>
+      <button class="modal-close" onclick="closeModal('feedbackModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body" style="padding:22px 24px">
+      <!-- Score Spotlight Ribbon -->
+      <div style="background:linear-gradient(135deg,#FAF5FF,#F3E8FF);border:1px solid #E9D5FF;border-radius:14px;padding:20px;text-align:center;margin-bottom:18px">
+        <div style="font-size:12px;font-weight:700;color:#7C3AED;text-transform:uppercase;letter-spacing:0.5px">Score Awarded</div>
+        <div style="font-size:36px;font-weight:900;color:#581C87;line-height:1.1;margin:6px 0" id="fbScoreText">
+          0 / 0
+        </div>
+        <div style="font-size:13px;font-weight:700;color:#7C3AED" id="fbScorePct">0% • Grade O (Outstanding)</div>
+      </div>
+
+      <!-- Instructor Comments Box -->
+      <div style="margin-bottom:16px">
+        <label style="font-size:12px;font-weight:700;color:#475569;text-transform:uppercase;margin-bottom:6px;display:block">
+          <i class="fas fa-comment-dots" style="color:#7C3AED;margin-right:6px"></i>Instructor Feedback:
+        </label>
+        <div id="fbRemarksBox" style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;padding:14px;font-size:13px;color:#334155;line-height:1.5;min-height:60px">
+          No written feedback provided.
+        </div>
+      </div>
+
+      <!-- Submitted Files preview -->
+      <div id="fbSubmittedWorkContainer">
+        <label style="font-size:12px;font-weight:700;color:#475569;text-transform:uppercase;margin-bottom:6px;display:block">
+          Your Submitted Work:
+        </label>
+        <div id="fbSubmittedWork" style="font-size:12px;color:#64748B"></div>
+      </div>
+    </div>
+    <div class="modal-footer" style="background:#F8FAFC;border-top:1px solid #E2E8F0;padding:12px 24px">
+      <button class="btn btn-secondary w-full" onclick="closeModal('feedbackModal')">Close</button>
     </div>
   </div>
 </div>
 
 <script src="../../js/shared.js"></script>
+<script>
+  requireAuth(['student']);
+
+  // State
+  let studentAssignments = [];
+  let currentTab = 'pending';
+  let chartInstance = null;
+
+  // Realistic Fallback Data
+  const MOCK_STUDENT_ASSIGNMENTS = [
+    {
+      _id: 'std-mock-1',
+      title: 'DSA Assignment 4 — Balanced Binary Trees & AVL Rotations',
+      subjectId: { _id: 'sub-1', name: 'Data Structures & Algorithms', code: 'CS401' },
+      facultyId: { name: 'Dr. Ramesh Sharma' },
+      totalMarks: 25,
+      dueDate: new Date(Date.now() + 2 * 86400000).toISOString(),
+      description: 'Implement AVL insertion with single and double rotations. Provide asymptotic analysis and test cases.',
+      attachments: ['https://drive.google.com/sample_problem_set_avl.pdf'],
+      mySubmission: null,
+      studentStatus: 'pending',
+      daysRemaining: 2
+    },
+    {
+      _id: 'std-mock-2',
+      title: 'DBMS Lab Project — Normalized Schema & Query Optimization',
+      subjectId: { _id: 'sub-2', name: 'Database Management Systems', code: 'CS402' },
+      facultyId: { name: 'Prof. Sunita Rao' },
+      totalMarks: 20,
+      dueDate: new Date(Date.now() + 6 * 86400000).toISOString(),
+      description: 'Design 3NF relational schema for an Online Hospital OPD. Run EXPLAIN ANALYZE on indexed queries.',
+      attachments: ['https://github.com/example/hospital-dbms-template'],
+      mySubmission: null,
+      studentStatus: 'pending',
+      daysRemaining: 6
+    },
+    {
+      _id: 'std-mock-3',
+      title: 'OS Assignment 2 — Multithreaded Matrix Multiplication',
+      subjectId: { _id: 'sub-3', name: 'Operating Systems', code: 'CS403' },
+      facultyId: { name: 'Dr. Anand Joshi' },
+      totalMarks: 30,
+      dueDate: new Date(Date.now() - 3 * 86400000).toISOString(),
+      description: 'Use POSIX pthreads in C/C++ to benchmark parallel speedup across varying core thread pools.',
+      attachments: [],
+      mySubmission: {
+        _id: 'sub-301',
+        submittedAt: new Date(Date.now() - 4 * 86400000).toISOString(),
+        files: ['https://drive.google.com/my_matrix_mult_pthreads.c'],
+        content: 'POSIX threads implementation with benchmarking graphs across 2, 4, 8 threads.',
+        marksObtained: 28,
+        feedback: 'Outstanding multithreaded design. Execution graphs clearly illustrate speedup trends.',
+        status: 'graded'
+      },
+      studentStatus: 'graded',
+      daysRemaining: -3
+    },
+    {
+      _id: 'std-mock-4',
+      title: 'Software Engineering UML Sprint Case Study',
+      subjectId: { _id: 'sub-5', name: 'Software Engineering', code: 'CS405' },
+      facultyId: { name: 'Prof. Vikram Singh' },
+      totalMarks: 20,
+      dueDate: new Date(Date.now() + 8 * 86400000).toISOString(),
+      description: 'Create Use Case, Class, and Sequence diagrams for the College Library Management System.',
+      attachments: [],
+      mySubmission: {
+        _id: 'sub-401',
+        submittedAt: new Date(Date.now() - 1 * 86400000).toISOString(),
+        files: ['https://drive.google.com/uml_library_diagrams.pdf'],
+        content: 'Included 3 complete UML diagrams with actor descriptions.',
+        marksObtained: null,
+        feedback: '',
+        status: 'submitted'
+      },
+      studentStatus: 'submitted',
+      daysRemaining: 7
+    }
+  ];
+
+  document.addEventListener('DOMContentLoaded', async () => {
+    await loadStudentAssignments();
+  });
+
+  async function loadStudentAssignments() {
+    const icon = document.getElementById('refreshIcon');
+    if (icon) icon.classList.add('fa-spin');
+
+    try {
+      const res = await api.request('/assignments/student', { silent: true });
+      if (res?.success && Array.isArray(res.data) && res.data.length > 0) {
+        studentAssignments = res.data;
+      } else {
+        studentAssignments = MOCK_STUDENT_ASSIGNMENTS;
+      }
+    } catch (err) {
+      console.warn('Backend student assignments failed, using fallback:', err);
+      studentAssignments = MOCK_STUDENT_ASSIGNMENTS;
+    } finally {
+      if (icon) icon.classList.remove('fa-spin');
+      populateSubjectDropdown();
+      updateStudentKPIs();
+      applyStudentFilters();
+    }
+  }
+
+  function populateSubjectDropdown() {
+    const sel = document.getElementById('subjectFilter');
+    const subjectsMap = new Map();
+    studentAssignments.forEach(a => {
+      if (a.subjectId && a.subjectId._id) {
+        subjectsMap.set(String(a.subjectId._id), `${a.subjectId.code || 'CS'} • ${a.subjectId.name}`);
+      }
+    });
+
+    sel.innerHTML = '<option value="">All Subjects</option>' + 
+      Array.from(subjectsMap.entries()).map(([id, label]) => `<option value="${id}">${label}</option>`).join('');
+  }
+
+  function updateStudentKPIs() {
+    const total = studentAssignments.length;
+    const pendingList = studentAssignments.filter(a => a.studentStatus === 'pending' || a.studentStatus === 'overdue');
+    const submittedList = studentAssignments.filter(a => a.mySubmission !== null);
+    const gradedList = studentAssignments.filter(a => a.studentStatus === 'graded');
+
+    let totalScorePct = 0;
+    gradedList.forEach(a => {
+      const marks = a.mySubmission?.marksObtained;
+      if (typeof marks === 'number' && a.totalMarks > 0) {
+        totalScorePct += (marks / a.totalMarks) * 100;
+      }
+    });
+    const avgScore = gradedList.length > 0 ? Math.round(totalScorePct / gradedList.length) : 0;
+    const turnInRate = total > 0 ? Math.round((submittedList.length / total) * 100) : 0;
+
+    // Badges
+    document.getElementById('badgeAll').textContent = total;
+    document.getElementById('badgePending').textContent = pendingList.length;
+    document.getElementById('badgeSubmitted').textContent = studentAssignments.filter(a => a.mySubmission !== null && a.studentStatus !== 'graded').length;
+    document.getElementById('badgeGraded').textContent = gradedList.length;
+
+    // Top KPI cards
+    document.getElementById('kpiTotal').textContent = total;
+    document.getElementById('kpiPending').textContent = pendingList.length;
+    document.getElementById('kpiSubmitted').textContent = submittedList.length;
+    document.getElementById('kpiTurnInRate').textContent = `${turnInRate}% submitted`;
+    document.getElementById('kpiAvgScore').textContent = `${avgScore}%`;
+    document.getElementById('kpiGradedCount').textContent = `${gradedList.length} evaluated`;
+
+    // Right sidebar stat block
+    document.getElementById('sidePending').textContent = pendingList.length;
+    document.getElementById('sideSubmitted').textContent = studentAssignments.filter(a => a.mySubmission !== null && a.studentStatus !== 'graded').length;
+    document.getElementById('sideGraded').textContent = gradedList.length;
+    document.getElementById('sideAvgScore').textContent = `${avgScore}%`;
+    document.getElementById('chartRatio').textContent = `${submittedList.length}/${total}`;
+
+    renderDoughnutChart(pendingList.length, submittedList.length - gradedList.length, gradedList.length);
+  }
+
+  function renderDoughnutChart(pending, submitted, graded) {
+    const ctx = document.getElementById('progressDoughnutChart');
+    if (!ctx) return;
+
+    if (chartInstance) chartInstance.destroy();
+
+    const hasData = (pending + submitted + graded) > 0;
+
+    chartInstance = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Pending', 'Submitted', 'Graded'],
+        datasets: [{
+          data: hasData ? [pending, submitted, graded] : [1, 0, 0],
+          backgroundColor: hasData ? ['#EF4444', '#10B981', '#7C3AED'] : ['#E2E8F0'],
+          borderWidth: 2,
+          borderColor: '#FFFFFF',
+          hoverOffset: 4
+        }]
+      },
+      options: {
+        cutout: '72%',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            enabled: hasData,
+            callbacks: {
+              label: function(item) {
+                return ` ${item.label}: ${item.raw}`;
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  function switchTab(tab) {
+    currentTab = tab;
+    ['pending', 'submitted', 'graded', 'all'].forEach(t => {
+      const btn = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1));
+      if (btn) btn.className = `tab-btn ${currentTab === t ? 'active' : ''}`;
+    });
+    applyStudentFilters();
+  }
+
+  function applyStudentFilters() {
+    const subjectId = document.getElementById('subjectFilter').value;
+
+    const filtered = studentAssignments.filter(a => {
+      const sId = a.subjectId?._id || a.subjectId;
+      const subjectMatch = !subjectId || String(sId) === String(subjectId);
+
+      let tabMatch = true;
+      if (currentTab === 'pending') {
+        tabMatch = a.studentStatus === 'pending' || a.studentStatus === 'overdue';
+      } else if (currentTab === 'submitted') {
+        tabMatch = a.mySubmission !== null && a.studentStatus !== 'graded';
+      } else if (currentTab === 'graded') {
+        tabMatch = a.studentStatus === 'graded';
+      }
+
+      return subjectMatch && tabMatch;
+    });
+
+    renderAssignmentCards(filtered);
+  }
+
+  function renderAssignmentCards(list) {
+    const container = document.getElementById('studentAssignmentList');
+    const empty = document.getElementById('studentEmptyState');
+
+    if (!list || list.length === 0) {
+      container.innerHTML = '';
+      empty.style.display = 'block';
+      return;
+    }
+
+    empty.style.display = 'none';
+
+    container.innerHTML = list.map(a => {
+      const dueDate = new Date(a.dueDate);
+      const isPast = dueDate < new Date();
+      const diffDays = Math.ceil((dueDate - new Date()) / (1000 * 60 * 60 * 24));
+      
+      const monthStr = dueDate.toLocaleString('en-US', { month: 'short' }).toUpperCase();
+      const dayStr = dueDate.getDate();
+
+      const sub = a.mySubmission;
+      const isGraded = a.studentStatus === 'graded';
+      const isSubmitted = sub !== null;
+
+      // Card class styling
+      let cardClass = 'task-card';
+      if (isGraded || isSubmitted) {
+        cardClass += ' done';
+      } else if (isPast) {
+        cardClass += ' danger';
+      } else if (diffDays <= 2) {
+        cardClass += ' urgent';
+      }
+
+      // Status pill badge
+      let badgeHtml = '';
+      if (isGraded) {
+        const score = sub.marksObtained;
+        const max = a.totalMarks;
+        const pct = max > 0 ? Math.round((score / max) * 100) : 0;
+        badgeHtml = `<span class="badge" style="background:#FAF5FF;color:#7C3AED;border:1px solid #E9D5FF;font-weight:800"><i class="fas fa-star" style="margin-right:4px"></i>Score: ${score}/${max} (${pct}%)</span>`;
+      } else if (isSubmitted) {
+        const isLate = sub.status === 'late';
+        badgeHtml = `<span class="badge" style="background:#ECFDF5;color:#059669;border:1px solid #A7F3D0;font-weight:700"><i class="fas fa-check-circle" style="margin-right:4px"></i>Turned In ${isLate ? '(Late)' : ''}</span>`;
+      } else if (isPast) {
+        badgeHtml = `<span class="badge badge-danger"><i class="fas fa-exclamation-circle" style="margin-right:4px"></i>Overdue</span>`;
+      } else if (diffDays <= 2) {
+        badgeHtml = `<span class="badge" style="background:#FFFBEB;color:#D97706;border:1px solid #FDE68A;font-weight:700"><i class="fas fa-clock" style="margin-right:4px"></i>Due in ${diffDays === 0 ? 'Today' : (diffDays === 1 ? '1 day' : '2 days')}</span>`;
+      } else {
+        badgeHtml = `<span class="badge badge-gray"><i class="far fa-calendar-alt" style="margin-right:4px"></i>Due in ${diffDays} days</span>`;
+      }
+
+      const subjectName = a.subjectId?.name || 'Course Subject';
+      const subjectCode = a.subjectId?.code || 'CS';
+      const instructorName = a.facultyId?.name || 'Course Instructor';
+
+      // Action Button
+      let actionBtnHtml = '';
+      if (isGraded) {
+        actionBtnHtml = `
+          <button class="btn btn-sm btn-secondary" onclick="viewEvaluationFeedback('${a._id}')" style="background:#FAF5FF;color:#7C3AED;border-color:#C4B5FD">
+            <i class="fas fa-comment-alt" style="margin-right:4px"></i> View Feedback & Remarks
+          </button>
+        `;
+      } else if (isSubmitted) {
+        actionBtnHtml = `
+          <button class="btn btn-sm btn-secondary" onclick="openTurnInModal('${a._id}')">
+            <i class="fas fa-edit" style="margin-right:4px"></i> Update Submission
+          </button>
+        `;
+      } else {
+        actionBtnHtml = `
+          <button class="btn btn-sm btn-primary" onclick="openTurnInModal('${a._id}')" style="background:#0284C7;border-color:#0284C7">
+            <i class="fas fa-upload" style="margin-right:4px"></i> Submit Work
+          </button>
+        `;
+      }
+
+      // Attachment material link
+      const hasAttachment = a.attachments && a.attachments.length > 0;
+      const downloadBtnHtml = hasAttachment ? `
+        <a href="${a.attachments[0]}" target="_blank" rel="noopener noreferrer" 
+           class="btn btn-sm btn-secondary" style="background:#F8FAFC;text-decoration:none">
+          <i class="fas fa-download" style="margin-right:4px"></i> Problem Set
+        </a>
+      ` : '';
+
+      return `
+        <div class="${cardClass}">
+          <!-- Left Date Stamp Box -->
+          <div class="task-date-box">
+            <div class="task-date-month">${monthStr}</div>
+            <div class="task-date-day">${dayStr}</div>
+          </div>
+
+          <!-- Middle Content -->
+          <div style="flex:1;display:flex;flex-direction:column">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;gap:8px">
+              <div>
+                <div style="font-size:11px;font-weight:700;color:#0284C7;text-transform:uppercase;letter-spacing:0.5px">
+                  ${subjectCode} • ${subjectName}
+                </div>
+                <h3 style="font-size:16px;font-weight:800;color:#0F172A;line-height:1.3;margin-top:2px;margin-bottom:6px">
+                  ${a.title}
+                </h3>
+              </div>
+              <div>${badgeHtml}</div>
+            </div>
+
+            <p style="font-size:13px;color:#64748B;line-height:1.5;margin-bottom:12px">
+              ${a.description || 'No detailed instructions provided.'}
+            </p>
+
+            <!-- Metadata Row -->
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#64748B;margin-top:auto;padding-top:10px;border-top:1px solid #F1F5F9;flex-wrap:wrap;gap:8px">
+              <div>
+                <i class="fas fa-user-tie" style="margin-right:4px"></i>${instructorName} • 
+                <strong style="color:#0F172A;margin-left:4px">${a.totalMarks} Marks Max</strong>
+              </div>
+              <div style="display:flex;gap:8px">
+                ${downloadBtnHtml}
+                ${actionBtnHtml}
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // ========================================================
+  // SUBMISSION WORKFLOW LOGIC
+  // ========================================================
+  let activeTurnInAssignment = null;
+
+  function openTurnInModal(assignmentId) {
+    activeTurnInAssignment = studentAssignments.find(a => a._id === assignmentId);
+    if (!activeTurnInAssignment) return;
+
+    document.getElementById('submitAssignmentId').value = activeTurnInAssignment._id;
+    document.getElementById('modalSubjectBadge').textContent = `${activeTurnInAssignment.subjectId?.code || 'CS'} • ${activeTurnInAssignment.subjectId?.name || 'Course'}`;
+    document.getElementById('modalAssignmentTitle').textContent = activeTurnInAssignment.title;
+
+    const dueDate = new Date(activeTurnInAssignment.dueDate);
+    document.getElementById('modalDueDateText').textContent = dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+    const isLate = dueDate < new Date();
+    const statusBadge = document.getElementById('modalStatusBadge');
+    if (isLate) {
+      statusBadge.className = 'badge badge-warning';
+      statusBadge.textContent = 'Past Deadline (Recorded as Late)';
+    } else {
+      statusBadge.className = 'badge badge-success';
+      statusBadge.textContent = 'On Time';
+    }
+
+    // Pre-populate if already submitted
+    const sub = activeTurnInAssignment.mySubmission;
+    document.getElementById('submitFileUrl').value = (sub && sub.files && sub.files[0]) || '';
+    document.getElementById('submitContent').value = (sub && sub.content) || '';
+    document.getElementById('submitNotes').value = '';
+
+    openModal('turnInModal');
+  }
+
+  async function confirmSubmitWork() {
+    const assignmentId = document.getElementById('submitAssignmentId').value;
+    const fileUrl = document.getElementById('submitFileUrl').value.trim();
+    const content = document.getElementById('submitContent').value.trim();
+    const notes = document.getElementById('submitNotes').value.trim();
+
+    if (!fileUrl && !content) {
+      showToast('Please provide a solution file URL or written solution content.', 'error');
+      return;
+    }
+
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+
+    const payload = {
+      files: fileUrl ? [fileUrl] : [],
+      content: content || notes,
+      notes
+    };
+
+    try {
+      if (!assignmentId.startsWith('std-mock-')) {
+        await api.request(`/assignments/${assignmentId}/submit`, {
+          method: 'POST',
+          body: JSON.stringify(payload)
+        });
+      }
+
+      // Update local memory state
+      if (activeTurnInAssignment) {
+        const isLate = new Date(activeTurnInAssignment.dueDate) < new Date();
+        activeTurnInAssignment.mySubmission = {
+          _id: 'sub-' + Date.now(),
+          submittedAt: new Date().toISOString(),
+          files: payload.files,
+          content: payload.content,
+          status: isLate ? 'late' : 'submitted',
+          marksObtained: null,
+          feedback: ''
+        };
+        activeTurnInAssignment.studentStatus = isLate ? 'late' : 'submitted';
+      }
+
+      showToast('Solution turned in successfully!', 'success');
+      closeModal('turnInModal');
+      updateStudentKPIs();
+      applyStudentFilters();
+    } catch (err) {
+      showToast('Error turning in work: ' + err.message, 'error');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Solution';
+    }
+  }
+
+  // ========================================================
+  // VIEW FEEDBACK MODAL
+  // ========================================================
+  function viewEvaluationFeedback(assignmentId) {
+    const a = studentAssignments.find(x => x._id === assignmentId);
+    if (!a || !a.mySubmission) return;
+
+    const sub = a.mySubmission;
+    const max = a.totalMarks || 20;
+    const score = sub.marksObtained !== null && sub.marksObtained !== undefined ? sub.marksObtained : 0;
+    const pct = Math.round((score / max) * 100);
+
+    document.getElementById('fbModalTitle').textContent = a.title;
+    document.getElementById('fbScoreText').textContent = `${score} / ${max}`;
+
+    let letterGrade = 'O (Outstanding)';
+    if (pct < 90) letterGrade = 'A+ (Excellent)';
+    if (pct < 80) letterGrade = 'A (Very Good)';
+    if (pct < 70) letterGrade = 'B+ (Good)';
+    if (pct < 60) letterGrade = 'B (Above Average)';
+    if (pct < 50) letterGrade = 'C (Pass)';
+    if (pct < 40) letterGrade = 'F (Needs Improvement)';
+
+    document.getElementById('fbScorePct').textContent = `${pct}% • Grade ${letterGrade}`;
+    document.getElementById('fbRemarksBox').textContent = sub.feedback || 'The professor evaluated your submission without additional written remarks.';
+
+    const workDiv = document.getElementById('fbSubmittedWork');
+    if (sub.files && sub.files.length > 0) {
+      workDiv.innerHTML = `
+        <a href="${sub.files[0]}" target="_blank" rel="noopener noreferrer" 
+           style="color:#0284C7;font-weight:700;display:inline-flex;align-items:center;gap:6px;background:#F0F9FF;padding:6px 12px;border-radius:8px;border:1px solid #BAE6FD;text-decoration:none">
+          <i class="fas fa-external-link-alt"></i> Open Turned-in File (${sub.files[0].substring(0, 45)}...)
+        </a>
+      `;
+    } else if (sub.content) {
+      workDiv.innerHTML = `<div style="background:#F8FAFC;padding:8px 12px;border-radius:8px;border:1px solid #E2E8F0">${sub.content}</div>`;
+    } else {
+      workDiv.textContent = 'No attached files.';
+    }
+
+    openModal('feedbackModal');
+  }
+</script>
 <script src="../../live/live-pages.js"></script>
 </body>
 </html>

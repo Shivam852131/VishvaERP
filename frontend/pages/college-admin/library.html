@@ -2,15 +2,16 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Library Management | VishvaERP</title>
+  <title>Library &amp; Circulation Management | VishvaERP</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="../../css/custom.css">
   <style>
     .lib-hero {
-      background: linear-gradient(135deg, #7C3AED 0%, #6D28D9 50%, #4C1D95 100%);
-      border-radius: 16px; padding: 28px 32px; color: white;
-      position: relative; overflow: hidden; margin-bottom: 24px;
+      background: linear-gradient(135deg, #4338CA 0%, #6366F1 50%, #8B5CF6 100%);
+      border-radius: 16px; padding: 26px 30px; color: white;
+      position: relative; overflow: hidden; margin-bottom: 22px;
+      box-shadow: 0 10px 25px -5px rgba(99,102,241,0.3);
     }
     .lib-hero::before {
       content: ''; position: absolute; top: -30px; right: -30px;
@@ -20,38 +21,115 @@
       content: ''; position: absolute; bottom: -50px; left: 30%;
       width: 200px; height: 200px; background: rgba(255,255,255,0.04); border-radius: 50%;
     }
+    .stat-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 22px; }
     .stat-card {
-      background: white; border: 1px solid #E2E8F0; border-radius: 14px;
-      padding: 20px; display: flex; align-items: center; gap: 14px;
-      transition: transform 0.2s, box-shadow 0.2s;
+      background: white; border: 1px solid var(--card-border, #E2E8F0);
+      border-radius: 14px; padding: 18px; display: flex; align-items: center; gap: 14px;
+      box-shadow: var(--card-shadow, 0 1px 3px rgba(0,0,0,0.04)); transition: all 0.2s ease;
     }
-    .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.06); }
-    .stat-icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; }
-    .table-card { background: white; border: 1px solid #E2E8F0; border-radius: 14px; overflow: hidden; }
-    .table-card table { width: 100%; border-collapse: collapse; }
-    .table-card th { padding: 12px 16px; font-size: 11px; font-weight: 700; text-transform: uppercase; color: #64748B; text-align: left; background: #F8FAFC; border-bottom: 1px solid #E2E8F0; }
-    .table-card td { padding: 12px 16px; font-size: 13px; border-bottom: 1px solid #F1F5F9; color: #334155; }
-    .table-card tr:hover td { background: #F8FAFC; }
-    .badge { padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; }
-    .badge-green { background: #ECFDF5; color: #059669; }
-    .badge-yellow { background: #FEF3C7; color: #D97706; }
-    .badge-red { background: #FEF2F2; color: #DC2626; }
-    .badge-blue { background: #EFF6FF; color: #2563EB; }
-    .btn { padding: 8px 16px; border-radius: 8px; font-size: 12px; font-weight: 700; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; font-family: inherit; }
-    .btn-primary { background: linear-gradient(135deg, #7C3AED, #6D28D9); color: white; }
-    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(124,58,237,0.3); }
-    .btn-outline { background: white; border: 1.5px solid #E2E8F0; color: #475569; }
-    .btn-outline:hover { border-color: #7C3AED; color: #7C3AED; }
-    .btn-danger { background: linear-gradient(135deg, #EF4444, #DC2626); color: white; }
-    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(15,23,42,0.6); backdrop-filter: blur(4px); z-index: 9999; align-items: center; justify-content: center; padding: 20px; }
+    .stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.06); }
+    .stat-icon {
+      width: 46px; height: 46px; border-radius: 12px; display: flex;
+      align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;
+    }
+    .stat-number { font-size: 22px; font-weight: 800; color: #0F172A; line-height: 1.1; }
+    .stat-label { font-size: 11px; color: #64748B; font-weight: 600; margin-top: 2px; }
+
+    .tabs-nav {
+      display: flex; gap: 6px; background: #EEF2F6; padding: 5px;
+      border-radius: 12px; margin-bottom: 22px; overflow-x: auto;
+    }
+    .tab-item {
+      padding: 10px 18px; border-radius: 9px; font-size: 13px; font-weight: 700;
+      border: none; cursor: pointer; background: transparent; color: #64748B;
+      transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 8px;
+      white-space: nowrap; font-family: inherit;
+    }
+    .tab-item.active {
+      background: white; color: #4F46E5; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    .data-card {
+      background: white; border: 1px solid var(--card-border, #E2E8F0);
+      border-radius: 16px; padding: 22px; box-shadow: var(--card-shadow, 0 1px 3px rgba(0,0,0,0.04));
+      margin-bottom: 22px;
+    }
+
+    .table-wrap { overflow-x: auto; border: 1px solid #E2E8F0; border-radius: 12px; }
+    .table-modern { width: 100%; border-collapse: collapse; text-align: left; font-size: 12.5px; }
+    .table-modern th { background: #F8FAFC; color: #475569; font-weight: 700; padding: 12px 14px; border-bottom: 1px solid #E2E8F0; }
+    .table-modern td { padding: 12px 14px; border-bottom: 1px solid #F1F5F9; color: #1E293B; vertical-align: middle; }
+    .table-modern tr:hover td { background: #F8FAFC; }
+
+    .badge-status {
+      display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px;
+      border-radius: 999px; font-size: 11px; font-weight: 700; text-transform: capitalize;
+    }
+    .badge-available { background: #D1FAE5; color: #065F46; }
+    .badge-low { background: #FEF3C7; color: #92400E; }
+    .badge-unavailable { background: #FEE2E2; color: #991B1B; }
+    .badge-issued { background: #EEF2FF; color: #4338CA; }
+    .badge-overdue { background: #FEE2E2; color: #991B1B; }
+    .badge-returned { background: #F1F5F9; color: #475569; }
+
+    .btn {
+      padding: 9px 16px; border-radius: 9px; font-size: 12.5px; font-weight: 700;
+      font-family: inherit; cursor: pointer; border: none; transition: all 0.2s;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-primary { background: linear-gradient(135deg, #4F46E5, #7C3AED); color: white; }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 16px rgba(79,70,229,0.3); }
+    .btn-secondary { background: #F1F5F9; color: #475569; }
+    .btn-secondary:hover { background: #E2E8F0; }
+    .btn-sm { padding: 5px 10px; font-size: 11.5px; border-radius: 6px; }
+
+    .modal-overlay {
+      display: none; position: fixed; inset: 0; z-index: 9999;
+      background: rgba(15,23,42,0.6); backdrop-filter: blur(4px);
+      align-items: center; justify-content: center; padding: 20px;
+    }
     .modal-overlay.show { display: flex; }
-    .modal-card { background: white; border-radius: 16px; padding: 28px; max-width: 480px; width: 100%; box-shadow: 0 25px 60px rgba(0,0,0,0.25); animation: modalPop 0.3s ease; }
-    @keyframes modalPop { from { transform: scale(0.9) translateY(10px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+    .modal-box {
+      background: white; border-radius: 18px; width: 100%; max-width: 520px;
+      max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 60px rgba(0,0,0,0.2);
+      animation: modalIn 0.25s ease;
+    }
+    .modal-head {
+      padding: 18px 24px; border-bottom: 1px solid #F1F5F9;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .modal-head h3 { font-weight: 800; font-size: 16px; color: #0F172A; }
+    .modal-close {
+      width: 32px; height: 32px; border-radius: 8px; border: none; background: #F1F5F9;
+      cursor: pointer; font-size: 16px; color: #64748B; display: flex;
+      align-items: center; justify-content: center; transition: all 0.15s;
+    }
+    .modal-close:hover { background: #E2E8F0; color: #0F172A; }
+    .modal-body { padding: 22px 24px; }
+    .modal-foot {
+      padding: 16px 24px; border-top: 1px solid #F1F5F9;
+      display: flex; justify-content: flex-end; gap: 10px;
+    }
     .form-group { margin-bottom: 14px; }
-    .form-group label { display: block; font-size: 12px; font-weight: 700; color: #334155; margin-bottom: 4px; }
-    .form-group input, .form-group select { width: 100%; padding: 10px 12px; border: 1.5px solid #E2E8F0; border-radius: 8px; font-size: 13px; font-family: inherit; transition: border-color 0.2s; }
-    .form-group input:focus, .form-group select:focus { outline: none; border-color: #7C3AED; box-shadow: 0 0 0 3px rgba(124,58,237,0.1); }
-    @media (max-width: 768px) { .stats-grid { grid-template-columns: 1fr 1fr !important; } .hero-stats { grid-template-columns: 1fr !important; } }
+    .form-label { display: block; font-size: 12px; font-weight: 700; color: #374151; margin-bottom: 5px; }
+    .form-control {
+      width: 100%; padding: 9px 12px; border: 1.5px solid #E2E8F0;
+      border-radius: 8px; font-size: 13px; font-family: inherit; color: #0F172A;
+      background: white; outline: none; transition: all 0.2s;
+    }
+    .form-control:focus { border-color: #4F46E5; box-shadow: 0 0 0 3px rgba(79,70,229,0.1); }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+    @keyframes modalIn { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+
+    @media (max-width: 960px) {
+      .stat-row { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 640px) {
+      .stat-row { grid-template-columns: 1fr; }
+      .form-grid { grid-template-columns: 1fr; }
+      .lib-hero { padding: 18px 16px; }
+    }
   </style>
 </head>
 <body>
@@ -65,13 +143,8 @@
       <div class="nav-section-label">Academics</div>
       <a href="students.html" class="nav-link"><i class="nav-link-icon fas fa-user-graduate"></i> Students</a>
       <a href="faculty.html" class="nav-link"><i class="nav-link-icon fas fa-chalkboard-teacher"></i> Faculty</a>
-      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-open"></i> Courses & Exams</a>
-      <a href="notices.html" class="nav-link"><i class="nav-link-icon fas fa-bullhorn"></i> Notice Board</a>
+      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-open"></i> Courses &amp; Exams</a>
       <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-check"></i> Attendance</a>
-      <div class="nav-section-label">Finance & HR</div>
-      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-file-invoice-dollar"></i> Fee Management</a>
-      <a href="hr.html" class="nav-link"><i class="nav-link-icon fas fa-user-md"></i> HR & Leave</a>
-      <a href="subscription.html" class="nav-link"><i class="nav-link-icon fas fa-credit-card"></i> Subscription</a>
       <div class="nav-section-label">Campus Life</div>
       <a href="events.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Events</a>
       <a href="grievances.html" class="nav-link"><i class="nav-link-icon fas fa-exclamation-circle"></i> Grievances</a>
@@ -80,16 +153,13 @@
       <a href="placement.html" class="nav-link"><i class="nav-link-icon fas fa-briefcase"></i> Placement</a>
       <a href="alumni.html" class="nav-link"><i class="nav-link-icon fas fa-users"></i> Alumni</a>
       <a href="visitors.html" class="nav-link"><i class="nav-link-icon fas fa-id-card-visitor"></i> Visitors</a>
+      <div class="nav-section-label">Facilities</div>
+      <a href="logistics.html" class="nav-link"><i class="nav-link-icon fas fa-bus"></i> Logistics &amp; Hostel</a>
+      <a href="library.html" class="nav-link active"><i class="nav-link-icon fas fa-book"></i> Library</a>
       <div class="nav-section-label">Smart Campus</div>
       <a href="iot-dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-microchip"></i> IoT Dashboard</a>
       <a href="sustainability.html" class="nav-link"><i class="nav-link-icon fas fa-leaf"></i> Sustainability</a>
       <a href="ai-intelligence.html" class="nav-link"><i class="nav-link-icon fas fa-brain"></i> AI Intelligence</a>
-      <div class="nav-section-label">Facilities</div>
-      <a href="logistics.html" class="nav-link"><i class="nav-link-icon fas fa-bus"></i> Logistics & Hostel</a>
-      <a href="library.html" class="nav-link active"><i class="nav-link-icon fas fa-book"></i> Library</a>
-      <div class="nav-section-label">Tools</div>
-      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Hub</a>
-      <a href="../messages.html" class="nav-link"><i class="nav-link-icon fas fa-comments"></i> Messages</a>
     </nav>
     <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
   </aside>
@@ -99,74 +169,131 @@
     <header class="erp-topbar">
       <div class="topbar-left">
         <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
-        <div class="topbar-breadcrumb">College Admin / <span>Library</span></div>
+        <div class="topbar-breadcrumb">College Admin / <span>Library &amp; Circulation</span></div>
       </div>
-      <div class="topbar-right"><div class="topbar-avatar" id="topbar-avatar">A</div></div>
+      <div class="topbar-right">
+        <button class="btn btn-secondary btn-sm" onclick="exportCatalog()"><i class="fas fa-file-csv text-emerald-600"></i> Export CSV</button>
+        <div class="topbar-avatar" id="topbar-avatar">A</div>
+      </div>
     </header>
 
     <div class="erp-content page-enter">
 
+      <!-- HERO -->
       <div class="lib-hero">
-        <div style="position:relative;z-index:1;display:flex;align-items:center;gap:14px">
-          <div style="width:46px;height:46px;border-radius:14px;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:20px"><i class="fas fa-book-open"></i></div>
-          <div>
-            <h1 style="font-size:22px;font-weight:900;line-height:1.2">Library Management</h1>
-            <p style="font-size:13px;opacity:0.85;margin-top:2px">Manage books, issue/return, and track inventory</p>
+        <div style="position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px">
+          <div style="display:flex;align-items:center;gap:14px">
+            <div style="width:48px;height:48px;border-radius:14px;background:rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;font-size:22px"><i class="fas fa-book-reader"></i></div>
+            <div>
+              <h1 style="font-size:22px;font-weight:900;line-height:1.2">Library &amp; Circulation System</h1>
+              <p style="font-size:13px;opacity:0.9;margin-top:2px">Catalog Management, Digital Loans Desk, and Overdue Fine Tracking</p>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn" style="background:rgba(255,255,255,0.18);color:white;border:1px solid rgba(255,255,255,0.25)" onclick="exportCatalog()"><i class="fas fa-download"></i> Export Catalog</button>
+            <button class="btn" style="background:rgba(255,255,255,0.18);color:white;border:1px solid rgba(255,255,255,0.25)" onclick="openModal('issueModal')"><i class="fas fa-hand-holding-hand"></i> Issue / Loan Book</button>
+            <button class="btn" style="background:white;color:#4F46E5;font-weight:800" onclick="openModal('addBookModal')"><i class="fas fa-plus"></i> Add New Title</button>
           </div>
         </div>
       </div>
 
-      <div class="stats-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px">
-        <div class="stat-card">
-          <div class="stat-icon" style="background:#EDE9FE;color:#7C3AED"><i class="fas fa-book"></i></div>
-          <div><div style="font-size:22px;font-weight:900;color:#0F172A" id="totalBooks">1,248</div><div style="font-size:11px;color:#64748B;font-weight:600">Total Books</div></div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon" style="background:#ECFDF5;color:#059669"><i class="fas fa-check-circle"></i></div>
-          <div><div style="font-size:22px;font-weight:900;color:#0F172A" id="availableBooks">986</div><div style="font-size:11px;color:#64748B;font-weight:600">Available</div></div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon" style="background:#FEF3C7;color:#D97706"><i class="fas fa-hand-holding"></i></div>
-          <div><div style="font-size:22px;font-weight:900;color:#0F172A" id="issuedBooks">212</div><div style="font-size:11px;color:#64748B;font-weight:600">Issued</div></div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon" style="background:#FEF2F2;color:#DC2626"><i class="fas fa-exclamation-triangle"></i></div>
-          <div><div style="font-size:22px;font-weight:900;color:#0F172A" id="overdueBooks">50</div><div style="font-size:11px;color:#64748B;font-weight:600">Overdue</div></div>
+      <!-- 4 STATS ROW -->
+      <div class="stat-row">
+        <div class="stat-card"><div class="stat-icon bg-indigo-50 text-indigo-600"><i class="fas fa-book"></i></div><div><div class="stat-number" id="statTotalBooks">-</div><div class="stat-label">Catalog Titles</div></div></div>
+        <div class="stat-card"><div class="stat-icon bg-emerald-50 text-emerald-600"><i class="fas fa-layer-group"></i></div><div><div class="stat-number" id="statAvailableCopies">-</div><div class="stat-label">Copies on Stacks</div></div></div>
+        <div class="stat-card"><div class="stat-icon bg-amber-50 text-amber-600"><i class="fas fa-hand-holding"></i></div><div><div class="stat-number" id="statCurrentlyIssued">-</div><div class="stat-label">Currently Borrowed</div></div></div>
+        <div class="stat-card"><div class="stat-icon bg-rose-50 text-rose-600"><i class="fas fa-exclamation-triangle"></i></div><div><div class="stat-number" id="statOverdue">-</div><div class="stat-label">Overdue Loans</div></div></div>
+      </div>
+
+      <!-- TABS BAR -->
+      <div class="tabs-nav">
+        <button class="tab-item active" onclick="switchTab('catalog')"><i class="fas fa-book-open"></i> Book Catalog &amp; Stacks</button>
+        <button class="tab-item" onclick="switchTab('circulation')"><i class="fas fa-clipboard-list"></i> Active Circulation &amp; Overdues</button>
+      </div>
+
+      <!-- TAB 1: CATALOG -->
+      <div id="tabContentCatalog" class="tab-content">
+        <div class="data-card">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:18px">
+            <div>
+              <h3 style="font-size:15px;font-weight:800;color:#0F172A;margin:0"><i class="fas fa-database text-indigo-600 mr-2"></i>Institutional Catalog</h3>
+              <p style="font-size:12px;color:#64748B;margin-top:2px">Search by title, author, or ISBN across all departmental branches</p>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+              <input type="text" id="catalogSearch" placeholder="Search title, author, ISBN..." class="form-control" style="width:230px;font-size:12.5px" oninput="filterBooks()">
+              <select id="catalogCategory" class="form-control" style="width:160px;font-size:12.5px" onchange="filterBooks()">
+                <option value="">All Categories</option>
+                <option value="Computer Science">Computer Science</option>
+                <option value="Mathematics">Mathematics</option>
+                <option value="Physics">Physics</option>
+                <option value="Electronics">Electronics</option>
+                <option value="Management">Management</option>
+                <option value="General">General</option>
+              </select>
+              <button class="btn btn-primary btn-sm" onclick="openModal('addBookModal')"><i class="fas fa-plus"></i> Add Title</button>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table class="table-modern">
+              <thead>
+                <tr>
+                  <th>Title &amp; Author</th>
+                  <th>ISBN / Edition</th>
+                  <th>Category / Subject</th>
+                  <th>Shelf / Rack</th>
+                  <th style="text-align:center">Total</th>
+                  <th style="text-align:center">Available</th>
+                  <th>Stock Status</th>
+                  <th style="text-align:right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="booksTableBody">
+                <tr><td colspan="8" style="text-align:center;padding:36px;color:#94A3B8"><i class="fas fa-spinner fa-spin mr-2"></i>Loading catalog...</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
-      <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;align-items:center">
-        <div style="flex:1;min-width:200px;position:relative">
-          <i class="fas fa-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94A3B8;font-size:13px"></i>
-          <input type="text" id="searchInput" placeholder="Search books by title, author, ISBN..." style="width:100%;padding:10px 12px 10px 36px;border:1.5px solid #E2E8F0;border-radius:10px;font-size:13px;font-family:inherit;transition:border-color 0.2s" oninput="filterBooks()">
-        </div>
-        <select id="filterCategory" onchange="filterBooks()" style="padding:10px 12px;border:1.5px solid #E2E8F0;border-radius:10px;font-size:13px;font-family:inherit;color:#475569">
-          <option value="">All Categories</option>
-          <option value="Computer Science">Computer Science</option>
-          <option value="Mathematics">Mathematics</option>
-          <option value="Physics">Physics</option>
-          <option value="Electronics">Electronics</option>
-          <option value="Management">Management</option>
-        </select>
-        <button class="btn btn-primary" onclick="openAddModal()"><i class="fas fa-plus"></i> Add Book</button>
-      </div>
+      <!-- TAB 2: CIRCULATION -->
+      <div id="tabContentCirculation" class="tab-content" style="display:none">
+        <div class="data-card">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:18px">
+            <div>
+              <h3 style="font-size:15px;font-weight:800;color:#0F172A;margin:0"><i class="fas fa-clock-rotate-left text-indigo-600 mr-2"></i>Circulation Desk &amp; Active Loans</h3>
+              <p style="font-size:12px;color:#64748B;margin-top:2px">Track borrowed titles, due dates, renewal extensions, and return clearances</p>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+              <select id="circulationFilter" class="form-control" style="width:150px;font-size:12.5px" onchange="loadCirculation()">
+                <option value="">All Active Loans</option>
+                <option value="issued">Currently Issued</option>
+                <option value="overdue">Overdue Loans</option>
+                <option value="returned">Returned History</option>
+              </select>
+              <button class="btn btn-primary btn-sm" onclick="openModal('issueModal')"><i class="fas fa-plus"></i> Issue New Loan</button>
+            </div>
+          </div>
 
-      <div class="table-card">
-        <table>
-          <thead>
-            <tr>
-              <th>Title</th>
-              <th>Author</th>
-              <th>ISBN</th>
-              <th>Category</th>
-              <th>Copies</th>
-              <th>Available</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody id="bookTableBody"></tbody>
-        </table>
+          <div class="table-wrap">
+            <table class="table-modern">
+              <thead>
+                <tr>
+                  <th>Student Borrower</th>
+                  <th>Book Title &amp; ISBN</th>
+                  <th>Issued Date</th>
+                  <th>Due Date</th>
+                  <th>Loan Status</th>
+                  <th>Fine (₹)</th>
+                  <th style="text-align:right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="circulationTableBody">
+                <tr><td colspan="7" style="text-align:center;padding:36px;color:#94A3B8"><i class="fas fa-spinner fa-spin mr-2"></i>Loading loan register...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
 
     </div>
@@ -175,106 +302,341 @@
 
 <!-- ADD BOOK MODAL -->
 <div class="modal-overlay" id="addBookModal">
-  <div class="modal-card">
-    <h3 style="font-size:18px;font-weight:800;color:#0F172A;margin-bottom:16px"><i class="fas fa-book" style="color:#7C3AED;margin-right:8px"></i>Add New Book</h3>
-    <div class="form-group"><label>Title</label><input type="text" id="bookTitle" placeholder="Enter book title"></div>
-    <div class="form-group"><label>Author</label><input type="text" id="bookAuthor" placeholder="Enter author name"></div>
-    <div class="form-group"><label>ISBN</label><input type="text" id="bookISBN" placeholder="Enter ISBN number"></div>
-    <div class="form-group"><label>Category</label>
-      <select id="bookCategory"><option>Computer Science</option><option>Mathematics</option><option>Physics</option><option>Electronics</option><option>Management</option></select>
+  <div class="modal-box">
+    <div class="modal-head"><h3>Catalog New Book</h3><button class="modal-close" onclick="closeModal('addBookModal')">&times;</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Book Title *</label><input class="form-control" id="bookTitle" placeholder="e.g. Introduction to Algorithms"></div>
+      <div class="form-group"><label class="form-label">Author(s) *</label><input class="form-control" id="bookAuthor" placeholder="e.g. Thomas H. Cormen, Charles E. Leiserson"></div>
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label">ISBN</label><input class="form-control" id="bookISBN" placeholder="978-0262033848"></div>
+        <div class="form-group"><label class="form-label">Edition</label><input class="form-control" id="bookEdition" placeholder="4th Edition"></div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label">Category</label>
+          <select class="form-control" id="bookCategory">
+            <option value="Computer Science">Computer Science</option>
+            <option value="Mathematics">Mathematics</option>
+            <option value="Physics">Physics</option>
+            <option value="Electronics">Electronics</option>
+            <option value="Management">Management</option>
+            <option value="General">General</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Subject</label><input class="form-control" id="bookSubject" placeholder="Data Structures"></div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group"><label class="form-label">Total Copies *</label><input type="number" min="1" class="form-control" id="bookCopies" value="5"></div>
+        <div class="form-group"><label class="form-label">Shelf / Rack Location</label><input class="form-control" id="bookLocation" placeholder="Rack CS-04, Bay B"></div>
+      </div>
     </div>
-    <div class="form-group"><label>Total Copies</label><input type="number" id="bookCopies" min="1" value="1"></div>
-    <div style="display:flex;gap:10px;margin-top:16px">
-      <button class="btn btn-outline" onclick="closeModal('addBookModal')" style="flex:1">Cancel</button>
-      <button class="btn btn-primary" onclick="addBook()" style="flex:1"><i class="fas fa-plus"></i> Add Book</button>
+    <div class="modal-foot">
+      <button class="btn btn-secondary" onclick="closeModal('addBookModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitBook()"><i class="fas fa-plus"></i> Save to Catalog</button>
+    </div>
+  </div>
+</div>
+
+<!-- ISSUE BOOK MODAL -->
+<div class="modal-overlay" id="issueModal">
+  <div class="modal-box">
+    <div class="modal-head"><h3>Issue Book to Student</h3><button class="modal-close" onclick="closeModal('issueModal')">&times;</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Select Book *</label><select class="form-control" id="issueBookSelect"></select></div>
+      <div class="form-group"><label class="form-label">Student Roll Number *</label><input class="form-control" id="issueRollNo" placeholder="e.g. CS2026-088"></div>
+      <div class="form-group"><label class="form-label">Loan Duration</label>
+        <select class="form-control" id="issueDays">
+          <option value="7">7 Days (Short Loan)</option>
+          <option value="14" selected>14 Days (Standard Loan)</option>
+          <option value="30">30 Days (Semester Special)</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-secondary" onclick="closeModal('issueModal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitIssue()"><i class="fas fa-check"></i> Complete Issue</button>
     </div>
   </div>
 </div>
 
 <script src="../../js/shared.js"></script>
 <script>
-const SAMPLE_BOOKS = [
-  { title: 'Introduction to Algorithms', author: 'Thomas H. Cormen', isbn: '978-0262033848', category: 'Computer Science', copies: 12, available: 8 },
-  { title: 'Clean Code', author: 'Robert C. Martin', isbn: '978-0132350884', category: 'Computer Science', copies: 8, available: 5 },
-  { title: 'Engineering Mathematics', author: 'Kreyzig', isbn: '978-1118093030', category: 'Mathematics', copies: 15, available: 12 },
-  { title: 'Fundamentals of Physics', author: 'Halliday, Resnick, Walker', isbn: '978-1118230718', category: 'Physics', copies: 10, available: 7 },
-  { title: 'Digital Electronics', author: 'Morris Mano', isbn: '978-0132543460', category: 'Electronics', copies: 9, available: 6 },
-  { title: 'Design Patterns', author: 'Gang of Four', isbn: '978-0201633610', category: 'Computer Science', copies: 6, available: 4 },
-  { title: 'Operating System Concepts', author: 'Silberschatz', isbn: '978-1118063330', category: 'Computer Science', copies: 11, available: 3 },
-  { title: 'Principles of Management', author: 'Koontz & Weihrich', isbn: '978-0071077897', category: 'Management', copies: 7, available: 7 },
-  { title: 'Signals and Systems', author: 'Oppenheim', isbn: '978-0138147570', category: 'Electronics', copies: 8, available: 2 },
-  { title: 'Data Structures Using C', author: 'Reema Thareja', isbn: '978-0198099307', category: 'Computer Science', copies: 14, available: 10 },
-];
+let allBooks = [];
+let allIssues = [];
 
-let books = [...SAMPLE_BOOKS];
+function openModal(id) { document.getElementById(id).classList.add('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
 
-function renderBooks(list) {
-  const tbody = document.getElementById('bookTableBody');
-  if (!list || list.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:#94A3B8"><i class="fas fa-book" style="font-size:24px;display:block;margin-bottom:8px"></i>No books found</td></tr>';
+function switchTab(tab) {
+  document.querySelectorAll('.tab-item').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+
+  if (tab === 'catalog') {
+    document.querySelector('.tab-item:nth-child(1)').classList.add('active');
+    document.getElementById('tabContentCatalog').style.display = 'block';
+  } else if (tab === 'circulation') {
+    document.querySelector('.tab-item:nth-child(2)').classList.add('active');
+    document.getElementById('tabContentCirculation').style.display = 'block';
+    loadCirculation();
+  }
+}
+
+function exportCatalog() {
+  const token = localStorage.getItem('token') || '';
+  const url = '/api/library/export?token=' + encodeURIComponent(token);
+  window.open(url, '_blank');
+  window.showToast('Exporting library catalog CSV...', 'info');
+}
+
+async function loadStats() {
+  try {
+    const res = await window.api.request('/library/stats');
+    const s = res.stats || res.data || res;
+    document.getElementById('statTotalBooks').textContent = s.totalBooks || 0;
+    document.getElementById('statAvailableCopies').textContent = s.availableCopies || 0;
+    document.getElementById('statCurrentlyIssued').textContent = s.currentlyIssued || 0;
+    document.getElementById('statOverdue').textContent = s.overdue || 0;
+  } catch (err) {
+    console.error('Stats load error:', err);
+  }
+}
+
+async function loadBooks() {
+  try {
+    const res = await window.api.request('/library/books?limit=200');
+    allBooks = res.books || res.data || [];
+    renderBooks(allBooks);
+
+    // Populate issue book select
+    const select = document.getElementById('issueBookSelect');
+    select.innerHTML = allBooks
+      .filter(b => (b.availableCopies !== undefined ? b.availableCopies : 1) > 0)
+      .map(b => `<option value="${b._id}">${b.title} (${b.availableCopies} available) - ${b.author}</option>`)
+      .join('');
+  } catch (err) {
+    console.error('Books load error:', err);
+    document.getElementById('booksTableBody').innerHTML = '<tr><td colspan="8" style="text-align:center;padding:36px;color:#EF4444">Failed to load catalog</td></tr>';
+  }
+}
+
+function renderBooks(books) {
+  const tbody = document.getElementById('booksTableBody');
+  if (!books.length) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;padding:40px;color:#94A3B8"><i class="fas fa-book-open text-3xl mb-2 block"></i>No books found in catalog</td></tr>';
     return;
   }
-  tbody.innerHTML = list.map((b, i) => {
-    const status = b.available === 0 ? 'unavailable' : b.available <= 2 ? 'low' : 'available';
-    const statusLabel = status === 'unavailable' ? '<span class="badge badge-red"><i class="fas fa-times-circle"></i> Unavailable</span>'
-      : status === 'low' ? '<span class="badge badge-yellow"><i class="fas fa-exclamation-circle"></i> Low Stock</span>'
-      : '<span class="badge badge-green"><i class="fas fa-check-circle"></i> Available</span>';
-    return '<tr>' +
-      '<td style="font-weight:700">' + b.title + '</td>' +
-      '<td>' + b.author + '</td>' +
-      '<td style="font-family:monospace;font-size:12px;color:#64748B">' + b.isbn + '</td>' +
-      '<td><span class="badge badge-blue">' + b.category + '</span></td>' +
-      '<td style="text-align:center">' + b.copies + '</td>' +
-      '<td style="text-align:center;font-weight:700;color:' + (b.available === 0 ? '#DC2626' : '#059669') + '">' + b.available + '</td>' +
-      '<td>' + statusLabel + '</td>' +
-      '<td><button class="btn btn-outline" style="padding:5px 10px;font-size:11px" onclick="deleteBook(' + i + ')"><i class="fas fa-trash" style="color:#EF4444"></i></button></td>' +
-    '</tr>';
+
+  tbody.innerHTML = books.map(b => {
+    const avail = b.availableCopies !== undefined ? b.availableCopies : (b.totalCopies || 1);
+    const total = b.totalCopies || 1;
+    let badge = '<span class="badge-status badge-available"><i class="fas fa-check-circle"></i> In Stock</span>';
+    if (avail === 0) badge = '<span class="badge-status badge-unavailable"><i class="fas fa-times-circle"></i> Out of Stock</span>';
+    else if (avail <= 2) badge = `<span class="badge-status badge-low"><i class="fas fa-exclamation-circle"></i> Only ${avail} Left</span>`;
+
+    return `
+      <tr>
+        <td>
+          <div style="font-weight:700;color:#0F172A">${b.title}</div>
+          <div style="font-size:11.5px;color:#64748B"><i class="fas fa-user-pen mr-1"></i>${b.author || 'Author'}</div>
+        </td>
+        <td>
+          <div style="font-family:monospace;font-size:11.5px;color:#475569">${b.isbn || 'N/A'}</div>
+          <div style="font-size:11px;color:#94A3B8">${b.edition || ''}</div>
+        </td>
+        <td>
+          <span style="background:#EEF2FF;color:#4338CA;padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700">${b.category || 'General'}</span>
+          <div style="font-size:11px;color:#64748B;margin-top:2px">${b.subject || ''}</div>
+        </td>
+        <td style="font-size:12px;color:#64748B"><i class="fas fa-location-dot mr-1 text-rose-500"></i>${b.location || 'Main Stack'}</td>
+        <td style="text-align:center;font-weight:700">${total}</td>
+        <td style="text-align:center;font-weight:800;color:${avail === 0 ? '#DC2626' : '#059669'}">${avail}</td>
+        <td>${badge}</td>
+        <td style="text-align:right">
+          <button class="btn btn-secondary btn-sm" onclick="promptQuickIssue('${b._id}')" ${avail === 0 ? 'disabled style="opacity:0.5"' : ''} title="Issue to student"><i class="fas fa-hand-holding"></i> Issue</button>
+          <button class="btn btn-secondary btn-sm ml-1" onclick="deleteBook('${b._id}')" style="color:#DC2626" title="Deactivate title"><i class="fas fa-trash"></i></button>
+        </td>
+      </tr>
+    `;
   }).join('');
 }
 
 function filterBooks() {
-  const q = document.getElementById('searchInput').value.toLowerCase();
-  const cat = document.getElementById('filterCategory').value;
-  let filtered = books;
-  if (q) filtered = filtered.filter(b => b.title.toLowerCase().includes(q) || b.author.toLowerCase().includes(q) || b.isbn.includes(q));
-  if (cat) filtered = filtered.filter(b => b.category === cat);
+  const search = (document.getElementById('catalogSearch').value || '').toLowerCase().trim();
+  const cat = document.getElementById('catalogCategory').value;
+
+  const filtered = allBooks.filter(b => {
+    if (cat && b.category !== cat) return false;
+    if (search) {
+      const haystack = ((b.title || '') + ' ' + (b.author || '') + ' ' + (b.isbn || '') + ' ' + (b.subject || '')).toLowerCase();
+      if (!haystack.includes(search)) return false;
+    }
+    return true;
+  });
+
   renderBooks(filtered);
 }
 
-function openAddModal() { document.getElementById('addBookModal').classList.add('show'); }
-function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+async function loadCirculation() {
+  const status = document.getElementById('circulationFilter').value;
+  try {
+    const res = await window.api.request('/library/issues' + (status ? '?status=' + status : ''));
+    allIssues = res.records || res.data || [];
+    renderCirculation(allIssues);
+  } catch (err) {
+    document.getElementById('circulationTableBody').innerHTML = '<tr><td colspan="7" style="text-align:center;padding:36px;color:#EF4444">Failed to load circulation records</td></tr>';
+  }
+}
 
-function addBook() {
+function renderCirculation(records) {
+  const tbody = document.getElementById('circulationTableBody');
+  if (!records.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#94A3B8"><i class="fas fa-clipboard-check text-3xl mb-2 block"></i>No active book loans matching criteria</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = records.map(r => {
+    const student = r.userId || {};
+    const book = r.bookId || {};
+    const issuedDate = r.issuedDate ? new Date(r.issuedDate).toLocaleDateString() : '-';
+    const dueDate = r.dueDate ? new Date(r.dueDate).toLocaleDateString() : '-';
+    const isOverdue = r.status === 'overdue' || (r.status === 'issued' && new Date(r.dueDate) < new Date());
+
+    let statusBadge = `<span class="badge-status badge-${r.status}">${r.status}</span>`;
+    if (isOverdue && r.status !== 'returned') {
+      statusBadge = `<span class="badge-status badge-overdue"><i class="fas fa-clock mr-1"></i>Overdue</span>`;
+    }
+
+    return `
+      <tr>
+        <td>
+          <div style="font-weight:700;color:#0F172A">${student.name || 'Student'}</div>
+          <div style="font-size:11.5px;color:#64748B">${student.rollNo || 'Roll N/A'} &bull; ${student.department || ''}</div>
+        </td>
+        <td>
+          <div style="font-weight:700;color:#1E293B">${book.title || 'Book Title'}</div>
+          <div style="font-size:11.5px;color:#64748B"><i class="fas fa-barcode mr-1"></i>${book.isbn || 'N/A'}</div>
+        </td>
+        <td style="font-size:12px;color:#475569">${issuedDate}</td>
+        <td style="font-size:12px;font-weight:700;color:${isOverdue ? '#DC2626' : '#1E293B'}">${dueDate}</td>
+        <td>${statusBadge}</td>
+        <td style="font-weight:700;color:${r.fine > 0 ? '#DC2626' : '#64748B'}">₹${r.fine || 0}</td>
+        <td style="text-align:right;white-space:nowrap">
+          ${r.status !== 'returned' ? `
+            <button class="btn btn-secondary btn-sm" onclick="renewLoan('${r._id}')" title="Renew loan for 14 days"><i class="fas fa-rotate"></i> Renew</button>
+            <button class="btn btn-primary btn-sm ml-1" onclick="returnLoan('${r._id}')" title="Mark book returned"><i class="fas fa-check"></i> Return</button>
+          ` : '<span style="font-size:11px;color:#94A3B8">Closed</span>'}
+        </td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function promptQuickIssue(bookId) {
+  document.getElementById('issueBookSelect').value = bookId;
+  openModal('issueModal');
+}
+
+async function submitIssue() {
+  const bookId = document.getElementById('issueBookSelect').value;
+  const rollNo = document.getElementById('issueRollNo').value.trim();
+  const dueDays = document.getElementById('issueDays').value;
+
+  if (!bookId || !rollNo) {
+    window.showToast('Book and Student Roll Number are required', 'error');
+    return;
+  }
+
+  try {
+    const res = await window.api.request('/library/issue', {
+      method: 'POST',
+      body: JSON.stringify({ bookId, rollNo, dueDays })
+    });
+    closeModal('issueModal');
+    window.showToast(res.message || 'Book issued successfully!', 'success');
+    document.getElementById('issueRollNo').value = '';
+    loadStats();
+    loadBooks();
+    if (document.getElementById('tabContentCirculation').style.display !== 'none') {
+      loadCirculation();
+    }
+  } catch (err) {
+    window.showToast(err.message || 'Failed to issue book', 'error');
+  }
+}
+
+async function renewLoan(recordId) {
+  try {
+    const res = await window.api.request('/library/renew/' + recordId, { method: 'POST' });
+    window.showToast(res.message || 'Loan renewed successfully', 'success');
+    loadCirculation();
+  } catch (err) {
+    window.showToast('Failed to renew loan', 'error');
+  }
+}
+
+async function returnLoan(recordId) {
+  try {
+    const res = await window.api.request('/library/return/' + recordId, { method: 'POST' });
+    window.showToast(res.message || 'Book returned successfully', 'success');
+    loadStats();
+    loadBooks();
+    loadCirculation();
+  } catch (err) {
+    window.showToast('Failed to process return', 'error');
+  }
+}
+
+async function submitBook() {
   const title = document.getElementById('bookTitle').value.trim();
   const author = document.getElementById('bookAuthor').value.trim();
   const isbn = document.getElementById('bookISBN').value.trim();
+  const edition = document.getElementById('bookEdition').value.trim();
   const category = document.getElementById('bookCategory').value;
-  const copies = parseInt(document.getElementById('bookCopies').value) || 1;
-  if (!title || !author) { alert('Title and author are required'); return; }
-  books.unshift({ title, author, isbn, category, copies, available: copies });
-  filterBooks();
-  closeModal('addBookModal');
-  document.getElementById('bookTitle').value = '';
-  document.getElementById('bookAuthor').value = '';
-  document.getElementById('bookISBN').value = '';
-  document.getElementById('bookCopies').value = '1';
+  const subject = document.getElementById('bookSubject').value.trim();
+  const totalCopies = parseInt(document.getElementById('bookCopies').value) || 1;
+  const location = document.getElementById('bookLocation').value.trim();
+
+  if (!title || !author) {
+    window.showToast('Title and Author are required', 'error');
+    return;
+  }
+
+  try {
+    await window.api.request('/library/books', {
+      method: 'POST',
+      body: JSON.stringify({ title, author, isbn, edition, category, subject, totalCopies, location })
+    });
+    closeModal('addBookModal');
+    window.showToast('Book added to catalog', 'success');
+    document.getElementById('bookTitle').value = '';
+    document.getElementById('bookAuthor').value = '';
+    document.getElementById('bookISBN').value = '';
+    loadStats();
+    loadBooks();
+  } catch (err) {
+    window.showToast('Failed to add book', 'error');
+  }
 }
 
-function deleteBook(i) {
-  if (!confirm('Delete this book?')) return;
-  books.splice(i, 1);
-  filterBooks();
+async function deleteBook(id) {
+  if (!confirm('Are you sure you want to deactivate this title from the catalog?')) return;
+  try {
+    await window.api.request('/library/books/' + id, { method: 'DELETE' });
+    window.showToast('Book deactivated', 'success');
+    loadStats();
+    loadBooks();
+  } catch (err) {
+    window.showToast(err.message || 'Failed to deactivate book', 'error');
+  }
 }
 
-const user = JSON.parse(localStorage.getItem('erp_user') || localStorage.getItem('user') || '{}');
-if (user.name) {
-  document.getElementById('sidebar-user-name').textContent = user.name;
-  const initial = (user.name || 'A').charAt(0).toUpperCase();
-  document.getElementById('sidebar-avatar').textContent = initial;
-  document.getElementById('topbar-avatar').textContent = initial;
-}
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) overlay.classList.remove('show');
+  });
+});
 
-renderBooks(books);
+loadStats();
+loadBooks();
 </script>
 </body>
 </html>

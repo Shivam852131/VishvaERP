@@ -203,6 +203,14 @@ const login = asyncHandler(async (req, res) => {
     subscriptionActive = await hasActiveCollegeAccess(user.collegeId);
   }
 
+  let children = user.children || [];
+  if (user.role === 'parent' && (!children || !children.length)) {
+    const linked = await User.find({ collegeId: user.collegeId, role: 'student', parentId: user._id })
+      .select('name email phone rollNo semester department collegeId dateOfBirth gender bloodGroup admissionDate enrollmentNo section address createdAt')
+      .populate('collegeId', 'name code');
+    if (linked.length > 0) children = linked;
+  }
+
   res.json({
     success: true,
     message: 'Login successful',
@@ -216,6 +224,7 @@ const login = asyncHandler(async (req, res) => {
       collegeId: user.collegeId,
       avatar: user.avatar,
       lastLogin: user.lastLogin,
+      ...(user.role === 'parent' ? { children } : {}),
     },
     subscriptionActive,
   });
@@ -315,7 +324,7 @@ const resetPassword = asyncHandler(async (req, res) => {
 // @route   GET /api/auth/me
 // @access  Private
 const getMe = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id)
+  let user = await User.findById(req.user._id)
     .populate('collegeId', 'name code logo')
     .populate({
       path: 'children',
@@ -323,6 +332,17 @@ const getMe = asyncHandler(async (req, res) => {
       populate: { path: 'collegeId', select: 'name code' },
     })
     .populate('parentId', 'name email phone');
+
+  if (user && user.role === 'parent' && (!user.children || !user.children.length)) {
+    const linkedChildren = await User.find({ collegeId: user.collegeId, role: 'student', parentId: user._id })
+      .select('name email phone rollNo semester department collegeId dateOfBirth gender bloodGroup admissionDate enrollmentNo section address createdAt')
+      .populate('collegeId', 'name code');
+    if (linkedChildren.length > 0) {
+      user = user.toObject();
+      user.children = linkedChildren;
+    }
+  }
+
   res.json({ success: true, user });
 });
 

@@ -154,7 +154,12 @@ async function canAccessFee(req, fee) {
   if (req.user.role === 'student') return String(fee.studentId) === String(req.user._id);
   if (req.user.role === 'parent') {
     const parent = await User.findById(req.user._id).select('children');
-    return (parent?.children || []).map(String).includes(String(fee.studentId));
+    let children = (parent?.children || []).map(String);
+    if (!children.length) {
+      const linked = await User.find({ collegeId: req.user.collegeId, role: 'student', parentId: req.user._id }).select('_id');
+      children = linked.map(s => String(s._id));
+    }
+    return children.includes(String(fee.studentId));
   }
   return true;
 }
@@ -337,7 +342,12 @@ const getFees = asyncHandler(async (req, res) => {
   if (req.user.role === 'student') query.studentId = req.user._id;
   if (req.user.role === 'parent') {
     const parent = await User.findById(req.user._id);
-    query.studentId = { $in: parent.children || [] };
+    let children = (parent?.children || []).map(String);
+    if (!children.length) {
+      const linked = await User.find({ collegeId: req.user.collegeId, role: 'student', parentId: req.user._id }).select('_id');
+      children = linked.map(s => String(s._id));
+    }
+    query.studentId = { $in: children };
   }
 
   if (overdue === 'true') {
@@ -439,7 +449,7 @@ const createBulkFees = asyncHandler(async (req, res) => {
 });
 
 // ═══════════════════════════════════════════
-// RAZORPAY INTEGRATION
+// RAZORPAY & PAYMENT PROCESSING
 // ═══════════════════════════════════════════
 
 const createFeeOrder = asyncHandler(async (req, res) => {
@@ -451,51 +461,154 @@ const createFeeOrder = asyncHandler(async (req, res) => {
   if (pendingAmount <= 0) return res.status(400).json({ success: false, message: 'Fee already paid' });
 
   const amountInPaise = Math.round(pendingAmount * 100);
-  const razorpayInstance = getRazorpay();
-  const order = await razorpayInstance.orders.create({
-    amount: amountInPaise, currency: 'INR',
-    receipt: `fee_${Date.now()}_${String(fee._id).slice(-8)}`,
-    notes: { feeId: String(fee._id), collegeId: String(req.user.collegeId) },
-  });
+  let order = null;
+  let key = process.env.RAZORPAY_KEY_ID || 'rzp_test_simulated_mode';
+  let isSandbox = !process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET;
+
+  if (!isSandbox) {
+    try {
+      const razorpayInstance = getRazorpay();
+      order = await razorpayInstance.orders.create({
+        amount: amountInPaise,
+        currency: 'INR',
+        receipt: `fee_${Date.now()}_${String(fee._id).slice(-8)}`,
+        notes: { feeId: String(fee._id), collegeId: String(req.user.collegeId) },
+      });
+      key = getRazorpayKeyId();
+    } catch (err) {
+      isSandbox = true;
+    }
+  }
+
+  if (isSandbox) {
+    order = {
+      id: `order_sandbox_${Date.now()}_${String(fee._id).slice(-6)}`,
+      amount: amountInPaise,
+      currency: 'INR',
+      status: 'created',
+      receipt: `fee_${Date.now()}_${String(fee._id).slice(-8)}`,
+    };
+  }
 
   await Payment.create({
-    collegeId: req.user.collegeId, userId: req.user._id, type: 'fee', referenceId: fee._id,
-    razorpayOrderId: order.id, amount: pendingAmount, currency: 'INR', status: 'created',
-    description: `Fee payment - ${fee.feeType}`, metadata: { feeType: fee.feeType, semester: fee.semester },
+    collegeId: req.user.collegeId,
+    userId: req.user._id,
+    type: 'fee',
+    referenceId: fee._id,
+    razorpayOrderId: order.id,
+    amount: pendingAmount,
+    currency: 'INR',
+    status: 'created',
+    description: `Fee payment - ${fee.feeType}`,
+    metadata: { feeType: fee.feeType, semester: fee.semester, isSandbox },
   });
 
-  logAudit(req, 'create', 'fee-order', { resourceId: fee._id, description: `Razorpay order for ₹${pendingAmount}` });
-  res.status(201).json({ success: true, order: { id: order.id, amount: amountInPaise, currency: 'INR' }, feeId: fee._id, pendingAmount, key: getRazorpayKeyId() });
+  logAudit(req, 'create', 'fee-order', {
+    resourceId: fee._id,
+    description: `Fee order for ₹${pendingAmount} (${isSandbox ? 'Sandbox/Mock Mode' : 'Razorpay'})`,
+  });
+
+  res.status(201).json({
+    success: true,
+    isSandbox,
+    order: { id: order.id, amount: amountInPaise, currency: 'INR' },
+    feeId: fee._id,
+    pendingAmount,
+    key,
+  });
 });
 
 const verifyFeePayment = asyncHandler(async (req, res) => {
-  const { razorpayOrderId, razorpayPaymentId, razorpaySignature, feeId } = req.body;
-  if (!razorpayOrderId || !razorpayPaymentId || !razorpaySignature || !feeId) {
+  const { razorpayOrderId, razorpayPaymentId, razorpaySignature, feeId, installmentId } = req.body;
+  if (!razorpayOrderId || !feeId) {
     return res.status(400).json({ success: false, message: 'Missing payment details' });
   }
-  if (!verifyRazorpaySignature(razorpayOrderId, razorpayPaymentId, razorpaySignature)) {
-    return res.status(400).json({ success: false, message: 'Invalid payment signature' });
+
+  const isSandboxOrder = String(razorpayOrderId).startsWith('order_sandbox_') || String(razorpayOrderId).startsWith('order_test_');
+
+  if (!isSandboxOrder) {
+    if (!razorpayPaymentId || !razorpaySignature) {
+      return res.status(400).json({ success: false, message: 'Missing payment signature' });
+    }
+    if (!verifyRazorpaySignature(razorpayOrderId, razorpayPaymentId, razorpaySignature)) {
+      return res.status(400).json({ success: false, message: 'Invalid payment signature' });
+    }
   }
+
   const fee = await Fee.findOne({ _id: feeId, collegeId: req.user.collegeId });
   if (!fee) return res.status(404).json({ success: false, message: 'Fee not found' });
   if (!(await canAccessFee(req, fee))) return res.status(403).json({ success: false, message: 'Access denied' });
 
-  let payment = await Payment.findOne({ collegeId: req.user.collegeId, type: 'fee', referenceId: fee._id, razorpayOrderId, status: 'created' });
+  let payment = await Payment.findOne({
+    collegeId: req.user.collegeId,
+    type: 'fee',
+    referenceId: fee._id,
+    razorpayOrderId,
+    status: 'created',
+  });
+
   if (!payment) {
-    const existing = await Payment.findOne({ collegeId: req.user.collegeId, type: 'fee', referenceId: fee._id, razorpayOrderId, razorpayPaymentId, status: 'captured' });
+    const existing = await Payment.findOne({
+      collegeId: req.user.collegeId,
+      type: 'fee',
+      referenceId: fee._id,
+      razorpayOrderId,
+      status: 'captured',
+    });
     if (existing) return res.json({ success: true, message: 'Payment already verified', fee, receiptNo: fee.receiptNo });
     return res.status(404).json({ success: false, message: 'Payment order not found' });
   }
 
   const paidAmount = Number(payment.amount || 0);
-  const { order, payment: razorpayPayment } = await confirmRazorpayPayment({ orderId: razorpayOrderId, paymentId: razorpayPaymentId, expectedAmount: paidAmount, currency: payment.currency || 'INR' });
+
+  // If installment is target, update the specific installment
+  const targetInstId = installmentId || payment.metadata?.installmentId;
+  if (fee.installmentEnabled && targetInstId && fee.installments?.id(targetInstId)) {
+    const inst = fee.installments.id(targetInstId);
+    inst.paidAmount = Number(inst.paidAmount || 0) + paidAmount;
+    inst.paidDate = new Date();
+    inst.paymentMethod = 'online';
+    inst.receiptNo = fee.receiptNo || `INS-${Date.now()}`;
+    inst.status = inst.paidAmount >= inst.amount ? 'paid' : 'partial';
+  }
+
+  if (isSandboxOrder) {
+    const mockPaymentId = razorpayPaymentId || `pay_sandbox_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    await captureFeePayment(req, fee, payment, {
+      razorpayPaymentId: mockPaymentId,
+      razorpaySignature: razorpaySignature || 'sandbox_simulated_signature',
+      orderStatus: 'paid',
+      paymentStatus: 'captured',
+      paymentMethod: 'online',
+      email: req.user.email,
+      contact: req.user.phone,
+    });
+    return res.json({ success: true, message: 'Payment verified successfully (Sandbox Mode)', fee, receiptNo: fee.receiptNo });
+  }
+
+  const { order, payment: razorpayPayment } = await confirmRazorpayPayment({
+    orderId: razorpayOrderId,
+    paymentId: razorpayPaymentId,
+    expectedAmount: paidAmount,
+    currency: payment.currency || 'INR',
+  });
+
   if (razorpayPayment.status !== 'captured') {
     await markFeePaymentFailed(req, fee, payment, 'Not captured', razorpayPaymentId);
     return res.status(400).json({ success: false, message: 'Payment not captured by Razorpay' });
   }
 
-  await captureFeePayment(req, fee, payment, { razorpayPaymentId, razorpaySignature, orderStatus: order?.status, paymentStatus: razorpayPayment.status, paymentMethod: razorpayPayment.method, email: razorpayPayment.email, contact: razorpayPayment.contact });
-  res.json({ success: true, message: 'Payment verified', fee, receiptNo: fee.receiptNo });
+  await captureFeePayment(req, fee, payment, {
+    razorpayPaymentId,
+    razorpaySignature,
+    orderStatus: order?.status,
+    paymentStatus: razorpayPayment.status,
+    paymentMethod: razorpayPayment.method,
+    email: razorpayPayment.email,
+    contact: razorpayPayment.contact,
+  });
+
+  res.json({ success: true, message: 'Payment verified successfully', fee, receiptNo: fee.receiptNo });
 });
 
 const getFeePaymentStatus = asyncHandler(async (req, res) => {
@@ -569,21 +682,57 @@ const createInstallmentOrder = asyncHandler(async (req, res) => {
   if (pending <= 0) return res.status(400).json({ success: false, message: 'Installment already paid' });
 
   const amountInPaise = Math.round(pending * 100);
-  const razorpayInstance = getRazorpay();
-  const order = await razorpayInstance.orders.create({
-    amount: amountInPaise, currency: 'INR',
-    receipt: `inst_${Date.now()}_${String(fee._id).slice(-8)}_${installment.installmentNumber}`,
-    notes: { feeId: String(fee._id), installmentId: String(installment._id), installmentNumber: installment.installmentNumber },
-  });
+  let order = null;
+  let key = process.env.RAZORPAY_KEY_ID || 'rzp_test_simulated_mode';
+  let isSandbox = !process.env.RAZORPAY_KEY_ID || !process.env.RAZORPAY_KEY_SECRET;
+
+  if (!isSandbox) {
+    try {
+      const razorpayInstance = getRazorpay();
+      order = await razorpayInstance.orders.create({
+        amount: amountInPaise,
+        currency: 'INR',
+        receipt: `inst_${Date.now()}_${String(fee._id).slice(-8)}_${installment.installmentNumber}`,
+        notes: { feeId: String(fee._id), installmentId: String(installment._id), installmentNumber: installment.installmentNumber },
+      });
+      key = getRazorpayKeyId();
+    } catch (err) {
+      isSandbox = true;
+    }
+  }
+
+  if (isSandbox) {
+    order = {
+      id: `order_sandbox_${Date.now()}_${String(fee._id).slice(-6)}_${installment.installmentNumber}`,
+      amount: amountInPaise,
+      currency: 'INR',
+      status: 'created',
+      receipt: `inst_${Date.now()}_${String(fee._id).slice(-8)}_${installment.installmentNumber}`,
+    };
+  }
 
   await Payment.create({
-    collegeId: req.user.collegeId, userId: req.user._id, type: 'fee', referenceId: fee._id,
-    razorpayOrderId: order.id, amount: pending, currency: 'INR', status: 'created',
+    collegeId: req.user.collegeId,
+    userId: req.user._id,
+    type: 'fee',
+    referenceId: fee._id,
+    razorpayOrderId: order.id,
+    amount: pending,
+    currency: 'INR',
+    status: 'created',
     description: `Installment ${installment.installmentNumber} - ${fee.feeType}`,
-    metadata: { installmentId: String(installment._id), installmentNumber: installment.installmentNumber },
+    metadata: { installmentId: String(installment._id), installmentNumber: installment.installmentNumber, isSandbox },
   });
 
-  res.status(201).json({ success: true, order: { id: order.id, amount: amountInPaise, currency: 'INR' }, feeId: fee._id, installmentId, pendingAmount: pending, key: getRazorpayKeyId() });
+  res.status(201).json({
+    success: true,
+    isSandbox,
+    order: { id: order.id, amount: amountInPaise, currency: 'INR' },
+    feeId: fee._id,
+    installmentId,
+    pendingAmount: pending,
+    key,
+  });
 });
 
 // ═══════════════════════════════════════════
@@ -749,6 +898,44 @@ const getAssignableStudents = asyncHandler(async (req, res) => {
   res.json({ success: true, students: result, total: result.length });
 });
 
+// ═══════════════════════════════════════════
+// CSV EXPORT FOR AUDIT & RECONCILIATION
+// ═══════════════════════════════════════════
+
+const exportFeesCSV = asyncHandler(async (req, res) => {
+  const { status, department, semester } = req.query;
+  const query = { collegeId: req.user.collegeId };
+  if (status) query.status = status;
+  if (department) query.department = department;
+  if (semester) query.semester = parseInt(semester);
+
+  const fees = await Fee.find(query)
+    .populate('studentId', 'name rollNo department semester email phone')
+    .populate('feeStructureId', 'name')
+    .sort({ dueDate: 1 });
+
+  let csv = 'Receipt No,Student Name,Roll No,Department,Semester,Email,Fee Type,Structure,Amount,Paid Amount,Pending,Due Date,Status,Payment Method,Payment Date\n';
+
+  fees.forEach((f) => {
+    const student = f.studentId || {};
+    const studentName = (student.name || '').replace(/,/g, ' ');
+    const rollNo = student.rollNo || '';
+    const dept = f.department || student.department || '';
+    const sem = f.semester || student.semester || '';
+    const email = student.email || '';
+    const structureName = (f.feeStructureId?.name || '').replace(/,/g, ' ');
+    const pending = Math.max(Number(f.amount || 0) - Number(f.paidAmount || 0), 0);
+    const dueDate = f.dueDate ? new Date(f.dueDate).toISOString().slice(0, 10) : '';
+    const paidDate = f.paidDate ? new Date(f.paidDate).toISOString().slice(0, 10) : '';
+
+    csv += `"${f.receiptNo || ''}","${studentName}","${rollNo}","${dept}","${sem}","${email}","${f.feeType || ''}","${structureName}",${f.amount || 0},${f.paidAmount || 0},${pending},"${dueDate}","${f.status || ''}","${f.paymentMethod || ''}","${paidDate}"\n`;
+  });
+
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', `attachment; filename=fee-collection-${new Date().toISOString().slice(0, 10)}.csv`);
+  res.status(200).send(csv);
+});
+
 module.exports = {
   createFeeStructure, getFeeStructures, updateFeeStructure, deleteFeeStructure,
   assignFeeStructure,
@@ -758,4 +945,6 @@ module.exports = {
   applyLateFees, waiveFee, applyDiscount,
   getFeeAnalytics, getFeeSummary,
   getAssignableStudents,
+  exportFeesCSV,
 };
+

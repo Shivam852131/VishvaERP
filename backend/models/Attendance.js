@@ -10,8 +10,8 @@ const attendanceSchema = new mongoose.Schema({
   remarks:            { type: String },
 
   // Source & verification
-  source:             { type: String, enum: ['manual', 'smart-location', 'face-id', 'qr-code'], default: 'manual' },
-  verificationMethod: { type: String, enum: ['manual', 'smart-location', 'face-id', 'qr-code'], default: 'manual' },
+  source:             { type: String, enum: ['manual', 'smart-location', 'face-id', 'qr-code', 'live-class'], default: 'manual' },
+  verificationMethod: { type: String, enum: ['manual', 'smart-location', 'face-id', 'qr-code', 'live-class'], default: 'manual' },
 
   // Excuse workflow
   excuseReason:       { type: String },

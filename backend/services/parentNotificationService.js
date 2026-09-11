@@ -272,9 +272,14 @@ async function sendBulkParentNotifications(parentIds, eventType, data, options =
 }
 
 async function updatePreferences(parentId, updates) {
+  let collegeId = updates.collegeId;
+  if (!collegeId) {
+    const parent = await User.findById(parentId).select('collegeId');
+    collegeId = parent?.collegeId;
+  }
   const prefs = await ParentNotificationPreference.findOneAndUpdate(
     { userId: parentId },
-    { $set: updates },
+    { $set: updates, ...(collegeId ? { $setOnInsert: { collegeId } } : {}) },
     { new: true, upsert: true }
   );
   return prefs;

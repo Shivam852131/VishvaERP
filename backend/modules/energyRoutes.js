@@ -2,7 +2,7 @@ const express = require('express');
 const { protect } = require('../middleware/auth');
 const { sameCollege, authorize } = require('../middleware/rbac');
 const { requireSubscription } = require('../middleware/subscription');
-const { logEnergy, getEnergyLogs, getEnergyDashboard, createGoal, getGoals, updateGoal, deleteGoal } = require('../controllers/energyController');
+const { logEnergy, getEnergyLogs, getEnergyDashboard, createGoal, getGoals, updateGoal, deleteGoal, toggleMilestone } = require('../controllers/energyController');
 
 const router = express.Router();
 router.use(protect);
@@ -20,5 +20,7 @@ router.route('/goals')
 router.route('/goals/:id')
   .put(authorize('collegeAdmin'), updateGoal)
   .delete(authorize('collegeAdmin'), deleteGoal);
+
+router.patch('/goals/:id/milestone/:index', authorize('collegeAdmin'), toggleMilestone);
 
 module.exports = router;

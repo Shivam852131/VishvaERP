@@ -8,6 +8,9 @@ const { Room } = require('../models/Hostel');
 const TransportRoute = require('../models/Transport');
 const LiveClassSession = require('../models/LiveClassSession');
 const User = require('../models/User');
+const Attendance = require('../models/Attendance');
+const Result = require('../models/Result');
+const Fee = require('../models/Fee');
 const { emitDataChange } = require('../utils/realtime');
 const { parseSemester, escapeRegex } = require('../utils/parseHelpers');
 const { logAudit } = require('../services/auditService');
@@ -26,7 +29,11 @@ async function resolveStudentContext(user, requestedStudentId) {
     return null;
   }
 
-  const children = Array.isArray(user.children) ? user.children.map(String) : [];
+  let children = Array.isArray(user.children) ? user.children.map(String) : [];
+  if (!children.length) {
+    const linked = await User.find({ collegeId: user.collegeId, role: 'student', parentId: user._id }).select('_id');
+    children = linked.map(s => String(s._id));
+  }
   const targetChildId = requestedStudentId && children.includes(String(requestedStudentId))
     ? requestedStudentId
     : children[0];
@@ -45,7 +52,11 @@ async function resolveAccessibleStudent(user, requestedStudentId) {
   }
 
   if (user.role === 'parent') {
-    const children = Array.isArray(user.children) ? user.children.map(String) : [];
+    let children = Array.isArray(user.children) ? user.children.map(String) : [];
+    if (!children.length) {
+      const linked = await User.find({ collegeId: user.collegeId, role: 'student', parentId: user._id }).select('_id');
+      children = linked.map(s => String(s._id));
+    }
     const targetChildId = requestedStudentId && children.includes(String(requestedStudentId))
       ? requestedStudentId
       : children[0];
@@ -278,7 +289,7 @@ const getStudentProfile = asyncHandler(async (req, res) => {
     subjectQuery.courseId = { $in: courseIds };
   }
 
-  const [subjects, room, route, liveClass] = await Promise.all([
+  const [subjects, room, route, liveClass, attendanceRecords, examResults, feeRecords, allChildren] = await Promise.all([
     Subject.find(subjectQuery)
       .populate('facultyId', 'name email designation department')
       .sort({ createdAt: 1 }),
@@ -292,15 +303,55 @@ const getStudentProfile = asyncHandler(async (req, res) => {
     })
       .populate('facultyId', 'name email designation')
       .populate('subjectId', 'name code'),
+    Attendance.find({ collegeId: req.user.collegeId, studentId: populatedStudent._id }),
+    Result.find({ collegeId: req.user.collegeId, studentId: populatedStudent._id }),
+    Fee.find({ collegeId: req.user.collegeId, studentId: populatedStudent._id }),
+    req.user.role === 'parent'
+      ? User.find({
+          collegeId: req.user.collegeId,
+          role: 'student',
+          $or: [
+            { parentId: req.user._id },
+            { _id: { $in: Array.isArray(req.user.children) ? req.user.children : [] } },
+          ],
+        }).select('name rollNo department semester')
+      : Promise.resolve([]),
   ]);
 
-  const mentor = subjects.find((item) => item.facultyId)?.facultyId || null;
+  let mentor = subjects.find((item) => item.facultyId)?.facultyId || null;
+  if (!mentor) {
+    mentor = await User.findOne({ collegeId: req.user.collegeId, role: 'faculty', department: populatedStudent.department }).select('name email designation department phone');
+    if (!mentor) {
+      mentor = await User.findOne({ collegeId: req.user.collegeId, role: 'faculty' }).select('name email designation department phone');
+    }
+  }
+
+  const totalAtt = attendanceRecords.filter((r) => r.status !== 'excused').length;
+  const presentAtt = attendanceRecords.filter((r) => r.status === 'present' || r.status === 'late').length;
+  const attendancePercentage = totalAtt > 0 ? Number(((presentAtt / totalAtt) * 100).toFixed(1)) : 100;
+  const cgpa = examResults.length > 0 ? Number((examResults.reduce((acc, r) => acc + (r.gradePoints || 0), 0) / examResults.length).toFixed(2)) : 'N/A';
+  const outstandingFees = feeRecords.filter((f) => f.status !== 'paid').reduce((sum, f) => sum + Math.max(Number(f.amount || 0) - Number(f.paidAmount || 0), 0), 0);
 
   res.json({
     success: true,
     profile: {
       student: populatedStudent,
       mentor,
+      vitals: {
+        attendancePercentage,
+        totalClasses: totalAtt,
+        classesAttended: presentAtt,
+        cgpa,
+        outstandingFees,
+        totalSubjects: subjects.length,
+      },
+      allChildren: allChildren.map((c) => ({
+        _id: c._id,
+        name: c.name,
+        rollNo: c.rollNo,
+        department: c.department,
+        semester: c.semester,
+      })),
       transportRoute: route ? {
         _id: route._id,
         routeName: route.routeName,
@@ -331,6 +382,7 @@ const getStudentProfile = asyncHandler(async (req, res) => {
         _id: item._id,
         name: item.name,
         code: item.code,
+        credits: item.credits || 3,
         faculty: item.facultyId || null,
       })),
     },
