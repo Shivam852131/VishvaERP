@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Exam Prep | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../css/custom.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .prep-card { border:1px solid #E2E8F0; border-radius:16px; padding:20px; background:white; transition:all 0.3s ease; }
+    .prep-card:hover { box-shadow:0 12px 40px rgba(0,0,0,0.08); transform:translateY(-2px); border-color:#C7D2FE; }
+    .stat-tile { border:1px solid #E2E8F0; border-radius:16px; padding:18px 20px; background:white; }
+    .stat-tile .stat-ico { width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:18px; }
+    .avail-chip { padding:4px 10px; border-radius:999px; font-size:11px; font-weight:800; text-transform:uppercase; }
+    .avail-open { background:#D1FAE5; color:#065F46; }
+    .avail-upcoming { background:#FEF3C7; color:#92400E; }
+    .avail-closed { background:#F1F5F9; color:#64748B; }
+    .prio-high { background:#FEE2E2; color:#991B1B; }
+    .prio-medium { background:#FEF3C7; color:#92400E; }
+    .prio-low { background:#DCFCE7; color:#166534; }
+    .empty-state { padding:50px 20px; text-align:center; color:#64748B; }
+    .skeleton { background:linear-gradient(90deg,#F1F5F9 25%,#E2E8F0 50%,#F1F5F9 75%); background-size:200% 100%; animation:shimmer 1.5s infinite; border-radius:8px; }
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+    .bm-row { display:flex; gap:12px; padding:14px; border:1px solid #E2E8F0; border-radius:12px; margin-bottom:10px; }
+  </style>
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-student" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)">V</div><div class="sidebar-logo-text">Vishva <span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)" id="sidebar-avatar">S</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Student</div><div class="sidebar-user-role" id="sidebar-user-role">B.Tech CS</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <div class="nav-section-label">Academics</div>
+      <a href="live-class.html" class="nav-link"><i class="nav-link-icon fas fa-video"></i> Live Classes</a>
+      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-reader"></i> My Courses</a>
+      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Attendance</a>
+      <a href="results.html" class="nav-link"><i class="nav-link-icon fas fa-poll"></i> Results</a>
+      <a href="assignments.html" class="nav-link"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
+      <a href="timetable.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-week"></i> Timetable</a>
+      <a href="notes.html" class="nav-link"><i class="nav-link-icon fas fa-sticky-note"></i> Notes</a>
+      <div class="nav-section-label">Exam Prep</div>
+      <a href="exam-prep.html" class="nav-link active"><i class="nav-link-icon fas fa-brain"></i> Practice Dashboard</a>
+      <a href="assessments.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-check"></i> Skill Assessments</a>
+      <a href="quiz-history.html" class="nav-link"><i class="nav-link-icon fas fa-history"></i> Quiz History</a>
+      <div class="nav-section-label">Career Center</div>
+      <a href="career.html" class="nav-link"><i class="nav-link-icon fas fa-rocket"></i> Career Dashboard</a>
+      <a href="skills.html" class="nav-link"><i class="nav-link-icon fas fa-tools"></i> Skills Profile</a>
+      <a href="placements.html" class="nav-link"><i class="nav-link-icon fas fa-briefcase"></i> Placements</a>
+      <div class="nav-section-label">Finance</div>
+      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-receipt"></i> Fees</a>
+      <div class="nav-section-label">Tools</div>
+      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Services</a>
+      <a href="../messages.html" class="nav-link"><i class="nav-link-icon fas fa-comment-dots"></i> Chat</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">Exam Prep / <span>Practice Dashboard</span></div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-search" onclick="openCommandPalette()" style="cursor:pointer;margin-right:10px"><i class="fas fa-search"></i><span style="font-size:13px;color:var(--text-muted)">Search...</span></div>
+        <div style="position:relative"><button class="topbar-btn" id="notif-btn"><i class="fas fa-bell"></i><span class="topbar-badge">0</span></button></div>
+        <div class="topbar-avatar" id="topbar-avatar">S</div>
+      </div>
+    </header>
+
+    <div class="erp-content page-enter">
+      <div class="page-header">
+        <h1 class="page-title"><i class="fas fa-brain" style="color:#6366F1;margin-right:10px"></i>Exam Prep &amp; Practice</h1>
+        <p class="page-subtitle">Take timed quizzes, track weak areas, and get personalized practice recommendations.</p>
+      </div>
+
+      <!-- STAT TILES -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:24px" id="statTiles">
+        <div class="stat-tile"><div style="display:flex;align-items:center;gap:12px"><div class="stat-ico" style="background:#EEF2FF;color:#4338CA"><i class="fas fa-check-double"></i></div><div><div style="font-size:22px;font-weight:800" id="stAttempts">–</div><div style="font-size:12px;color:#64748B">Attempts</div></div></div></div>
+        <div class="stat-tile"><div style="display:flex;align-items:center;gap:12px"><div class="stat-ico" style="background:#ECFDF5;color:#065F46"><i class="fas fa-bullseye"></i></div><div><div style="font-size:22px;font-weight:800" id="stAvg">–</div><div style="font-size:12px;color:#64748B">Avg Score</div></div></div></div>
+        <div class="stat-tile"><div style="display:flex;align-items:center;gap:12px"><div class="stat-ico" style="background:#FEF3C7;color:#92400E"><i class="fas fa-fire"></i></div><div><div style="font-size:22px;font-weight:800" id="stStreak">–</div><div style="font-size:12px;color:#64748B">Day Streak</div></div></div></div>
+        <div class="stat-tile"><div style="display:flex;align-items:center;gap:12px"><div class="stat-ico" style="background:#FDF2F8;color:#BE185D"><i class="fas fa-bookmark"></i></div><div><div style="font-size:22px;font-weight:800" id="stBookmarks">–</div><div style="font-size:12px;color:#64748B">Bookmarks</div></div></div></div>
+      </div>
+
+      <!-- AI RECOMMENDATIONS -->
+      <div class="prep-card" style="margin-bottom:24px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+          <h2 style="font-weight:800;font-size:16px"><i class="fas fa-lightbulb" style="color:#F59E0B;margin-right:8px"></i>Personalized Practice Recommendations</h2>
+          <button class="btn btn-secondary btn-sm" id="aiTipBtn"><i class="fas fa-magic"></i> Ask AI Coach</button>
+        </div>
+        <div id="recList"><div class="skeleton" style="height:20px;width:40%;margin-bottom:10px"></div><div class="skeleton" style="height:20px;width:60%"></div></div>
+        <div id="aiTipBox" style="display:none;margin-top:14px;padding:14px;background:#FFFBEB;border:1px solid #FDE68A;border-radius:12px;font-size:13px;color:#78350F"></div>
+      </div>
+
+      <!-- TABS -->
+      <div class="tab-bar" id="prepTabs" style="margin-bottom:20px">
+        <button class="tab-btn active" data-tab="quizzes"><i class="fas fa-play-circle"></i> Available Quizzes</button>
+        <button class="tab-btn" data-tab="analytics"><i class="fas fa-chart-pie"></i> My Analytics</button>
+        <button class="tab-btn" data-tab="bookmarks"><i class="fas fa-bookmark"></i> Bookmarks</button>
+      </div>
+
+      <div id="quizzesTab"></div>
+      <div id="analyticsTab" style="display:none"></div>
+      <div id="bookmarksTab" style="display:none"></div>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script>
+(function(){
+  // api.request() already prefixes API_URL ('/api'), so paths start at /v1.
+  const Q = '/v1/quizzes';
+  const $ = s => document.querySelector(s);
+  const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  let analyticsData = null, bookmarksData = null;
+
+  // Tab switching
+  document.querySelectorAll('#prepTabs .tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#prepTabs .tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const t = btn.dataset.tab;
+      $('#quizzesTab').style.display = t==='quizzes'?'block':'none';
+      $('#analyticsTab').style.display = t==='analytics'?'block':'none';
+      $('#bookmarksTab').style.display = t==='bookmarks'?'block':'none';
+      if (t==='analytics' && !analyticsData) loadAnalytics();
+      if (t==='bookmarks' && !bookmarksData) loadBookmarks();
+    });
+  });
+
+  async function loadRecommendations(ai){
+    const box = $('#recList');
+    try {
+      const r = await api.request(Q + '/recommendations' + (ai?'?ai=1':''), { silent:true });
+      const recs = (r && r.recommendations) || [];
+      if (ai && r && r.aiTip) { const b=$('#aiTipBox'); b.style.display='block'; b.innerHTML = '<i class="fas fa-robot" style="margin-right:6px"></i>'+esc(r.aiTip); }
+      if (!recs.length) { box.innerHTML = '<div style="color:#64748B;font-size:13px">'+esc((r&&r.message)||'No weak areas detected yet — keep practicing!')+'</div>'; return; }
+      box.innerHTML = recs.map(rec => `
+        <div style="display:flex;align-items:center;gap:12px;padding:12px;border:1px solid #E2E8F0;border-radius:12px;margin-bottom:8px;flex-wrap:wrap">
+          <span class="prio-${esc(rec.priority)}" style="padding:4px 10px;border-radius:999px;font-size:11px;font-weight:800;text-transform:uppercase">${esc(rec.priority)}</span>
+          <div style="flex:1;min-width:200px">
+            <div style="font-weight:700;font-size:14px">${esc(rec.unit)}${rec.chapter&&rec.chapter!=='General'?` — ${esc(rec.chapter)}`:''}</div>
+            <div style="font-size:12px;color:#64748B">${esc(rec.suggestion)} · ${rec.availableQuestions} questions available</div>
+          </div>
+          <div style="font-weight:800;color:${rec.accuracy<40?'#EF4444':rec.accuracy<60?'#F59E0B':'#10B981'}">${rec.accuracy}%</div>
+        </div>`).join('');
+    } catch(e){ box.innerHTML = '<div style="color:#64748B;font-size:13px">Recommendations unavailable.</div>'; }
+  }
+  $('#aiTipBtn').addEventListener('click', () => loadRecommendations(true));
+
+  async function loadQuizzes(){
+    const box = $('#quizzesTab');
+    box.innerHTML = '<div class="skeleton" style="height:120px"></div>';
+    try {
+      const r = await api.request(Q, { silent:true });
+      const quizzes = (r && r.quizzes) || [];
+      if (!quizzes.length) { box.innerHTML = '<div class="empty-state"><i class="fas fa-inbox" style="font-size:44px;color:#CBD5E1;margin-bottom:12px"></i><h3 style="font-weight:700;font-size:15px">No quizzes available yet</h3><p style="font-size:13px">Your faculty haven\'t published any quizzes. Check back soon.</p></div>'; return; }
+      box.innerHTML = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:18px">' + quizzes.map(q => {
+        const s = q.settings||{};
+        const canStart = q.availability==='open';
+        const started = q.myStats && q.myStats.attempts>0;
+        const exhausted = s.maxAttempts>0 && started && q.myStats.attempts>=s.maxAttempts;
+        return `<div class="prep-card">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+            <div style="font-weight:800;font-size:15px">${esc(q.title)}</div>
+            <span class="avail-chip avail-${esc(q.availability)}">${esc(q.availability)}</span>
+          </div>
+          <div style="font-size:12px;color:#64748B;margin-bottom:12px">${esc((q.subjectId&&q.subjectId.name)||'General')} · ${esc(q.type)} · ${q.questionCount||0} questions · ${s.duration||30} min</div>
+          <div style="display:flex;gap:14px;font-size:12px;color:#475569;margin-bottom:14px">
+            <span><i class="fas fa-star" style="color:#F59E0B"></i> ${q.totalMarks||0} marks</span>
+            <span><i class="fas fa-bullseye"></i> pass ${s.passPercentage||40}%</span>
+            ${s.negativeMarking?`<span><i class="fas fa-minus-circle" style="color:#EF4444"></i> -${s.negativeMarking}</span>`:''}
+            ${s.maxAttempts>1?`<span><i class="fas fa-redo"></i> ${s.maxAttempts} tries</span>`:''}
+          </div>
+          ${started?`<div style="font-size:12px;color:#065F46;margin-bottom:12px"><i class="fas fa-check-circle"></i> Attempted ${q.myStats.attempts}× · Best ${q.myStats.best}%</div>`:''}
+          ${canStart && exhausted
+            ? `<button class="btn btn-secondary" style="width:100%" disabled><i class="fas fa-lock"></i> Attempts used (${q.myStats.attempts}/${s.maxAttempts})</button>`
+            : canStart
+            ? `<button class="btn btn-primary" style="width:100%" onclick="startQuiz('${q._id}')"><i class="fas fa-play"></i> ${started?'Attempt Again':'Start Quiz'}</button>`
+            : `<button class="btn btn-secondary" style="width:100%" disabled>${q.availability==='upcoming'?'Opens Soon':'Closed'}</button>`}
+        </div>`;
+      }).join('') + '</div>';
+    } catch(e){ box.innerHTML = '<div class="empty-state">Could not load quizzes.</div>'; }
+  }
+  window.startQuiz = function(id){ window.location.href = 'quiz-take.html?quiz=' + id; };
+
+  async function loadAnalytics(){
+    const box = $('#analyticsTab');
+    box.innerHTML = '<div class="skeleton" style="height:160px"></div>';
+    try {
+      const r = await api.request(Q + '/my-analytics', { silent:true });
+      analyticsData = (r && r.analytics) || { totalAttempts:0, byTopic:[] };
+      if (!analyticsData.totalAttempts) { box.innerHTML = '<div class="empty-state"><i class="fas fa-chart-pie" style="font-size:44px;color:#CBD5E1;margin-bottom:12px"></i><h3 style="font-weight:700;font-size:15px">No data yet</h3><p style="font-size:13px">Complete a quiz to see your topic accuracy and trends.</p></div>'; return; }
+      box.innerHTML = `
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px">
+          <div class="prep-card"><h3 style="font-weight:800;font-size:14px;margin-bottom:12px">Topic Accuracy</h3><canvas id="topicChart" height="240"></canvas></div>
+          <div class="prep-card"><h3 style="font-weight:800;font-size:14px;margin-bottom:12px">Score Trend</h3><canvas id="trendChart" height="240"></canvas></div>
+        </div>
+        <div class="prep-card" style="margin-top:18px">
+          <h3 style="font-weight:800;font-size:14px;margin-bottom:12px">Weak Topics (focus here first)</h3>
+          ${analyticsData.byTopic.slice(0,6).map(t=>`
+            <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #F1F5F9">
+              <div style="flex:1;font-weight:600;font-size:13px">${esc(t.unit)}</div>
+              <div style="width:120px;height:8px;background:#F1F5F9;border-radius:999px;overflow:hidden"><div style="height:100%;width:${t.accuracy}%;background:${t.accuracy<40?'#EF4444':t.accuracy<70?'#F59E0B':'#10B981'}"></div></div>
+              <div style="width:44px;text-align:right;font-weight:800;font-size:13px">${t.accuracy}%</div>
+            </div>`).join('')}
+        </div>`;
+      drawCharts();
+    } catch(e){ box.innerHTML = '<div class="empty-state">Could not load analytics.</div>'; }
+  }
+
+  function drawCharts(){
+    const cd = window.getChartDefaults ? window.getChartDefaults() : {};
+    const topics = (analyticsData.byTopic||[]).slice(0,8);
+    const tc = document.getElementById('topicChart');
+    if (tc) new Chart(tc, { type:'bar', data:{ labels: topics.map(t=>t.unit), datasets:[{ label:'Accuracy %', data: topics.map(t=>t.accuracy), backgroundColor: topics.map(t=> t.accuracy<40?'#EF4444':t.accuracy<70?'#F59E0B':'#10B981'), borderRadius:6 }] }, options:{ indexAxis:'y', plugins:{legend:{display:false}}, scales:{ x:{ max:100, ticks:{callback:v=>v+'%'} } } } });
+    const trend = (analyticsData.trend||[]).slice(-15);
+    const tlc = document.getElementById('trendChart');
+    if (tlc) new Chart(tlc, { type:'line', data:{ labels: trend.map(t=> new Date(t.date).toLocaleDateString()), datasets:[{ label:'Score %', data: trend.map(t=>t.percentage), borderColor:'#6366F1', backgroundColor:'rgba(99,102,241,0.1)', fill:true, tension:0.35, pointRadius:3 }] }, options:{ plugins:{legend:{display:false}}, scales:{ y:{ max:100, ticks:{callback:v=>v+'%'} } } } });
+  }
+
+  async function loadBookmarks(){
+    const box = $('#bookmarksTab');
+    box.innerHTML = '<div class="skeleton" style="height:80px"></div>';
+    try {
+      const r = await api.request(Q + '/bookmarks', { silent:true });
+      bookmarksData = (r && r.bookmarks) || [];
+      if (!bookmarksData.length) { box.innerHTML = '<div class="empty-state"><i class="fas fa-bookmark" style="font-size:44px;color:#CBD5E1;margin-bottom:12px"></i><h3 style="font-weight:700;font-size:15px">No bookmarks yet</h3><p style="font-size:13px">Flag questions during a quiz to save them here for revision.</p></div>'; return; }
+      box.innerHTML = bookmarksData.map(b => {
+        const q = b.questionId || {};
+        const correct = q.questionType==='mcq' ? ((q.options||[]).find(o=>o.isCorrect)||{}).text : q.correctAnswer;
+        return `<div class="bm-row">
+          <div style="flex:1">
+            <div style="font-weight:600;font-size:14px;margin-bottom:4px">${esc(q.questionText)}</div>
+            <div style="font-size:12px;color:#065F46"><i class="fas fa-check-circle"></i> ${esc(correct||'')}</div>
+            ${q.explanation?`<div style="font-size:12px;color:#64748B;margin-top:4px"><i class="fas fa-lightbulb" style="color:#F59E0B"></i> ${esc(q.explanation)}</div>`:''}
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="removeBookmark('${q._id}')"><i class="fas fa-trash"></i></button>
+        </div>`;
+      }).join('');
+    } catch(e){ box.innerHTML = '<div class="empty-state">Could not load bookmarks.</div>'; }
+  }
+  window.removeBookmark = async function(qid){
+    try { await api.request(Q + '/bookmarks/' + qid, { method:'DELETE' }); showToast('Bookmark removed','success'); bookmarksData=null; loadBookmarks(); } catch(e){}
+  };
+
+  // boot
+  (async function(){
+    try {
+      const r = await api.request(Q + '/my-analytics', { silent:true });
+      const a = (r && r.analytics) || {};
+      $('#stAttempts').textContent = a.totalAttempts||0;
+      $('#stAvg').textContent = (a.avgScore!=null? a.avgScore : '–') + (a.avgScore!=null?'%':'');
+      $('#stStreak').textContent = a.streak||0;
+      $('#stBookmarks').textContent = a.bookmarkCount||0;
+    } catch(e){}
+    loadRecommendations(false);
+    loadQuizzes();
+  })();
+})();
+</script>
+</body>
+</html>

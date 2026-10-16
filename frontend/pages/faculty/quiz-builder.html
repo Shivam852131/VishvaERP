@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Quiz Builder | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../css/custom.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .panel { border:1px solid #E2E8F0; border-radius:16px; padding:22px; background:white; margin-bottom:20px; }
+    .panel h3 { font-weight:800; font-size:15px; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+    .step-num { width:26px; height:26px; border-radius:999px; background:#6366F1; color:white; display:inline-flex; align-items:center; justify-content:center; font-size:13px; font-weight:800; }
+    .form-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; }
+    .form-group { display:flex; flex-direction:column; gap:6px; }
+    .form-label { font-size:12px; font-weight:700; color:#475569; }
+    .form-control { padding:10px 12px; border:1px solid #CBD5E1; border-radius:10px; font-size:14px; outline:none; transition:border-color 0.15s; background:white; }
+    .form-control:focus { border-color:#6366F1; }
+    .chk { width:18px; height:18px; accent-color:#6366F1; }
+    .quiz-row { border:1px solid #E2E8F0; border-radius:14px; padding:16px 18px; margin-bottom:12px; display:flex; align-items:center; gap:14px; flex-wrap:wrap; background:white; }
+    .pub-chip { padding:4px 10px; border-radius:999px; font-size:11px; font-weight:800; text-transform:uppercase; }
+    .pub-yes { background:#D1FAE5; color:#065F46; } .pub-no { background:#F1F5F9; color:#64748B; }
+    .bank-item { border:1px solid #E2E8F0; border-radius:10px; padding:10px 12px; margin-bottom:8px; display:flex; gap:10px; align-items:flex-start; }
+    .bank-item:hover { background:#F8FAFC; }
+    .tag { display:inline-block; padding:2px 8px; border-radius:6px; font-size:10px; font-weight:700; background:#EEF2FF; color:#4338CA; text-transform:uppercase; }
+    .sel-q { border:1px solid #C7D2FE; background:#EEF2FF; border-radius:10px; padding:10px 12px; margin-bottom:8px; display:flex; justify-content:space-between; align-items:center; gap:10px; font-size:13px; }
+    .empty { color:#94A3B8; font-size:13px; text-align:center; padding:20px; }
+  </style>
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-faculty" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon" style="background:linear-gradient(135deg,#7C3AED,#A78BFA)">V</div><div class="sidebar-logo-text">Vishva <span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" style="background:linear-gradient(135deg,#7C3AED,#A78BFA)" id="sidebar-avatar">F</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Faculty</div><div class="sidebar-user-role" id="sidebar-user-role">Faculty</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <div class="nav-section-label">Teaching</div>
+      <a href="grades.html" class="nav-link"><i class="nav-link-icon fas fa-poll"></i> Grades &amp; Results</a>
+      <a href="assignments.html" class="nav-link"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
+      <a href="quiz-builder.html" class="nav-link active"><i class="nav-link-icon fas fa-layer-group"></i> Quiz Builder</a>
+      <a href="question-bank.html" class="nav-link"><i class="nav-link-icon fas fa-database"></i> Question Bank</a>
+      <div class="nav-section-label">Tools</div>
+      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Services</a>
+      <a href="../messages.html" class="nav-link"><i class="nav-link-icon fas fa-comment-dots"></i> Chat</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left"><button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button><div class="topbar-breadcrumb">Teaching / <span>Quiz Builder</span></div></div>
+      <div class="topbar-right"><div class="topbar-avatar" id="topbar-avatar">F</div></div>
+    </header>
+    <div class="erp-content page-enter">
+      <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">
+        <div><h1 class="page-title"><i class="fas fa-layer-group" style="color:#7C3AED;margin-right:10px"></i>Quiz Builder</h1><p class="page-subtitle">Create timed quizzes & exams from the question bank, AI, or imports.</p></div>
+        <button class="btn btn-primary" onclick="newQuiz()"><i class="fas fa-plus"></i> New Quiz</button>
+      </div>
+
+      <!-- TABS -->
+      <div class="tab-bar" id="tabs" style="margin-bottom:20px">
+        <button class="tab-btn active" data-tab="list"><i class="fas fa-list"></i> My Quizzes</button>
+        <button class="tab-btn" data-tab="builder"><i class="fas fa-wpforms"></i> Builder</button>
+      </div>
+
+      <!-- LIST -->
+      <div id="listTab"></div>
+
+      <!-- BUILDER -->
+      <div id="builderTab" style="display:none">
+        <!-- Basics -->
+        <div class="panel">
+          <h3><span class="step-num">1</span> Basics</h3>
+          <div class="form-row">
+            <div class="form-group" style="grid-column:1/-1"><label class="form-label">Title *</label><input class="form-control" id="fTitle" placeholder="e.g. Unit Test 1 — Optics"></div>
+            <div class="form-group"><label class="form-label">Type</label><select class="form-control" id="fType"><option value="practice">Practice</option><option value="quiz" selected>Quiz</option><option value="exam">Exam</option></select></div>
+            <div class="form-group"><label class="form-label">Subject</label><select class="form-control" id="fSubject"><option value="">Loading…</option></select></div>
+            <div class="form-group"><label class="form-label">Education Level</label><select class="form-control" id="fLevel"><option value="undergraduate">Undergraduate</option></select></div>
+            <div class="form-group"><label class="form-label">Board / Exam</label><select class="form-control" id="fBoard"><option value="">None</option></select></div>
+          </div>
+          <div class="form-group" style="margin-top:14px"><label class="form-label">Description</label><textarea class="form-control" id="fDesc" rows="2" placeholder="Optional instructions for students"></textarea></div>
+        </div>
+
+        <!-- Settings -->
+        <div class="panel">
+          <h3><span class="step-num">2</span> Settings &amp; Schedule</h3>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Duration (minutes)</label><input type="number" class="form-control" id="fDuration" value="30" min="1"></div>
+            <div class="form-group"><label class="form-label">Max Attempts</label><input type="number" class="form-control" id="fMaxAttempts" value="1" min="1"></div>
+            <div class="form-group"><label class="form-label">Pass %</label><input type="number" class="form-control" id="fPass" value="40" min="0" max="100"></div>
+            <div class="form-group"><label class="form-label">Negative Marking (per wrong)</label><input type="number" class="form-control" id="fNeg" value="0" min="0" step="0.25"></div>
+            <div class="form-group"><label class="form-label">Opens (start)</label><input type="datetime-local" class="form-control" id="fStart"></div>
+            <div class="form-group"><label class="form-label">Closes (end)</label><input type="datetime-local" class="form-control" id="fEnd"></div>
+            <div class="form-group"><label class="form-label">Shuffle Questions</label><select class="form-control" id="fShuffle"><option value="true" selected>Yes</option><option value="false">No</option></select></div>
+            <div class="form-group"><label class="form-label">Show Result Immediately</label><select class="form-control" id="fShowRes"><option value="true" selected>Yes</option><option value="false">No</option></select></div>
+            <div class="form-group"><label class="form-label">Allow Answer Review</label><select class="form-control" id="fAllowRev"><option value="true" selected>Yes</option><option value="false">No</option></select></div>
+          </div>
+          <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
+            <button class="btn btn-primary" id="saveBtn" onclick="saveQuiz()"><i class="fas fa-save"></i> Save Draft</button>
+            <span id="savedId" style="font-size:12px;color:#64748B;align-self:center"></span>
+          </div>
+        </div>
+
+        <!-- Questions -->
+        <div class="panel">
+          <h3><span class="step-num">3</span> Questions <span id="qCountChip" style="font-size:12px;color:#64748B;font-weight:600"></span></h3>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">
+            <button class="btn btn-secondary btn-sm" onclick="openBank()"><i class="fas fa-database"></i> Pick from Bank</button>
+            <button class="btn btn-secondary btn-sm" onclick="openAI()"><i class="fas fa-magic"></i> Generate with AI</button>
+            <button class="btn btn-secondary btn-sm" onclick="openImport()"><i class="fas fa-file-import"></i> Import (Excel/PDF/Image)</button>
+            <button class="btn btn-secondary btn-sm" onclick="openTemplate()"><i class="fas fa-download"></i> CSV Template</button>
+          </div>
+          <div id="currentQs" class="empty">Save the draft first, then add questions.</div>
+        </div>
+
+        <!-- Publish -->
+        <div class="panel" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <button class="btn btn-primary" id="publishBtn" onclick="publishQuiz(true)" disabled><i class="fas fa-rocket"></i> Publish</button>
+          <button class="btn btn-secondary" id="unpublishBtn" onclick="publishQuiz(false)" disabled><i class="fas fa-eye-slash"></i> Unpublish</button>
+          <a class="btn btn-secondary" id="analyticsBtn" href="#" onclick="openAnalytics();return false" style="display:none"><i class="fas fa-chart-pie"></i> Analytics</a>
+          <a class="btn btn-secondary" id="attemptsBtn" href="#" onclick="openAttempts();return false" style="display:none"><i class="fas fa-users"></i> Attempts</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- AI MODAL -->
+<div id="aiModal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.5);z-index:60;align-items:center;justify-content:center">
+  <div style="background:white;border-radius:18px;max-width:640px;width:92%;max-height:86vh;overflow:auto;padding:24px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><h3 style="font-weight:800;font-size:16px"><i class="fas fa-magic" style="color:#7C3AED;margin-right:8px"></i>Generate Questions with AI</h3><button class="btn btn-secondary btn-sm" onclick="hide('aiModal')">✕</button></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Subject</label><input class="form-control" id="aiSubject" placeholder="e.g. Physics"></div>
+      <div class="form-group"><label class="form-label">Topic</label><input class="form-control" id="aiTopic" placeholder="e.g. Reflection &amp; Refraction"></div>
+      <div class="form-group"><label class="form-label">Count</label><input type="number" class="form-control" id="aiCount" value="5" min="1" max="30"></div>
+      <div class="form-group"><label class="form-label">Difficulty</label><select class="form-control" id="aiDiff"><option>easy</option><option selected>medium</option><option>hard</option></select></div>
+      <div class="form-group"><label class="form-label">Type</label><select class="form-control" id="aiType"><option value="mcq" selected>MCQ</option><option value="true_false">True/False</option><option value="fill_blank">Fill Blank</option><option value="short_answer">Short Answer</option></select></div>
+    </div>
+    <div style="margin-top:14px;display:flex;gap:10px"><button class="btn btn-primary" onclick="runAI()"><i class="fas fa-sparkles"></i> Generate</button></div>
+    <div id="aiPreview" style="margin-top:16px"></div>
+  </div>
+</div>
+
+<!-- IMPORT MODAL -->
+<div id="importModal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.5);z-index:60;align-items:center;justify-content:center">
+  <div style="background:white;border-radius:18px;max-width:680px;width:92%;max-height:86vh;overflow:auto;padding:24px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><h3 style="font-weight:800;font-size:16px"><i class="fas fa-file-import" style="color:#7C3AED;margin-right:8px"></i>Import Questions</h3><button class="btn btn-secondary btn-sm" onclick="hide('importModal')">✕</button></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Upload file (Excel / CSV / PDF / Image)</label><input type="file" class="form-control" id="impFile" accept=".xlsx,.xls,.csv,.pdf,image/*"></div>
+      <div class="form-group"><label class="form-label">…or paste text (PDF/plain)</label><textarea class="form-control" id="impText" rows="3" placeholder="Paste question text here"></textarea></div>
+    </div>
+    <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-primary" onclick="runImport()"><i class="fas fa-upload"></i> Extract &amp; Preview</button>
+      <button class="btn btn-secondary" onclick="openTemplate()"><i class="fas fa-download"></i> CSV Template</button>
+    </div>
+    <div id="impPreview" style="margin-top:16px"></div>
+  </div>
+</div>
+
+<!-- BANK MODAL -->
+<div id="bankModal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.5);z-index:60;align-items:center;justify-content:center">
+  <div style="background:white;border-radius:18px;max-width:720px;width:92%;max-height:86vh;overflow:auto;padding:24px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px"><h3 style="font-weight:800;font-size:16px"><i class="fas fa-database" style="color:#7C3AED;margin-right:8px"></i>Pick from Question Bank</h3><button class="btn btn-secondary btn-sm" onclick="hide('bankModal')">✕</button></div>
+    <div class="form-row" style="margin-bottom:12px">
+      <div class="form-group"><label class="form-label">Unit</label><input class="form-control" id="bkUnit" placeholder="filter"></div>
+      <div class="form-group"><label class="form-label">Difficulty</label><select class="form-control" id="bkDiff"><option value="">All</option><option>easy</option><option>medium</option><option>hard</option><option>very_hard</option></select></div>
+      <div class="form-group"><label class="form-label">Search</label><input class="form-control" id="bkSearch" placeholder="keyword"></div>
+    </div>
+    <button class="btn btn-secondary btn-sm" onclick="loadBank(1)" style="margin-bottom:12px"><i class="fas fa-search"></i> Search</button>
+    <div id="bankList"></div>
+    <div style="margin-top:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px">
+      <div id="bankSelCount" style="font-size:13px;color:#64748B">0 selected</div>
+      <div style="display:flex;gap:8px"><button class="btn btn-secondary btn-sm" id="bankPrev" onclick="bankPage(-1)">Prev</button><span id="bankPageInfo" style="align-self:center;font-size:12px;color:#64748B"></span><button class="btn btn-secondary btn-sm" id="bankNext" onclick="bankPage(1)">Next</button><button class="btn btn-primary btn-sm" onclick="addBankSel()"><i class="fas fa-plus"></i> Add Selected</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ANALYTICS MODAL -->
+<div id="analyticsModal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.5);z-index:60;align-items:center;justify-content:center">
+  <div style="background:white;border-radius:18px;max-width:860px;width:92%;max-height:88vh;overflow:auto;padding:24px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><h3 style="font-weight:800;font-size:16px"><i class="fas fa-chart-pie" style="color:#7C3AED;margin-right:8px"></i>Quiz Analytics</h3><button class="btn btn-secondary btn-sm" onclick="hide('analyticsModal')">✕</button></div>
+    <div id="analyticsBody"></div>
+  </div>
+</div>
+
+<!-- ATTEMPTS MODAL -->
+<div id="attemptsModal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.5);z-index:60;align-items:center;justify-content:center">
+  <div style="background:white;border-radius:18px;max-width:820px;width:92%;max-height:88vh;overflow:auto;padding:24px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><h3 style="font-weight:800;font-size:16px"><i class="fas fa-users" style="color:#7C3AED;margin-right:8px"></i>Student Attempts</h3><button class="btn btn-secondary btn-sm" onclick="hide('attemptsModal')">✕</button></div>
+    <div id="attemptsBody"></div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script>
+(function(){
+  const API = '/v1';                       // api.request() adds API_URL ('/api') itself
+  const API_ROOT = (typeof API_URL !== 'undefined' ? API_URL : '/api'); // absolute root, for raw fetch/window.open
+  const Q = API + '/quizzes';
+  const EG = API + '/exam-generator';
+  const $ = s => document.querySelector(s);
+  const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const show = id => document.getElementById(id).style.display='flex';
+  const hide = id => document.getElementById(id).style.display='none';
+  window.hide = hide;
+
+  let subjects = [], editingId = null, currentQuiz = null, taxonomy = { boards: [], competitiveExams: [] };
+  let bankPageNum = 1, bankTotal = 0, bankSel = new Set(), aiQuestions = null, impQuestions = null;
+
+  // Tabs
+  document.querySelectorAll('#tabs .tab-btn').forEach(btn => btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#tabs .tab-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active');
+    const t=btn.dataset.tab; $('#listTab').style.display=t==='list'?'block':'none'; $('#builderTab').style.display=t==='builder'?'block':'none';
+    if(t==='list') loadList(); if(t==='builder' && !subjects.length) loadSubjects();
+  }));
+  function gotoTab(t){ document.querySelectorAll('#tabs .tab-btn').forEach(b=>{ if(b.dataset.tab===t){b.click();} }); }
+
+  async function loadTaxonomy(){ try{ const r=await api.request(Q+'/taxonomy',{silent:true}); taxonomy=r.taxonomy||{boards:[],competitiveExams:[]}; const bl=$('#fBoard'); bl.innerHTML='<option value="">None</option>'+taxonomy.boards.map(b=>`<option>${esc(b)}</option>`).join('')+taxonomy.competitiveExams.map(b=>`<option>${esc(b)}</option>`).join(''); const lv=$('#fLevel'); if(taxonomy.educationLevels&&taxonomy.educationLevels.length) lv.innerHTML=taxonomy.educationLevels.map(l=>`<option value="${esc(l)}" ${l==='undergraduate'?'selected':''}>${esc(l[0].toUpperCase()+l.slice(1))}</option>`).join(''); }catch(e){} }
+  async function loadSubjects(){ try{ const r=await api.request('/academics/subjects',{silent:true}); subjects=r.subjects||[]; $('#fSubject').innerHTML='<option value="">General</option>'+subjects.map(s=>`<option value="${s._id}">${esc(s.name)}</option>`).join(''); }catch(e){ $('#fSubject').innerHTML='<option value="">General</option>'; } }
+
+  async function loadList(){
+    const box=$('#listTab'); box.innerHTML='<div style="padding:20px"><div style="height:20px;background:#F1F5F9;border-radius:8px;margin-bottom:10px"></div></div>';
+    try{ const r=await api.request(Q+'/manage',{silent:true}); const qs=r.quizzes||[];
+      if(!qs.length){ box.innerHTML='<div class="panel empty">No quizzes yet. Click <b>New Quiz</b> to create one.</div>'; return; }
+      box.innerHTML=qs.map(q=>`<div class="quiz-row">
+        <div style="flex:1;min-width:220px"><div style="font-weight:800;font-size:15px">${esc(q.title)}</div>
+          <div style="font-size:12px;color:#64748B;margin-top:2px">${esc((q.subjectId&&q.subjectId.name)||'General')} · ${esc(q.type)} · ${q.questionCount||0} Qs · ${q.totalMarks||0} marks · ${esc(q.educationLevel||'')}${q.board?' / '+esc(q.board):''}</div></div>
+        <span class="pub-chip ${q.isPublished?'pub-yes':'pub-no'}">${q.isPublished?'Published':'Draft'}</span>
+        <button class="btn btn-secondary btn-sm" onclick="editQuiz('${q._id}')"><i class="fas fa-pen"></i> Edit</button>
+        <button class="btn btn-secondary btn-sm" onclick="viewAnalytics('${q._id}')"><i class="fas fa-chart-pie"></i></button>
+        <button class="btn btn-secondary btn-sm" onclick="viewAttempts('${q._id}')"><i class="fas fa-users"></i></button>
+        <button class="btn btn-secondary btn-sm" onclick="togglePublish('${q._id}',${!q.isPublished})"><i class="fas fa-${q.isPublished?'eye-slash':'rocket'}"></i></button>
+      </div>`).join('');
+    }catch(e){ box.innerHTML='<div class="panel empty">Could not load quizzes.</div>'; }
+  }
+
+  window.newQuiz=function(){ editingId=null; currentQuiz=null; ['fTitle','fDesc'].forEach(i=>$('#'+i).value=''); $('#fType').value='quiz'; $('#fSubject').value=''; $('#fDuration').value=30; $('#fMaxAttempts').value=1; $('#fPass').value=40; $('#fNeg').value=0; $('#fStart').value=''; $('#fEnd').value=''; $('#fShuffle').value='true'; $('#fShowRes').value='true'; $('#fAllowRev').value='true'; $('#currentQs').innerHTML='<span class="empty">Save the draft first, then add questions.</span>'; $('#savedId').textContent=''; setPublishEnabled(false); $('#qCountChip').textContent=''; if(!subjects.length) loadSubjects(); gotoTab('builder'); };
+
+  window.editQuiz=async function(id){ try{ const r=await api.request(Q+'/'+id,{silent:true}); currentQuiz=r.quiz; editingId=id; if(!subjects.length) await loadSubjects();
+      $('#fTitle').value=currentQuiz.title||''; $('#fDesc').value=currentQuiz.description||''; $('#fType').value=currentQuiz.type||'quiz'; $('#fSubject').value=currentQuiz.subjectId||''; $('#fDuration').value=(currentQuiz.settings&&currentQuiz.settings.duration)||30; $('#fMaxAttempts').value=(currentQuiz.settings&&currentQuiz.settings.maxAttempts)||1; $('#fPass').value=(currentQuiz.settings&&currentQuiz.settings.passPercentage)||40; $('#fNeg').value=(currentQuiz.settings&&currentQuiz.settings.negativeMarking)||0; $('#fShuffle').value=String((currentQuiz.settings&&currentQuiz.settings.shuffleQuestions)!==false); $('#fShowRes').value=String((currentQuiz.settings&&currentQuiz.settings.showResults)!==false); $('#fAllowRev').value=String((currentQuiz.settings&&currentQuiz.settings.allowReview)!==false);
+      if(currentQuiz.settings&&currentQuiz.settings.startDate) $('#fStart').value=new Date(currentQuiz.settings.startDate).toISOString().slice(0,16); if(currentQuiz.settings&&currentQuiz.settings.endDate) $('#fEnd').value=new Date(currentQuiz.settings.endDate).toISOString().slice(0,16);
+      $('#fLevel').value=currentQuiz.educationLevel||'undergraduate'; if(currentQuiz.board){ ensureBoardOpt(currentQuiz.board); $('#fBoard').value=currentQuiz.board; }
+      $('#savedId').textContent='Editing: '+currentQuiz.title; setPublishEnabled(true); $('#publishBtn').disabled=!currentQuiz.isPublished?false:false; $('#unpublishBtn').disabled=!currentQuiz.isPublished; $('#analyticsBtn').style.display='inline-flex'; $('#attemptsBtn').style.display='inline-flex';
+      renderCurrentQs(); gotoTab('builder');
+    }catch(e){ showToast('Could not load quiz','error'); } };
+  function ensureBoardOpt(b){ const bl=$('#fBoard'); if(![...bl.options].some(o=>o.value===b)){ bl.insertAdjacentHTML('beforeend',`<option>${esc(b)}</option>`); } }
+  function setPublishEnabled(on){ $('#publishBtn').disabled=!on; $('#unpublishBtn').disabled=true; }
+
+  function buildPayload(){
+    const settings={ duration:Number($('#fDuration').value)||30, maxAttempts:Number($('#fMaxAttempts').value)||1, passPercentage:Number($('#fPass').value)||40, negativeMarking:Number($('#fNeg').value)||0, shuffleQuestions:$('#fShuffle').value==='true', showResults:$('#fShowRes').value==='true', allowReview:$('#fAllowRev').value==='true' };
+    if($('#fStart').value) settings.startDate=new Date($('#fStart').value).toISOString(); if($('#fEnd').value) settings.endDate=new Date($('#fEnd').value).toISOString();
+    return { title:$('#fTitle').value.trim(), description:$('#fDesc').value.trim(), type:$('#fType').value, subjectId:$('#fSubject').value||undefined, educationLevel:$('#fLevel').value, board:$('#fBoard').value||undefined, settings };
+  }
+  window.saveQuiz=async function(){ const p=buildPayload(); if(!p.title){ showToast('Title is required','error'); return; }
+    try{ if(editingId){ const r=await api.request(Q+'/'+editingId,{method:'PUT',body:p}); currentQuiz=r.quiz; showToast('Quiz updated','success'); } else { const r=await api.request(Q,{method:'POST',body:p}); currentQuiz=r.quiz; editingId=r.quiz._id; $('#savedId').textContent='Draft saved'; showToast('Draft created','success'); }
+      setPublishEnabled(true); $('#analyticsBtn').style.display='inline-flex'; $('#attemptsBtn').style.display='inline-flex'; renderCurrentQs();
+    }catch(e){} };
+
+  function allQIds(){ return [].concat(...(currentQuiz.sections||[]).map(s=>s.questionIds||[])); }
+  function renderCurrentQs(){ const ids=allQIds(); $('#qCountChip').textContent=ids.length?`(${ids.length} added)`:''; if(!ids.length){ $('#currentQs').innerHTML='<span class="empty">No questions yet. Use the buttons above to add some.</span>'; return; }
+    // fetch minimal info via bank? We already have r.questions from getQuizById on edit; store it.
+    const qs=currentQuiz._fullQuestions||[]; const map={}; qs.forEach(q=>map[q._id]=q);
+    $('#currentQs').innerHTML=ids.map((id,i)=>{ const q=map[id]||{}; return `<div class="sel-q"><div><b>Q${i+1}.</b> ${esc(q.questionText||id)} <span class="tag">${esc(q.questionType||'')}</span> <span style="color:#64748B;font-size:11px">${esc(q.unit||'')} / ${esc(q.chapter||'')}</span></div><button class="btn btn-secondary btn-sm" onclick="removeQ('${id}')"><i class="fas fa-trash"></i></button></div>`; }).join(''); }
+  // store full questions when editing loads
+  const _origEdit = window.editQuiz; window.editQuiz=async function(id){ await _origEdit(id); try{ const r=await api.request(Q+'/'+id,{silent:true}); currentQuiz._fullQuestions=r.questions||[]; renderCurrentQs(); }catch(e){} };
+
+  async function addToQuiz(ids, sectionName, marksEach){ if(!editingId){ showToast('Save the draft first','error'); return false; } try{ const body={ sectionName:sectionName||'Section A', questionIds:ids }; if(marksEach!=null) body.marksEach=marksEach; await api.request(Q+'/'+editingId+'/questions',{method:'POST',body}); const r=await api.request(Q+'/'+editingId,{silent:true}); currentQuiz=r.quiz; currentQuiz._fullQuestions=r.questions||[]; renderCurrentQs(); showToast(ids.length+' question(s) added','success'); return true; }catch(e){ return false; } }
+  window.removeQ=async function(qid){ try{ await api.request(Q+'/'+editingId+'/questions/'+qid,{method:'DELETE'}); const r=await api.request(Q+'/'+editingId,{silent:true}); currentQuiz=r.quiz; currentQuiz._fullQuestions=r.questions||[]; renderCurrentQs(); showToast('Removed','success'); }catch(e){} };
+
+  window.publishQuiz=async function(pub){ if(!editingId) return; try{ await api.request(Q+'/'+editingId+'/publish',{method:'PATCH',body:{isPublished:pub}}); showToast(pub?'Quiz published':'Quiz unpublished','success'); $('#unpublishBtn').disabled=!pub; loadList(); }catch(e){} };
+  // Inline publish/unpublish icon in the quiz list rows.
+  window.togglePublish=async function(id,pub){ try{ await api.request(Q+'/'+id+'/publish',{method:'PATCH',body:{isPublished:pub}}); showToast(pub?'Quiz published':'Quiz unpublished','success'); loadList(); }catch(e){ showToast('Could not update publish state','error'); } };
+
+  // ── Bank picker ──
+  window.openBank=function(){ bankSel.clear(); $('#bankList').innerHTML='<div class="empty">Loading…</div>'; show('bankModal'); loadBank(1); };
+  window.loadBank=async function(page){ bankPageNum=page||1; const subj=$('#fSubject').value; const params=new URLSearchParams({ page:bankPageNum, limit:20 }); if(subj) params.set('subjectId',subj); if($('#bkUnit').value) params.set('unit',$('#bkUnit').value); if($('#bkDiff').value) params.set('difficulty',$('#bkDiff').value); if($('#bkSearch').value) params.set('search',$('#bkSearch').value);
+    try{ const r=await api.request(EG+'/questions?'+params.toString(),{silent:true}); const qs=r.questions||[]; bankTotal=r.total||0; $('#bankPageInfo').textContent='Page '+(r.page||1)+' / '+(r.pages||1); $('#bankPrev').disabled=(r.page||1)<=1; $('#bankNext').disabled=(r.page||1)>=(r.pages||1);
+      if(!qs.length){ $('#bankList').innerHTML='<div class="empty">No matching questions in the bank.</div>'; return; }
+      $('#bankList').innerHTML=qs.map(q=>`<label class="bank-item"><input type="checkbox" class="chk" data-id="${q._id}" ${bankSel.has(q._id)?'checked':''} onchange="bankToggle('${q._id}',this.checked)"><div style="flex:1"><div style="font-weight:600;font-size:13px">${esc(q.questionText)}</div><div style="margin-top:4px"><span class="tag">${esc(q.questionType)}</span> <span class="tag" style="background:#FEF3C7;color:#92400E">${esc(q.difficulty)}</span> <span style="font-size:11px;color:#64748B">${esc(q.unit)} / ${esc(q.chapter)} · ${q.marks} mark(s)</span></div></div></label>`).join('');
+    }catch(e){ $('#bankList').innerHTML='<div class="empty">Could not load bank.</div>'; } }
+  window.bankPage=function(d){ loadBank(bankPageNum+d); };
+  window.bankToggle=function(id,on){ if(on)bankSel.add(id); else bankSel.delete(id); $('#bankSelCount').textContent=bankSel.size+' selected'; };
+  window.addBankSel=async function(){ if(!bankSel.size){ showToast('Select some questions','error'); return; } const ok=await addToQuiz([...bankSel]); if(ok){ hide('bankModal'); } };
+  $('#bkSearch').addEventListener('keyup',e=>{ if(e.key==='Enter') loadBank(1); });
+
+  // ── AI ──
+  window.openAI=function(){ aiQuestions=null; $('#aiPreview').innerHTML=''; const s=subjects.find(x=>x._id===$('#fSubject').value); $('#aiSubject').value=s?s.name:''; show('aiModal'); };
+  window.runAI=async function(){ const btn=event.target.closest('button'); btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> Generating…';
+    try{ const r=await api.request(Q+'/generate-questions',{ method:'POST', body:{ subject:$('#aiSubject').value, topic:$('#aiTopic').value, count:Number($('#aiCount').value)||5, difficulty:$('#aiDiff').value, questionType:$('#aiType').value, educationLevel:$('#fLevel').value, board:$('#fBoard').value } }); aiQuestions=r.questions||[]; renderAIPreview(); }
+    catch(e){ $('#aiPreview').innerHTML='<div style="color:#EF4444;font-size:13px">'+esc(e.message)+'</div>'; }
+    btn.disabled=false; btn.innerHTML='<i class="fas fa-sparkles"></i> Generate'; };
+  function renderAIPreview(){ if(!aiQuestions||!aiQuestions.length){ $('#aiPreview').innerHTML='<div class="empty">No questions generated.</div>'; return; }
+    $('#aiPreview').innerHTML='<div style="max-height:300px;overflow:auto">'+aiQuestions.map((q,i)=>`<div class="bank-item"><div style="flex:1"><div style="font-weight:600;font-size:13px">Q${i+1}. ${esc(q.questionText)}</div><div style="font-size:11px;color:#64748B;margin-top:4px">${q.options&&q.options.length?q.options.map(o=>esc(o.text)+(o.isCorrect?' ✓':'')).join(' | '):'Answer: '+esc(q.correctAnswer)}</div></div></div>`).join('')+'</div><button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="saveAI()"><i class="fas fa-plus"></i> Save to Bank &amp; Add to Quiz</button>'; }
+  window.saveAI=async function(){ if(!aiQuestions||!aiQuestions.length) return; const subj=$('#fSubject').value; if(!subj){ showToast('Select a subject first','error'); return; }
+    try{ const r=await api.request(Q+'/generate-questions',{ method:'POST', body:{ subject:$('#aiSubject').value, topic:$('#aiTopic').value, count:Number($('#aiCount').value)||5, difficulty:$('#aiDiff').value, questionType:$('#aiType').value, educationLevel:$('#fLevel').value, board:$('#fBoard').value, save:true, subjectId:subj } }); const ids=(r.questions||[]).map(x=>x._id); const ok=await addToQuiz(ids); if(ok) hide('aiModal'); }
+    catch(e){} };
+
+  // ── Import ──
+  window.openImport=function(){ impQuestions=null; $('#impPreview').innerHTML=''; $('#impFile').value=''; $('#impText').value=''; show('importModal'); };
+  window.openTemplate=function(){ window.open(API_ROOT+API+'/quizzes/import/template?token='+encodeURIComponent(api.getToken()),'_blank'); };
+  window.runImport=async function(){ const file=$('#impFile').files[0]; const text=$('#impText').value.trim(); if(!file && !text){ showToast('Upload a file or paste text','error'); return; }
+    const form=new FormData(); if(file) form.append('file',file);
+    let r; try{ r = file ? await rawUpload(Q+'/import/preview',form) : await api.request(Q+'/import/preview',{method:'POST',body:{ text }}); }catch(e){ $('#impPreview').innerHTML='<div style="color:#EF4444;font-size:13px">'+esc(e.message)+'</div>'; return; }
+    impQuestions=r.questions||[]; renderImpPreview(r.source); };
+  async function rawUpload(url,form){ const res=await fetch(API_ROOT+url,{ method:'POST', headers:{Authorization:'Bearer '+api.getToken()}, body:form }); const data=await res.json(); if(!res.ok) throw new Error(data.message||'Import failed'); return data; }
+  function renderImpPreview(source){ if(!impQuestions||!impQuestions.length){ $('#impPreview').innerHTML='<div class="empty">No questions extracted. Check the file/text and try again.</div>'; return; }
+    const rows = impQuestions.map((q,i)=>`<div class="bank-item"><div style="flex:1"><div style="font-weight:600;font-size:13px">Q${i+1}. ${esc(q.questionText)}</div><div style="font-size:11px;color:#64748B;margin-top:4px">${q.options&&q.options.length?q.options.map(o=>esc(o.text)+(o.isCorrect?' ✓':'')).join(' | '):'Answer: '+esc(q.correctAnswer)}</div></div></div>`).join('');
+    $('#impPreview').innerHTML = `<div style="font-size:12px;color:#64748B;margin-bottom:8px">Extracted ${impQuestions.length} question(s) via <b>${esc(source)}</b>. Review and save:</div><div style="max-height:280px;overflow:auto">${rows}</div><button class="btn btn-primary btn-sm" style="margin-top:12px" onclick="saveImport()"><i class="fas fa-save"></i> Save to Bank &amp; Add to Quiz</button>`; }
+  window.saveImport=async function(){ if(!impQuestions||!impQuestions.length) return; const subj=$('#fSubject').value; if(!subj){ showToast('Select a subject first','error'); return; }
+    try{ const r=await api.request(Q+'/import/confirm',{method:'POST',body:{ subjectId:subj, educationLevel:$('#fLevel').value, board:$('#fBoard').value, questions:impQuestions }}); const ids=r.ids||[]; const ok=await addToQuiz(ids); if(ok) hide('importModal'); }
+    catch(e){} };
+
+  // ── Analytics ──
+  window.viewAnalytics=async function(id){ editingId=id; show('analyticsModal'); $('#analyticsBody').innerHTML='<div class="empty">Loading…</div>'; try{ const r=await api.request(Q+'/'+id+'/analytics',{silent:true}); renderAnalytics(r.analytics); }catch(e){ $('#analyticsBody').innerHTML='<div class="empty">Could not load analytics.</div>'; } };
+  window.openAnalytics=function(){ if(editingId) viewAnalytics(editingId); };
+  function renderAnalytics(a){ if(!a){ $('#analyticsBody').innerHTML='<div class="empty">No data.</div>'; return; }
+    $('#analyticsBody').innerHTML=`
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:18px">
+        ${[['Attempts',a.totalAttempts],['Avg',a.avg+'%'],['Highest',a.highest+'%'],['Lowest',a.lowest+'%'],['Pass Rate',a.passRate+'%']].map(x=>`<div style="text-align:center;padding:14px;border:1px solid #E2E8F0;border-radius:12px"><div style="font-weight:900;font-size:20px">${x[1]}</div><div style="font-size:11px;color:#64748B">${x[0]}</div></div>`).join('')}
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px">
+        <div><h4 style="font-weight:800;font-size:13px;margin-bottom:8px">Score Distribution</h4><canvas id="distChart" height="200"></canvas></div>
+        <div><h4 style="font-weight:800;font-size:13px;margin-bottom:8px">Topic Mastery (weakest first)</h4>${(a.topicMastery||[]).map(t=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;font-size:13px"><div style="flex:1">${esc(t.unit)}</div><div style="width:80px;height:8px;background:#F1F5F9;border-radius:999px;overflow:hidden"><div style="height:100%;width:${t.accuracy}%;background:${t.accuracy<40?'#EF4444':t.accuracy<70?'#F59E0B':'#10B981'}"></div></div><b style="width:36px;text-align:right">${t.accuracy}%</b></div>`).join('')||'<div class="empty">No data</div>'}</div>
+      </div>
+      <h4 style="font-weight:800;font-size:13px;margin:18px 0 8px">Item Analysis</h4>
+      <div style="overflow:auto"><table style="width:100%;font-size:12px;border-collapse:collapse"><thead><tr style="text-align:left;color:#64748B;border-bottom:1px solid #E2E8F0"><th style="padding:6px">Question</th><th style="padding:6px">Unit</th><th style="padding:6px">Type</th><th style="padding:6px">Asked</th><th style="padding:6px">% Correct</th><th style="padding:6px">Difficulty idx</th><th style="padding:6px">Discrim.</th></tr></thead><tbody>${(a.itemAnalysis||[]).map(it=>`<tr style="border-bottom:1px solid #F1F5F9"><td style="padding:6px;max-width:220px">${esc((it.questionText||'').slice(0,60))}</td><td style="padding:6px">${esc(it.unit||'')}</td><td style="padding:6px">${esc(it.questionType||'')}</td><td style="padding:6px">${it.asked}</td><td style="padding:6px">${it.percentCorrect!=null?it.percentCorrect+'%':'—'}</td><td style="padding:6px">${it.pValue!=null?it.pValue:'—'}</td><td style="padding:6px;${it.discrimination!=null&&it.discrimination<0?'color:#EF4444;font-weight:700':''}">${it.discrimination!=null?it.discrimination:'—'}</td></tr>`).join('')}</tbody></table></div>`;
+    const dc=document.getElementById('distChart'); if(dc) new Chart(dc,{ type:'bar', data:{ labels:a.distribution.labels, datasets:[{ data:a.distribution.counts, backgroundColor:'#6366F1', borderRadius:6 }] }, options:{ plugins:{legend:{display:false}} } }); }
+
+  // ── Attempts ──
+  let attemptsCache = [];
+  const MANUAL_TYPES = ['short_answer','long_answer','fill_blank','numerical'];
+  window.viewAttempts=async function(id){ editingId=id; show('attemptsModal'); $('#attemptsBody').innerHTML='<div class="empty">Loading…</div>'; try{ const r=await api.request(Q+'/'+id+'/attempts',{silent:true}); const at=r.attempts||[]; attemptsCache=at;
+    if(!at.length){ $('#attemptsBody').innerHTML='<div class="empty">No attempts yet.</div>'; return; }
+    $('#attemptsBody').innerHTML='<div style="overflow:auto"><table style="width:100%;font-size:13px;border-collapse:collapse"><thead><tr style="text-align:left;color:#64748B;border-bottom:1px solid #E2E8F0"><th style="padding:8px">Student</th><th style="padding:8px">Attempt</th><th style="padding:8px">Score</th><th style="padding:8px">%</th><th style="padding:8px">Status</th><th style="padding:8px">Submitted</th><th style="padding:8px"></th></tr></thead><tbody>'+at.map(a=>`<tr style="border-bottom:1px solid #F1F5F9"><td style="padding:8px;font-weight:600">${esc((a.studentId&&a.studentId.name)||'Student')}</td><td style="padding:8px">${a.attemptNo||1}</td><td style="padding:8px">${a.score}/${a.totalMarks}</td><td style="padding:8px;font-weight:800;color:${a.percentage>=40?'#065F46':'#991B1B'}">${a.percentage}%</td><td style="padding:8px">${esc(a.status)}</td><td style="padding:8px;color:#64748B">${a.submittedAt?new Date(a.submittedAt).toLocaleString():'—'}</td><td style="padding:8px;white-space:nowrap">${a.needsManualGrading?'<span style="background:#FEF3C7;color:#92400E;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:800">Needs Grading</span> <button class="btn btn-primary btn-sm" style="margin-left:6px" onclick="gradeAttemptUI(\''+a._id+'\')"><i class="fas fa-pen"></i> Grade</button>':''}</td></tr>`).join('')+'</tbody></table></div>';
+    }catch(e){ $('#attemptsBody').innerHTML='<div class="empty">Could not load attempts.</div>'; } };
+  window.openAttempts=function(){ if(editingId) viewAttempts(editingId); };
+
+  // ── Manual grading (free-text answers) ──
+  window.gradeAttemptUI=async function(attemptId){
+    const a=(attemptsCache||[]).find(x=>String(x._id)===String(attemptId));
+    if(!a) return;
+    let qMap={};
+    try{ const d=await api.request(Q+'/'+editingId,{silent:true}); (d.questions||[]).forEach(q=>{ qMap[String(q._id)]=q; }); }catch(e){}
+    const rows=(a.answers||[]).filter(ans=>{
+      const q=qMap[String(ans.questionId)];
+      if(q) return MANUAL_TYPES.includes(q.questionType);
+      return ans.textAnswer!=null && ans.textAnswer!=='';
+    });
+    const body=rows.length
+      ? rows.map(ans=>{
+          const q=qMap[String(ans.questionId)]||{};
+          const given=String(ans.textAnswer||ans.response||'');
+          return '<div style="border:1px solid #E2E8F0;border-radius:10px;padding:12px;margin-bottom:10px">'+
+            '<div style="font-weight:700;font-size:13px;margin-bottom:6px">'+esc(q.questionText||'Question')+'</div>'+
+            '<div style="font-size:12px;color:#64748B;margin-bottom:8px">Student answer: <b style="color:#0F172A">'+esc(given||'(blank)')+'</b></div>'+
+            '<label style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;cursor:pointer"><input type="checkbox" class="grade-check" data-qid="'+esc(String(ans.questionId))+'"'+(ans.isCorrect?' checked':'')+'> Mark correct</label>'+
+          '</div>';
+        }).join('')
+      : '<div class="empty">Nothing to grade — all answers in this attempt were auto-graded.</div>';
+    createModal({ id:'gradeModal', title:'Grade Attempt — '+esc((a.studentId&&a.studentId.name)||'Student')+' #'+(a.attemptNo||1), size:'lg',
+      body: body+'<div style="font-size:12px;color:#64748B;margin-top:4px">MCQ &amp; True/False answers are graded automatically. Saving recomputes the score and clears the &ldquo;needs grading&rdquo; flag.</div>',
+      footer:'<button class="btn btn-secondary" onclick="closeModal(\'gradeModal\')">Cancel</button><button class="btn btn-primary" onclick="saveGrades(\''+attemptId+'\')"><i class="fas fa-check"></i> Save Grades</button>' });
+    openModal('gradeModal');
+  };
+  window.saveGrades=async function(attemptId){
+    const checks=[].slice.call(document.querySelectorAll('#gradeModal .grade-check'));
+    const grades=checks.map(c=>({ questionId:c.getAttribute('data-qid'), isCorrect:c.checked }));
+    if(!grades.length){ showToast('No gradable answers found','error'); return; }
+    try{
+      await api.request(Q+'/attempts/'+attemptId+'/grade',{ method:'PATCH', body:{ grades } });
+      closeModal('gradeModal');
+      showToast('Attempt graded — score recomputed','success');
+      viewAttempts(editingId);
+    }catch(e){ showToast('Grading failed: '+(e.message||'try again'),'error'); }
+  };
+
+  // boot
+  loadSubjects(); loadTaxonomy(); loadList();
+})();
+</script>
+</body>
+</html>

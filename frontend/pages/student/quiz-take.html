@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Take Quiz | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../css/custom.css">
+  <style>
+    .q-card { border:1px solid #E2E8F0; border-radius:16px; padding:28px; background:white; }
+    .opt-btn { display:block; width:100%; text-align:left; padding:14px 18px; border:2px solid #E2E8F0; border-radius:12px; background:white; cursor:pointer; transition:all 0.15s ease; font-size:14px; font-weight:500; margin-bottom:10px; }
+    .opt-btn:hover { border-color:#C7D2FE; background:#F8FAFC; }
+    .opt-btn.selected { border-color:#6366F1; background:#EEF2FF; color:#4338CA; font-weight:700; }
+    .opt-btn.correct { border-color:#10B981; background:#ECFDF5; color:#065F46; }
+    .opt-btn.incorrect { border-color:#EF4444; background:#FEF2F2; color:#991B1B; }
+    .txt-input { width:100%; padding:12px 16px; border:2px solid #E2E8F0; border-radius:12px; font-size:14px; outline:none; transition:border-color 0.2s; font-family:inherit; }
+    .txt-input:focus { border-color:#6366F1; }
+    .p-dot { width:34px; height:34px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; cursor:pointer; border:2px solid #E2E8F0; background:white; color:#475569; position:relative; }
+    .p-dot.active { border-color:#6366F1; background:#6366F1; color:white; }
+    .p-dot.answered { border-color:#10B981; background:#ECFDF5; color:#065F46; }
+    .p-dot.flagged::after { content:''; position:absolute; top:-4px; right:-4px; width:10px; height:10px; background:#F59E0B; border-radius:999px; border:2px solid white; }
+    .timer-pill { display:flex; align-items:center; gap:8px; padding:8px 14px; border-radius:12px; background:#EEF2FF; color:#4338CA; font-weight:800; font-variant-numeric:tabular-nums; }
+    .timer-pill.low { background:#FEE2E2; color:#991B1B; animation:pulse 1s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.6} }
+    .save-ind { font-size:12px; color:#64748B; display:flex; align-items:center; gap:6px; min-width:96px; }
+    .result-circle { width:130px; height:130px; border-radius:999px; display:flex; align-items:center; justify-content:center; flex-direction:column; margin:0 auto; }
+    .result-score { font-size:38px; font-weight:900; line-height:1; }
+    .result-pass { background:linear-gradient(135deg,#D1FAE5,#A7F3D0); color:#065F46; }
+    .result-fail { background:linear-gradient(135deg,#FEE2E2,#FECACA); color:#991B1B; }
+    .review-q { border:1px solid #E2E8F0; border-radius:12px; padding:18px; margin-bottom:12px; }
+  </style>
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-student" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)">V</div><div class="sidebar-logo-text">Vishva <span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)" id="sidebar-avatar">S</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Student</div><div class="sidebar-user-role" id="sidebar-user-role">B.Tech CS</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Exam Prep</div>
+      <a href="exam-prep.html" class="nav-link"><i class="nav-link-icon fas fa-brain"></i> Practice Dashboard</a>
+      <a href="assessments.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-check"></i> Skill Assessments</a>
+      <div class="nav-section-label">Academics</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <a href="results.html" class="nav-link"><i class="nav-link-icon fas fa-poll"></i> Results</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">Exam Prep / <span id="crumbTitle">Quiz</span></div>
+      </div>
+      <div class="topbar-right">
+        <div class="save-ind" id="saveInd"><i class="fas fa-cloud"></i> Ready</div>
+        <div class="timer-pill" id="timerPill"><i class="fas fa-clock"></i> <span id="timerText">--:--</span></div>
+      </div>
+    </header>
+
+    <div class="erp-content page-enter">
+      <!-- loading / error -->
+      <div id="loadingView"><div style="text-align:center;padding:60px"><i class="fas fa-spinner fa-spin" style="font-size:32px;color:#6366F1"></i><p style="margin-top:14px;color:#64748B">Loading quiz…</p></div></div>
+      <div id="errorView" style="display:none"></div>
+
+      <!-- QUIZ -->
+      <div id="quizView" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:20px">
+          <div>
+            <h1 class="page-title" id="quizTitle" style="font-size:22px">Quiz</h1>
+            <p class="page-subtitle" id="quizMeta"></p>
+          </div>
+          <button class="btn btn-danger" onclick="confirmSubmit()"><i class="fas fa-paper-plane"></i> Submit Quiz</button>
+        </div>
+        <!-- palette -->
+        <div style="background:white;border:1px solid #E2E8F0;border-radius:16px;padding:16px;margin-bottom:20px">
+          <div style="display:flex;justify-content:space-between;font-size:12px;color:#64748B;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+            <span><b id="answeredCount" style="color:#065F46">0</b> answered · <b id="flaggedCount" style="color:#F59E0B">0</b> flagged · <b id="totalCount">0</b> total</span>
+            <span><span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#ECFDF5;border:1px solid #10B981"></span> answered &nbsp; <span style="display:inline-block;width:10px;height:10px;border-radius:3px;background:#F59E0B"></span> flagged</span>
+          </div>
+          <div class="p-dot-wrap" id="palette" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+        </div>
+        <div id="questionHost"></div>
+        <div style="display:flex;justify-content:space-between;margin-top:20px">
+          <button class="btn btn-secondary" id="prevBtn" onclick="go(-1)"><i class="fas fa-arrow-left"></i> Previous</button>
+          <button class="btn btn-primary" id="nextBtn" onclick="go(1)">Next <i class="fas fa-arrow-right"></i></button>
+        </div>
+      </div>
+
+      <!-- RESULT -->
+      <div id="resultView" style="display:none"></div>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script>
+(function(){
+  // api.request() already prefixes API_URL ('/api'), so paths start at /v1.
+  const Q = '/v1/quizzes';
+  const $ = s => document.querySelector(s);
+  const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  const params = new URLSearchParams(window.location.search);
+  const quizId = params.get('quiz');
+  let quizTitle = '', allowReview = true;
+  let attemptId = null, questions = [], saved = {}, idx = 0;
+  let answers = {}; // qid -> { response, textAnswer, flagged }
+  let remaining = 0, timerInt = null, submitting = false, dirty = false;
+  let autosaveTimer = null, blurWarn = 0;
+
+  if (!quizId) { showError('No quiz selected. <a href="exam-prep.html" style="color:#6366F1">Back to Exam Prep</a>'); return; }
+
+  function showError(html){ $('#loadingView').style.display='none'; $('#errorView').style.display='block'; $('#errorView').innerHTML = '<div style="text-align:center;padding:60px"><i class="fas fa-exclamation-circle" style="font-size:40px;color:#EF4444"></i><p style="margin-top:12px;color:#475569">'+html+'</p></div>'; }
+  function fmt(s){ s=Math.max(0,s); const m=Math.floor(s/60); const ss=s%60; return String(m).padStart(2,'0')+':'+String(ss).padStart(2,'0'); }
+
+  function setSave(state){
+    const el = $('#saveInd');
+    if (state==='saving') el.innerHTML = '<i class="fas fa-cloud-upload-alt fa-spin"></i> Saving…';
+    else if (state==='saved') el.innerHTML = '<i class="fas fa-cloud-check"></i> Saved';
+    else if (state==='offline') el.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Offline';
+    else el.innerHTML = '<i class="fas fa-cloud"></i> Ready';
+  }
+
+  // ── start / resume ──
+  async function init(){
+    if (!guardCurrentPage || !api.getUser()) { window.location.href='/pages/login.html'; return; }
+    try {
+      const start = await api.request(Q + '/' + quizId + '/start', { method:'POST', silent:true });
+      attemptId = start.attempt._id;
+      remaining = start.timeRemainingSec;
+      const qs = await api.request(Q + '/attempts/' + attemptId + '/questions', { silent:true });
+      questions = qs.questions || []; saved = qs.saved || {}; allowReview = qs.allowReview !== false;
+      if (qs.timeRemainingSec != null) remaining = qs.timeRemainingSec;
+      // hydrate answers from saved
+      Object.keys(saved).forEach(qid => { answers[qid] = { response: saved[qid].response, textAnswer: saved[qid].textAnswer, flagged: !!saved[qid].flagged }; });
+      if (!questions.length) { showError('This quiz has no questions. <a href="exam-prep.html" style="color:#6366F1">Back</a>'); return; }
+      $('#loadingView').style.display='none';
+      $('#quizView').style.display='block';
+      renderHeader(); renderPalette(); renderQuestion(); startTimer();
+    } catch(e){
+      showError(esc(e.message || 'Could not start quiz.') + ' <a href="exam-prep.html" style="color:#6366F1">Back to Exam Prep</a>');
+    }
+  }
+
+  function renderHeader(){
+    // title comes from the list page normally; fetch quiz meta is not exposed to student, so use generic
+    $('#quizTitle').textContent = 'Quiz in Progress';
+    $('#quizMeta').textContent = questions.length + ' questions · autosave on · timer enforced';
+    $('#crumbTitle').textContent = 'Quiz';
+    $('#totalCount').textContent = questions.length;
+  }
+
+  function isAnswered(q){
+    const a = answers[q._id];
+    if (!a) return false;
+    if (q.questionType==='mcq' || q.questionType==='true_false') return !!a.response;
+    return !!(a.textAnswer && String(a.textAnswer).trim());
+  }
+
+  function renderPalette(){
+    const pal = $('#palette');
+    pal.innerHTML = questions.map((q,i)=>{
+      const a = answers[q._id]||{};
+      const cls = [ 'p-dot', i===idx?'active':'', isAnswered(q)?'answered':'', a.flagged?'flagged':'' ].filter(Boolean).join(' ');
+      return `<div class="${cls}" onclick="jump(${i})">${i+1}</div>`;
+    }).join('');
+    $('#answeredCount').textContent = questions.filter(isAnswered).length;
+    $('#flaggedCount').textContent = questions.filter(q=>answers[q._id]&&answers[q._id].flagged).length;
+  }
+
+  function renderQuestion(){
+    const q = questions[idx];
+    const a = answers[q._id] || {};
+    let body = '';
+    if (q.questionType==='mcq') {
+      body = (q.options||[]).map(o=>`<button class="opt-btn ${a.response===o.text?'selected':''}" onclick="pick('${esc(o.text).replace(/'/g,"\\'")}')">${esc(o.text)}</button>`).join('');
+    } else if (q.questionType==='true_false') {
+      body = ['True','False'].map(v=>`<button class="opt-btn ${a.response===v?'selected':''}" onclick="pick('${v}')">${v}</button>`).join('');
+    } else if (q.questionType==='long_answer') {
+      body = `<textarea class="txt-input" rows="6" id="txtInput" oninput="onText(this.value)" placeholder="Type your answer…">${esc(a.textAnswer||'')}</textarea>`;
+    } else {
+      body = `<input class="txt-input" id="txtInput" oninput="onText(this.value)" placeholder="Type your answer…" value="${esc(a.textAnswer||'')}">`;
+    }
+    $('#questionHost').innerHTML = `
+      <div class="q-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;gap:10px;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:10px">
+            <span style="background:#EEF2FF;color:#4338CA;padding:6px 12px;border-radius:999px;font-weight:800;font-size:12px">Q${idx+1} / ${questions.length}</span>
+            <span style="font-size:12px;color:#64748B">${esc(q.questionType.replace('_',' '))} · ${q.marks||1} mark(s) · ${esc(q.difficulty)}</span>
+            <span style="font-size:12px;color:#94A3B8">${esc(q.unit||'')}${q.chapter?' / '+esc(q.chapter):''}</span>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="toggleFlag()"><i class="fas fa-flag" style="color:${a.flagged?'#F59E0B':'#94A3B8'}"></i> ${a.flagged?'Flagged':'Flag for review'}</button>
+        </div>
+        <p style="font-size:16px;font-weight:600;margin-bottom:18px;line-height:1.5">${esc(q.questionText)}</p>
+        ${q.questionImage?`<img src="${esc(q.questionImage)}" style="max-width:100%;border-radius:12px;margin-bottom:16px" alt="">`:''}
+        ${body}
+      </div>`;
+    $('#prevBtn').disabled = idx===0;
+    $('#nextBtn').innerHTML = (idx===questions.length-1) ? 'Review &amp; Submit <i class="fas fa-paper-plane"></i>' : 'Next <i class="fas fa-arrow-right"></i>';
+    const t = document.getElementById('txtInput'); if (t) t.focus();
+  }
+
+  window.jump = function(i){ idx=i; renderPalette(); renderQuestion(); };
+  window.go = function(d){ if (d>0 && idx===questions.length-1){ confirmSubmit(); return; } idx=Math.min(questions.length-1,Math.max(0,idx+d)); renderPalette(); renderQuestion(); };
+  window.pick = function(text){ const q=questions[idx]; answers[q._id]=Object.assign({},answers[q._id],{response:text}); renderPalette(); renderQuestion(); queueSave(); };
+  window.onText = function(v){ const q=questions[idx]; answers[q._id]=Object.assign({},answers[q._id],{textAnswer:v}); renderPalette(); queueSave(); };
+  window.toggleFlag = function(){ const q=questions[idx]; answers[q._id]=Object.assign({},answers[q._id],{flagged:!(answers[q._id]&&answers[q._id].flagged)}); renderPalette(); renderQuestion(); queueSave(); };
+
+  function buildPayload(){
+    return Object.keys(answers).map(qid=>{
+      const a=answers[qid]; const q=questions.find(x=>x._id===qid)||{};
+      const isText=['fill_blank','short_answer','long_answer','numerical'].includes(q.questionType);
+      const base={ questionId:qid, flagged:!!a.flagged };
+      if (isText) base.textAnswer=a.textAnswer||''; else base.response=a.response||'';
+      return base;
+    });
+  }
+
+  function queueSave(){ dirty=true; setSave('saving'); clearTimeout(autosaveTimer); autosaveTimer=setTimeout(doSave,1500); }
+  async function doSave(){
+    if (!attemptId || submitting) return;
+    try {
+      const r = await api.request(Q+'/attempts/'+attemptId+'/answers', { method:'PATCH', body:{ answers: buildPayload() }, silent:true });
+      if (r && r.timedOut) { finishSubmit(null, true); return; }
+      if (r && r.timeRemainingSec!=null) remaining=r.timeRemainingSec;
+      dirty=false; setSave('saved');
+    } catch(e){ setSave('offline'); }
+  }
+
+  function startTimer(){
+    updateTimer();
+    timerInt = setInterval(()=>{ remaining--; updateTimer(); if (remaining<=0){ clearInterval(timerInt); finishSubmit(null, true); } }, 1000);
+  }
+  function updateTimer(){
+    $('#timerText').textContent = fmt(remaining);
+    const pill=$('#timerPill');
+    if (remaining<=60) pill.classList.add('low'); else pill.classList.remove('low');
+  }
+
+  window.confirmSubmit = function(){
+    const unanswered = questions.filter(q=>!isAnswered(q)).length;
+    createModal({
+      id:'submitModal', title:'Submit quiz?',
+      body:`<p style="font-size:14px;color:#475569">You answered <b>${questions.length-unanswered}</b> of <b>${questions.length}</b> questions.${unanswered?` <span style="color:#EF4444">${unanswered} unanswered.</span>`:''}</p><p style="font-size:13px;color:#64748B;margin-top:8px">Once submitted you can't change your answers.</p>`,
+      footer:`<button class="btn btn-secondary" onclick="closeModal('submitModal')">Keep Working</button><button class="btn btn-primary" onclick="closeModal('submitModal');doSubmit()"><i class="fas fa-paper-plane"></i> Submit Now</button>`
+    });
+    openModal('submitModal');
+  };
+
+  window.doSubmit = function(){ finishSubmit(null, false); };
+
+  async function finishSubmit(finalAnswers, auto){
+    if (submitting) return; submitting=true; clearInterval(timerInt); clearTimeout(autosaveTimer);
+    setSave('saving');
+    try {
+      const payload = finalAnswers || buildPayload();
+      const r = await api.request(Q+'/attempts/'+attemptId+'/submit', { method:'POST', body:{ answers: payload }, silent:true });
+      const result = r.result || {};
+      // The submit response carries the score only. Fetch the graded review
+      // (correct answers + explanations) from the result endpoint, which
+      // reveals it only once the attempt is completed.
+      if (allowReview) {
+        try {
+          const rr = await api.request(Q+'/attempts/'+attemptId+'/result', { silent:true });
+          if (rr && Array.isArray(rr.result && rr.result.review)) result.review = rr.result.review;
+        } catch (revErr) { /* review is optional — the score summary still renders */ }
+      }
+      showResult(result, auto);
+    } catch(e){
+      submitting=false;
+      showToast('Submission failed: '+(e.message||'try again'),'error');
+      // if network failed, keep running so user can retry
+      if (!auto) { startTimerResumeIfTime(); } else { showResult({}, auto); }
+    }
+  }
+  function startTimerResumeIfTime(){ if (remaining>0){ timerInt=setInterval(()=>{ remaining--; updateTimer(); if(remaining<=0){clearInterval(timerInt);finishSubmit(null,true);} },1000);} }
+
+  async function showResult(result, auto){
+    $('#quizView').style.display='none';
+    $('#resultView').style.display='block';
+    $('#saveInd').innerHTML='<i class="fas fa-cloud-check"></i> Submitted';
+    const showScore = result.percentage!=null;
+    const passed = result.passed;
+    let html = `<div style="max-width:760px;margin:0 auto">
+      <div style="text-align:center;margin-bottom:28px">
+        <div class="result-circle ${passed?'result-pass':'result-fail'}">
+          <div class="result-score">${showScore?result.percentage+'%':'—'}</div>
+          <div style="font-size:11px;font-weight:700;margin-top:4px">${result.status==='timed_out'?'TIME UP':'SUBMITTED'}</div>
+        </div>
+        <h2 style="font-weight:800;font-size:20px;margin-top:16px">${auto?'Time\'s up — auto-submitted':'Submitted successfully'}</h2>
+        ${showScore?`<div style="display:flex;justify-content:center;gap:22px;margin-top:12px;font-size:13px;color:#475569;flex-wrap:wrap">
+          <span><b>${result.score}</b>/${result.totalMarks} marks</span>
+          ${result.negativeMarks?`<span style="color:#EF4444">−${result.negativeMarks} negative</span>`:''}
+          <span><b>${Math.round((result.timeTaken||0)/60)}</b> min</span>
+          <span>${passed?'Passed':'Not passed'}</span>
+        </div>`:'<p style="color:#64748B;font-size:13px;margin-top:8px">Your result will be shared by your faculty.</p>'}
+      </div>`;
+
+    if (allowReview && Array.isArray(result.review)) {
+      html += '<div style="margin-bottom:20px"><h3 style="font-weight:800;font-size:15px;margin-bottom:12px"><i class="fas fa-list-ol" style="color:#6366F1;margin-right:6px"></i>Answer Review</h3>';
+      result.review.forEach((rv,i)=>{
+        const right = rv.isCorrect;
+        html += `<div class="review-q" style="border-left:4px solid ${right?'#10B981':'#EF4444'}">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <i class="fas fa-${right?'check-circle':'times-circle'}" style="color:${right?'#10B981':'#EF4444'}"></i>
+            <b style="font-size:13px">Q${i+1}</b>
+            <span style="font-size:12px;color:#94A3B8">${(rv.marksAwarded||0)} mark(s)</span>
+          </div>
+          <div style="font-weight:600;font-size:14px;margin-bottom:6px">${esc(rv.questionText)}</div>
+          <div style="font-size:13px;color:#475569">
+            <div>Your answer: <span style="font-weight:600;color:${right?'#10B981':'#EF4444'}">${esc(rv.yourResponse||'(blank)')}</span></div>
+            ${!right?`<div>Correct: <span style="font-weight:600;color:#10B981">${esc(rv.correctAnswer||'')}</span></div>`:''}
+            ${rv.explanation?`<div style="margin-top:6px;padding:8px 12px;background:#F8FAFC;border-radius:8px;font-size:12px;color:#64748B"><i class="fas fa-lightbulb" style="color:#F59E0B;margin-right:4px"></i>${esc(rv.explanation)}</div>`:''}
+          </div>
+        </div>`;
+      });
+      html += '</div>';
+    }
+
+    html += `<div style="display:flex;gap:12px;justify-content:center">
+      <a href="exam-prep.html" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Back to Exam Prep</a>
+      <a href="quiz-history.html" class="btn btn-primary"><i class="fas fa-history"></i> View History</a>
+    </div></div>`;
+    $('#resultView').innerHTML = html;
+  }
+
+  // safety guards
+  window.addEventListener('beforeunload', function(e){ if (!submitting && attemptId){ e.preventDefault(); e.returnValue=''; } });
+  document.addEventListener('visibilitychange', function(){ if (document.hidden && !submitting){ blurWarn++; if (blurWarn>=3) showToast('Warning: you have left the quiz screen '+blurWarn+' times.','warning'); } });
+
+  init();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: vishva-erp
+    runtime: node
+    rootDir: .
+    plan: starter
+    buildCommand: npm install
+    startCommand: node backend/server.js
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: MONGO_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_EXPIRE
+        value: 7d
+      - key: FRONTEND_URL
+        value: https://vishvaerp.vercel.app/
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: SUPER_ADMIN_EMAIL
+        sync: false
+      - key: SUPER_ADMIN_PASSWORD
+        generateValue: true
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: LOG_LEVEL
+        value: info
+    disk:
+      name: vishva-uploads
+      mountPath: /app/backend/uploads
+      sizeGB: 1

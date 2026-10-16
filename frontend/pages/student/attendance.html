@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Attendance — Student | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="../../css/custom.css">
+  <style>
+    /* ── Circular gauge ── */
+    .gauge-wrap { position:relative; width:140px; height:140px; margin:0 auto; }
+    .gauge-wrap svg { transform:rotate(-90deg); width:140px; height:140px; }
+    .gauge-bg  { fill:none; stroke:#E2E8F0; stroke-width:12; }
+    .gauge-fill{ fill:none; stroke-width:12; stroke-linecap:round; transition:stroke-dashoffset 1.5s cubic-bezier(.4,0,.2,1); }
+    .gauge-text { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+    .gauge-pct  { font-size:26px; font-weight:900; line-height:1; }
+    .gauge-label{ font-size:11px; font-weight:600; color:#94A3B8; margin-top:2px; }
+
+    /* ── Alert banner ── */
+    .shortage-banner { display:flex; align-items:center; gap:12px; padding:14px 18px; border-radius:12px;
+                       background:linear-gradient(135deg,#FEF2F2,#FEE2E2); border-left:4px solid #EF4444;
+                       margin-bottom:12px; animation:fadeIn .4s ease; }
+    .shortage-banner .icon { font-size:20px; color:#EF4444; flex-shrink:0; }
+    .shortage-banner strong { color:#991B1B; }
+    .shortage-banner p { font-size:13px; color:#7F1D1D; margin:0; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
+
+    /* ── Subject card ── */
+    .subject-card { background:white; border-radius:16px; padding:20px; border:1px solid #E2E8F0;
+                    transition:all .2s; position:relative; overflow:hidden; }
+    .subject-card::after { content:''; position:absolute; top:0; left:0; right:0; height:3px;
+                           background:var(--accent); border-radius:16px 16px 0 0; }
+    .subject-card:hover { transform:translateY(-2px); box-shadow:0 8px 24px rgba(0,0,0,.08); }
+    .subject-name { font-size:15px; font-weight:700; color:#1E293B; }
+    .subject-code { font-size:11px; color:#94A3B8; font-weight:600; }
+    .subject-stats { display:flex; gap:12px; margin:12px 0; font-size:12px; }
+    .subject-stat { display:flex; flex-direction:column; align-items:center; }
+    .subject-stat strong { font-size:18px; font-weight:800; }
+    .subject-stat span { color:#94A3B8; font-size:10px; }
+
+    /* ── Progress ring on subject card ── */
+    .mini-ring { position:relative; width:70px; height:70px; flex-shrink:0; }
+    .mini-ring svg { transform:rotate(-90deg); width:70px; height:70px; }
+    .mini-ring .ring-bg  { fill:none; stroke:#F1F5F9; stroke-width:8; }
+    .mini-ring .ring-fill{ fill:none; stroke-width:8; stroke-linecap:round; transition:stroke-dashoffset 1.2s ease; }
+    .mini-ring .ring-text { position:absolute; inset:0; display:flex; flex-direction:column;
+                             align-items:center; justify-content:center; font-size:14px; font-weight:800; }
+    .mini-ring .ring-sub  { font-size:9px; color:#94A3B8; font-weight:600; margin-top:-2px; }
+
+    /* ── Calendar heatmap ── */
+    .heatmap-wrap { overflow-x:auto; padding-bottom:8px; }
+    .heatmap-grid { display:grid; grid-auto-flow:column; grid-template-rows:repeat(7,16px); gap:3px; width:max-content; }
+    .heatmap-cell { width:16px; height:16px; border-radius:3px; cursor:pointer; transition:transform .15s; position:relative; }
+    .heatmap-cell:hover { transform:scale(1.3); z-index:10; }
+    .heatmap-cell[data-status="present"] { background:#10B981; }
+    .heatmap-cell[data-status="late"]    { background:#F59E0B; }
+    .heatmap-cell[data-status="absent"]  { background:#EF4444; }
+    .heatmap-cell[data-status="excused"] { background:#6366F1; }
+    .heatmap-cell[data-status="none"]    { background:#F1F5F9; }
+    .heatmap-legend { display:flex; align-items:center; gap:8px; margin-top:10px; font-size:11px; color:#64748B; flex-wrap:wrap; }
+    .legend-box { width:12px; height:12px; border-radius:2px; }
+
+    /* ── Streak card ── */
+    .streak-card { background:linear-gradient(135deg,#0F172A,#1E293B); border-radius:16px; padding:20px 24px; color:white; }
+
+    /* ── Tooltip ── */
+    .hm-tooltip { position:fixed; background:#1E293B; color:white; font-size:11px; padding:6px 10px;
+                  border-radius:8px; pointer-events:none; z-index:999; display:none; max-width:200px; }
+
+    /* ── Smart panel ── */
+    .smart-panel { background:linear-gradient(135deg,#1E293B,#334155); border-radius:16px; padding:22px 24px; color:white; }
+    .consent-toggle { display:flex; align-items:center; gap:10px; }
+    .toggle-track { width:48px; height:26px; border-radius:13px; background:#475569; cursor:pointer; position:relative; transition:background .2s; }
+    .toggle-track.on { background:#10B981; }
+    .toggle-thumb { width:20px; height:20px; border-radius:50%; background:white; position:absolute; top:3px; left:3px; transition:left .2s; box-shadow:0 1px 4px rgba(0,0,0,.3); }
+    .toggle-track.on .toggle-thumb { left:25px; }
+
+    /* ── Risk badge ── */
+    .risk-safe   { background:#D1FAE5; color:#065F46; }
+    .risk-warn   { background:#FEF3C7; color:#78350F; }
+    .risk-danger { background:#FEE2E2; color:#991B1B; }
+  </style>
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-student" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)">V</div><div class="sidebar-logo-text">Vishva <span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)" id="sidebar-avatar">S</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Student</div><div class="sidebar-user-role">B.Tech CS • Sem 4</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <div class="nav-section-label">Academics</div>
+      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-reader"></i> My Courses</a>
+      <a href="attendance.html" class="nav-link active"><i class="nav-link-icon fas fa-calendar-alt"></i> Attendance</a>
+      <a href="face-id.html" class="nav-link"><i class="nav-link-icon fas fa-face-smile-beam"></i> Face ID Check-In</a>
+      <a href="results.html" class="nav-link"><i class="nav-link-icon fas fa-poll"></i> Results</a>
+      <a href="assignments.html" class="nav-link"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
+      <a href="timetable.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-week"></i> Timetable</a>
+      <div class="nav-section-label">Career Center</div>
+      <a href="career.html" class="nav-link"><i class="nav-link-icon fas fa-rocket"></i> Career Dashboard</a>
+      <a href="skills.html" class="nav-link"><i class="nav-link-icon fas fa-tools"></i> Skills Profile</a>
+      <a href="mentorship.html" class="nav-link"><i class="nav-link-icon fas fa-user-tie"></i> Mentorship</a>
+      <a href="placements.html" class="nav-link"><i class="nav-link-icon fas fa-briefcase"></i> Placements</a>
+      <a href="assessments.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-check"></i> Skill Assessments</a>
+      <div class="nav-section-label">Finance</div>
+      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-receipt"></i> Fees</a>
+      <div class="nav-section-label">Facilities</div>
+      <a href="library.html" class="nav-link"><i class="nav-link-icon fas fa-book"></i> Library</a>
+      <a href="transport.html" class="nav-link"><i class="nav-link-icon fas fa-bus"></i> Transport</a>
+      <a href="hostel.html" class="nav-link"><i class="nav-link-icon fas fa-building"></i> Hostel</a>
+      <a href="complaints.html" class="nav-link"><i class="nav-link-icon fas fa-exclamation-circle"></i> Complaints</a>
+      <div class="nav-section-label">Tools</div>
+      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-brain"></i> AI Services</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">Student / <span>My Attendance</span></div>
+      </div>
+      <div class="topbar-right"><div class="topbar-avatar" id="topbar-avatar">S</div></div>
+    </header>
+
+    <div class="erp-content">
+
+      <!-- ══ HERO: Overall Gauge ══ -->
+      <div style="background:linear-gradient(135deg,#0F172A,#1E3A5F);border-radius:20px;padding:28px 32px;color:white;margin-bottom:24px;display:flex;align-items:center;gap:32px;flex-wrap:wrap">
+        <div>
+          <div class="gauge-wrap" id="overallGaugeWrap">
+            <svg viewBox="0 0 140 140">
+              <circle class="gauge-bg" cx="70" cy="70" r="58"/>
+              <circle class="gauge-fill" id="overallGaugeFill" cx="70" cy="70" r="58"
+                stroke="#10B981" stroke-dasharray="364.4" stroke-dashoffset="364.4"/>
+            </svg>
+            <div class="gauge-text">
+              <span class="gauge-pct" id="overallPct" style="color:#10B981">–%</span>
+              <span class="gauge-label">Overall</span>
+            </div>
+          </div>
+        </div>
+        <div style="flex:1;min-width:200px">
+          <div style="font-size:12px;opacity:.7;font-weight:600;text-transform:uppercase;letter-spacing:.06em">Attendance Overview</div>
+          <h1 style="font-size:28px;font-weight:900;margin:6px 0" id="heroTitle">My Attendance</h1>
+          <div id="heroDesc" style="font-size:14px;opacity:.85">Loading your attendance data…</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;flex:1;min-width:260px">
+          <div style="background:rgba(255,255,255,.08);border-radius:12px;padding:14px;text-align:center">
+            <div style="font-size:22px;font-weight:900;color:#10B981" id="heroPresent">–</div>
+            <div style="font-size:11px;opacity:.7;margin-top:2px">Present</div>
+          </div>
+          <div style="background:rgba(255,255,255,.08);border-radius:12px;padding:14px;text-align:center">
+            <div style="font-size:22px;font-weight:900;color:#EF4444" id="heroAbsent">–</div>
+            <div style="font-size:11px;opacity:.7;margin-top:2px">Absent</div>
+          </div>
+          <div style="background:rgba(255,255,255,.08);border-radius:12px;padding:14px;text-align:center">
+            <div style="font-size:22px;font-weight:900;color:#F59E0B" id="heroLate">–</div>
+            <div style="font-size:11px;opacity:.7;margin-top:2px">Late</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SHORTAGE ALERT BANNERS ══ -->
+      <div id="shortageBanners"></div>
+
+      <!-- ══ STREAK ══ -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:24px">
+        <div class="streak-card">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;opacity:.6;font-weight:600">Current Streak</div>
+          <div style="font-size:36px;font-weight:900;margin:6px 0" id="streakCurrent">–</div>
+          <div style="font-size:12px;opacity:.7">consecutive days present</div>
+        </div>
+        <div class="streak-card" style="background:linear-gradient(135deg,#1E3A5F,#0F2952)">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;opacity:.6;font-weight:600">Best Streak</div>
+          <div style="font-size:36px;font-weight:900;margin:6px 0;color:#F59E0B" id="streakBest">–</div>
+          <div style="font-size:12px;opacity:.7">personal best</div>
+        </div>
+        <div style="background:white;border-radius:16px;padding:20px 24px;border:1px solid #E2E8F0">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#94A3B8;font-weight:600">At-Risk Subjects</div>
+          <div style="font-size:36px;font-weight:900;margin:6px 0;color:#EF4444" id="atRiskCount">–</div>
+          <div style="font-size:12px;color:#64748B">below 75% threshold</div>
+        </div>
+      </div>
+
+      <!-- ══ SUBJECT CARDS ══ -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <h2 style="font-size:16px;font-weight:800;color:#1E293B;margin:0"><i class="fas fa-book" style="color:#0284C7;margin-right:8px"></i>Subject-wise Attendance</h2>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin-bottom:24px" id="subjectCardsGrid">
+        <!-- filled by JS -->
+        <div style="text-align:center;padding:40px;color:#94A3B8;grid-column:1/-1"><i class="fas fa-spinner fa-spin" style="font-size:24px"></i></div>
+      </div>
+
+      <!-- ══ CALENDAR HEATMAP ══ -->
+      <div class="card mb-6">
+        <div class="card-header">
+          <div class="card-title"><i class="fas fa-calendar-alt" style="color:#6366F1;margin-right:8px"></i>90-Day Attendance Calendar</div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <select class="form-control" id="heatmapSubjectFilter" onchange="buildHeatmap()" style="padding:6px 10px;font-size:12px">
+              <option value="">All Subjects</option>
+            </select>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="heatmap-wrap">
+            <div class="heatmap-grid" id="heatmapGrid"></div>
+          </div>
+          <div class="heatmap-legend">
+            <span>Less</span>
+            <div class="legend-box" style="background:#F1F5F9"></div>
+            <div class="legend-box" style="background:#EF4444"></div>
+            <div class="legend-box" style="background:#F59E0B"></div>
+            <div class="legend-box" style="background:#10B981"></div>
+            <div class="legend-box" style="background:#6366F1"></div>
+            <span>More</span>
+            <span style="margin-left:auto;display:flex;gap:12px">
+              <span><span class="legend-box" style="background:#EF4444;display:inline-block;vertical-align:middle"></span> Absent</span>
+              <span><span class="legend-box" style="background:#F59E0B;display:inline-block;vertical-align:middle"></span> Late</span>
+              <span><span class="legend-box" style="background:#10B981;display:inline-block;vertical-align:middle"></span> Present</span>
+              <span><span class="legend-box" style="background:#6366F1;display:inline-block;vertical-align:middle"></span> Excused</span>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ SMART & QR ATTENDANCE ══ -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;margin-bottom:24px">
+        <!-- Panel 1: GPS Live Check-In -->
+        <div class="smart-panel" style="margin-bottom:0">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px">
+            <div>
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;opacity:.7;font-weight:600">Privacy-first GPS</div>
+              <div style="font-size:18px;font-weight:800;margin:4px 0">Live Classroom Check-in</div>
+              <div style="font-size:13px;opacity:.8">Your location is only used during scheduled class windows.</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <div class="consent-toggle">
+                <div class="toggle-track" id="consentTrack" onclick="toggleLocationConsent()">
+                  <div class="toggle-thumb"></div>
+                </div>
+                <span style="font-size:13px;font-weight:600" id="consentLabel">Location Consent: Off</span>
+              </div>
+              <button class="btn btn-sm" id="checkinBtn" style="background:#10B981;color:white;border:none;display:none" onclick="startStudentSmartAttendance()">
+                <i class="fas fa-location-arrow"></i> Start Live Check-in
+              </button>
+            </div>
+          </div>
+          <div id="smartStatusMsg" style="margin-top:14px;font-size:13px;opacity:.8;padding:10px 14px;background:rgba(255,255,255,.08);border-radius:8px">
+            Enable consent above to allow automatic attendance marking when you arrive in class.
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:14px">
+            <div style="background:rgba(255,255,255,.08);border-radius:10px;padding:12px">
+              <div style="font-size:10px;text-transform:uppercase;opacity:.6;font-weight:600">Active Class</div>
+              <div style="font-size:13px;font-weight:700;margin-top:4px" id="smartClass">—</div>
+            </div>
+            <div style="background:rgba(255,255,255,.08);border-radius:10px;padding:12px">
+              <div style="font-size:10px;text-transform:uppercase;opacity:.6;font-weight:600">Live Status</div>
+              <div style="font-size:13px;font-weight:700;margin-top:4px" id="smartStatus">—</div>
+            </div>
+            <div style="background:rgba(255,255,255,.08);border-radius:10px;padding:12px">
+              <div style="font-size:10px;text-transform:uppercase;opacity:.6;font-weight:600">Auto Attendance</div>
+              <div style="font-size:13px;font-weight:700;margin-top:4px" id="smartAttendanceResult">—</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel 2: QR Code Instant Check-In -->
+        <div style="background:linear-gradient(135deg,#1E1B4B 0%,#2E1065 50%,#3B0764 100%);border-radius:16px;padding:22px 24px;color:white;display:flex;flex-direction:column;justify-content:space-between;box-shadow:0 8px 24px rgba(0,0,0,.15)">
+          <div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:#C084FC;font-weight:700"><i class="fas fa-qrcode" style="margin-right:5px"></i>QR Verification</div>
+              <span style="background:rgba(192,132,252,.2);color:#E9D5FF;font-size:10px;font-weight:800;padding:2px 8px;border-radius:99px;border:1px solid rgba(192,132,252,.3)"><i class="fas fa-bolt"></i> Instant</span>
+            </div>
+            <div style="font-size:18px;font-weight:800;margin:2px 0 6px">QR Code Check-In</div>
+            <div style="font-size:13px;opacity:.85;margin-bottom:14px;line-height:1.4">Scan the code projected on the classroom screen, or enter the 8-character code.</div>
+            
+            <div style="display:flex;gap:8px;margin-bottom:12px">
+              <input type="text" id="qrTokenInput" placeholder="Code (e.g. 7A8B9C)" maxlength="60"
+                style="flex:1;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:10px;padding:10px 14px;color:white;font-family:monospace;font-size:14px;letter-spacing:1.5px;text-transform:uppercase;outline:none"
+                onkeydown="if(event.key==='Enter') submitQRToken()">
+              <button class="btn" onclick="submitQRToken()" id="submitQrBtn"
+                style="background:linear-gradient(135deg,#9333EA,#7C3AED);color:white;border:none;border-radius:10px;padding:10px 18px;font-weight:700;display:flex;align-items:center;gap:6px;box-shadow:0 4px 12px rgba(147,51,234,.3)">
+                <i class="fas fa-check-circle"></i> Check In
+              </button>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;justify-content:space-between;padding-top:14px;border-top:1px solid rgba(255,255,255,.1);margin-top:auto">
+            <button class="btn btn-sm" onclick="openCameraScanner()" style="background:rgba(255,255,255,.18);color:white;border:none;border-radius:8px;font-weight:600">
+              <i class="fas fa-camera" style="margin-right:6px"></i> Scan with Camera
+            </button>
+            <div id="qrScanFeedback" style="font-size:12px;color:#D8B4FE;font-weight:600">Ready to scan</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Camera QR Scanner Modal -->
+      <div class="modal" id="qrScannerModal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,.75);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(4px)">
+        <div class="modal-dialog" style="background:#1E293B;border:1px solid #334155;border-radius:20px;padding:24px;width:90%;max-width:440px;color:white;position:relative">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+            <div style="font-size:16px;font-weight:800;display:flex;align-items:center;gap:8px">
+              <i class="fas fa-qrcode" style="color:#C084FC"></i> Scan Attendance QR
+            </div>
+            <button onclick="closeCameraScanner()" style="background:none;border:none;color:#94A3B8;cursor:pointer;font-size:18px"><i class="fas fa-times"></i></button>
+          </div>
+          <div style="position:relative;width:100%;aspect-ratio:1;background:#0F172A;border-radius:14px;overflow:hidden;margin-bottom:14px">
+            <video id="qrVideo" playsinline style="width:100%;height:100%;object-fit:cover"></video>
+            <div style="position:absolute;inset:24px;border:2px dashed #C084FC;border-radius:12px;pointer-events:none;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 9999px rgba(0,0,0,.4)">
+              <div style="font-size:11px;color:white;background:rgba(0,0,0,.7);padding:4px 10px;border-radius:6px;font-weight:600">Point at teacher's screen</div>
+            </div>
+          </div>
+          <div id="scannerMsg" style="font-size:12px;color:#94A3B8;text-align:center;margin-bottom:16px">Position QR code inside the box to scan automatically</div>
+          <div style="display:flex;gap:10px;justify-content:flex-end">
+            <button class="btn btn-secondary btn-sm" onclick="closeCameraScanner()">Cancel</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ RECENT LEDGER ══ -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title"><i class="fas fa-list-check" style="color:#4F46E5;margin-right:8px"></i>Recent Attendance Ledger</div>
+          <span class="badge badge-gray">Latest 20</span>
+        </div>
+        <div class="table-wrap">
+          <table class="erp-table">
+            <thead><tr><th>Date</th><th>Subject</th><th>Status</th><th>Source</th><th>Remarks</th></tr></thead>
+            <tbody id="recentAttendanceBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Heatmap tooltip -->
+<div class="hm-tooltip" id="hmTooltip"></div>
+
+<script src="../../js/shared.js"></script>
+<script>
+/* ═══════════════════════════════════════════
+   Student Attendance — Advanced v2.0
+═══════════════════════════════════════════ */
+
+let summaryData = [];
+let calendarData = [];
+let locationConsentEnabled = false;
+let checkinInterval = null;
+
+const THRESHOLD = 75;
+
+const statusColors = { present:'#10B981', absent:'#EF4444', late:'#F59E0B', excused:'#6366F1', notMarked:'#94A3B8' };
+
+document.addEventListener('DOMContentLoaded', async () => {
+  await Promise.all([
+    loadSummary(),
+    loadCalendar(),
+    loadStreak(),
+    loadRecentLedger(),
+    loadConsentState(),
+  ]);
+});
+
+/* ── Summary (subject cards + gauges) ── */
+async function loadSummary() {
+  try {
+    const data = await api.request('/attendance/summary');
+    summaryData = data.summary || [];
+
+    let totalPresent = 0, totalAbsent = 0, totalLate = 0, totalTotal = 0;
+    summaryData.forEach(s => {
+      totalPresent += s.present;
+      totalAbsent  += s.absent;
+      totalLate    += s.late;
+      totalTotal   += s.total - (s.excused || 0);
+    });
+
+    const overallPct = totalTotal > 0 ? (totalPresent + totalLate * 0.5) / totalTotal * 100 : 0;
+    animateGauge('overallGaugeFill', overallPct, getGaugeColor(overallPct));
+    const pctEl = document.getElementById('overallPct');
+    pctEl.textContent = `${Math.round(overallPct)}%`;
+    pctEl.style.color = getGaugeColor(overallPct);
+
+    document.getElementById('heroPresent').textContent = totalPresent;
+    document.getElementById('heroAbsent').textContent  = totalAbsent;
+    document.getElementById('heroLate').textContent    = totalLate;
+
+    const atRisk = summaryData.filter(s => parseFloat(s.percentage) < THRESHOLD);
+    document.getElementById('atRiskCount').textContent = atRisk.length;
+    document.getElementById('heroTitle').textContent = 'My Attendance';
+    document.getElementById('heroDesc').textContent = atRisk.length > 0
+      ? `⚠️ ${atRisk.length} subject${atRisk.length>1?'s':''} below 75% — action needed!`
+      : `✅ All subjects above 75% attendance threshold`;
+
+    // Shortage banners
+    const bannerEl = document.getElementById('shortageBanners');
+    bannerEl.innerHTML = atRisk.map(s => `
+      <div class="shortage-banner">
+        <div class="icon"><i class="fas fa-triangle-exclamation"></i></div>
+        <div>
+          <strong>${s.subject?.name || 'Subject'}</strong>
+          <p>You are at <strong>${s.percentage}%</strong>.
+            ${s.classesNeeded > 0
+              ? `Attend <strong>${s.classesNeeded}</strong> more class${s.classesNeeded>1?'es':''} to reach 75%.`
+              : `You can still miss <strong>${s.canStillMiss}</strong> class${s.canStillMiss!==1?'es':''}.`}
+          </p>
+        </div>
+      </div>
+    `).join('');
+
+    // Subject cards
+    const grid = document.getElementById('subjectCardsGrid');
+    grid.innerHTML = summaryData.length === 0
+      ? '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#94A3B8">No attendance records yet.</div>'
+      : summaryData.map(s => {
+          const pct = parseFloat(s.percentage);
+          const color = getGaugeColor(pct);
+          const risk = pct >= THRESHOLD ? 'risk-safe' : pct >= 60 ? 'risk-warn' : 'risk-danger';
+          const riskLabel = pct >= THRESHOLD ? 'Safe' : pct >= 60 ? 'Warning' : 'Danger';
+          const circumference = 2 * Math.PI * 28;
+          const offset = circumference * (1 - pct / 100);
+          return `
+            <div class="subject-card" style="--accent:${color}">
+              <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+                <div>
+                  <div class="subject-code">${s.subject?.code || ''}</div>
+                  <div class="subject-name">${s.subject?.name || 'Subject'}</div>
+                  <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;margin-top:6px;display:inline-block" class="${risk}">${riskLabel}</span>
+                </div>
+                <div class="mini-ring">
+                  <svg viewBox="0 0 70 70">
+                    <circle class="ring-bg" cx="35" cy="35" r="28"/>
+                    <circle class="ring-fill" cx="35" cy="35" r="28" stroke="${color}"
+                      stroke-dasharray="${circumference}" stroke-dashoffset="${offset}"/>
+                  </svg>
+                  <div class="ring-text" style="color:${color}">
+                    ${Math.round(pct)}<span style="font-size:9px">%</span>
+                    <div class="ring-sub">attend</div>
+                  </div>
+                </div>
+              </div>
+              <div class="subject-stats">
+                <div class="subject-stat"><strong style="color:#10B981">${s.present}</strong><span>Present</span></div>
+                <div class="subject-stat"><strong style="color:#EF4444">${s.absent}</strong><span>Absent</span></div>
+                <div class="subject-stat"><strong style="color:#F59E0B">${s.late || 0}</strong><span>Late</span></div>
+                <div class="subject-stat"><strong style="color:#6366F1">${s.excused || 0}</strong><span>Excused</span></div>
+                <div class="subject-stat"><strong>${s.total}</strong><span>Total</span></div>
+              </div>
+              ${s.classesNeeded > 0
+                ? `<div style="background:#FEE2E2;border-radius:8px;padding:8px 10px;font-size:12px;color:#991B1B;margin-top:4px"><i class="fas fa-triangle-exclamation"></i> Need <strong>${s.classesNeeded}</strong> more classes to reach 75%</div>`
+                : `<div style="background:#D1FAE5;border-radius:8px;padding:8px 10px;font-size:12px;color:#065F46;margin-top:4px"><i class="fas fa-shield-check"></i> Can miss <strong>${s.canStillMiss}</strong> more class${s.canStillMiss!==1?'es':''}</div>`
+              }
+            </div>
+          `;
+        }).join('');
+
+    // Populate heatmap subject filter
+    const heatSel = document.getElementById('heatmapSubjectFilter');
+    summaryData.forEach(s => {
+      if (s.subject?._id) {
+        const o = document.createElement('option');
+        o.value = s.subject._id;
+        o.textContent = s.subject.name;
+        heatSel.appendChild(o);
+      }
+    });
+
+  } catch(e) {
+    document.getElementById('subjectCardsGrid').innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;color:#EF4444"><i class="fas fa-exclamation-circle"></i> ${e.message}</div>`;
+  }
+}
+
+function getGaugeColor(pct) {
+  if (pct >= 85) return '#10B981';
+  if (pct >= 75) return '#F59E0B';
+  if (pct >= 60) return '#F97316';
+  return '#EF4444';
+}
+
+function animateGauge(id, pct, color) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const circumference = 2 * Math.PI * 58;
+  el.style.strokeDasharray = circumference;
+  el.style.stroke = color;
+  setTimeout(() => {
+    el.style.strokeDashoffset = circumference * (1 - Math.max(0, Math.min(100, pct)) / 100);
+  }, 100);
+}
+
+/* ── Calendar / Heatmap ── */
+async function loadCalendar() {
+  try {
+    const data = await api.request('/attendance/calendar?days=90');
+    calendarData = data.calendar || [];
+    buildHeatmap();
+  } catch(e) {}
+}
+
+function buildHeatmap() {
+  const filterSubject = document.getElementById('heatmapSubjectFilter')?.value || '';
+  const grid = document.getElementById('heatmapGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+
+  // Build a map: date → status
+  const dateMap = {};
+  calendarData.forEach(d => {
+    if (filterSubject) {
+      const subEntry = d.subjects?.find(s => s._id === filterSubject);
+      if (subEntry) dateMap[d.date] = subEntry.status;
+    } else {
+      dateMap[d.date] = d.status;
+    }
+  });
+
+  // Generate 13 weeks back
+  const today = new Date();
+  const cells = [];
+  for (let w = 12; w >= 0; w--) {
+    for (let day = 0; day < 7; day++) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - (w * 7 + (6 - day)));
+      const dateStr = d.toISOString().slice(0, 10);
+      const status = dateMap[dateStr] || (d <= today ? 'none' : '');
+      if (status !== '') cells.push({ date: dateStr, status, dayObj: d });
+    }
+  }
+
+  cells.forEach(c => {
+    const cell = document.createElement('div');
+    cell.className = 'heatmap-cell';
+    cell.dataset.status = c.status;
+    cell.dataset.date = c.date;
+    cell.title = `${c.date}: ${c.status}`;
+    cell.addEventListener('mouseenter', showHmTooltip);
+    cell.addEventListener('mouseleave', hideHmTooltip);
+    grid.appendChild(cell);
+  });
+}
+
+function showHmTooltip(e) {
+  const tooltip = document.getElementById('hmTooltip');
+  const cell = e.currentTarget;
+  const calEntry = calendarData.find(d => d.date === cell.dataset.date);
+  let html = `<strong>${cell.dataset.date}</strong>`;
+  if (calEntry?.subjects?.length) {
+    html += '<br>' + calEntry.subjects.map(s => `${s.name || s.code}: <strong>${s.status}</strong>`).join('<br>');
+  } else {
+    html += `<br>Status: <strong>${cell.dataset.status}</strong>`;
+  }
+  tooltip.innerHTML = html;
+  tooltip.style.display = 'block';
+  tooltip.style.left = (e.clientX + 12) + 'px';
+  tooltip.style.top  = (e.clientY - 10) + 'px';
+}
+function hideHmTooltip() { document.getElementById('hmTooltip').style.display = 'none'; }
+
+/* ── Streak ── */
+async function loadStreak() {
+  try {
+    const data = await api.request('/attendance/streak');
+    document.getElementById('streakCurrent').textContent = data.currentStreak || 0;
+    document.getElementById('streakBest').textContent = data.longestStreak || 0;
+  } catch(e) {}
+}
+
+/* ── Recent Ledger ── */
+async function loadRecentLedger() {
+  try {
+    const data = await api.request('/attendance?');
+    const records = (data.attendance || []).slice(0, 20);
+    const tbody = document.getElementById('recentAttendanceBody');
+    if (!records.length) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#94A3B8;padding:30px">No attendance records found.</td></tr>';
+      return;
+    }
+    const statusBadge = { present:'att-present', absent:'att-absent', late:'att-late', excused:'att-excused' };
+    const sourceIcon  = { manual:'fa-pencil', 'smart-location':'fa-location-dot', 'face-id':'fa-face-smile', 'qr-code':'fa-qrcode' };
+    tbody.innerHTML = records.map(r => {
+      const date = new Date(r.date).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+      const badge = statusBadge[r.status] || 'badge-noclr';
+      const icon  = sourceIcon[r.source] || 'fa-circle-question';
+      return `<tr>
+        <td>${date}</td>
+        <td><strong>${r.subjectId?.name || '–'}</strong><br><span style="font-size:11px;color:#94A3B8">${r.subjectId?.code || ''}</span></td>
+        <td><span style="background:${badge==='att-present'?'#D1FAE5':badge==='att-absent'?'#FEE2E2':badge==='att-late'?'#FEF3C7':'#EDE9FE'};
+                        color:${badge==='att-present'?'#065F46':badge==='att-absent'?'#991B1B':badge==='att-late'?'#78350F':'#3730A3'};
+                        padding:2px 10px;border-radius:8px;font-size:11px;font-weight:700">${r.status}</span></td>
+        <td><i class="fas ${icon}" style="color:#6366F1;margin-right:4px"></i>${r.source || 'manual'}</td>
+        <td style="font-size:12px;color:#64748B">${r.remarks || '—'}</td>
+      </tr>`;
+    }).join('');
+  } catch(e) {}
+}
+
+/* ── Location Consent ── */
+async function loadConsentState() {
+  try {
+    const data = await api.request('/attendance/location-consent');
+    locationConsentEnabled = data.consent?.enabled || false;
+    updateConsentUI();
+  } catch(e) {}
+}
+
+function updateConsentUI() {
+  const track = document.getElementById('consentTrack');
+  const label = document.getElementById('consentLabel');
+  const btn   = document.getElementById('checkinBtn');
+  if (locationConsentEnabled) {
+    track.classList.add('on');
+    label.textContent = 'Location Consent: On';
+    btn.style.display = 'block';
+  } else {
+    track.classList.remove('on');
+    label.textContent = 'Location Consent: Off';
+    btn.style.display = 'none';
+    if (checkinInterval) { clearInterval(checkinInterval); checkinInterval = null; }
+  }
+}
+
+async function toggleLocationConsent() {
+  try {
+    const data = await api.request('/attendance/location-consent', {
+      method: 'POST',
+      body: JSON.stringify({ enabled: !locationConsentEnabled }),
+    });
+    locationConsentEnabled = data.consent?.enabled || false;
+    updateConsentUI();
+    showToast(locationConsentEnabled ? 'Location consent enabled ✓' : 'Location consent disabled', 'success');
+  } catch(e) {}
+}
+
+/* ── Smart Check-in ── */
+async function startStudentSmartAttendance() {
+  if (!locationConsentEnabled) return showToast('Enable consent first', 'warning');
+  if (!navigator.geolocation) return showToast('Geolocation not supported on this device', 'error');
+
+  const btn = document.getElementById('checkinBtn');
+  if (checkinInterval) {
+    clearInterval(checkinInterval);
+    checkinInterval = null;
+    btn.innerHTML = '<i class="fas fa-location-arrow"></i> Start Live Check-in';
+    btn.style.background = '#10B981';
+    document.getElementById('smartStatusMsg').textContent = 'Check-in stopped.';
+    return;
+  }
+
+  const doCheckin = () => {
+    navigator.geolocation.getCurrentPosition(async pos => {
+      try {
+        const result = await api.request('/attendance/live-location', {
+          method: 'POST',
+          body: JSON.stringify({
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude,
+            accuracyMeters: pos.coords.accuracy,
+          }),
+        });
+        if (result.active) {
+          document.getElementById('smartClass').textContent = result.activeSlot?.subject || '—';
+          document.getElementById('smartStatus').textContent = result.presence?.status || '—';
+          document.getElementById('smartAttendanceResult').textContent = result.presence?.autoAttendanceStatus || '—';
+          document.getElementById('smartStatusMsg').textContent =
+            `✅ Broadcasting in ${result.activeSlot?.room || 'room'}. Status: ${result.presence?.status}. Teacher: ${result.teacherPresent ? '✅ Present' : '⏳ Waiting'}`;
+        } else {
+          document.getElementById('smartStatusMsg').textContent = '🕐 No active class slot right now. Will check again in 60s.';
+        }
+      } catch(e) {}
+    }, () => showToast('Location access denied', 'error'), { enableHighAccuracy: true });
+  };
+
+  doCheckin();
+  checkinInterval = setInterval(doCheckin, 60000);
+  btn.innerHTML = '<span style="width:8px;height:8px;border-radius:50%;background:white;display:inline-block;animation:pulse-live 2s infinite;margin-right:6px"></span>Stop Check-in';
+  btn.style.background = '#EF4444';
+  showToast('Live check-in started — broadcasting every 60s', 'success');
+}
+
+/* ═══════════════════════════════════════════
+   QR Code Check-In Logic
+═══════════════════════════════════════════ */
+let qrMediaStream = null;
+let qrScanAnimId = null;
+
+async function submitQRToken(tokenOverride) {
+  const input = document.getElementById('qrTokenInput');
+  const token = (tokenOverride || (input ? input.value : '') || '').trim();
+  if (!token) return showToast('Please enter a QR code or token', 'warning');
+
+  const btn = document.getElementById('submitQrBtn');
+  if (btn) setLoading(btn, true);
+  const feedback = document.getElementById('qrScanFeedback');
+  if (feedback) feedback.innerHTML = '<span style="color:#C084FC"><i class="fas fa-spinner fa-spin"></i> Verifying...</span>';
+
+  try {
+    const res = await api.request('/attendance/qr/scan', {
+      method: 'POST',
+      body: JSON.stringify({ token }),
+    });
+
+    if (input) input.value = '';
+    const statusText = res.status === 'late' ? 'Late' : 'Present';
+    if (feedback) {
+      feedback.innerHTML = `<span style="color:#34D399;font-weight:700"><i class="fas fa-check-circle"></i> ${statusText}!</span>`;
+    }
+    showToast(res.message || `Attendance marked as ${statusText} ✓`, 'success');
+
+    // Instantly refresh all stats, gauge, streaks, heatmap & ledger
+    await Promise.all([
+      loadSummary(),
+      loadCalendar(),
+      loadStreak(),
+      loadRecentLedger(),
+    ]);
+  } catch (err) {
+    if (feedback) {
+      feedback.innerHTML = `<span style="color:#F87171"><i class="fas fa-circle-xmark"></i> ${err.message || 'Invalid code'}</span>`;
+    }
+  } finally {
+    if (btn) setLoading(btn, false);
+  }
+}
+
+async function openCameraScanner() {
+  const modal = document.getElementById('qrScannerModal');
+  if (!modal) return;
+  modal.style.display = 'flex';
+
+  const video = document.getElementById('qrVideo');
+  const msg = document.getElementById('scannerMsg');
+
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    if (msg) msg.textContent = 'Camera not accessible in this browser. Please enter the code manually.';
+    return;
+  }
+
+  try {
+    qrMediaStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment' },
+    });
+    video.srcObject = qrMediaStream;
+    await video.play();
+
+    // Check if BarcodeDetector is available
+    if ('BarcodeDetector' in window) {
+      const barcodeDetector = new BarcodeDetector({ formats: ['qr_code'] });
+      const detectFrame = async () => {
+        if (!qrMediaStream) return;
+        try {
+          const barcodes = await barcodeDetector.detect(video);
+          if (barcodes && barcodes.length > 0) {
+            const val = barcodes[0].rawValue;
+            closeCameraScanner();
+            submitQRToken(val);
+            return;
+          }
+        } catch (_) {}
+        qrScanAnimId = requestAnimationFrame(detectFrame);
+      };
+      qrScanAnimId = requestAnimationFrame(detectFrame);
+    } else {
+      if (msg) msg.textContent = 'Camera active. If auto-detect is unsupported, please type the code displayed by teacher.';
+    }
+  } catch (err) {
+    if (msg) msg.textContent = 'Camera permission denied or camera unavailable. Please type the code manually.';
+  }
+}
+
+function closeCameraScanner() {
+  if (qrScanAnimId) {
+    cancelAnimationFrame(qrScanAnimId);
+    qrScanAnimId = null;
+  }
+  if (qrMediaStream) {
+    qrMediaStream.getTracks().forEach(track => track.stop());
+    qrMediaStream = null;
+  }
+  const modal = document.getElementById('qrScannerModal');
+  if (modal) modal.style.display = 'none';
+}
+
+// expose
+window.toggleLocationConsent = toggleLocationConsent;
+window.startStudentSmartAttendance = startStudentSmartAttendance;
+window.buildHeatmap = buildHeatmap;
+window.submitQRToken = submitQRToken;
+window.openCameraScanner = openCameraScanner;
+window.closeCameraScanner = closeCameraScanner;
+</script>
+</body>
+</html>

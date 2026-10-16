@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Hostel & Residence | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../css/custom.css">
+  <style>
+    .info-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; border-radius: 10px; background: #F8FAFC; border: 1px solid #E2E8F0; }
+    .info-label { font-size: 11px; font-weight: 700; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px; }
+    .info-val { font-size: 14px; font-weight: 700; color: #0F172A; }
+    .tab-pill { padding: 8px 16px; font-size: 13px; font-weight: 700; border-radius: 8px; cursor: pointer; border: 1px solid transparent; transition: all 0.2s; }
+    .tab-pill.active { background: #0284C7; color: white; box-shadow: 0 2px 6px rgba(2,132,199,0.25); }
+    .tab-pill:not(.active) { background: #F1F5F9; color: #475569; }
+    .tab-pill:not(.active):hover { background: #E2E8F0; }
+  </style>
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-student" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)">V</div><div class="sidebar-logo-text">Vishva <span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)" id="sidebar-avatar">S</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Student</div><div class="sidebar-user-role" id="sidebar-user-role">B.Tech • Sem 4</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Academics</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book"></i> My Courses</a>
+      <a href="timetable.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Timetable</a>
+      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-user-check"></i> Attendance</a>
+      <a href="face-id.html" class="nav-link"><i class="nav-link-icon fas fa-face-smile-beam"></i> Face ID Check-In</a>
+      <a href="assignments.html" class="nav-link"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
+      <a href="results.html" class="nav-link"><i class="nav-link-icon fas fa-poll"></i> Results</a>
+      <div class="nav-section-label">Career Center</div>
+      <a href="career.html" class="nav-link"><i class="nav-link-icon fas fa-rocket"></i> Career Dashboard</a>
+      <a href="skills.html" class="nav-link"><i class="nav-link-icon fas fa-tools"></i> Skills Profile</a>
+      <a href="mentorship.html" class="nav-link"><i class="nav-link-icon fas fa-user-tie"></i> Mentorship</a>
+      <a href="placements.html" class="nav-link"><i class="nav-link-icon fas fa-briefcase"></i> Placements</a>
+      <a href="assessments.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-check"></i> Skill Assessments</a>
+      <div class="nav-section-label">Facilities</div>
+      <a href="library.html" class="nav-link"><i class="nav-link-icon fas fa-book-reader"></i> Library</a>
+      <a href="transport.html" class="nav-link"><i class="nav-link-icon fas fa-bus"></i> Transport</a>
+      <a href="hostel.html" class="nav-link active"><i class="nav-link-icon fas fa-building"></i> Hostel</a>
+      <a href="complaints.html" class="nav-link"><i class="nav-link-icon fas fa-exclamation-circle"></i> Complaints</a>
+      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-rupee-sign"></i> Fee Details</a>
+      <a href="../messages.html" class="nav-link"><i class="nav-link-icon fas fa-envelope"></i> Messages</a>
+      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Tutor</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">Student / <span>Hostel</span></div>
+      </div>
+      <div class="topbar-right"><div class="topbar-avatar" id="topbar-avatar">S</div></div>
+    </header>
+
+    <div class="erp-content">
+      <div class="page-header" style="margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+        <div>
+          <h1 class="page-title"><i class="fas fa-building" style="margin-right:10px;color:#0284C7"></i>Hostel & Residence Life</h1>
+          <p class="page-subtitle">Your allocated room, warden directory, roommate roster, and mess schedule.</p>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-secondary" onclick="openRoomTransferModal()"><i class="fas fa-exchange-alt" style="margin-right:6px"></i> Request Room Change</button>
+          <button class="btn btn-primary" onclick="openHostelComplaintModal()"><i class="fas fa-wrench" style="margin-right:6px"></i> Report Room Issue</button>
+        </div>
+      </div>
+
+      <!-- KPI METRICS -->
+      <div class="stats-grid" id="hostelStatsGrid" style="grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px">
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#DBEAFE;color:#1E40AF"><i class="fas fa-building"></i></div>
+          <div class="stat-info"><div class="stat-label">Hostel Block</div><div class="stat-value" id="statHostelName">--</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#E0E7FF;color:#3730A3"><i class="fas fa-door-open"></i></div>
+          <div class="stat-info"><div class="stat-label">Room Number</div><div class="stat-value" id="statRoomNumber">--</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#D1FAE5;color:#065F46"><i class="fas fa-users"></i></div>
+          <div class="stat-info"><div class="stat-label">Bed Occupancy</div><div class="stat-value" id="statCapacity">--</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon" style="background:#FEF3C7;color:#92400E"><i class="fas fa-rupee-sign"></i></div>
+          <div class="stat-info"><div class="stat-label">Term Residence Fee</div><div class="stat-value" id="statFeePerTerm">--</div></div>
+        </div>
+      </div>
+
+      <!-- ALLOCATED ROOM DETAILS -->
+      <div id="allocatedHostelSection" style="display:none">
+        <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:24px;align-items:start;margin-bottom:24px">
+          <!-- Left: Room & Warden Details -->
+          <div style="display:flex;flex-direction:column;gap:20px">
+            <div class="card">
+              <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
+                <div class="card-title"><i class="fas fa-door-open text-primary" style="margin-right:8px"></i>Room Allocation Specifications</div>
+                <span class="badge badge-success"><i class="fas fa-check-circle" style="margin-right:4px"></i>Active Allocation</span>
+              </div>
+              <div class="card-body" id="roomDetailsBody" style="display:flex;flex-direction:column;gap:10px">
+                <!-- Injected via JS -->
+              </div>
+            </div>
+
+            <!-- Warden Contact Card -->
+            <div class="card" style="border:1px solid #BAE6FD;background:#F0F9FF">
+              <div class="card-header" style="background:transparent;border-bottom:1px solid #BAE6FD">
+                <div class="card-title" style="color:#0369A1"><i class="fas fa-user-shield" style="margin-right:8px"></i>Resident Warden Assistance</div>
+                <span class="badge" style="background:#0284C7;color:white">24/7 Desk</span>
+              </div>
+              <div class="card-body">
+                <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
+                  <div style="width:48px;height:48px;border-radius:50%;background:#0284C7;display:flex;align-items:center;justify-content:center;color:white;font-size:18px;font-weight:700" id="wardenAvatar">W</div>
+                  <div>
+                    <div style="font-weight:800;font-size:16px;color:#0F172A" id="wardenNameDisplay">Hostel Warden</div>
+                    <div style="font-size:12px;color:#64748B">Chief Residence Officer • Campus Staff</div>
+                  </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                  <a id="btnCallWarden" href="#" class="btn btn-primary" style="justify-content:center"><i class="fas fa-phone-alt"></i> Call Warden</a>
+                  <a id="btnEmailWarden" href="#" class="btn btn-secondary" style="justify-content:center"><i class="fas fa-envelope"></i> Send Email</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Roommates & Curfew Card -->
+          <div style="display:flex;flex-direction:column;gap:20px">
+            <!-- Roommates -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title"><i class="fas fa-user-friends text-primary" style="margin-right:8px"></i>Roommates Directory</div>
+              </div>
+              <div class="card-body" id="roommatesBody">
+                <!-- Injected via JS -->
+              </div>
+            </div>
+
+            <!-- Curfew & Rules Card -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title"><i class="fas fa-clock text-primary" style="margin-right:8px"></i>Campus Gate & Curfew Guidelines</div>
+              </div>
+              <div class="card-body" style="font-size:13px;color:#334155;line-height:1.6">
+                <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#FEF3C7;border-radius:8px;border:1px solid #FDE68A;margin-bottom:12px">
+                  <span style="font-weight:700;color:#92400E"><i class="fas fa-door-closed" style="margin-right:6px"></i>Night Gate Closure:</span>
+                  <span style="font-weight:800;color:#B45309">09:30 PM</span>
+                </div>
+                <ul style="list-style:disc;padding-left:20px;display:flex;flex-direction:column;gap:6px">
+                  <li>Biometric check-in is mandatory before the night curfew.</li>
+                  <li>Late entries require prior digital gate pass from the Warden.</li>
+                  <li>Silent hours strictly observed from 11:00 PM to 06:00 AM.</li>
+                  <li>Mess meals must be consumed inside dining hall premises.</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- Mess Dining Schedule Preview -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title"><i class="fas fa-utensils text-primary" style="margin-right:8px"></i>Today's Mess Timings</div>
+              </div>
+              <div class="card-body" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;text-align:center">
+                <div style="background:#F8FAFC;padding:10px;border-radius:8px;border:1px solid #E2E8F0">
+                  <div style="font-size:11px;color:#64748B;font-weight:700;text-transform:uppercase">Breakfast</div>
+                  <div style="font-weight:800;font-size:13px;color:#0F172A;margin-top:2px">07:30 - 09:00</div>
+                </div>
+                <div style="background:#F8FAFC;padding:10px;border-radius:8px;border:1px solid #E2E8F0">
+                  <div style="font-size:11px;color:#64748B;font-weight:700;text-transform:uppercase">Lunch</div>
+                  <div style="font-weight:800;font-size:13px;color:#0F172A;margin-top:2px">12:30 - 02:00</div>
+                </div>
+                <div style="background:#F8FAFC;padding:10px;border-radius:8px;border:1px solid #E2E8F0">
+                  <div style="font-size:11px;color:#64748B;font-weight:700;text-transform:uppercase">Dinner</div>
+                  <div style="font-weight:800;font-size:13px;color:#0F172A;margin-top:2px">07:45 - 09:15</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- NOT ALLOCATED VIEW: AVAILABLE HOSTEL BLOCKS -->
+      <div id="unallocatedSection" style="display:none">
+        <div style="background:white;border-radius:16px;border:1px solid #E2E8F0;padding:40px 24px;text-align:center;margin-bottom:24px">
+          <div style="width:72px;height:72px;margin:0 auto 16px;background:#F1F5F9;border-radius:50%;display:flex;align-items:center;justify-content:center">
+            <i class="fas fa-building" style="font-size:32px;color:#94A3B8"></i>
+          </div>
+          <h3 style="font-size:18px;font-weight:700;color:#0F172A;margin-bottom:8px">No Hostel Room Allocated</h3>
+          <p style="font-size:14px;color:#64748B;max-width:500px;margin:0 auto 16px;line-height:1.5">
+            You have not been assigned to a residential hostel room yet. Explore our campus hostel blocks below or raise an inquiry with admin.
+          </p>
+          <a href="complaints.html" class="btn btn-primary"><i class="fas fa-pen-to-square"></i> Submit Hostel Application / Inquiry</a>
+        </div>
+
+        <div style="margin-bottom:14px;font-weight:800;font-size:16px;color:#0F172A">Available Campus Hostel Blocks</div>
+        <div id="availableHostelsGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px">
+          <!-- Injected via JS -->
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- HOSTEL COMPLAINT MODAL -->
+<div class="modal-backdrop" id="hostelComplaintModal">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header">
+      <div class="modal-title"><i class="fas fa-wrench" style="color:#0284C7;margin-right:8px"></i>Report Hostel / Room Maintenance</div>
+      <button class="modal-close" onclick="closeModal('hostelComplaintModal')"><i class="fas fa-times"></i></button>
+    </div>
+    <form id="hostelComplaintForm" onsubmit="submitHostelComplaint(event)">
+      <div class="modal-body" style="display:flex;flex-direction:column;gap:14px">
+        <div class="form-group">
+          <label class="form-label">Subject</label>
+          <input class="form-control" id="hCompSubject" placeholder="e.g. Broken AC / Plumbing leak in bathroom" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Priority</label>
+          <select class="form-control" id="hCompPriority" required>
+            <option value="low">Low (General Maintenance)</option>
+            <option value="medium" selected>Medium (Standard)</option>
+            <option value="high">High (Needs Attention Today)</option>
+            <option value="urgent">Urgent (Electrical / Water Emergency)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Issue Description</label>
+          <textarea class="form-control" id="hCompDescription" rows="4" placeholder="Detail the issue, location in room, and when it started..." required></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('hostelComplaintModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="btnSubmitHostelComplaint"><i class="fas fa-paper-plane"></i> Submit Request</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script>
+let currentRoomData = null;
+
+(function(){
+  const user = api.getUser();
+  if(!user){ window.location.href='/pages/login.html'; return; }
+  if (document.getElementById('sidebar-user-name')) document.getElementById('sidebar-user-name').textContent = user.name || 'Student';
+  if (document.getElementById('sidebar-avatar')) document.getElementById('sidebar-avatar').textContent = (user.name||'S').charAt(0).toUpperCase();
+  if (document.getElementById('topbar-avatar')) document.getElementById('topbar-avatar').textContent = (user.name||'S').charAt(0).toUpperCase();
+
+  loadHostel();
+})();
+
+async function loadHostel(){
+  showPageLoader('Loading hostel details...');
+  try {
+    const data = await window.api.request('/logistics/my-hostel');
+    hidePageLoader();
+    const room = data.room || data.hostelRoom;
+    currentRoomData = room;
+
+    if(!room || !room._id){
+      showUnallocatedView(data.availableHostels || []);
+      return;
+    }
+    showAllocatedView(room);
+  } catch(err){
+    hidePageLoader();
+    showUnallocatedView([]);
+  }
+}
+
+function showUnallocatedView(hostels){
+  document.getElementById('statHostelName').textContent = 'None';
+  document.getElementById('statRoomNumber').textContent = 'None';
+  document.getElementById('statCapacity').textContent = '0';
+  document.getElementById('statFeePerTerm').textContent = '—';
+
+  document.getElementById('allocatedHostelSection').style.display = 'none';
+  document.getElementById('unallocatedSection').style.display = 'block';
+
+  const grid = document.getElementById('availableHostelsGrid');
+  if(!hostels.length){
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:32px;color:#94A3B8">No hostel blocks currently listed.</div>';
+    return;
+  }
+
+  grid.innerHTML = hostels.map(h => {
+    const facilities = (h.facilities || ['WiFi', 'Mess', 'Laundry']).join(', ');
+    return `
+      <div class="card" style="border:1px solid #E2E8F0">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
+          <div>
+            <div style="font-weight:800;font-size:16px;color:#0F172A">${h.name}</div>
+            <div style="font-size:12px;color:#64748B;text-transform:capitalize">${h.type} Hostel • ${h.totalRooms || 0} Total Rooms</div>
+          </div>
+          <span class="badge badge-info">${h.type}</span>
+        </div>
+        <div style="font-size:12px;color:#334155;background:#F8FAFC;padding:10px 12px;border-radius:8px;margin-bottom:12px">
+          <div style="font-weight:700;font-size:11px;color:#64748B;text-transform:uppercase;margin-bottom:4px">Amenities & Facilities</div>
+          <div>${facilities}</div>
+        </div>
+        <div style="font-size:12px;color:#64748B;margin-bottom:12px">
+          <span style="font-weight:600">Warden:</span> ${h.warden?.name || 'Assigned Staff'}
+        </div>
+        <a href="complaints.html" class="btn btn-secondary btn-sm" style="width:100%;justify-content:center">
+          <i class="fas fa-paper-plane"></i> Inquire for Allocation
+        </a>
+      </div>
+    `;
+  }).join('');
+}
+
+function showAllocatedView(room){
+  document.getElementById('unallocatedSection').style.display = 'none';
+  document.getElementById('allocatedHostelSection').style.display = 'block';
+
+  const hostelName = room.hostelName || room.hostel?.name || 'Residence Block';
+  const roomNumber = room.roomNumber || '--';
+  const capacity = room.capacity || 2;
+  const occupants = room.occupants || room.students || [];
+  const feePerTerm = room.feePerTerm || 0;
+  const wardenName = room.wardenName || room.warden?.name || 'Campus Warden';
+  const wardenPhone = room.wardenPhone || room.warden?.phone || '+91 98765 43210';
+  const wardenEmail = room.wardenEmail || room.warden?.email || 'warden@vishvaerp.edu';
+
+  document.getElementById('statHostelName').textContent = hostelName;
+  document.getElementById('statRoomNumber').textContent = roomNumber;
+  document.getElementById('statCapacity').textContent = occupants.length + ' / ' + capacity;
+  document.getElementById('statFeePerTerm').textContent = feePerTerm ? '₹' + Number(feePerTerm).toLocaleString('en-IN') : 'Included';
+
+  document.getElementById('wardenNameDisplay').textContent = wardenName;
+  document.getElementById('wardenAvatar').textContent = wardenName.charAt(0).toUpperCase();
+  document.getElementById('btnCallWarden').href = 'tel:' + wardenPhone.replace(/[^0-9+]/g, '');
+  document.getElementById('btnEmailWarden').href = 'mailto:' + wardenEmail + '?subject=Hostel Inquiry - Room ' + roomNumber;
+
+  document.getElementById('roomDetailsBody').innerHTML = `
+    <div class="info-row"><span class="info-label">Hostel Residence Block</span><span class="info-val">${hostelName}</span></div>
+    <div class="info-row"><span class="info-label">Room Number</span><span class="info-val">${roomNumber}</span></div>
+    <div class="info-row"><span class="info-label">Bed Allocation</span><span class="info-val">${occupants.length} of ${capacity} Beds Filled</span></div>
+    <div class="info-row"><span class="info-label">Residence Fee Per Term</span><span class="info-val" style="color:#059669">${feePerTerm ? '₹' + Number(feePerTerm).toLocaleString('en-IN') : 'Included in Tuition'}</span></div>
+  `;
+
+  renderRoommates(room);
+}
+
+function renderRoommates(room){
+  const occupants = room.occupants || room.students || [];
+  const currentUser = api.getUser();
+  const roommates = occupants.filter(o => {
+    const id = o._id || o.studentId || o.id;
+    return id && String(id) !== String(currentUser?._id) && String(id) !== String(currentUser?.id);
+  });
+
+  const body = document.getElementById('roommatesBody');
+  if(!roommates.length){
+    body.innerHTML = `
+      <div style="text-align:center;padding:28px 20px;color:#94A3B8">
+        <div style="width:48px;height:48px;margin:0 auto 12px;border-radius:50%;background:#F1F5F9;display:flex;align-items:center;justify-content:center">
+          <i class="fas fa-user-friends" style="font-size:20px;color:#CBD5E1"></i>
+        </div>
+        <div style="font-size:14px;font-weight:700;color:#475569;margin-bottom:2px">No Other Roommates</div>
+        <div style="font-size:12px">You have single occupancy or other beds are currently vacant.</div>
+      </div>`;
+    return;
+  }
+
+  body.innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:10px">
+      ${roommates.map(r => `
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:10px;background:#F8FAFC;border:1px solid #E2E8F0">
+          <div style="width:38px;height:38px;border-radius:50%;background:linear-gradient(135deg,#0284C7,#0EA5E9);display:flex;align-items:center;justify-content:center;color:white;font-size:14px;font-weight:700;flex-shrink:0">
+            ${(r.name || 'S').charAt(0).toUpperCase()}
+          </div>
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:700;color:#0F172A">${r.name || 'Student'}</div>
+            <div style="font-size:12px;color:#64748B">${r.rollNo || r.rollNumber || ''} ${r.department ? '• ' + r.department : ''}</div>
+          </div>
+          ${r.email ? `<a href="mailto:${r.email}" class="btn btn-xs btn-secondary" title="Email Roommate"><i class="fas fa-envelope"></i></a>` : ''}
+        </div>
+      `).join('')}
+    </div>`;
+}
+
+function openHostelComplaintModal(){
+  openModal('hostelComplaintModal');
+}
+
+async function submitHostelComplaint(e){
+  e.preventDefault();
+  const btn = document.getElementById('btnSubmitHostelComplaint');
+  setLoading(btn, true);
+
+  const subject = document.getElementById('hCompSubject').value.trim();
+  const priority = document.getElementById('hCompPriority').value;
+  const description = document.getElementById('hCompDescription').value.trim();
+
+  const roomDesc = currentRoomData ? ` [Hostel: ${currentRoomData.hostelName || 'Block'}, Room: ${currentRoomData.roomNumber || '—'}] ` : '';
+
+  try {
+    await window.api.request('/grievances', {
+      method: 'POST',
+      body: JSON.stringify({
+        category: 'hostel',
+        subject: subject,
+        priority: priority,
+        description: description + roomDesc
+      })
+    });
+    closeModal('hostelComplaintModal');
+    showToast('Hostel maintenance request submitted successfully!', 'success');
+    document.getElementById('hostelComplaintForm').reset();
+  } catch(err) {
+    showToast(err.message || 'Failed to submit maintenance request', 'error');
+  } finally {
+    setLoading(btn, false);
+  }
+}
+
+function openRoomTransferModal() {
+  if (!currentRoomData) return showToast('You must have an allocated room before requesting a room transfer', 'warning');
+  openModal('roomTransferModal');
+}
+
+async function submitRoomTransfer(e) {
+  e.preventDefault();
+  const btn = document.getElementById('btnSubmitTransfer');
+  setLoading(btn, true);
+
+  const targetRoom = document.getElementById('transferTargetRoom').value.trim();
+  const reason = document.getElementById('transferReason').value.trim();
+
+  try {
+    await window.api.request('/grievances', {
+      method: 'POST',
+      body: JSON.stringify({
+        category: 'hostel',
+        subject: `Room Change Request: Current [${currentRoomData.roomNumber}] -> Target [${targetRoom || 'Preferred Alternative'}]`,
+        priority: 'medium',
+        description: `Reason for transfer request: ${reason}\nCurrent Block: ${currentRoomData.hostelName || 'Residence'}, Current Room: ${currentRoomData.roomNumber || '—'}`
+      })
+    });
+    closeModal('roomTransferModal');
+    showToast('Room change application filed with hostel warden & administration!', 'success');
+    document.getElementById('roomTransferForm').reset();
+  } catch (err) {
+    showToast(err.message || 'Failed to submit room change request', 'error');
+  } finally {
+    setLoading(btn, false);
+  }
+}
+</script>
+
+<!-- ROOM TRANSFER REQUEST MODAL -->
+<div class="modal-backdrop" id="roomTransferModal" style="display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);z-index:1000;align-items:center;justify-content:center">
+  <div class="modal" style="background:#fff;border-radius:16px;max-width:480px;width:90%;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.25)">
+    <div style="background:linear-gradient(135deg,#0284C7,#0369A1);padding:20px;color:white;display:flex;justify-content:space-between;align-items:center">
+      <div style="font-weight:700;font-size:16px"><i class="fas fa-exchange-alt" style="margin-right:8px"></i>Apply for Room Transfer</div>
+      <button onclick="closeModal('roomTransferModal')" style="background:none;border:none;color:white;font-size:18px;cursor:pointer"><i class="fas fa-times"></i></button>
+    </div>
+    <form id="roomTransferForm" onsubmit="submitRoomTransfer(event)" style="padding:20px">
+      <div class="form-group mb-3">
+        <label class="form-label" style="font-size:12px;font-weight:700;color:#334155">Preferred Target Room / Block (Optional)</label>
+        <input type="text" id="transferTargetRoom" class="form-control" placeholder="e.g. Block B, Single Room or Room 204">
+      </div>
+      <div class="form-group mb-4">
+        <label class="form-label" style="font-size:12px;font-weight:700;color:#334155">Justification / Reason for Transfer</label>
+        <textarea id="transferReason" class="form-control" rows="3" required placeholder="Describe reasons (e.g. academic quiet hours, medical needs, departmental proximity)..." style="resize:vertical"></textarea>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:flex-end">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('roomTransferModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="btnSubmitTransfer"><i class="fas fa-paper-plane" style="margin-right:6px"></i> Submit Application</button>
+      </div>
+    </form>
+  </div>
+</div>
+</body>
+</html>

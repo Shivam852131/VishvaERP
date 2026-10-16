@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Quiz History | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../css/custom.css">
+  <style>
+    .hist-row { border:1px solid #E2E8F0; border-radius:14px; padding:16px 18px; background:white; margin-bottom:12px; display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
+    .status-chip { padding:4px 10px; border-radius:999px; font-size:11px; font-weight:800; text-transform:uppercase; }
+    .st-completed { background:#D1FAE5; color:#065F46; }
+    .st-timed_out { background:#FEF3C7; color:#92400E; }
+    .empty-state { padding:50px 20px; text-align:center; color:#64748B; }
+  </style>
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-student" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)">V</div><div class="sidebar-logo-text">Vishva <span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)" id="sidebar-avatar">S</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Student</div><div class="sidebar-user-role" id="sidebar-user-role">B.Tech CS</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Exam Prep</div>
+      <a href="exam-prep.html" class="nav-link"><i class="nav-link-icon fas fa-brain"></i> Practice Dashboard</a>
+      <a href="assessments.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-check"></i> Skill Assessments</a>
+      <a href="quiz-history.html" class="nav-link active"><i class="nav-link-icon fas fa-history"></i> Quiz History</a>
+      <div class="nav-section-label">Academics</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <a href="results.html" class="nav-link"><i class="nav-link-icon fas fa-poll"></i> Results</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left"><button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button><div class="topbar-breadcrumb">Exam Prep / <span>Quiz History</span></div></div>
+      <div class="topbar-right"><div class="topbar-avatar" id="topbar-avatar">S</div></div>
+    </header>
+    <div class="erp-content page-enter">
+      <div class="page-header">
+        <h1 class="page-title"><i class="fas fa-history" style="color:#6366F1;margin-right:10px"></i>Quiz History</h1>
+        <p class="page-subtitle">Every quiz you've completed, with scores and review.</p>
+      </div>
+      <div id="histList"><div style="padding:20px"><div style="height:20px;background:#F1F5F9;border-radius:8px;margin-bottom:10px"></div><div style="height:20px;background:#F1F5F9;border-radius:8px;width:60%"></div></div></div>
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script>
+(function(){
+  // api.request() already prefixes API_URL ('/api'), so paths start at /v1.
+  const Q = '/v1/quizzes';
+  const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  (async function(){
+    const box = document.getElementById('histList');
+    try {
+      const r = await api.request(Q + '/history', { silent:true });
+      const attempts = (r && r.attempts) || [];
+      if (!attempts.length) { box.innerHTML = '<div class="empty-state"><i class="fas fa-inbox" style="font-size:44px;color:#CBD5E1;margin-bottom:12px"></i><h3 style="font-weight:700;font-size:15px">No quiz attempts yet</h3><p style="font-size:13px">Take your first quiz from the Practice Dashboard.</p><a href="exam-prep.html" class="btn btn-primary" style="margin-top:14px">Go to Exam Prep</a></div>'; return; }
+      box.innerHTML = attempts.map(a=>{
+        const q = a.quizId || {};
+        return `<div class="hist-row">
+          <div style="flex:1;min-width:200px">
+            <div style="font-weight:800;font-size:15px">${esc(q.title||'Quiz')}</div>
+            <div style="font-size:12px;color:#64748B;margin-top:2px">Attempt ${a.attemptNo||1} · ${esc(q.type||'quiz')} · ${a.submittedAt?new Date(a.submittedAt).toLocaleString():''}</div>
+          </div>
+          <span class="status-chip st-${esc(a.status)}">${a.status==='timed_out'?'Time Up':'Completed'}</span>
+          <div style="text-align:center;min-width:70px"><div style="font-weight:900;font-size:20px;color:${a.percentage>=40?'#065F46':'#991B1B'}">${a.percentage!=null?a.percentage+'%':'—'}</div><div style="font-size:11px;color:#94A3B8">score</div></div>
+          <div style="text-align:center;min-width:60px"><div style="font-weight:800;font-size:14px">${a.passed?'<span style="color:#10B981">Pass</span>':'<span style="color:#EF4444">Fail</span>'}</div></div>
+          <a class="btn btn-secondary btn-sm" href="#" onclick="review(${JSON.stringify(String(a._id)).replace(/"/g,'&quot;')});return false"><i class="fas fa-eye"></i> Review</a>
+        </div>`;
+      }).join('');
+    } catch(e){ box.innerHTML = '<div class="empty-state">Could not load history.</div>'; }
+  })();
+  window.review = async function(id){
+    try {
+      const r = await api.request(Q + '/attempts/' + id + '/result', { silent:true });
+      const res = r.result || {};
+      const rows = (res.review||[]).map((rv,i)=>`<div style="padding:10px 0;border-bottom:1px solid #F1F5F9">
+        <div style="font-weight:600;font-size:13px"><i class="fas fa-${rv.isCorrect?'check-circle':'times-circle'}" style="color:${rv.isCorrect?'#10B981':'#EF4444'};margin-right:6px"></i>Q${i+1}. ${esc(rv.questionText)}</div>
+        <div style="font-size:12px;color:#475569;margin-top:4px">Your answer: <b>${esc(rv.yourResponse||'(blank)')}</b>${rv.isCorrect?'':` · Correct: <b style="color:#10B981">${esc(rv.correctAnswer||'')}</b>`}</div>
+        ${rv.explanation?`<div style="font-size:12px;color:#64748B;margin-top:4px"><i class="fas fa-lightbulb" style="color:#F59E0B"></i> ${esc(rv.explanation)}</div>`:''}
+      </div>`).join('');
+      createModal({ id:'reviewModal', title:'Attempt Review', size:'lg',
+        body: res.percentage!=null?`<div style="text-align:center;margin-bottom:12px"><b style="font-size:22px">${res.percentage}%</b> · ${res.score}/${res.totalMarks} marks</div>`+'<div style="max-height:60vh;overflow:auto">'+(rows||'<p style="color:#64748B">No review available.</p>')+'</div>':'<p style="color:#64748B">Result not released yet.</p>',
+        footer:`<button class="btn btn-secondary" onclick="closeModal('reviewModal')">Close</button>` });
+      openModal('reviewModal');
+    } catch(e){ showToast('Could not load review','error'); }
+  };
+})();
+</script>
+</body>
+</html>

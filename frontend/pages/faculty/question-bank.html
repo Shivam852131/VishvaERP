@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Question Bank | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../css/custom.css">
+  <style>
+    .panel { border:1px solid #E2E8F0; border-radius:16px; padding:20px; background:white; margin-bottom:18px; }
+    .stat-tile { border:1px solid #E2E8F0; border-radius:14px; padding:16px; background:white; text-align:center; }
+    .form-control { padding:9px 12px; border:1px solid #CBD5E1; border-radius:10px; font-size:14px; outline:none; background:white; width:100%; }
+    .form-control:focus { border-color:#6366F1; }
+    .form-label { font-size:12px; font-weight:700; color:#475569; margin-bottom:4px; display:block; }
+    .form-group { margin-bottom:12px; }
+    .q-row { border:1px solid #E2E8F0; border-radius:12px; padding:14px 16px; margin-bottom:10px; background:white; }
+    .tag { display:inline-block; padding:2px 8px; border-radius:6px; font-size:10px; font-weight:700; background:#EEF2FF; color:#4338CA; text-transform:uppercase; }
+    .src { display:inline-block; padding:2px 8px; border-radius:6px; font-size:10px; font-weight:700; }
+    .src-manual{background:#F1F5F9;color:#475569}.src-ai{background:#EDE9FE;color:#5B21B6}.src-pdf{background:#FEE2E2;color:#991B1B}.src-excel{background:#D1FAE5;color:#065F46}.src-image{background:#FEF3C7;color:#92400E}
+    .empty { color:#94A3B8; font-size:13px; text-align:center; padding:24px; }
+    .opt-line { display:flex; gap:8px; align-items:center; margin-bottom:8px; }
+  </style>
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-faculty" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon" style="background:linear-gradient(135deg,#7C3AED,#A78BFA)">V</div><div class="sidebar-logo-text">Vishva <span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" style="background:linear-gradient(135deg,#7C3AED,#A78BFA)" id="sidebar-avatar">F</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Faculty</div><div class="sidebar-user-role" id="sidebar-user-role">Faculty</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <div class="nav-section-label">Teaching</div>
+      <a href="grades.html" class="nav-link"><i class="nav-link-icon fas fa-poll"></i> Grades &amp; Results</a>
+      <a href="assignments.html" class="nav-link"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
+      <a href="quiz-builder.html" class="nav-link"><i class="nav-link-icon fas fa-layer-group"></i> Quiz Builder</a>
+      <a href="question-bank.html" class="nav-link active"><i class="nav-link-icon fas fa-database"></i> Question Bank</a>
+      <div class="nav-section-label">Tools</div>
+      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Services</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left"><button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button><div class="topbar-breadcrumb">Teaching / <span>Question Bank</span></div></div>
+      <div class="topbar-right"><div class="topbar-avatar" id="topbar-avatar">F</div></div>
+    </header>
+    <div class="erp-content page-enter">
+      <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">
+        <div><h1 class="page-title"><i class="fas fa-database" style="color:#7C3AED;margin-right:10px"></i>Question Bank</h1><p class="page-subtitle">Manage reusable MCQ &amp; descriptive questions.</p></div>
+        <div style="display:flex;gap:10px"><button class="btn btn-secondary" onclick="openTemplate()"><i class="fas fa-download"></i> CSV Template</button><button class="btn btn-primary" onclick="openEditor()"><i class="fas fa-plus"></i> Add Question</button></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:18px" id="stats"></div>
+
+      <div class="panel">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px">
+          <select class="form-control" id="fSubject" onchange="load(1)"><option value="">All Subjects</option></select>
+          <select class="form-control" id="fType" onchange="load(1)"><option value="">All Types</option><option value="mcq">MCQ</option><option value="true_false">True/False</option><option value="fill_blank">Fill Blank</option><option value="short_answer">Short Answer</option><option value="long_answer">Long Answer</option><option value="numerical">Numerical</option></select>
+          <select class="form-control" id="fDiff" onchange="load(1)"><option value="">All Difficulties</option><option>easy</option><option>medium</option><option>hard</option><option>very_hard</option></select>
+          <select class="form-control" id="fSource" onchange="load(1)"><option value="">All Sources</option><option>manual</option><option>ai</option><option>pdf</option><option>excel</option><option>image</option></select>
+          <input class="form-control" id="fSearch" placeholder="Search question…" onkeyup="if(event.key==='Enter')load(1)">
+        </div>
+        <div id="list"><div class="empty">Loading…</div></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px"><button class="btn btn-secondary btn-sm" id="prev" onclick="page(-1)">Prev</button><span id="pinfo" style="font-size:12px;color:#64748B"></span><button class="btn btn-secondary btn-sm" id="next" onclick="page(1)">Next</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- EDITOR MODAL -->
+<div id="editorModal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.5);z-index:60;align-items:center;justify-content:center">
+  <div style="background:white;border-radius:18px;max-width:620px;width:92%;max-height:90vh;overflow:auto;padding:24px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><h3 style="font-weight:800;font-size:16px" id="edTitle">Add Question</h3><button class="btn btn-secondary btn-sm" onclick="hide('editorModal')">✕</button></div>
+    <input type="hidden" id="edId">
+    <div class="form-group"><label class="form-label">Subject *</label><select class="form-control" id="edSubject"></select></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div class="form-group"><label class="form-label">Unit *</label><input class="form-control" id="edUnit" placeholder="e.g. Optics"></div>
+      <div class="form-group"><label class="form-label">Chapter *</label><input class="form-control" id="edChapter" placeholder="e.g. Reflection"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Question *</label><textarea class="form-control" id="edText" rows="2"></textarea></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+      <div class="form-group"><label class="form-label">Type</label><select class="form-control" id="edType" onchange="toggleType()"><option value="mcq">MCQ</option><option value="true_false">True/False</option><option value="fill_blank">Fill Blank</option><option value="short_answer">Short Answer</option><option value="long_answer">Long Answer</option><option value="numerical">Numerical</option></select></div>
+      <div class="form-group"><label class="form-label">Difficulty</label><select class="form-control" id="edDiff"><option>easy</option><option selected>medium</option><option>hard</option><option>very_hard</option></select></div>
+      <div class="form-group"><label class="form-label">Marks</label><input type="number" class="form-control" id="edMarks" value="1" min="0.5"></div>
+    </div>
+    <div id="mcqOpts">
+      <label class="form-label">Options (select the correct one)</label>
+      <div id="optLines"></div>
+      <button class="btn btn-secondary btn-sm" onclick="addOptLine()"><i class="fas fa-plus"></i> Add Option</button>
+    </div>
+    <div id="textAns" style="display:none"><div class="form-group"><label class="form-label">Correct Answer</label><input class="form-control" id="edAnswer" placeholder="correct answer"></div></div>
+    <div class="form-group"><label class="form-label">Explanation</label><textarea class="form-control" id="edExpl" rows="2"></textarea></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+      <div class="form-group"><label class="form-label">Education Level</label><select class="form-control" id="edLevel"><option value="school">School</option><option value="undergraduate" selected>Undergrad</option><option value="postgraduate">Postgrad</option><option value="competitive">Competitive</option></select></div>
+      <div class="form-group"><label class="form-label">Board / Exam</label><input class="form-control" id="edBoard" placeholder="optional"></div>
+      <div class="form-group"><label class="form-label">Tags</label><input class="form-control" id="edTags" placeholder="comma separated"></div>
+    </div>
+    <div style="margin-top:16px;display:flex;gap:10px"><button class="btn btn-primary" onclick="save()"><i class="fas fa-save"></i> Save Question</button></div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script>
+(function(){
+  const API='/v1'; const API_ROOT=(typeof API_URL!=='undefined'?API_URL:'/api'); const EG=API+'/exam-generator'; const Q=API+'/quizzes';
+  const $=s=>document.querySelector(s); const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const show=id=>document.getElementById(id).style.display='flex'; const hide=id=>document.getElementById(id).style.display='none'; window.hide=hide;
+  window.openTemplate=function(){ window.open(API_ROOT+'/v1/quizzes/import/template?token='+encodeURIComponent(api.getToken()),'_blank'); };
+  let cur=1,pages=1,subjects=[],taxonomy={boards:[],competitiveExams:[]};
+
+  async function init(){ try{ const r=await api.request('/academics/subjects',{silent:true}); subjects=r.subjects||[]; const opts='<option value="">All Subjects</option>'+subjects.map(s=>`<option value="${s._id}">${esc(s.name)}</option>`).join(''); $('#fSubject').innerHTML=opts; $('#edSubject').innerHTML='<option value="">Select…</option>'+subjects.map(s=>`<option value="${s._id}">${esc(s.name)}</option>`).join(''); }catch(e){} try{ const t=await api.request(Q+'/taxonomy',{silent:true}); taxonomy=t.taxonomy||{boards:[]}; }catch(e){} loadStats(); load(1); }
+
+  async function loadStats(){ try{ const r=await api.request(EG+'/questions/stats',{silent:true}); const s=r.stats||r; const toMap=(arr)=>Array.isArray(arr)?arr.reduce((m,x)=>{ m[x._id||x.name||'']=x.count||x.total||0; return m; },{}):(arr&&typeof arr==='object'?arr:{}); const byType=toMap(s.byType); const byDiff=toMap(s.byDifficulty); const tiles=[['Total',s.total||s.totalQuestions||0],['MCQ',byType.mcq||0],['Easy',byDiff.easy||0],['Hard',byDiff.hard||byDiff.very_hard||0]]; $('#stats').innerHTML=tiles.map(t=>`<div class="stat-tile"><div style="font-weight:900;font-size:22px">${t[1]}</div><div style="font-size:11px;color:#64748B">${t[0]}</div></div>`).join(''); }catch(e){} }
+
+  window.page=function(d){ load(cur+d); };
+  window.load=async function(p){ cur=p||1; const params=new URLSearchParams({page:cur,limit:20}); if($('#fSubject').value)params.set('subjectId',$('#fSubject').value); if($('#fType').value)params.set('questionType',$('#fType').value); if($('#fDiff').value)params.set('difficulty',$('#fDiff').value); if($('#fSearch').value)params.set('search',$('#fSearch').value);
+    const box=$('#list'); box.innerHTML='<div class="empty">Loading…</div>';
+    try{ const r=await api.request(EG+'/questions?'+params.toString(),{silent:true}); let qs=r.questions||[]; const src=$('#fSource').value; if(src) qs=qs.filter(q=>(q.source||'manual')===src); pages=r.pages||1; $('#pinfo').textContent='Page '+(r.page||1)+' / '+pages; $('#prev').disabled=(r.page||1)<=1; $('#next').disabled=(r.page||1)>=pages;
+      if(!qs.length){ box.innerHTML='<div class="empty">No questions found.</div>'; return; }
+      box.innerHTML=qs.map(q=>`<div class="q-row"><div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><div style="flex:1;min-width:200px"><div style="font-weight:600;font-size:14px">${esc(q.questionText)}</div>
+        <div style="margin-top:6px"><span class="tag">${esc(q.questionType)}</span> <span class="tag" style="background:#FEF3C7;color:#92400E">${esc(q.difficulty)}</span> <span class="src src-${esc(q.source||'manual')}">${esc(q.source||'manual')}</span> <span style="font-size:11px;color:#64748B">${esc(q.unit)} / ${esc(q.chapter)} · ${q.marks} mark(s)${q.educationLevel?' · '+esc(q.educationLevel):''}${q.board?' · '+esc(q.board):''}</span></div>
+        ${q.options&&q.options.length?`<div style="font-size:12px;color:#475569;margin-top:4px">${q.options.map(o=>esc(o.text)+(o.isCorrect?' <b style="color:#10B981">✓</b>':'')).join(' · ')}</div>`:q.correctAnswer?`<div style="font-size:12px;color:#10B981;margin-top:4px">Answer: <b>${esc(q.correctAnswer)}</b></div>`:''}</div>
+        <div style="display:flex;gap:6px"><button class="btn btn-secondary btn-sm" onclick="openEditor('${q._id}')"><i class="fas fa-pen"></i></button><button class="btn btn-secondary btn-sm" onclick="del('${q._id}')"><i class="fas fa-trash"></i></button></div></div></div>`).join('');
+    }catch(e){ box.innerHTML='<div class="empty">Could not load questions.</div>'; } };
+
+  function addOptLine(text,correct){ const div=document.createElement('div'); div.className='opt-line'; div.innerHTML=`<input type="radio" name="correctOpt" style="accent-color:#10B981;width:18px;height:18px" title="mark correct"><input class="form-control" placeholder="Option text" value="${esc(text||'')}"><button class="btn btn-secondary btn-sm" onclick="this.parentElement.remove()"><i class="fas fa-times"></i></button>`; if(correct) div.querySelector('input[type=radio]').checked=true; $('#optLines').appendChild(div); }
+  window.addOptLine=()=>addOptLine();
+  function toggleType(){ const t=$('#edType').value; const mcq=(t==='mcq'||t==='true_false'); $('#mcqOpts').style.display=mcq?'block':'none'; $('#textAns').style.display=mcq?'none':'block'; if(t==='true_false'){ $('#optLines').innerHTML=''; addOptLine('True',true); addOptLine('False'); } }
+  window.toggleType=toggleType;
+
+  window.openEditor=async function(id){ $('#edId').value=id||''; $('#edTitle').textContent=id?'Edit Question':'Add Question'; ['edUnit','edChapter','edText','edAnswer','edExpl','edBoard','edTags'].forEach(i=>$('#'+i).value=''); $('#edType').value='mcq'; $('#edDiff').value='medium'; $('#edMarks').value=1; $('#edLevel').value='undergraduate';
+    if(id){ try{ const r=await api.request(EG+'/questions/'+id,{silent:true}); const q=r.question; $('#edSubject').value=q.subjectId?q.subjectId._id||q.subjectId:''; $('#edUnit').value=q.unit; $('#edChapter').value=q.chapter; $('#edText').value=q.questionText; $('#edType').value=q.questionType; $('#edDiff').value=q.difficulty; $('#edMarks').value=q.marks; $('#edAnswer').value=q.correctAnswer||''; $('#edExpl').value=q.explanation||''; $('#edLevel').value=q.educationLevel||'undergraduate'; $('#edBoard').value=q.board||''; $('#edTags').value=(q.tags||[]).join(', ');
+      $('#optLines').innerHTML=''; if(q.questionType==='true_false'){ addOptLine('True',(q.options.find(o=>o.isCorrect)||{}).text==='True'); addOptLine('False',(q.options.find(o=>o.isCorrect)||{}).text==='False'); } else { (q.options||[]).forEach(o=>addOptLine(o.text,o.isCorrect)); if(!q.options||!q.options.length){addOptLine('');addOptLine('');addOptLine('');addOptLine('');} } toggleType();
+    }catch(e){ showToast('Could not load question','error'); return; } } else { $('#optLines').innerHTML=''; addOptLine('');addOptLine('');addOptLine('');addOptLine(''); toggleType(); }
+    show('editorModal'); };
+
+  window.save=async function(){ const id=$('#edId').value; const type=$('#edType').value; const body={ subjectId:$('#edSubject').value, unit:$('#edUnit').value.trim(), chapter:$('#edChapter').value.trim(), questionText:$('#edText').value.trim(), questionType:type, difficulty:$('#edDiff').value, marks:Number($('#edMarks').value)||1, explanation:$('#edExpl').value.trim(), educationLevel:$('#edLevel').value, board:$('#edBoard').value.trim()||undefined, tags:$('#edTags').value.split(',').map(s=>s.trim()).filter(Boolean) };
+    if(!body.subjectId||!body.unit||!body.chapter||!body.questionText){ showToast('Subject, unit, chapter and question are required','error'); return; }
+    if(type==='mcq'){ const opts=[...$('#optLines').querySelectorAll('.opt-line')].map(l=>({ text:l.querySelector('input[type=text],input:not([type])').value.trim(), isCorrect:l.querySelector('input[type=radio]').checked })).filter(o=>o.text); const nc=opts.filter(o=>o.isCorrect).length; if(opts.length<2||nc!==1){ showToast('MCQ needs 2+ options and exactly 1 correct','error'); return; } body.options=opts; }
+    else if(type==='true_false'){ const opts=[...$('#optLines').querySelectorAll('.opt-line')].map(l=>({ text:l.querySelector('input').value.trim(), isCorrect:l.querySelector('input[type=radio]').checked })); body.options=opts; body.correctAnswer=(opts.find(o=>o.isCorrect)||{}).text||''; }
+    else { body.correctAnswer=$('#edAnswer').value.trim(); body.options=[]; }
+    try{ if(id){ await api.request(EG+'/questions/'+id,{method:'PUT',body}); showToast('Question updated','success'); } else { await api.request(EG+'/questions',{method:'POST',body}); showToast('Question added','success'); } hide('editorModal'); load(cur); loadStats(); }catch(e){} };
+
+  window.del=async function(id){ const ok=await showConfirm({title:'Delete question?',message:'This deactivates the question (soft delete).',confirmText:'Delete',type:'danger'}); if(!ok) return; try{ await api.request(EG+'/questions/'+id,{method:'DELETE'}); showToast('Deleted','success'); load(cur); loadStats(); }catch(e){} };
+
+  init();
+})();
+</script>
+</body>
+</html>

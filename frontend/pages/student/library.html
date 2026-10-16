@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Digital Library &amp; Academic Reading | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../css/custom.css">
+  <style>
+    .lib-hero {
+      background: linear-gradient(135deg, #0284C7 0%, #0369A1 50%, #075985 100%);
+      border-radius: 16px; padding: 26px 30px; color: white;
+      position: relative; overflow: hidden; margin-bottom: 22px;
+      box-shadow: 0 10px 25px -5px rgba(2,132,199,0.3);
+    }
+    .lib-hero::before {
+      content: ''; position: absolute; top: -30px; right: -30px;
+      width: 140px; height: 140px; background: rgba(255,255,255,0.08); border-radius: 50%;
+    }
+    .lib-hero::after {
+      content: ''; position: absolute; bottom: -50px; left: 30%;
+      width: 200px; height: 200px; background: rgba(255,255,255,0.04); border-radius: 50%;
+    }
+    .book-card {
+      display: flex; gap: 16px; padding: 16px; border: 1px solid #E2E8F0;
+      border-radius: 14px; transition: all 0.2s ease; background: white;
+    }
+    .book-card:hover { border-color: #0284C7; box-shadow: 0 8px 24px rgba(2,132,199,0.1); transform: translateY(-2px); }
+    .book-cover {
+      width: 76px; height: 104px; background: linear-gradient(135deg, #F0F9FF, #E0F2FE);
+      border: 1px solid #BAE6FD; border-radius: 10px; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; font-size: 24px; color: #0284C7; flex-shrink: 0;
+    }
+    .book-title { font-weight: 800; font-size: 14.5px; color: #0F172A; margin-bottom: 3px; line-height: 1.25; }
+    .book-author { font-size: 11.5px; color: #64748B; margin-bottom: 8px; }
+    .stat-card {
+      background: white; border: 1px solid #E2E8F0; border-radius: 14px;
+      padding: 18px; display: flex; align-items: center; gap: 14px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04); transition: transform 0.2s ease;
+    }
+    .stat-card:hover { transform: translateY(-2px); }
+    .stat-icon {
+      width: 44px; height: 44px; border-radius: 12px; display: flex;
+      align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;
+    }
+    .category-btn {
+      padding: 7px 14px; border-radius: 8px; font-size: 12px; font-weight: 700;
+      border: 1px solid #E2E8F0; background: white; color: #475569; cursor: pointer;
+      transition: all 0.2s; font-family: inherit;
+    }
+    .category-btn:hover { border-color: #0284C7; color: #0284C7; }
+    .category-btn.active { background: #0284C7; color: white; border-color: #0284C7; }
+
+    .issued-card {
+      border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px;
+      background: white; transition: all 0.2s ease;
+    }
+    .issued-card.overdue { border-color: #FCA5A5; background: #FEF2F2; }
+
+    .badge-status {
+      display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px;
+      border-radius: 999px; font-size: 10.5px; font-weight: 700;
+    }
+    .badge-available { background: #D1FAE5; color: #065F46; }
+    .badge-low { background: #FEF3C7; color: #92400E; }
+    .badge-unavailable { background: #FEE2E2; color: #991B1B; }
+    .badge-issued { background: #EEF2FF; color: #4338CA; }
+    .badge-overdue { background: #FEE2E2; color: #991B1B; }
+
+    .btn {
+      padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 700;
+      font-family: inherit; cursor: pointer; border: none; transition: all 0.2s;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-primary { background: linear-gradient(135deg, #0284C7, #0369A1); color: white; }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(2,132,199,0.3); }
+    .btn-secondary { background: #F1F5F9; color: #475569; }
+    .btn-secondary:hover { background: #E2E8F0; }
+    .btn-xs { padding: 4px 10px; font-size: 11px; border-radius: 6px; }
+
+    @media (max-width: 900px) {
+      .main-grid { grid-template-columns: 1fr !important; }
+      .stat-grid { grid-template-columns: repeat(2, 1fr) !important; }
+    }
+  </style>
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-student" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon"><img src="../../icons/logo.png" alt="Vi"></div><div class="sidebar-logo-text">Vishva <span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" id="sidebar-avatar">S</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Student</div><div class="sidebar-user-role">B.Tech | Academic Portal</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Academics</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book"></i> My Courses</a>
+      <a href="timetable.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Timetable</a>
+      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-user-check"></i> Attendance</a>
+      <a href="assignments.html" class="nav-link"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
+      <a href="results.html" class="nav-link"><i class="nav-link-icon fas fa-poll"></i> Results</a>
+      <a href="live-class.html" class="nav-link"><i class="nav-link-icon fas fa-video"></i> Live Classes</a>
+      <div class="nav-section-label">Career Center</div>
+      <a href="career.html" class="nav-link"><i class="nav-link-icon fas fa-rocket"></i> Career Dashboard</a>
+      <a href="skills.html" class="nav-link"><i class="nav-link-icon fas fa-tools"></i> Skills Profile</a>
+      <a href="placements.html" class="nav-link"><i class="nav-link-icon fas fa-briefcase"></i> Placements</a>
+      <a href="assessments.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-check"></i> Assessments</a>
+      <div class="nav-section-label">Facilities</div>
+      <a href="library.html" class="nav-link active"><i class="nav-link-icon fas fa-book-reader"></i> Library</a>
+      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-rupee-sign"></i> Fee Details</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">Student / <span>Digital Library</span></div>
+      </div>
+      <div class="topbar-right"><div class="topbar-avatar" id="topbar-avatar">S</div></div>
+    </header>
+
+    <div class="erp-content page-enter">
+
+      <!-- HERO -->
+      <div class="lib-hero">
+        <div style="position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px">
+          <div style="display:flex;align-items:center;gap:14px">
+            <div style="width:46px;height:46px;border-radius:14px;background:rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;font-size:20px"><i class="fas fa-book-reader"></i></div>
+            <div>
+              <h1 style="font-size:22px;font-weight:900;line-height:1.2">Digital Library &amp; Academic Reading</h1>
+              <p style="font-size:13px;opacity:0.9;margin-top:2px">Search reference stacks, reserve copies, track return due dates &amp; renew loans</p>
+            </div>
+          </div>
+          <div style="flex:1;max-width:320px;min-width:200px">
+            <div style="position:relative">
+              <i class="fas fa-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#94A3B8;font-size:13px"></i>
+              <input type="text" id="searchInput" placeholder="Search title, author, ISBN..." style="width:100%;padding:9px 12px 9px 36px;border-radius:10px;border:none;outline:none;font-size:12.5px;color:#0F172A;font-family:inherit;box-shadow:0 4px 12px rgba(0,0,0,0.15)">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4 STATS ROW -->
+      <div class="stat-grid" style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:22px">
+        <div class="stat-card">
+          <div class="stat-icon bg-sky-50 text-sky-600"><i class="fas fa-book"></i></div>
+          <div><div style="font-size:20px;font-weight:800;color:#0F172A" id="statTotalBooks">-</div><div style="font-size:11.5px;color:#64748B;font-weight:600">Catalog Titles</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon bg-emerald-50 text-emerald-600"><i class="fas fa-check-circle"></i></div>
+          <div><div style="font-size:20px;font-weight:800;color:#0F172A" id="statAvailable">-</div><div style="font-size:11.5px;color:#64748B;font-weight:600">Available to Reserve</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon bg-indigo-50 text-indigo-600"><i class="fas fa-bookmark"></i></div>
+          <div><div style="font-size:20px;font-weight:800;color:#0F172A" id="statMyIssued">0</div><div style="font-size:11.5px;color:#64748B;font-weight:600">My Active Loans</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon bg-rose-50 text-rose-600"><i class="fas fa-exclamation-triangle"></i></div>
+          <div><div style="font-size:20px;font-weight:800;color:#0F172A" id="statMyOverdue">0</div><div style="font-size:11.5px;color:#64748B;font-weight:600">Overdue / Fines</div></div>
+        </div>
+      </div>
+
+      <!-- MAIN CONTENT: CATALOG + LOANS DESK -->
+      <div class="main-grid" style="display:grid;grid-template-columns:1fr 340px;gap:22px;align-items:start">
+
+        <!-- CATALOG COLUMN -->
+        <div>
+          <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap" id="categoryFilters">
+            <button class="category-btn active" data-category="">All Categories</button>
+            <button class="category-btn" data-category="Computer Science">Computer Science</button>
+            <button class="category-btn" data-category="Mathematics">Mathematics</button>
+            <button class="category-btn" data-category="Physics">Physics</button>
+            <button class="category-btn" data-category="Electronics">Electronics</button>
+            <button class="category-btn" data-category="Management">Management</button>
+          </div>
+
+          <div id="catalogGrid" style="display:grid;grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));gap:14px">
+            <div style="grid-column:1/-1;text-align:center;padding:40px;color:#94A3B8"><i class="fas fa-spinner fa-spin mr-2"></i>Loading catalog...</div>
+          </div>
+        </div>
+
+        <!-- MY ISSUED BOOKS SIDEBAR -->
+        <div class="card" style="background:white;border:1px solid #E2E8F0;border-radius:16px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.04)">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+            <h3 style="font-size:14px;font-weight:800;color:#0F172A;margin:0"><i class="fas fa-bookmark text-sky-600 mr-2"></i>My Borrowed Books</h3>
+            <span style="font-size:11px;font-weight:700;color:#0284C7;background:#E0F2FE;padding:2px 8px;border-radius:999px" id="issuedBadge">0 Loans</span>
+          </div>
+          <div id="issuedList" style="display:flex;flex-direction:column;gap:12px">
+            <div style="text-align:center;padding:20px;color:#94A3B8;font-size:12.5px">Loading your loans...</div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script>
+let allBooks = [];
+let myLoans = [];
+let currentCategory = '';
+let currentSearch = '';
+
+async function loadStats() {
+  try {
+    const res = await window.api.request('/library/stats');
+    const s = res.stats || res.data || res;
+    document.getElementById('statTotalBooks').textContent = s.totalBooks || 0;
+    document.getElementById('statAvailable').textContent = s.availableCopies || 0;
+    document.getElementById('statMyIssued').textContent = s.myIssued || 0;
+    document.getElementById('statMyOverdue').textContent = s.myOverdue || 0;
+  } catch (e) {
+    console.error('Stats error:', e);
+  }
+}
+
+async function loadBooks() {
+  try {
+    const res = await window.api.request('/library/books?limit=200');
+    allBooks = res.books || res.data || [];
+    renderBooks();
+  } catch (err) {
+    document.getElementById('catalogGrid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#EF4444">Failed to load catalog</div>';
+  }
+}
+
+function renderBooks() {
+  const container = document.getElementById('catalogGrid');
+  const filtered = allBooks.filter(b => {
+    if (currentCategory && b.category !== currentCategory) return false;
+    if (currentSearch) {
+      const haystack = ((b.title || '') + ' ' + (b.author || '') + ' ' + (b.isbn || '') + ' ' + (b.subject || '')).toLowerCase();
+      if (!haystack.includes(currentSearch)) return false;
+    }
+    return true;
+  });
+
+  if (!filtered.length) {
+    container.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#94A3B8"><i class="fas fa-book-open text-3xl mb-2 block"></i>No books found matching criteria</div>';
+    return;
+  }
+
+  container.innerHTML = filtered.map(b => {
+    const avail = b.availableCopies !== undefined ? b.availableCopies : (b.totalCopies || 1);
+    let stockBadge = '<span class="badge-status badge-available">Available</span>';
+    if (avail === 0) stockBadge = '<span class="badge-status badge-unavailable">Out of Stock</span>';
+    else if (avail <= 2) stockBadge = `<span class="badge-status badge-low">${avail} Left</span>`;
+
+    const isAlreadyIssued = myLoans.some(l => {
+      const bId = l.bookId?._id || l.bookId;
+      return (l.status === 'issued' || l.status === 'overdue') && bId === b._id;
+    });
+
+    return `
+      <div class="book-card">
+        <div class="book-cover"><i class="fas fa-book-open"></i><span style="font-size:9px;font-weight:800;color:#0369A1;margin-top:4px">${b.category ? b.category.slice(0,4).toUpperCase() : 'ERP'}</span></div>
+        <div style="flex:1;min-width:0">
+          <div class="book-title">${b.title}</div>
+          <div class="book-author">${b.author || 'Author'} &bull; <span style="font-family:monospace">${b.isbn || 'No ISBN'}</span></div>
+          <div style="font-size:11px;color:#64748B;margin-bottom:10px"><i class="fas fa-location-dot mr-1 text-rose-500"></i>${b.location || 'Main Shelf'}</div>
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            ${stockBadge}
+            ${isAlreadyIssued
+              ? '<span class="btn btn-xs btn-secondary" style="opacity:0.7;cursor:default"><i class="fas fa-check"></i> In Your Loans</span>'
+              : (avail > 0
+                  ? `<button class="btn btn-xs btn-primary" onclick="reserveBook('${b._id}')"><i class="fas fa-hand-holding"></i> Reserve</button>`
+                  : '<button class="btn btn-xs btn-secondary" disabled style="opacity:0.5">Waitlist</button>'
+                )
+            }
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function loadMyLoans() {
+  try {
+    const res = await window.api.request('/library/books/mine');
+    myLoans = res.records || res.data || [];
+    renderMyLoans();
+  } catch (err) {
+    document.getElementById('issuedList').innerHTML = '<div style="text-align:center;padding:20px;color:#EF4444;font-size:12px">Failed to load loans</div>';
+  }
+}
+
+function renderMyLoans() {
+  const container = document.getElementById('issuedList');
+  const activeLoans = myLoans.filter(l => l.status === 'issued' || l.status === 'overdue');
+  document.getElementById('issuedBadge').textContent = activeLoans.length + ' Active Loan' + (activeLoans.length !== 1 ? 's' : '');
+
+  if (!activeLoans.length) {
+    container.innerHTML = '<div style="text-align:center;padding:28px 10px;color:#94A3B8;font-size:12.5px"><i class="fas fa-book-reader text-2xl mb-2 block text-slate-300"></i>You have no books currently checked out.</div>';
+    return;
+  }
+
+  container.innerHTML = activeLoans.map(l => {
+    const book = l.bookId || {};
+    const isOverdue = l.status === 'overdue' || (l.dueDate && new Date(l.dueDate) < new Date());
+    const dueDateStr = l.dueDate ? new Date(l.dueDate).toLocaleDateString([], {month:'short', day:'numeric'}) : 'TBD';
+
+    return `
+      <div class="issued-card ${isOverdue ? 'overdue' : ''}">
+        <div style="font-weight:700;font-size:13px;color:#0F172A;margin-bottom:2px">${book.title || 'Book Title'}</div>
+        <div style="font-size:11px;color:#64748B;margin-bottom:8px">${book.author || ''} &bull; <span style="font-family:monospace">${book.isbn || ''}</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
+          ${isOverdue
+            ? `<span class="badge-status badge-overdue"><i class="fas fa-exclamation-circle"></i> Overdue (Fine: ₹${l.fine || 10})</span>`
+            : `<span style="font-size:11px;font-weight:700;color:#059669"><i class="fas fa-clock mr-1"></i>Due: ${dueDateStr}</span>`
+          }
+          <button class="btn btn-xs btn-secondary" onclick="renewLoan('${l._id}')"><i class="fas fa-rotate"></i> Renew +14d</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function reserveBook(bookId) {
+  try {
+    const res = await window.api.request('/library/issue', {
+      method: 'POST',
+      body: JSON.stringify({ bookId })
+    });
+    window.showToast(res.message || 'Book reserved successfully!', 'success');
+    loadStats();
+    loadBooks();
+    loadMyLoans();
+  } catch (err) {
+    window.showToast(err.message || 'Failed to reserve book', 'error');
+  }
+}
+
+async function renewLoan(recordId) {
+  try {
+    const res = await window.api.request('/library/renew/' + recordId, { method: 'POST' });
+    window.showToast(res.message || 'Loan renewed for 14 days', 'success');
+    loadStats();
+    loadMyLoans();
+  } catch (err) {
+    window.showToast(err.message || 'Failed to renew loan', 'error');
+  }
+}
+
+document.getElementById('searchInput').addEventListener('input', function(e) {
+  currentSearch = e.target.value.toLowerCase().trim();
+  renderBooks();
+});
+
+document.getElementById('categoryFilters').addEventListener('click', function(e) {
+  const btn = e.target.closest('.category-btn');
+  if (!btn) return;
+  document.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentCategory = btn.dataset.category || '';
+  renderBooks();
+});
+
+loadStats();
+loadMyLoans().then(loadBooks);
+</script>
+</body>
+</html>
