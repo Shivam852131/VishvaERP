@@ -74,6 +74,41 @@
     .badge-tag { display:inline-block; padding:3px 10px; border-radius:999px; font-size:11px; font-weight:800; margin-right:6px; }
     .chip-select { display:inline-block; padding:8px 16px; border:1.5px solid #E2E8F0; border-radius:999px; font-size:13px; font-weight:700; cursor:pointer; transition:all 0.2s; margin:4px; }
     .chip-select:hover, .chip-select.active { border-color:#8B5CF6; background:#F5F3FF; color:#6D28D9; }
+
+    /* ───────── Rebuilt real-time chat ───────── */
+    .chat-workspace { position:relative; }
+    .jump-bottom { position:absolute; right:22px; bottom:16px; z-index:6; display:none; align-items:center; gap:7px; border:1px solid #C4B5FD; background:white; color:#6D28D9; font-size:12px; font-weight:900; border-radius:999px; padding:8px 14px; cursor:pointer; box-shadow:0 10px 26px rgba(15,23,42,.18); }
+    .jump-bottom.show { display:inline-flex; }
+    .jump-bottom:hover { background:#8B5CF6; color:white; border-color:#8B5CF6; }
+    .stream-caret { color:#8B5CF6; font-weight:900; animation:caretBlink .85s steps(2,end) infinite; }
+    @keyframes caretBlink { 0%,100% { opacity:1; } 50% { opacity:0; } }
+    .thinking-wave { display:inline-flex; gap:9px; align-items:center; color:#7C3AED; font-size:12.5px; font-weight:800; }
+    .msg-content.stream-error { border-color:#FCA5A5; background:#FEF2F2; color:#B91C1C; display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+    .md-p { margin:0 0 7px; } .md-p:last-child { margin-bottom:0; }
+    .md-gap { height:7px; }
+    .md-h { font-weight:900; color:#0F172A; margin:14px 0 7px; line-height:1.35; }
+    .md-h1 { font-size:18px; } .md-h2 { font-size:16px; } .md-h3 { font-size:14.5px; color:#1E293B; } .md-h4 { font-size:13.5px; color:#334155; }
+    .md-ul, .md-ol { margin:4px 0 9px; padding-left:22px; }
+    .md-ul { list-style:disc; } .md-ol { list-style:decimal; }
+    .md-ul li, .md-ol li { margin:5px 0; line-height:1.6; }
+    .md-quote { border-left:3px solid #A78BFA; background:#F5F3FF; color:#5B21B6; padding:8px 12px; border-radius:0 10px 10px 0; margin:8px 0; font-style:italic; }
+    .md-hr { border:none; border-top:1px solid #E2E8F0; margin:12px 0; }
+    .md-code-inline { background:#F1F5F9; color:#6D28D9; border:1px solid #E2E8F0; border-radius:6px; padding:1px 6px; font-size:12.5px; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }
+    .md-code { margin:10px 0; border-radius:14px; overflow:hidden; border:1px solid #1E293B; background:#0F172A; }
+    .md-code-head { display:flex; align-items:center; justify-content:space-between; background:#1E293B; padding:7px 12px; font-size:10.5px; font-weight:900; letter-spacing:.1em; text-transform:uppercase; color:#94A3B8; }
+    .md-code-copy { border:1px solid #334155; background:#0F172A; color:#CBD5E1; font-size:10.5px; font-weight:800; border-radius:8px; padding:4px 10px; cursor:pointer; text-transform:none; letter-spacing:0; font-family:inherit; }
+    .md-code-copy:hover { background:#8B5CF6; border-color:#8B5CF6; color:white; }
+    .md-pre { margin:0; padding:14px; overflow-x:auto; }
+    .md-pre code { display:block; background:transparent; color:#E2E8F0; border:none; padding:0; font-size:12.5px; line-height:1.65; font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; white-space:pre; }
+    .msg-content a { color:#7C3AED; font-weight:800; }
+    .msg-content a:hover { text-decoration:underline; }
+    .input-hints { display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap; font-size:11px; color:#94A3B8; margin-top:10px; }
+    #liveStats { color:#059669; font-weight:900; }
+    #liveStats.busy { color:#8B5CF6; }
+    #liveStats.bad { color:#DC2626; }
+    .stop-btn { display:none !important; }
+    .stop-btn.active { display:flex !important; background:#EF4444 !important; animation:pulseStop 1.2s infinite; }
+    @keyframes pulseStop { 0%,100% { box-shadow:0 0 0 0 rgba(239,68,68,.45); } 60% { box-shadow:0 0 0 8px rgba(239,68,68,0); } }
   </style>
 </head>
 <body>
@@ -198,29 +233,23 @@
           <button class="btn btn-secondary btn-sm" onclick="newChat()"><i class="fas fa-rotate"></i> Clear</button>
         </div>
 
-        <!-- CHAT WORKSPACE (for conversational tools) -->
-        <div id="chatWorkspace" class="form-panel active" style="padding:0;display:flex;flex-direction:column;flex:1;">
+        <!-- CHAT WORKSPACE (rebuilt: real-time streaming) -->
+        <div id="chatWorkspace" class="form-panel chat-workspace active" style="padding:0;display:flex;flex-direction:column;flex:1;">
           <div class="quick-prompts" id="quickPrompts"></div>
-          <div class="chat-container" id="chatWindow">
-            <div class="msg-box ai">
-              <div class="msg-avatar"><i class="fas fa-robot"></i></div>
-              <div class="msg-card">
-                <div class="msg-meta">Vishva AI</div>
-                <div class="msg-content ai-markdown" id="welcomeMsg">
-                  Hello! I am your real-time AI assistant. Ask a doubt, paste a problem, or choose a quick prompt. I will stream the answer as it is generated.
-                </div>
-              </div>
-            </div>
-          </div>
+          <button type="button" class="jump-bottom" id="jumpBottom"><i class="fas fa-arrow-down"></i> Latest</button>
+          <div class="chat-container" id="chatWindow"></div>
           <div class="ai-input-area">
             <form id="aiForm" onsubmit="submitForm(event)">
               <div class="input-wrapper">
                 <textarea id="aiInput" placeholder="Ask anything..." autocomplete="off" rows="1"></textarea>
-                <button type="button" id="stopBtn" class="stop-btn" onclick="stopStreaming()"><i class="fas fa-stop"></i></button>
-                <button type="submit" id="sendBtn"><i class="fas fa-paper-plane"></i></button>
+                <button type="button" id="stopBtn" class="stop-btn" onclick="stopStreaming()" title="Stop generating"><i class="fas fa-stop"></i></button>
+                <button type="submit" id="sendBtn" title="Send message"><i class="fas fa-paper-plane"></i></button>
               </div>
             </form>
-            <div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:11px;color:#94A3B8;margin-top:10px"><span>Enter sends. Shift+Enter adds a new line.</span><span>AI can make mistakes. Verify important information.</span></div>
+            <div class="input-hints">
+              <span><b>Enter</b> sends &middot; <b>Shift+Enter</b> adds a new line &middot; answers stream token-by-token</span>
+              <span id="liveStats">Real-time stream ready</span>
+            </div>
           </div>
         </div>
 
@@ -342,8 +371,8 @@
   let messages = [];
   let abortController = null;
 
-  const API_URL = (location.hostname === 'localhost' || location.hostname === '127.0.0.1')
-    ? '/api' : 'https://vishvaerp.onrender.com/api';
+  // API_URL comes from ../js/shared.js (loaded above) — do not redeclare it here,
+  // a duplicate const in the same global scope kills this whole script.
 
   const toolData = {
     chat: {
@@ -433,16 +462,112 @@
       .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
-  function formatAIOutput(text) {
-    let html = escapeText(text || '');
-    html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
-    html = html.replace(/\*\*(.*?)\*\*/g, '<span class="md-strong">$1</span>');
-    html = html.replace(/^### (.*)$/gm, '<div style="font-weight:900;color:#0F172A;margin-top:12px">$1</div>');
-    html = html.replace(/^## (.*)$/gm, '<div style="font-weight:900;color:#0F172A;font-size:16px;margin-top:12px">$1</div>');
-    html = html.replace(/^# (.*)$/gm, '<div style="font-weight:900;color:#0F172A;font-size:18px;margin-top:12px">$1</div>');
-    html = html.replace(/^\d+\. (.*)$/gm, '<div style="margin:6px 0"><span style="font-weight:900;color:#8B5CF6">•</span> $1</div>');
-    html = html.replace(/^- (.*)$/gm, '<div style="margin:6px 0"><span style="font-weight:900;color:#8B5CF6">•</span> $1</div>');
-    return html.replace(/\n/g, '<br>');
+  let codeSeq = 0;
+
+  // Language tags recognized on a ``` fence line. Sorted longest-first so
+  // 'javascript' wins over 'java', etc. Short tags (<=2 chars) only match
+  // with a word boundary so "```class" doesn't become language "c".
+  const FENCE_TAGS = ['javascript', 'typescript', 'powershell', 'plaintext', 'markdown', 'dockerfile',
+    'python', 'kotlin', 'swift', 'scala', 'rust', 'ruby', 'php', 'dart', 'jsx', 'tsx', 'json',
+    'yaml', 'html', 'css', 'sql', 'bash', 'shell', 'java', 'cpp', 'csharp', 'text', 'py',
+    'sh', 'ts', 'js', 'md', 'go', 'c', 'r'];
+
+  // Render one escaped line's inline formatting (bold, italic, code, links).
+  function inlineMd(text) {
+    let s = text;
+    s = s.replace(/`([^`]+)`/g, '<code class="md-code-inline">$1</code>');
+    s = s.replace(/\*\*([^*]+)\*\*/g, '<strong class="md-strong">$1</strong>');
+    s = s.replace(/(^|[^*\w])\*([^*\n]+)\*/g, '$1<em>$2</em>');
+    s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+    return s;
+  }
+
+  function renderCodeBlock(lang, code, unterminated) {
+    return `<div class="md-code">
+      <div class="md-code-head"><span>${escapeText(lang || 'code')}${unterminated ? ' · streaming…' : ''}</span>
+        <button type="button" class="md-code-copy" data-code="${encodeURIComponent(code)}"><i class="fas fa-copy"></i> Copy</button></div>
+      <pre class="md-pre"><code>${escapeText(code)}${unterminated ? '▌' : ''}</code></pre>
+    </div>`;
+  }
+
+  // Markdown → HTML. Safe (escapes first) and tolerant of partial text so it can
+  // repaint every animation frame while tokens are still streaming in.
+  // Pass final=true for completed text so an unclosed code fence renders cleanly
+  // (models sometimes omit the closing ```).
+  function formatAIOutput(text, final = false) {
+    // Models sometimes glue a ``` fence to surrounding text ("text:```python").
+    // Normalize those onto their own lines so the fence parser catches them.
+    const lines = String(text ?? '').replace(/([^\n])```/g, '$1\n```').split('\n');
+    let html = '';
+    let list = null; // current open list tag: 'ul' | 'ol' | null
+    const closeList = () => { if (list) { html += `</${list}>`; list = null; } };
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+
+      const fence = line.match(/^\s*```(.*)$/);
+      if (fence) {
+        closeList();
+        // Everything after the backticks: a language tag, possibly glued to the
+        // first code line ("```pythonclass ListNode:"), or just the opening fence.
+        let rest = fence[1];
+        let lang = '';
+        const low = rest.toLowerCase();
+        for (const tag of FENCE_TAGS) {
+          if (low.startsWith(tag)) {
+            const next = rest.charAt(tag.length);
+            if (tag.length >= 3 || next === '' || /[^a-zA-Z0-9_]/.test(next)) {
+              lang = tag;
+              rest = rest.slice(tag.length);
+              break;
+            }
+          }
+        }
+        if (!lang && /^[\w+#-]*$/.test(rest)) { lang = rest; rest = ''; }
+        const buf = [];
+        const firstLine = rest.replace(/^\s+/, '');
+        if (firstLine) buf.push(firstLine);
+        let closed = false;
+        let afterText = '';
+        for (i = i + 1; i < lines.length; i++) {
+          if (/^\s*```\s*$/.test(lines[i])) { closed = true; break; }
+          const withText = lines[i].match(/^\s*```\s+(\S.*)$/);
+          if (withText) { closed = true; afterText = withText[1].trim(); break; }
+          buf.push(lines[i]);
+        }
+        html += renderCodeBlock(lang, buf.join('\n'), !closed && !final);
+        if (afterText) html += `<div class="md-p">${inlineMd(escapeText(afterText))}</div>`;
+        continue;
+      }
+
+      const heading = line.match(/^(#{1,4})\s+(.*)$/);
+      if (heading) { closeList(); html += `<div class="md-h md-h${heading[1].length}">${inlineMd(escapeText(heading[2]))}</div>`; continue; }
+
+      if (/^\s*(-{3,}|\*{3,}|_{3,})\s*$/.test(line)) { closeList(); html += '<hr class="md-hr">'; continue; }
+
+      if (/^\s*>\s?/.test(line)) { closeList(); html += `<div class="md-quote">${inlineMd(escapeText(line.replace(/^\s*>\s?/, '')))}</div>`; continue; }
+
+      const ulItem = line.match(/^\s*[-*+]\s+(.*)$/);
+      if (ulItem) {
+        if (list !== 'ul') { closeList(); html += '<ul class="md-ul">'; list = 'ul'; }
+        html += `<li>${inlineMd(escapeText(ulItem[1]))}</li>`;
+        continue;
+      }
+
+      const olItem = line.match(/^\s*\d+[.)]\s+(.*)$/);
+      if (olItem) {
+        if (list !== 'ol') { closeList(); html += '<ol class="md-ol">'; list = 'ol'; }
+        html += `<li>${inlineMd(escapeText(olItem[1]))}</li>`;
+        continue;
+      }
+
+      if (!line.trim()) { closeList(); html += '<div class="md-gap"></div>'; continue; }
+
+      closeList();
+      html += `<div class="md-p">${inlineMd(escapeText(line))}</div>`;
+    }
+    closeList();
+    return html;
   }
 
   function saveMessages() {
@@ -474,15 +599,26 @@
     const row = document.createElement('div');
     row.className = `msg-box ${isUser ? 'user' : 'ai'}`;
     const name = isUser ? (user?.name || 'You') : toolData[currentMode].title;
+    let body;
+    if (options.typing) {
+      body = '<span class="thinking-wave"><span class="typing-dots"><span></span><span></span><span></span></span> Thinking&hellip;</span>';
+    } else if (isUser) {
+      body = escapeText(content).replace(/\n/g, '<br>');
+    } else {
+      body = formatAIOutput(content, true);
+    }
     row.innerHTML = `
       <div class="msg-avatar"><i class="fas fa-${isUser ? 'user' : 'robot'}"></i></div>
       <div class="msg-card">
-        <div class="msg-meta">${escapeText(name)} • ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
-        <div class="msg-content ${isUser ? '' : 'ai-markdown'}">${options.typing ? '<span class="typing-dots"><span></span><span></span><span></span></span>' : (isUser ? escapeText(content).replace(/\n/g, '<br>') : formatAIOutput(content))}</div>
-        ${isUser ? '' : '<div class="msg-actions"><button class="msg-action-btn" onclick="copyMessage(this)"><i class="fas fa-copy"></i> Copy</button></div>'}
+        <div class="msg-meta">${escapeText(name)} &bull; ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+        <div class="msg-content ${isUser ? '' : 'ai-markdown'}" data-role="${isUser ? 'user' : 'assistant'}">${body}</div>
+        <div class="msg-actions">
+          <button class="msg-action-btn" data-copy><i class="fas fa-copy"></i> Copy</button>
+          ${isUser ? '' : '<button class="msg-action-btn" data-regen style="display:none"><i class="fas fa-rotate"></i> Regenerate</button>'}
+        </div>
       </div>`;
     windowEl.appendChild(row);
-    windowEl.scrollTop = windowEl.scrollHeight;
+    scrollChatToBottom(true);
     return row.querySelector('.msg-content');
   }
 
@@ -547,10 +683,49 @@
     URL.revokeObjectURL(link.href);
   }
 
-  function copyMessage(button) {
-    const content = button.closest('.msg-card').querySelector('.msg-content').innerText;
-    navigator.clipboard?.writeText(content);
-    showToast('AI response copied', 'success');
+  // ───────────────────────── Real-time streaming engine ─────────────────────────
+  let streamState = null; // { abort, outputEl, full, buffer, raf, interval, startedAt, firstToken }
+
+  function isNearBottom() {
+    const el = document.getElementById('chatWindow');
+    return (el.scrollHeight - el.scrollTop - el.clientHeight) < 150;
+  }
+
+  function scrollChatToBottom(smooth) {
+    const el = document.getElementById('chatWindow');
+    el.scrollTo({ top: el.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
+    document.getElementById('jumpBottom').classList.remove('show');
+  }
+
+  function setLiveStats(text, cls = '') {
+    const el = document.getElementById('liveStats');
+    if (!el) return;
+    el.textContent = text;
+    el.className = cls;
+  }
+
+  function updateStreamStats() {
+    const s = streamState;
+    if (!s) return;
+    const secs = ((performance.now() - s.startedAt) / 1000).toFixed(1);
+    if (!s.firstToken) { setLiveStats(`Thinking… ${secs}s`, 'busy'); return; }
+    setLiveStats(`● LIVE · ${secs}s · ${((s.full + s.buffer).length).toLocaleString()} chars`, 'busy');
+  }
+
+  // Tokens accumulate in a buffer; repaint at most once per animation frame.
+  function schedulePaint() {
+    const s = streamState;
+    if (!s || s.raf) return;
+    s.raf = requestAnimationFrame(() => {
+      const st = streamState;
+      if (!st) return;
+      st.raf = null;
+      if (st.buffer) { st.full += st.buffer; st.buffer = ''; }
+      const pinned = isNearBottom();
+      st.outputEl.innerHTML = formatAIOutput(st.full) + '<span class="stream-caret">▍</span>';
+      if (pinned) scrollChatToBottom(false);
+      updateStreamStats();
+    });
   }
 
   function setStreaming(active) {
@@ -558,85 +733,197 @@
     document.getElementById('stopBtn').classList.toggle('active', active);
     document.getElementById('sendBtn').innerHTML = active ? '<i class="fas fa-circle-notch fa-spin"></i>' : '<i class="fas fa-paper-plane"></i>';
     setStatus(active ? 'Generating response in real time' : 'Online and ready', active);
+    if (!active) document.getElementById('aiInput')?.focus();
   }
 
   function stopStreaming() {
-    if (abortController) abortController.abort();
-    abortController = null;
-    setStreaming(false);
-    setStatus('Stopped');
+    if (abortController) { abortController.abort(); setStatus('Stopping…', true); }
+  }
+
+  function friendlyHttpError(status, message) {
+    if (status === 429) return 'Rate limit reached — the AI allows about 20 messages per minute. Wait a few seconds and try again.';
+    if (status === 401 || status === 403) return 'Your session expired. Please log in again.';
+    if (status === 400) return message || 'The request was rejected.';
+    return message || `Server error (HTTP ${status}).`;
   }
 
   async function streamChat(payload, outputEl) {
-    abortController = new AbortController();
-    const response = await fetch(`${API_URL}/ai/chat/stream`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${api.getToken()}` },
-      body: JSON.stringify(payload),
-      signal: abortController.signal,
-    });
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: `HTTP ${response.status}` }));
-      throw new Error(error.message || `HTTP ${response.status}`);
-    }
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = '', fullText = '';
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      const events = buffer.split('\n\n');
-      buffer = events.pop() || '';
-      for (const rawEvent of events) {
-        const event = rawEvent.split('\n').find((l) => l.startsWith('event:'))?.replace('event:', '').trim();
-        const dataLine = rawEvent.split('\n').find((l) => l.startsWith('data:'));
-        if (!dataLine) continue;
-        const pd = JSON.parse(dataLine.replace('data:', '').trim());
-        if (event === 'token') { fullText += pd.token || ''; outputEl.innerHTML = formatAIOutput(fullText); document.getElementById('chatWindow').scrollTop = document.getElementById('chatWindow').scrollHeight; }
-        if (event === 'done') { fullText = pd.response || fullText; }
-        if (event === 'error') throw new Error(pd.message || 'AI stream failed');
+    const state = {
+      abort: new AbortController(),
+      outputEl, full: '', buffer: '', raf: null, interval: null,
+      startedAt: performance.now(), firstToken: false,
+    };
+    streamState = state;
+    abortController = state.abort;
+    state.interval = setInterval(updateStreamStats, 250);
+    updateStreamStats();
+
+    try {
+      const response = await fetch(`${API_URL}/ai/chat/stream`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${api.getToken()}` },
+        body: JSON.stringify(payload),
+        signal: state.abort.signal,
+      });
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({}));
+        const err = new Error(friendlyHttpError(response.status, error.message));
+        err.status = response.status;
+        throw err;
       }
+
+      let finalText = '';
+
+      if (response.body && response.body.getReader) {
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let raw = '';
+        for (;;) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          raw += decoder.decode(value, { stream: true });
+          const events = raw.split('\n\n');
+          raw = events.pop() || '';
+          for (const evt of events) {
+            const lines = evt.split('\n');
+            const event = (lines.find((l) => l.startsWith('event:')) || '').slice(6).trim();
+            const dataLine = lines.find((l) => l.startsWith('data:'));
+            if (!dataLine) continue;
+            let data;
+            try { data = JSON.parse(dataLine.slice(5).trim()); } catch (parseErr) { continue; }
+            if (event === 'token') {
+              if (!state.firstToken) { state.firstToken = true; state.outputEl.innerHTML = ''; }
+              state.buffer += data.token || '';
+              schedulePaint();
+            } else if (event === 'done') {
+              finalText = data.response || '';
+            } else if (event === 'error') {
+              throw new Error(data.message || 'The AI stream failed.');
+            }
+          }
+        }
+      } else {
+        // No streaming support in this browser: plain non-stream request.
+        const data = await response.json().catch(() => ({}));
+        finalText = data.response || '';
+        state.firstToken = true;
+        state.full = finalText;
+      }
+
+      state.full += state.buffer; state.buffer = '';
+      const result = finalText || state.full;
+      outputEl.innerHTML = formatAIOutput(result, true);
+      return result;
+    } catch (err) {
+      if (err.name === 'AbortError') err.partial = state.full + state.buffer;
+      throw err;
+    } finally {
+      clearInterval(state.interval);
+      if (state.raf) cancelAnimationFrame(state.raf);
+      if (streamState === state) streamState = null;
+      abortController = null;
     }
-    return fullText;
+  }
+
+  function renderStreamError(outputEl, message) {
+    outputEl.classList.add('stream-error');
+    outputEl.innerHTML = `<i class="fas fa-triangle-exclamation"></i><span>${escapeText(message)}</span><button type="button" class="msg-action-btn" data-retry><i class="fas fa-rotate-right"></i> Retry</button>`;
+  }
+
+  async function runStream(text) {
+    if (streamState) { showToast('Please wait for the current answer to finish.', 'error'); return; }
+    const outputEl = appendMessage('assistant', '', { typing: true });
+    setStreaming(true);
+    setLiveStats('Connecting…', 'busy');
+    const started = performance.now();
+    try {
+      const lastIsUser = messages[messages.length - 1]?.role === 'user';
+      const history = (lastIsUser ? messages.slice(0, -1) : messages).slice(-10);
+      const assistantText = await streamChat({
+        mode: currentMode,
+        message: text, question: text, topic: text,
+        history,
+      }, outputEl);
+      outputEl.classList.remove('stream-error');
+      messages.push({ role: 'assistant', content: assistantText || outputEl.innerText });
+      saveMessages();
+      const secs = ((performance.now() - started) / 1000).toFixed(1);
+      setLiveStats(`✓ Done in ${secs}s · ${(assistantText || '').length.toLocaleString()} chars`);
+      setStatus('Response complete');
+      document.querySelectorAll('#chatWindow [data-regen]').forEach((b) => { b.style.display = 'none'; });
+      const regenBtn = outputEl.closest('.msg-card')?.querySelector('[data-regen]');
+      if (regenBtn) regenBtn.style.display = '';
+      scrollChatToBottom(true);
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        const partial = (err.partial || '').trim();
+        const stopped = partial ? `${partial}\n\n_⏹ Stopped by user._` : '_⏹ Stopped before the first token arrived._';
+        outputEl.classList.remove('stream-error');
+        outputEl.innerHTML = formatAIOutput(stopped, true);
+        messages.push({ role: 'assistant', content: stopped });
+        saveMessages();
+        setLiveStats('⏹ Stopped');
+        setStatus('Stopped');
+      } else {
+        renderStreamError(outputEl, err.message);
+        setLiveStats(`✕ ${err.message}`, 'bad');
+        setStatus('Request failed');
+        showToast(err.message, 'error');
+      }
+    } finally {
+      setStreaming(false);
+    }
+  }
+
+  async function sendUserMessage(text) {
+    messages.push({ role: 'user', content: text });
+    saveMessages();
+    appendMessage('user', text);
+    await runStream(text);
   }
 
   async function submitForm(e) {
     e.preventDefault();
     const input = document.getElementById('aiInput');
     const val = input.value.trim();
-    if (!val || abortController) return;
-    messages.push({ role: 'user', content: val });
-    saveMessages();
-    appendMessage('user', val);
+    if (!val || streamState) return;
     input.value = '';
     resizeInput();
-    const outputEl = appendMessage('assistant', '', { typing: true });
-    setStreaming(true);
-    try {
-      const assistantText = await streamChat({
-        mode: currentMode, message: val, question: val,
-        topic: currentMode === 'tutor' || currentMode === 'notes' ? val : undefined,
-        subject: currentMode === 'exam' ? val.split(',')[0] : undefined,
-        difficulty: currentMode === 'exam' && val.split(',')[1] ? val.split(',')[1].trim() : undefined,
-        numQuestions: currentMode === 'exam' && val.split(',')[2] ? parseInt(val.split(',')[2].trim(), 10) : undefined,
-        history: messages.slice(-10),
-      }, outputEl);
-      messages.push({ role: 'assistant', content: assistantText || outputEl.innerText });
-      saveMessages();
-      setStatus('Response complete');
-    } catch (err) {
-      if (err.name === 'AbortError') {
-        outputEl.innerHTML = formatAIOutput(`${outputEl.innerText}\n\n_Response stopped by user._`);
-      } else {
-        outputEl.innerHTML = formatAIOutput(`AI request failed: ${err.message}`);
-        showToast(err.message, 'error');
-      }
-    } finally {
-      abortController = null;
-      setStreaming(false);
-    }
+    await sendUserMessage(val);
   }
+
+  async function regenerate() {
+    if (streamState) return;
+    const idx = messages.map((m) => m.role).lastIndexOf('user');
+    if (idx < 0) { showToast('Nothing to regenerate yet.', 'error'); return; }
+    const text = messages[idx].content;
+    messages.splice(idx + 1); // drop old answers for this question
+    saveMessages();
+    renderChat();
+    await runStream(text);
+  }
+
+  // Delegated actions: code copy, message copy, retry/regenerate, jump-to-bottom.
+  document.getElementById('chatWindow').addEventListener('click', (e) => {
+    const codeBtn = e.target.closest('.md-code-copy');
+    if (codeBtn) {
+      navigator.clipboard?.writeText(decodeURIComponent(codeBtn.dataset.code || ''));
+      showToast('Code copied', 'success');
+      return;
+    }
+    const copyBtn = e.target.closest('[data-copy]');
+    if (copyBtn) {
+      navigator.clipboard?.writeText(copyBtn.closest('.msg-card').querySelector('.msg-content').innerText);
+      showToast('Message copied', 'success');
+      return;
+    }
+    if (e.target.closest('[data-retry]') || e.target.closest('[data-regen]')) { regenerate(); }
+  });
+
+  document.getElementById('chatWindow').addEventListener('scroll', () => {
+    document.getElementById('jumpBottom').classList.toggle('show', !isNearBottom());
+  });
+  document.getElementById('jumpBottom').addEventListener('click', () => scrollChatToBottom(true));
 
   // --- FORM-BASED TOOL HELPERS ---
   function selectChip(el, inputId) {
@@ -663,7 +950,7 @@
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || 'Request failed');
-      resultEl.innerHTML = formatAIOutput(data.response || 'No response generated.');
+      resultEl.innerHTML = formatAIOutput(data.response || 'No response generated.', true);
       resultEl.style.display = 'block';
       resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } catch (err) {

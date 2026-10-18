@@ -311,11 +311,13 @@ async function geminiRequest(pathAndQuery, body) {
   throw lastError || new Error('Gemini request failed');
 }
 
-function geminiTextFrom(payload) {
-  return (payload?.candidates || [])
+function geminiTextFrom(payload, trimText = true) {
+  const text = (payload?.candidates || [])
     .map((candidate) => (candidate?.content?.parts || []).map((part) => part.text || '').join(''))
-    .join('')
-    .trim();
+    .join('');
+  // Only trim whole responses. Trimming per-chunk in the SSE stream would eat
+  // leading spaces at chunk boundaries ("The" + " boiling" -> "Theboiling").
+  return trimText ? text.trim() : text;
 }
 
 async function geminiGenerate(params) {
@@ -350,7 +352,7 @@ async function geminiStream({ systemPrompt, prompt, history = [], maxTokens, onT
       const payload = trimmed.slice(5).trim();
       if (!payload || payload === '[DONE]') continue;
       let token = '';
-      try { token = geminiTextFrom(JSON.parse(payload)); } catch (e) { continue; }
+      try { token = geminiTextFrom(JSON.parse(payload), false); } catch (e) { continue; }
       if (!token) continue;
       fullText += token;
       onToken(token);
