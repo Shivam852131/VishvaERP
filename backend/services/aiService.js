@@ -23,18 +23,73 @@ function normalizeHistory(history = []) {
     .map((item) => ({ role: item.role, content: String(item.content).slice(0, 4000) }));
 }
 
-function buildFallbackResponse(prompt, systemPrompt = '') {
-  const text = String(prompt || '').trim();
-  const lower = text.toLowerCase();
-  const isTutor = /teacher|tutor|explain|concept|step|doubt|solve/i.test(`${systemPrompt} ${text}`);
-  const isExam = /exam|quiz|question paper|mcq/i.test(`${systemPrompt} ${text}`);
-  const isNotes = /notes|study notes|headings/i.test(`${systemPrompt} ${text}`);
-  const isResume = /resume|cv|portfolio|career/i.test(`${systemPrompt} ${text}`);
-  const isAssignment = /assignment|check|grade|rubric/i.test(`${systemPrompt} ${text}`);
-  const isReport = /report card|marks|performance|grades/i.test(`${systemPrompt} ${text}`);
-  const isParent = /parent|child|track|attendance|fee/i.test(`${systemPrompt} ${text}`);
-  const isTeacher = /teacher|lesson|class|grading|rubric/i.test(`${systemPrompt} ${text}`);
-  const isStudent = /student|homework|study plan|progress/i.test(`${systemPrompt} ${text}`);
+// Echo only the user's actual question back (custom prompts, e.g. campus
+// intelligence, prepend data blobs and a "User Query:" line).
+function extractQuestion(text) {
+  const raw = String(text || '').trim();
+  const match = raw.match(/User Query:\s*([\s\S]+)$/i);
+  const question = match ? match[1].trim() : raw;
+  return question.length > 600 ? `${question.slice(0, 600)}…` : question;
+}
+
+// Which endpoint/mode produced this system prompt? getSystemPrompt() always starts
+// with the matching SYSTEM_PROMPTS entry, so a prefix lookup identifies it exactly.
+function resolveMode(systemPrompt, options = {}) {
+  if (options.mode) return options.mode;
+  const prompt = String(systemPrompt || '');
+  return Object.keys(SYSTEM_PROMPTS).find((key) => prompt.startsWith(SYSTEM_PROMPTS[key])) || null;
+}
+
+const MODE_FALLBACK = {
+  tutor: 'tutor',
+  notes: 'notes',
+  exam: 'exam',
+  questionPaper: 'exam',
+  assignmentChecker: 'assignment',
+  reportCard: 'report',
+  parentAssistant: 'parent',
+  teacherAssistant: 'teacher',
+  studentAssistant: 'student',
+  studyPlanner: 'student',
+  resumeBuilder: 'resume',
+  interviewCoach: 'interview',
+  chat: null, // free-form chat: decide from the question itself
+};
+
+// Word-boundary matching only, so "examples" no longer reads as "exam".
+function classifyQuestion(question) {
+  const q = String(question || '').toLowerCase();
+  if (/\b(notes?|summary|summarize|summarise|revision|revise)\b/.test(q)) return 'notes';
+  if (/\b(resume|cv)\b/.test(q)) return 'resume';
+  if (/\b(lesson plan|rubric|grading|grade my|classroom|teach)\b/.test(q)) return 'teacher';
+  if (/\b(my child|parenting|son|daughter)\b/.test(q)) return 'parent';
+  if (/\b(study plan|study schedule|timetable|syllabus)\b/.test(q)) return 'student';
+  if (/\b(how|why|explain|understand|solve|doubt|concept|step-by-step)\b/.test(q)) return 'tutor';
+  if (/\b(exam|quiz|mcq|question paper)\b/.test(q)) return 'exam';
+  return 'generic';
+}
+
+function resolveFallbackKind(systemPrompt, question, options = {}) {
+  const mode = resolveMode(systemPrompt, options);
+  const mapped = mode ? MODE_FALLBACK[mode] : undefined;
+  if (mapped) return mapped;
+  return classifyQuestion(question);
+}
+
+function buildFallbackResponse(prompt, systemPrompt = '', options = {}) {
+  const text = extractQuestion(prompt);
+  const kind = resolveFallbackKind(systemPrompt, text, options);
+
+  const isExam = kind === 'exam';
+  const isResume = kind === 'resume';
+  const isAssignment = kind === 'assignment';
+  const isReport = kind === 'report';
+  const isParent = kind === 'parent';
+  const isTeacher = kind === 'teacher';
+  const isStudent = kind === 'student';
+  const isNotes = kind === 'notes';
+  const isTutor = kind === 'tutor';
+  const isInterview = kind === 'interview';
 
   if (isExam) {
     return `I can help generate an exam draft. Since the live AI key is not configured, here is a structured local draft for: **${text || 'the selected topic'}**\n\n**Question Pattern**\n- 5 objective questions for quick recall\n- 3 short-answer questions for concept clarity\n- 2 application questions for problem solving\n\n**Sample Questions**\n1. Define the core concept in your own words.\n2. Compare two related terms with one example each.\n3. Solve one medium-level application problem.\n4. Identify the most common mistake students make in this topic.\n\nSet \`OPENAI_API_KEY\` in the server environment to generate full AI-created question papers.`;
@@ -68,7 +123,11 @@ function buildFallbackResponse(prompt, systemPrompt = '') {
     return `Here are structured study notes for **${text || 'your topic'}**.\n\n**1. Big Idea**\n- Start with the purpose of the topic.\n- Understand where it is used in real college coursework and projects.\n\n**2. Core Points**\n- Definition and important terms.\n- Main formula, algorithm, or workflow.\n- One simple example.\n\n**3. Exam Focus**\n- Write clear definitions.\n- Use diagrams or steps where possible.\n- Practice one numerical or application-based question.\n\n**4. Revision Prompt**\nExplain this topic to a friend in 90 seconds. If you get stuck, ask me a specific sub-question.\n\nLive AI is currently using local fallback. Add \`OPENAI_API_KEY\` for full dynamic notes.`;
   }
 
-  if (isTutor || lower.includes('why') || lower.includes('how')) {
+  if (isInterview) {
+    return `Here is mock-interview coaching for: **${text || 'your interview answer'}**\n\n**Score (out of 10)**\n- Relevance to the question: — /10\n- Depth & correctness: — /10\n- Structure & clarity: — /10\n- Example / evidence: — /10\n\n**Strengths to keep**\n- Direct opening, professional tone.\n\n**Areas to improve**\n- Add one concrete example (project, internship or coursework).\n- Quantify impact with numbers or scale.\n- Close with a short summary line.\n\n**Stronger answer structure**\n1. One-line direct answer.\n2. Why it matters / when you use it.\n3. Example from your own work.\n4. Trade-offs, then a closing line.\n\nLive AI is currently using local fallback. Add \`OPENAI_API_KEY\` to get a real evaluation of this exact answer.`;
+  }
+
+  if (isTutor) {
     return `Let's work through this like a real tutor.\n\n**Your doubt**\n${text || 'No question provided.'}\n\n**Step 1: Identify the concept**\nBreak the problem into the main topic, given data, and what you need to find or understand.\n\n**Step 2: Learn the intuition**\nMost difficult topics become easier when you ask: \"What is the system trying to achieve?\" and \"What changes at each step?\"\n\n**Step 3: Try a small example**\nUse the smallest possible example first. Trace it manually before jumping to the full problem.\n\n**Step 4: Check yourself**\nReply with your topic name, syllabus unit, or a sample problem, and I will guide you step by step.\n\nNote: the server is in local fallback mode because \`OPENAI_API_KEY\` is not configured.`;
   }
 
@@ -185,7 +244,7 @@ Use data-driven language but stay encouraging.`;
 const askAI = async (prompt, systemPrompt = SYSTEM_PROMPTS.chat, options = {}) => {
   const openai = getOpenAI();
   if (!openai) {
-    return buildFallbackResponse(prompt, systemPrompt);
+    return buildFallbackResponse(prompt, systemPrompt, options);
   }
   try {
     const response = await openai.chat.completions.create({
@@ -201,7 +260,7 @@ const askAI = async (prompt, systemPrompt = SYSTEM_PROMPTS.chat, options = {}) =
     return response.choices[0].message.content;
   } catch (error) {
     console.error("OpenAI Error:", error);
-    return buildFallbackResponse(prompt, systemPrompt);
+    return buildFallbackResponse(prompt, systemPrompt, options);
   }
 };
 

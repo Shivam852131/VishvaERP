@@ -18,6 +18,9 @@ router.use(aiLimiter);
 router.post('/chat', async (req, res) => {
   try {
     const { message, history = [] } = req.body;
+    if (!message || !String(message).trim()) {
+      return res.status(400).json({ success: false, message: 'Message is required' });
+    }
     const response = await askAI(message, getSystemPrompt('chat', req), { history });
     res.json({ success: true, response });
   } catch (error) {
@@ -65,7 +68,11 @@ router.post('/chat/stream', async (req, res) => {
 router.post('/tutor', async (req, res) => {
   try {
     const { topic, question, message, history = [] } = req.body;
-    const response = await askAI(question || message, getSystemPrompt('tutor', req), { history });
+    const text = [question, message, topic].find((value) => value && String(value).trim());
+    if (!text) {
+      return res.status(400).json({ success: false, message: 'Question is required' });
+    }
+    const response = await askAI(text, getSystemPrompt('tutor', req), { history });
     res.json({ success: true, response });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
@@ -185,6 +192,9 @@ router.post('/report-card', authorize('collegeAdmin', 'faculty'), async (req, re
 router.post('/student-assistant', async (req, res) => {
   try {
     const { message, history = [] } = req.body;
+    if (!message || !String(message).trim()) {
+      return res.status(400).json({ success: false, message: 'Message is required' });
+    }
     const response = await askAI(message, getSystemPrompt('studentAssistant', req), { history });
     res.json({ success: true, response });
   } catch (error) {
@@ -196,6 +206,9 @@ router.post('/student-assistant', async (req, res) => {
 router.post('/teacher-assistant', authorize('collegeAdmin', 'faculty'), async (req, res) => {
   try {
     const { message, history = [] } = req.body;
+    if (!message || !String(message).trim()) {
+      return res.status(400).json({ success: false, message: 'Message is required' });
+    }
     const response = await askAI(message, getSystemPrompt('teacherAssistant', req), { history });
     res.json({ success: true, response });
   } catch (error) {
@@ -207,6 +220,9 @@ router.post('/teacher-assistant', authorize('collegeAdmin', 'faculty'), async (r
 router.post('/parent-assistant', async (req, res) => {
   try {
     const { message, history = [] } = req.body;
+    if (!message || !String(message).trim()) {
+      return res.status(400).json({ success: false, message: 'Message is required' });
+    }
     const response = await askAI(message, getSystemPrompt('parentAssistant', req), { history });
     res.json({ success: true, response });
   } catch (error) {
