@@ -69,8 +69,8 @@ router.get('/deep', async (req, res) => {
 
   // AI check
   checks.ai = {
-    status: process.env.OPENAI_API_KEY ? 'configured' : 'not_configured',
-    configured: Boolean(process.env.OPENAI_API_KEY),
+    status: process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY ? 'configured' : 'not_configured',
+    configured: Boolean(process.env.GEMINI_API_KEY || process.env.OPENAI_API_KEY),
   };
 
   const allHealthy = Object.values(checks).every(c => c.status === 'healthy' || c.status === 'configured');

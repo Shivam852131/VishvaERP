@@ -67,7 +67,7 @@ An all-in-one quiz/exam module spanning school-level practice to competitive-exa
 - Grading is strictly server-side: score uses section `marksEach` over `quiz.totalMarks`, optional negative marking, and the server clock for the timer (client countdown is display-only; an expiry sweep finalizes overdue attempts).
 - `jobs/quizScheduler.js` runs every 5 minutes and submits/grades `in_progress` attempts past their deadline via the shared `finalizeAttempt()`.
 - All queries are scoped by `collegeId`; AI generation endpoints (`/exam-generator`, `/question-paper`, `/assignment-check`, `/report-card`, `/teacher-assistant`) are staff-only.
-- Imports: PDF via `pdf-parse`, Excel/CSV via `xlsx` (downloadable CSV template), images via OpenAI Vision with a graceful "AI is not configured" fallback when no `OPENAI_API_KEY` is set.
+- Imports: PDF via `pdf-parse`, Excel/CSV via `xlsx` (downloadable CSV template), images via Gemini/OpenAI vision with a graceful "AI is not configured" fallback when no AI key is set.
 
 **Development notes**
 - Frontend calls use `api.request('/v1/...')` (the shared helper prefixes `/api`); raw `fetch`/`window.open` must use `API_ROOT`. Never write `/api/v1/...` in page code.
@@ -146,8 +146,18 @@ The login and register pages render the real Google Identity Services button and
 
 ## 🤖 AI Setup
 
-To activate real AI instead of the mock fallback, open the `.env` file and set:
-`OPENAI_API_KEY=your_actual_key_here`
+Real AI works out of the box with a **free Google Gemini key** (preferred), or OpenAI:
+
+1. Get a free key at [https://aistudio.google.com/apikey](https://aistudio.google.com/apikey) (Google AI Studio).
+2. Open `.env` and set `GEMINI_API_KEY=your_free_key`.
+3. Restart the backend — every AI endpoint (chat, tutor, notes, student/teacher/parent assistants, exam/assignment/report tools, streaming chat, PDF/image question import) now answers with Gemini.
+
+Notes:
+- Default model is `gemini-3.8-flash`; override with `GEMINI_MODEL=...`.
+- Set `AI_PROVIDER=gemini|openai` to force a provider when both keys exist; otherwise Gemini is used.
+- Free-tier rate limits apply (~10–15 requests/min from Google). The app allows 20 AI requests/min per user; if Google throttles, the built-in fallback template is returned so the UI keeps working.
+- With no key at all, responses are the built-in offline templates that echo the question.
+- OpenAI alternative: `OPENAI_API_KEY=your_actual_key_here` (used only when no Gemini key is set).
 
 Enjoy managing your campus!
 "# VishvaERP" 

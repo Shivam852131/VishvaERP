@@ -15,6 +15,16 @@ function getOpenAI() {
   return openaiClient;
 }
 
+// Which AI provider to use: free Google Gemini is preferred when its key is set,
+// OpenAI otherwise. With no key the service returns local fallback templates.
+function getAIProvider() {
+  const explicit = String(process.env.AI_PROVIDER || '').trim().toLowerCase();
+  if (explicit === 'gemini' || explicit === 'openai') return explicit;
+  if (process.env.GEMINI_API_KEY) return 'gemini';
+  if (process.env.OPENAI_API_KEY) return 'openai';
+  return null;
+}
+
 function normalizeHistory(history = []) {
   if (!Array.isArray(history)) return [];
   return history
@@ -92,46 +102,46 @@ function buildFallbackResponse(prompt, systemPrompt = '', options = {}) {
   const isInterview = kind === 'interview';
 
   if (isExam) {
-    return `I can help generate an exam draft. Since the live AI key is not configured, here is a structured local draft for: **${text || 'the selected topic'}**\n\n**Question Pattern**\n- 5 objective questions for quick recall\n- 3 short-answer questions for concept clarity\n- 2 application questions for problem solving\n\n**Sample Questions**\n1. Define the core concept in your own words.\n2. Compare two related terms with one example each.\n3. Solve one medium-level application problem.\n4. Identify the most common mistake students make in this topic.\n\nSet \`OPENAI_API_KEY\` in the server environment to generate full AI-created question papers.`;
+    return `I can help generate an exam draft. Since the live AI key is not configured, here is a structured local draft for: **${text || 'the selected topic'}**\n\n**Question Pattern**\n- 5 objective questions for quick recall\n- 3 short-answer questions for concept clarity\n- 2 application questions for problem solving\n\n**Sample Questions**\n1. Define the core concept in your own words.\n2. Compare two related terms with one example each.\n3. Solve one medium-level application problem.\n4. Identify the most common mistake students make in this topic.\n\nSet \`GEMINI_API_KEY\` (free) or \`OPENAI_API_KEY\` in the server environment to generate full AI-created question papers.`;
   }
 
   if (isResume) {
-    return `Here is a structured resume template for **${text || 'your profile'}**.\n\n**HEADER**\n- Full Name | Phone | Email | LinkedIn | GitHub\n\n**OBJECTIVE**\n- A 2-line career objective tailored to the target role.\n\n**EDUCATION**\n- Degree, College, Year, CGPA/Percentage\n\n**TECHNICAL SKILLS**\n- Languages: ...\n- Frameworks: ...\n- Tools: ...\n\n**PROJECTS**\n- Project Name | Tech Stack\n- Brief description with quantifiable outcomes.\n\n**INTERNSHIPS / EXPERIENCE**\n- Role, Company, Duration\n- Key responsibilities and achievements.\n\n**ACHIEVEMENTS**\n- Certifications, hackathons, awards.\n\nLive AI is currently using local fallback. Add \`OPENAI_API_KEY\` for full dynamic resume generation.`;
+    return `Here is a structured resume template for **${text || 'your profile'}**.\n\n**HEADER**\n- Full Name | Phone | Email | LinkedIn | GitHub\n\n**OBJECTIVE**\n- A 2-line career objective tailored to the target role.\n\n**EDUCATION**\n- Degree, College, Year, CGPA/Percentage\n\n**TECHNICAL SKILLS**\n- Languages: ...\n- Frameworks: ...\n- Tools: ...\n\n**PROJECTS**\n- Project Name | Tech Stack\n- Brief description with quantifiable outcomes.\n\n**INTERNSHIPS / EXPERIENCE**\n- Role, Company, Duration\n- Key responsibilities and achievements.\n\n**ACHIEVEMENTS**\n- Certifications, hackathons, awards.\n\nLive AI is currently using local fallback. Add \`GEMINI_API_KEY\` (free) or \`OPENAI_API_KEY\` for full dynamic resume generation.`;
   }
 
   if (isAssignment) {
-    return `Here is a sample assignment evaluation for: **${text || 'the submitted answer'}**.\n\n**Scoring Rubric**\n- Content Accuracy: 5/10\n- Depth of Analysis: 4/10\n- Structure & Clarity: 6/10\n- Examples & Evidence: 3/10\n- Overall: 18/40\n\n**Strengths**\n- Clear introduction.\n- Relevant topic coverage.\n\n**Areas for Improvement**\n- Add more specific examples.\n- Deepen analysis with references.\n- Improve paragraph transitions.\n\n**Suggested Revision**\nRewrite the third paragraph with a concrete case study.\n\nLive AI is currently using local fallback. Add \`OPENAI_API_KEY\` for full AI-powered grading.`;
+    return `Here is a sample assignment evaluation for: **${text || 'the submitted answer'}**.\n\n**Scoring Rubric**\n- Content Accuracy: 5/10\n- Depth of Analysis: 4/10\n- Structure & Clarity: 6/10\n- Examples & Evidence: 3/10\n- Overall: 18/40\n\n**Strengths**\n- Clear introduction.\n- Relevant topic coverage.\n\n**Areas for Improvement**\n- Add more specific examples.\n- Deepen analysis with references.\n- Improve paragraph transitions.\n\n**Suggested Revision**\nRewrite the third paragraph with a concrete case study.\n\nLive AI is currently using local fallback. Add \`GEMINI_API_KEY\` (free) or \`OPENAI_API_KEY\` for full AI-powered grading.`;
   }
 
   if (isReport) {
-    return `Here is a sample report card analysis for: **${text || 'the student'}**.\n\n**Performance Summary**\n- Overall Grade: B+\n- Strongest Subject: Mathematics (92/100)\n- Weakest Subject: English (65/100)\n\n**Trend Analysis**\n- Improving: Physics (+8 marks from last semester)\n- Declining: Chemistry (-5 marks)\n- Stable: Computer Science\n\n**Recommendations**\n1. Focus on English writing practice (30 min daily).\n2. Continue momentum in Physics with advanced problems.\n3. Address Chemistry gaps with targeted revision.\n\n**Action Plan**\n- Week 1-2: English grammar and essay practice.\n- Week 3-4: Chemistry revision of weak chapters.\n\nLive AI is currently using local fallback. Add \`OPENAI_API_KEY\` for full AI analysis.`;
+    return `Here is a sample report card analysis for: **${text || 'the student'}**.\n\n**Performance Summary**\n- Overall Grade: B+\n- Strongest Subject: Mathematics (92/100)\n- Weakest Subject: English (65/100)\n\n**Trend Analysis**\n- Improving: Physics (+8 marks from last semester)\n- Declining: Chemistry (-5 marks)\n- Stable: Computer Science\n\n**Recommendations**\n1. Focus on English writing practice (30 min daily).\n2. Continue momentum in Physics with advanced problems.\n3. Address Chemistry gaps with targeted revision.\n\n**Action Plan**\n- Week 1-2: English grammar and essay practice.\n- Week 3-4: Chemistry revision of weak chapters.\n\nLive AI is currently using local fallback. Add \`GEMINI_API_KEY\` (free) or \`OPENAI_API_KEY\` for full AI analysis.`;
   }
 
   if (isParent) {
-    return `Here is guidance for: **${text || 'your query about your child'}**.\n\n**Academic Progress**\n- Track marks across subjects over time.\n- Identify subjects needing attention.\n- Monitor homework completion rates.\n\n**Attendance Overview**\n- Regular attendance correlates with better grades.\n- Flag any pattern of absences.\n\n**Fee Status**\n- Check upcoming fee deadlines.\n- Set reminders 7 days before due dates.\n\n**Parenting Tips**\n1. Create a consistent study routine at home.\n2. Encourage breaks during study sessions.\n3. Communicate regularly with teachers.\n4. Celebrate small achievements.\n\nLive AI is currently using local fallback. Add \`OPENAI_API_KEY\` for personalized insights.`;
+    return `Here is guidance for: **${text || 'your query about your child'}**.\n\n**Academic Progress**\n- Track marks across subjects over time.\n- Identify subjects needing attention.\n- Monitor homework completion rates.\n\n**Attendance Overview**\n- Regular attendance correlates with better grades.\n- Flag any pattern of absences.\n\n**Fee Status**\n- Check upcoming fee deadlines.\n- Set reminders 7 days before due dates.\n\n**Parenting Tips**\n1. Create a consistent study routine at home.\n2. Encourage breaks during study sessions.\n3. Communicate regularly with teachers.\n4. Celebrate small achievements.\n\nLive AI is currently using local fallback. Add \`GEMINI_API_KEY\` (free) or \`OPENAI_API_KEY\` for personalized insights.`;
   }
 
   if (isTeacher) {
-    return `Here is assistance for: **${text || 'your teaching query'}**.\n\n**Lesson Plan Structure**\n1. Learning Objectives (what students will know)\n2. Prior Knowledge (prerequisites)\n3. Teaching Activities (lecture, discussion, activity)\n4. Assessment (formative + summative)\n5. homework / Further Reading\n\n**Grading Rubric Template**\n- Excellent (90-100): Exceeds expectations\n- Good (75-89): Meets expectations\n- Average (60-74): Approaching expectations\n- Below Average (<60): Needs improvement\n\n**Class Management Tips**\n- Set clear expectations early.\n- Use positive reinforcement.\n- Vary teaching methods to maintain engagement.\n\nLive AI is currently using local fallback. Add \`OPENAI_API_KEY\` for full AI support.`;
+    return `Here is assistance for: **${text || 'your teaching query'}**.\n\n**Lesson Plan Structure**\n1. Learning Objectives (what students will know)\n2. Prior Knowledge (prerequisites)\n3. Teaching Activities (lecture, discussion, activity)\n4. Assessment (formative + summative)\n5. homework / Further Reading\n\n**Grading Rubric Template**\n- Excellent (90-100): Exceeds expectations\n- Good (75-89): Meets expectations\n- Average (60-74): Approaching expectations\n- Below Average (<60): Needs improvement\n\n**Class Management Tips**\n- Set clear expectations early.\n- Use positive reinforcement.\n- Vary teaching methods to maintain engagement.\n\nLive AI is currently using local fallback. Add \`GEMINI_API_KEY\` (free) or \`OPENAI_API_KEY\` for full AI support.`;
   }
 
   if (isStudent) {
-    return `Here is personalized guidance for: **${text || 'your academic goals'}**.\n\n**Study Plan**\n- Break study sessions into 25-minute Pomodoro blocks.\n- Review notes within 24 hours of learning.\n- Practice active recall instead of passive reading.\n\n**Homework Tips**\n1. Start with the hardest assignment first.\n2. Set a timer for each task.\n3. Take 5-minute breaks between subjects.\n\n**Exam Preparation**\n- Start revision 2 weeks before the exam.\n- Use past papers for practice.\n- Focus on weak areas first.\n\n**Progress Tracking**\n- Maintain a study journal.\n- Set weekly goals and review Sundays.\n\nLive AI is currently using local fallback. Add \`OPENAI_API_KEY\` for full AI assistance.`;
+    return `Here is personalized guidance for: **${text || 'your academic goals'}**.\n\n**Study Plan**\n- Break study sessions into 25-minute Pomodoro blocks.\n- Review notes within 24 hours of learning.\n- Practice active recall instead of passive reading.\n\n**Homework Tips**\n1. Start with the hardest assignment first.\n2. Set a timer for each task.\n3. Take 5-minute breaks between subjects.\n\n**Exam Preparation**\n- Start revision 2 weeks before the exam.\n- Use past papers for practice.\n- Focus on weak areas first.\n\n**Progress Tracking**\n- Maintain a study journal.\n- Set weekly goals and review Sundays.\n\nLive AI is currently using local fallback. Add \`GEMINI_API_KEY\` (free) or \`OPENAI_API_KEY\` for full AI assistance.`;
   }
 
   if (isNotes) {
-    return `Here are structured study notes for **${text || 'your topic'}**.\n\n**1. Big Idea**\n- Start with the purpose of the topic.\n- Understand where it is used in real college coursework and projects.\n\n**2. Core Points**\n- Definition and important terms.\n- Main formula, algorithm, or workflow.\n- One simple example.\n\n**3. Exam Focus**\n- Write clear definitions.\n- Use diagrams or steps where possible.\n- Practice one numerical or application-based question.\n\n**4. Revision Prompt**\nExplain this topic to a friend in 90 seconds. If you get stuck, ask me a specific sub-question.\n\nLive AI is currently using local fallback. Add \`OPENAI_API_KEY\` for full dynamic notes.`;
+    return `Here are structured study notes for **${text || 'your topic'}**.\n\n**1. Big Idea**\n- Start with the purpose of the topic.\n- Understand where it is used in real college coursework and projects.\n\n**2. Core Points**\n- Definition and important terms.\n- Main formula, algorithm, or workflow.\n- One simple example.\n\n**3. Exam Focus**\n- Write clear definitions.\n- Use diagrams or steps where possible.\n- Practice one numerical or application-based question.\n\n**4. Revision Prompt**\nExplain this topic to a friend in 90 seconds. If you get stuck, ask me a specific sub-question.\n\nLive AI is currently using local fallback. Add \`GEMINI_API_KEY\` (free) or \`OPENAI_API_KEY\` for full dynamic notes.`;
   }
 
   if (isInterview) {
-    return `Here is mock-interview coaching for: **${text || 'your interview answer'}**\n\n**Score (out of 10)**\n- Relevance to the question: — /10\n- Depth & correctness: — /10\n- Structure & clarity: — /10\n- Example / evidence: — /10\n\n**Strengths to keep**\n- Direct opening, professional tone.\n\n**Areas to improve**\n- Add one concrete example (project, internship or coursework).\n- Quantify impact with numbers or scale.\n- Close with a short summary line.\n\n**Stronger answer structure**\n1. One-line direct answer.\n2. Why it matters / when you use it.\n3. Example from your own work.\n4. Trade-offs, then a closing line.\n\nLive AI is currently using local fallback. Add \`OPENAI_API_KEY\` to get a real evaluation of this exact answer.`;
+    return `Here is mock-interview coaching for: **${text || 'your interview answer'}**\n\n**Score (out of 10)**\n- Relevance to the question: — /10\n- Depth & correctness: — /10\n- Structure & clarity: — /10\n- Example / evidence: — /10\n\n**Strengths to keep**\n- Direct opening, professional tone.\n\n**Areas to improve**\n- Add one concrete example (project, internship or coursework).\n- Quantify impact with numbers or scale.\n- Close with a short summary line.\n\n**Stronger answer structure**\n1. One-line direct answer.\n2. Why it matters / when you use it.\n3. Example from your own work.\n4. Trade-offs, then a closing line.\n\nLive AI is currently using local fallback. Add \`GEMINI_API_KEY\` (free) or \`OPENAI_API_KEY\` to get a real evaluation of this exact answer.`;
   }
 
   if (isTutor) {
-    return `Let's work through this like a real tutor.\n\n**Your doubt**\n${text || 'No question provided.'}\n\n**Step 1: Identify the concept**\nBreak the problem into the main topic, given data, and what you need to find or understand.\n\n**Step 2: Learn the intuition**\nMost difficult topics become easier when you ask: \"What is the system trying to achieve?\" and \"What changes at each step?\"\n\n**Step 3: Try a small example**\nUse the smallest possible example first. Trace it manually before jumping to the full problem.\n\n**Step 4: Check yourself**\nReply with your topic name, syllabus unit, or a sample problem, and I will guide you step by step.\n\nNote: the server is in local fallback mode because \`OPENAI_API_KEY\` is not configured.`;
+    return `Let's work through this like a real tutor.\n\n**Your doubt**\n${text || 'No question provided.'}\n\n**Step 1: Identify the concept**\nBreak the problem into the main topic, given data, and what you need to find or understand.\n\n**Step 2: Learn the intuition**\nMost difficult topics become easier when you ask: \"What is the system trying to achieve?\" and \"What changes at each step?\"\n\n**Step 3: Try a small example**\nUse the smallest possible example first. Trace it manually before jumping to the full problem.\n\n**Step 4: Check yourself**\nReply with your topic name, syllabus unit, or a sample problem, and I will guide you step by step.\n\nNote: the server is in local fallback mode because no AI API key is configured yet (\`GEMINI_API_KEY\` or \`OPENAI_API_KEY\`).`;
   }
 
-  return `I can help with that.\n\n**You asked:** ${text || 'No message provided.'}\n\nHere is a practical way to proceed:\n- Clarify the exact goal.\n- Break it into smaller steps.\n- Share any course name, subject, or expected output.\n- Ask follow-up questions one by one for better answers.\n\nThe live AI provider is not configured yet. Add \`OPENAI_API_KEY\` to enable full real AI responses.`;
+  return `I can help with that.\n\n**You asked:** ${text || 'No message provided.'}\n\nHere is a practical way to proceed:\n- Clarify the exact goal.\n- Break it into smaller steps.\n- Share any course name, subject, or expected output.\n- Ask follow-up questions one by one for better answers.\n\nThe live AI provider is not configured yet. Add \`GEMINI_API_KEY\` (free) or \`OPENAI_API_KEY\` to enable full real AI responses.`;
 }
 
 const SYSTEM_PROMPTS = {
@@ -240,13 +250,144 @@ Provide:
 Use data-driven language but stay encouraging.`;
 }
 
+// ─────────────────────── Google Gemini (free tier) ───────────────────────
+// Plain REST calls - no extra npm package needed (Node 18+ ships global fetch).
+
+const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
+
+function geminiModel() {
+  return process.env.GEMINI_MODEL || 'gemini-3.8-flash';
+}
+
+function toGeminiContents(prompt, history = [], image = null) {
+  const contents = normalizeHistory(history).map((turn) => ({
+    role: turn.role === 'assistant' ? 'model' : 'user',
+    parts: [{ text: turn.content }],
+  }));
+  const parts = [{ text: String(prompt || '') }];
+  if (image && image.data) {
+    parts.push({ inlineData: { mimeType: image.mimeType || 'image/png', data: image.data } });
+  }
+  contents.push({ role: 'user', parts });
+  return contents;
+}
+
+function geminiRequestBody({ systemPrompt, prompt, history, image, maxTokens, temperature, jsonMode }) {
+  return {
+    systemInstruction: { parts: [{ text: String(systemPrompt || '') }] },
+    contents: toGeminiContents(prompt, history, image),
+    generationConfig: {
+      temperature: typeof temperature === 'number' ? temperature : 0.7,
+      maxOutputTokens: maxTokens || 1500,
+      ...(jsonMode ? { responseMimeType: 'application/json' } : {}),
+    },
+  };
+}
+
+async function geminiRequest(pathAndQuery, body) {
+  const url = `${GEMINI_API_BASE}/${geminiModel()}:${pathAndQuery}`;
+  const init = {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY || '' },
+    body: JSON.stringify(body),
+  };
+  let lastError = null;
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    let res;
+    try {
+      res = await fetch(url, init);
+    } catch (e) {
+      lastError = new Error(`Gemini network error: ${e.message}`);
+      if (attempt < 2) { await delay(700); continue; }
+      throw lastError;
+    }
+    if (res.ok) return res;
+    const detail = await res.text().catch(() => '');
+    lastError = new Error(`Gemini API ${res.status}${detail ? `: ${detail.slice(0, 300)}` : ''}`);
+    const transient = res.status === 500 || res.status === 502 || res.status === 503;
+    if (transient && attempt < 2) { await delay(700); continue; }
+    throw lastError;
+  }
+  throw lastError || new Error('Gemini request failed');
+}
+
+function geminiTextFrom(payload) {
+  return (payload?.candidates || [])
+    .map((candidate) => (candidate?.content?.parts || []).map((part) => part.text || '').join(''))
+    .join('')
+    .trim();
+}
+
+async function geminiGenerate(params) {
+  const res = await geminiRequest('generateContent', geminiRequestBody(params));
+  const data = await res.json();
+  const text = geminiTextFrom(data);
+  if (!text) {
+    const reason = data?.promptFeedback?.blockReason || data?.candidates?.[0]?.finishReason || 'no candidates';
+    throw new Error(`Gemini returned no text (${reason})`);
+  }
+  return text;
+}
+
+async function geminiStream({ systemPrompt, prompt, history = [], maxTokens, onToken }) {
+  const res = await geminiRequest('streamGenerateContent?alt=sse', geminiRequestBody({
+    systemPrompt, prompt, history, maxTokens, temperature: 0.7,
+  }));
+  if (!res.body) throw new Error('Gemini stream response has no body');
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let fullText = '';
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop() || '';
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed.startsWith('data:')) continue;
+      const payload = trimmed.slice(5).trim();
+      if (!payload || payload === '[DONE]') continue;
+      let token = '';
+      try { token = geminiTextFrom(JSON.parse(payload)); } catch (e) { continue; }
+      if (!token) continue;
+      fullText += token;
+      onToken(token);
+    }
+  }
+  if (!fullText) throw new Error('Gemini stream returned no text');
+  return fullText;
+}
+
+// No provider configured (or a caller without a key): stream the local template.
+async function streamFallback(prompt, systemPrompt, onToken) {
+  const fallback = buildFallbackResponse(prompt, systemPrompt);
+  const chunks = fallback.match(/.{1,28}(\s|$)/g) || [fallback];
+  for (const chunk of chunks) {
+    onToken(chunk);
+    await delay(8);
+  }
+  return fallback;
+}
+
 // Generic AI call
 const askAI = async (prompt, systemPrompt = SYSTEM_PROMPTS.chat, options = {}) => {
-  const openai = getOpenAI();
-  if (!openai) {
-    return buildFallbackResponse(prompt, systemPrompt, options);
-  }
+  const provider = getAIProvider();
+  if (!provider) return buildFallbackResponse(prompt, systemPrompt, options);
   try {
+    if (provider === 'gemini') {
+      return await geminiGenerate({
+        systemPrompt,
+        prompt,
+        history: options.history,
+        maxTokens: options.maxTokens,
+        temperature: options.temperature,
+        jsonMode: options.jsonMode,
+      });
+    }
+    const openai = getOpenAI();
+    if (!openai) return buildFallbackResponse(prompt, systemPrompt, options);
     const response = await openai.chat.completions.create({
       model: process.env.OPENAI_MODEL || "gpt-4o-mini",
       messages: [
@@ -259,24 +400,21 @@ const askAI = async (prompt, systemPrompt = SYSTEM_PROMPTS.chat, options = {}) =
     });
     return response.choices[0].message.content;
   } catch (error) {
-    console.error("OpenAI Error:", error);
+    console.error(`AI provider error (${provider}):`, error?.message || error);
     return buildFallbackResponse(prompt, systemPrompt, options);
   }
 };
 
 // Streaming AI call
 const streamAI = async ({ prompt, systemPrompt = SYSTEM_PROMPTS.chat, history = [], onToken }) => {
-  const openai = getOpenAI();
-  if (!openai) {
-    const fallback = buildFallbackResponse(prompt, systemPrompt);
-    const chunks = fallback.match(/.{1,28}(\s|$)/g) || [fallback];
-    for (const chunk of chunks) {
-      onToken(chunk);
-      await delay(8);
-    }
-    return fallback;
-  }
+  const provider = getAIProvider();
+  if (!provider) return streamFallback(prompt, systemPrompt, onToken);
   try {
+    if (provider === 'gemini') {
+      return await geminiStream({ systemPrompt, prompt, history, maxTokens: 1800, onToken });
+    }
+    const openai = getOpenAI();
+    if (!openai) return streamFallback(prompt, systemPrompt, onToken);
     const stream = await openai.chat.completions.create({
       model: process.env.OPENAI_MODEL || "gpt-4o-mini",
       messages: [
@@ -297,7 +435,7 @@ const streamAI = async ({ prompt, systemPrompt = SYSTEM_PROMPTS.chat, history = 
     }
     return fullText;
   } catch (error) {
-    console.error("OpenAI Stream Error:", error);
+    console.error(`AI stream error (${provider}):`, error?.message || error);
     const fallback = buildFallbackResponse(prompt, systemPrompt);
     onToken(fallback);
     return fallback;
@@ -309,7 +447,7 @@ const streamAI = async ({ prompt, systemPrompt = SYSTEM_PROMPTS.chat, history = 
 const VALID_QTYPES = ['mcq', 'true_false', 'fill_blank', 'short_answer', 'long_answer', 'numerical'];
 const VALID_DIFFICULTY = ['easy', 'medium', 'hard', 'very_hard'];
 
-function isAIConfigured() { return !!getOpenAI(); }
+function isAIConfigured() { return !!getAIProvider(); }
 
 // Normalize/validate one raw question object from the model. Returns null if unusable.
 function normalizeQuestion(raw) {
@@ -392,8 +530,18 @@ function parseModelJSON(text) {
 
 // Low-level JSON completion (JSON mode with one retry).
 async function jsonCompletion(systemPrompt, userPrompt, { maxTokens = 2500 } = {}) {
+  const provider = getAIProvider();
+  if (!provider) throw new Error('AI is not configured. Set GEMINI_API_KEY (free) or OPENAI_API_KEY to use AI question generation/extraction.');
+
+  if (provider === 'gemini') {
+    const attempt = () => geminiGenerate({ systemPrompt, prompt: userPrompt, maxTokens, temperature: 0.6, jsonMode: true });
+    const parsed = parseModelJSON(await attempt());
+    if (parsed) return parsed;
+    return parseModelJSON(await attempt());
+  }
+
   const openai = getOpenAI();
-  if (!openai) throw new Error('AI is not configured. Set OPENAI_API_KEY to use AI question generation/extraction.');
+  if (!openai) throw new Error('AI is not configured. Set GEMINI_API_KEY (free) or OPENAI_API_KEY to use AI question generation/extraction.');
   const call = () => openai.chat.completions.create({
     model: process.env.OPENAI_MODEL || 'gpt-4o-mini',
     messages: [{ role: 'system', content: systemPrompt }, { role: 'user', content: userPrompt }],
@@ -432,12 +580,31 @@ async function extractQuestionsFromText(text, params = {}) {
   return list.map(normalizeQuestion).filter(Boolean).slice(0, count).map(q => ({ ...q, source: 'pdf' }));
 }
 
-// Extract questions from an image using OpenAI Vision.
+// Extract questions from an image (Gemini vision, or OpenAI Vision).
 async function extractQuestionsFromImage(base64DataUrl, params = {}) {
-  const openai = getOpenAI();
-  if (!openai) throw new Error('Image extraction requires OPENAI_API_KEY (Vision).');
+  const provider = getAIProvider();
+  if (!provider) throw new Error('Image extraction requires GEMINI_API_KEY (free) or OPENAI_API_KEY.');
   const { subject = '', count = 30 } = params;
   const systemPrompt = `You are an expert at reading exam papers from images. Extract every visible question into JSON { "questions": [ { questionText, questionType, options:[{text,isCorrect}], correctAnswer, explanation, difficulty, unit, chapter } ] }. Use questionType one of: mcq, true_false, fill_blank, short_answer, long_answer, numerical. If an answer key is visible, set the correct option. JSON only.`;
+
+  if (provider === 'gemini') {
+    const match = String(base64DataUrl).match(/^data:(.+?);base64,([\s\S]*)$/);
+    const image = match ? { mimeType: match[1], data: match[2] } : { mimeType: 'image/png', data: String(base64DataUrl) };
+    const text = await geminiGenerate({
+      systemPrompt,
+      prompt: `Extract up to ${count} questions${subject ? ' for subject ' + subject : ''} from this image.`,
+      maxTokens: 4000,
+      temperature: 0.4,
+      jsonMode: true,
+      image,
+    });
+    const parsedGemini = parseModelJSON(text);
+    const geminiList = Array.isArray(parsedGemini?.questions) ? parsedGemini.questions : [];
+    return geminiList.map(normalizeQuestion).filter(Boolean).slice(0, count).map(q => ({ ...q, source: 'image' }));
+  }
+
+  const openai = getOpenAI();
+  if (!openai) throw new Error('Image extraction requires GEMINI_API_KEY (free) or OPENAI_API_KEY.');
   const response = await openai.chat.completions.create({
     model: 'gpt-4o-mini',
     messages: [
