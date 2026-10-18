@@ -153,7 +153,8 @@ Real AI works out of the box with a **free Google Gemini key** (preferred), or O
 3. Restart the backend — every AI endpoint (chat, tutor, notes, student/teacher/parent assistants, exam/assignment/report tools, streaming chat, PDF/image question import) now answers with Gemini.
 
 Notes:
-- Default model is `gemini-3.8-flash`; override with `GEMINI_MODEL=...`.
+- Default primary model is `gemini-3.5-flash`; override with `GEMINI_MODEL=...`.
+- Free-tier quota is tracked **per model per day** (some models allow as few as 20 requests/day). When a model's daily pool is exhausted (429), the backend automatically falls back through `gemini-3.7-flash` → `gemini-3.1-flash-lite`, each with its own quota pool, before resorting to offline templates.
 - Set `AI_PROVIDER=gemini|openai` to force a provider when both keys exist; otherwise Gemini is used.
 - Free-tier rate limits apply (~10–15 requests/min from Google). The app allows 20 AI requests/min per user; if Google throttles, the built-in fallback template is returned so the UI keeps working.
 - With no key at all, responses are the built-in offline templates that echo the question.

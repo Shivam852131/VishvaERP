@@ -255,8 +255,22 @@ Use data-driven language but stay encouraging.`;
 
 const GEMINI_API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models';
 
+// Free-tier quota is tracked PER MODEL per project per day (some preview
+// models allow as few as 20 requests/day). Chain several models so that when
+// one model's daily pool is exhausted (429), the next model answers from its
+// own pool instead of dropping the whole request to the offline templates.
+// GEMINI_MODEL (env) only selects which model is tried FIRST.
+const GEMINI_MODEL_CHAIN = (() => {
+  const primary = process.env.GEMINI_MODEL || 'gemini-3.5-flash';
+  const fallbacks = ['gemini-3.7-flash', 'gemini-3.5-flash', 'gemini-3.1-flash-lite'];
+  return [...new Set([primary, ...fallbacks])];
+})();
+
+// Remember the last model that worked so we skip known-exhausted ones.
+let geminiModelIdx = 0;
+
 function geminiModel() {
-  return process.env.GEMINI_MODEL || 'gemini-3.8-flash';
+  return GEMINI_MODEL_CHAIN[geminiModelIdx] || GEMINI_MODEL_CHAIN[0];
 }
 
 function toGeminiContents(prompt, history = [], image = null) {
@@ -285,28 +299,45 @@ function geminiRequestBody({ systemPrompt, prompt, history, image, maxTokens, te
 }
 
 async function geminiRequest(pathAndQuery, body) {
-  const url = `${GEMINI_API_BASE}/${geminiModel()}:${pathAndQuery}`;
-  const init = {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY || '' },
-    body: JSON.stringify(body),
-  };
   let lastError = null;
-  for (let attempt = 1; attempt <= 2; attempt++) {
-    let res;
-    try {
-      res = await fetch(url, init);
-    } catch (e) {
-      lastError = new Error(`Gemini network error: ${e.message}`);
-      if (attempt < 2) { await delay(700); continue; }
-      throw lastError;
+  for (let i = geminiModelIdx; i < GEMINI_MODEL_CHAIN.length; i++) {
+    const model = GEMINI_MODEL_CHAIN[i];
+    const url = `${GEMINI_API_BASE}/${model}:${pathAndQuery}`;
+    const init = {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': process.env.GEMINI_API_KEY || '' },
+      body: JSON.stringify(body),
+    };
+    let tryNextModel = false;
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      let res;
+      try {
+        res = await fetch(url, init);
+      } catch (e) {
+        lastError = new Error(`Gemini network error: ${e.message}`);
+        if (attempt < 2) { await delay(700); continue; }
+        tryNextModel = true; // network failed twice for this model - the next one may still work
+        break;
+      }
+      if (res.ok) {
+        geminiModelIdx = i; // remember the model that works
+        return res;
+      }
+      const detail = await res.text().catch(() => '');
+      lastError = new Error(`Gemini API ${res.status}${detail ? `: ${detail.slice(0, 300)}` : ''}`);
+      const transient = res.status === 500 || res.status === 502 || res.status === 503;
+      if (transient && attempt < 2) { await delay(700); continue; }
+      if (res.status === 429 || res.status === 404) {
+        // Per-model daily quota exhausted (429) or model retired (404):
+        // the next model in the chain has its own quota pool.
+        const nextModel = GEMINI_MODEL_CHAIN[i + 1];
+        if (nextModel) console.warn(`Gemini model ${model} unavailable (HTTP ${res.status}) - trying ${nextModel} instead`);
+        tryNextModel = true;
+        break;
+      }
+      throw lastError; // 400/401/403 etc - a different model would not change this
     }
-    if (res.ok) return res;
-    const detail = await res.text().catch(() => '');
-    lastError = new Error(`Gemini API ${res.status}${detail ? `: ${detail.slice(0, 300)}` : ''}`);
-    const transient = res.status === 500 || res.status === 502 || res.status === 503;
-    if (transient && attempt < 2) { await delay(700); continue; }
-    throw lastError;
+    if (tryNextModel) continue;
   }
   throw lastError || new Error('Gemini request failed');
 }
