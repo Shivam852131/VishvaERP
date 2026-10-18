@@ -11,7 +11,24 @@ const { logAudit } = require('../services/auditService');
 const { OAuth2Client } = require('google-auth-library');
 
 const crypto = require('crypto');
-const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+const googleClient = new OAuth2Client();
+
+// Accepted Google OAuth client IDs. Configure GOOGLE_CLIENT_ID (single) or
+// GOOGLE_CLIENT_IDS (comma-separated) on the server. Falls back to the client ID
+// shipped with the frontend so Google sign-in works even before the env var is set.
+const FALLBACK_GOOGLE_CLIENT_ID = '429796170500-daln01cn92kqh72vq46uumd8p7cgfg7l.apps.googleusercontent.com';
+const GOOGLE_CLIENT_IDS = Array.from(new Set(
+  `${process.env.GOOGLE_CLIENT_IDS || process.env.GOOGLE_CLIENT_ID || FALLBACK_GOOGLE_CLIENT_ID}`
+    .split(',')
+    .map((id) => id.trim())
+    .filter(Boolean)
+));
+if (!process.env.GOOGLE_CLIENT_ID && !process.env.GOOGLE_CLIENT_IDS) {
+  console.warn('[Google Auth] GOOGLE_CLIENT_ID is not set - using the default client ID from the frontend. Set GOOGLE_CLIENT_ID in .env for production.');
+}
+
+// Roles that may be provisioned through Google sign-in (superadmin is excluded on purpose)
+const GOOGLE_PROVISION_ROLES = new Set(['student', 'faculty', 'parent', 'collegeAdmin']);
 
 const failedLoginAttempts = new Map();
 const MAX_LOGIN_ATTEMPTS = 5;
@@ -622,48 +639,136 @@ const checkDevice = asyncHandler(async (req, res) => {
 // @desc    Login/Register with Google OAuth
 // @route   POST /api/auth/google-login
 // @access  Public
+// Known-good origin used as a control when probing Google, so we never warn the
+// user just because Google refused our own server-side request. It must be an
+// origin that is already listed in "Authorized JavaScript origins".
+function controlGoogleOrigin() {
+  const override = `${process.env.GOOGLE_ALLOWED_ORIGIN_PROBE || ''}`.trim().replace(/\/+$/, '');
+  return override || 'https://vishvaerp.vercel.app';
+}
+
+async function probeGoogleOrigin(origin) {
+  const url = `https://accounts.google.com/gsi/button?client_id=${encodeURIComponent(GOOGLE_CLIENT_IDS[0])}&theme=outline&size=large`;
+  try {
+    const response = await fetch(url, {
+      headers: {
+        Origin: origin,
+        // Google rejects the default Node/undici user agent outright (403 for every
+        // origin), which would make every origin look "blocked". Send a browser one.
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+        Accept: '*/*',
+      },
+      redirect: 'manual',
+    });
+    return response.status;
+  } catch (err) {
+    console.warn('[Google Auth] Origin probe failed:', err.message);
+    return null;
+  }
+}
+
+// @desc    Tell the frontend whether this origin is allowed to use Google Sign-In
+// @route   POST /api/auth/google-origin-check
+// @access  Public
+const googleOriginCheck = asyncHandler(async (req, res) => {
+  const origin = typeof req.body.origin === 'string' ? req.body.origin.trim().replace(/\/+$/, '') : '';
+  if (!/^https?:\/\/[^/\s]+$/.test(origin)) {
+    return res.status(400).json({ success: false, message: 'Invalid origin' });
+  }
+
+  const [status, controlStatus] = await Promise.all([
+    probeGoogleOrigin(origin),
+    probeGoogleOrigin(controlGoogleOrigin()),
+  ]);
+
+  if (status === null || controlStatus === null) {
+    // Google unreachable (or blocking our probe): report "unknown", never a false alarm.
+    return res.json({ success: true, allowed: null });
+  }
+
+  const controlAllowed = controlStatus !== 403;
+  res.json({ success: true, allowed: controlAllowed ? status !== 403 : null });
+});
+
 const googleLogin = asyncHandler(async (req, res) => {
   const { credential, role } = req.body;
   if (!credential) {
     return res.status(400).json({ success: false, message: 'Google credential is required' });
   }
 
-  if (!process.env.GOOGLE_CLIENT_ID) {
-    console.error('[Google Auth] GOOGLE_CLIENT_ID env var is not set');
-    return res.status(500).json({ success: false, message: 'Google login is not configured on the server' });
-  }
-
   let ticket;
   try {
     ticket = await googleClient.verifyIdToken({
       idToken: credential,
-      audience: process.env.GOOGLE_CLIENT_ID,
+      audience: GOOGLE_CLIENT_IDS,
     });
   } catch (err) {
     console.error('[Google Auth] Token verification failed:', err.message);
-    return res.status(401).json({ success: false, message: 'Invalid Google credential' });
+    return res.status(401).json({ success: false, message: 'Invalid or expired Google credential' });
   }
 
   const payload = ticket.getPayload();
+  if (!payload) {
+    return res.status(401).json({ success: false, message: 'Invalid Google credential' });
+  }
+
+  const tokenAudience = Array.isArray(payload.aud) ? payload.aud : [payload.aud];
+  if (!tokenAudience.some((aud) => GOOGLE_CLIENT_IDS.includes(aud))) {
+    return res.status(401).json({ success: false, message: 'Google credential was issued for a different application' });
+  }
+
   const { sub: googleId, email, name, picture } = payload;
 
   if (!email) {
     return res.status(400).json({ success: false, message: 'Email not available from Google account' });
   }
 
+  if (payload.email_verified !== true) {
+    return res.status(403).json({ success: false, message: 'Your Google account email address is not verified' });
+  }
+
   let user = await User.findOne({ email: email.toLowerCase() });
 
   if (!user) {
-    const userRole = role || 'student';
+    if (role && !GOOGLE_PROVISION_ROLES.has(role)) {
+      return res.status(403).json({
+        success: false,
+        message: `${role} accounts cannot be created with Google sign-in. Pick another role or sign in with your password.`,
+      });
+    }
+    const userRole = GOOGLE_PROVISION_ROLES.has(role) ? role : 'student';
+
+    // College admins get their own college + trial subscription (same as normal registration)
+    let assignedCollegeId = null;
+    if (userRole === 'collegeAdmin') {
+      const { endDate } = buildTrialWindow();
+      const newCollege = await College.create({
+        name: `${name || email.split('@')[0]}'s College`,
+        code: `COL-${Math.floor(1000 + Math.random() * 9000)}`,
+        address: 'To be updated',
+        email: email.toLowerCase(),
+        plan: 'basic',
+        planExpiry: endDate,
+        isActive: true,
+      });
+      assignedCollegeId = newCollege._id;
+    }
+
     user = await User.create({
       name: name || email.split('@')[0],
       email: email.toLowerCase(),
       password: crypto.randomBytes(32).toString('hex'),
       role: userRole,
+      collegeId: assignedCollegeId,
       avatar: picture || null,
       isEmailVerified: true,
       googleId,
     });
+
+    if (userRole === 'collegeAdmin' && assignedCollegeId) {
+      await College.findByIdAndUpdate(assignedCollegeId, { adminId: user._id }, { runValidators: false });
+      await ensureCollegeTrialSubscription(assignedCollegeId, 'basic');
+    }
   } else if (!user.googleId) {
     user.googleId = googleId;
     if (picture && !user.avatar) user.avatar = picture;
@@ -687,6 +792,14 @@ const googleLogin = asyncHandler(async (req, res) => {
     subscriptionActive = await hasActiveCollegeAccess(user.collegeId);
   }
 
+  let children = user.children || [];
+  if (user.role === 'parent' && (!children || !children.length)) {
+    const linked = await User.find({ collegeId: user.collegeId, role: 'student', parentId: user._id })
+      .select('name email phone rollNo semester department collegeId dateOfBirth gender bloodGroup admissionDate enrollmentNo section address createdAt')
+      .populate('collegeId', 'name code');
+    if (linked.length > 0) children = linked;
+  }
+
   res.json({
     success: true,
     message: 'Google login successful',
@@ -700,6 +813,7 @@ const googleLogin = asyncHandler(async (req, res) => {
       collegeId: user.collegeId,
       avatar: user.avatar,
       lastLogin: user.lastLogin,
+      ...(user.role === 'parent' ? { children } : {}),
     },
     subscriptionActive,
   });
@@ -843,6 +957,7 @@ module.exports = {
   verifyEmail,
   checkDevice,
   googleLogin,
+  googleOriginCheck,
   sendPhoneOTP,
   verifyPhoneOTP,
 };

@@ -1024,8 +1024,32 @@
       document.getElementById('googleSignUpBtn'),
       { theme: 'outline', size: 'large', width: '100%', text: 'signup_with', shape: 'rectangular' }
     );
+    checkGoogleOrigin();
   }
   initGoogleSignUp();
+
+  // Warns when Google refuses this origin (Google Cloud Console > Authorized JavaScript origins)
+  async function checkGoogleOrigin() {
+    const blockedMsg = (origin) => `Google sign-up is blocked: ${origin} is not in "Authorized JavaScript origins" for this Google Client ID. Add it in Google Cloud Console > APIs & Services > Credentials, then reload.`;
+    try {
+      const cached = JSON.parse(sessionStorage.getItem('google_origin_check') || 'null');
+      if (cached && cached.allowed === false) showError(blockedMsg(window.location.origin));
+      if (cached && cached.allowed === true && Date.now() - cached.checkedAt < 60 * 60 * 1000) return;
+
+      const res = await fetch(`${API_URL}/auth/google-origin-check`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ origin: window.location.origin }),
+      });
+      const data = await res.json();
+      if (!res.ok || typeof data.allowed !== 'boolean') return;
+
+      sessionStorage.setItem('google_origin_check', JSON.stringify({ allowed: data.allowed, checkedAt: Date.now() }));
+      if (data.allowed === false) showError(blockedMsg(window.location.origin));
+    } catch (err) {
+      // Diagnostic only - never block the sign-up flow.
+    }
+  }
 
   function showError(msg) {
     hideMessages();

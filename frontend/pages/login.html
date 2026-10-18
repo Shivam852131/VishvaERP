@@ -289,7 +289,10 @@
     .divider::after { right: 0; }
 
     /* ── Social Login ── */
-    .social-login { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px; flex-shrink: 0; }
+    .social-login { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; flex-shrink: 0; }
+    #googleSignInBtn { grid-column: 1 / -1; display: flex; justify-content: center; min-height: 40px; }
+    #googleSignInBtn .social-btn { width: 100%; }
+    #googleSignInBtn button { max-width: 100%; }
     .social-btn {
       display: flex; align-items: center; justify-content: center; gap: 6px;
       padding: 10px 6px; border-radius: 8px;
@@ -1007,19 +1010,7 @@
 
       showSuccess(`Welcome, ${data.user.name || 'User'}! Redirecting...`);
 
-      setTimeout(() => {
-        const params = new URLSearchParams(window.location.search);
-        const redirectUrl = params.get('redirect');
-        const role = data.user.role;
-
-        if (redirectUrl && redirectUrl.startsWith('/pages/')) {
-          window.location.href = redirectUrl;
-        } else if (role === 'collegeAdmin' && data.subscriptionActive === false) {
-          window.location.href = '/pages/college-admin/subscription.html';
-        } else {
-          window.location.href = roleRedirects[role] || roleRedirects['student'];
-        }
-      }, 750);
+      setTimeout(() => redirectToDashboard(data), 750);
     } catch (err) {
       showError(err.message || 'Login failed. Please verify your credentials.');
     } finally {
@@ -1027,6 +1018,21 @@
       btn.innerHTML = '<i class="fas fa-lock"></i> Sign In Securely';
     }
   });
+
+  // Shared post-login redirect (password, OTP and Google sign-in all use this)
+  function redirectToDashboard(data) {
+    const params = new URLSearchParams(window.location.search);
+    const redirectUrl = params.get('redirect');
+    const role = data.user?.role;
+
+    if (redirectUrl && redirectUrl.startsWith('/pages/')) {
+      window.location.href = redirectUrl;
+    } else if (role === 'collegeAdmin' && data.subscriptionActive === false) {
+      window.location.href = '/pages/college-admin/subscription.html';
+    } else {
+      window.location.href = roleRedirects[role] || roleRedirects['student'];
+    }
+  }
 
   // ═══════ EMAIL OTP ═══════
   async function sendOTP() {
@@ -1274,9 +1280,128 @@
   // ── Social Login ──
   function socialLogin(provider) {
     if (provider === 'google') {
-      showToast('Connecting with Google SSO...', 'info');
+      const renderedBtn = document.querySelector('#googleSignInBtn div[role="button"]');
+      if (googleReady && renderedBtn) {
+        renderedBtn.click();
+        return;
+      }
+      showToast('Google Sign-In could not load. Check your internet connection and reload the page.', 'error');
     } else {
       showToast(`${provider.charAt(0).toUpperCase() + provider.slice(1)} single sign-on is active for enterprise domains.`, 'info');
+    }
+  }
+
+  // ═══════ GOOGLE SIGN-IN (Google Identity Services) ═══════
+  let googleReady = false;
+  let googleSigningIn = false;
+
+  function initGoogleSignIn() {
+    if (typeof google === 'undefined' || !google.accounts?.id) {
+      setTimeout(initGoogleSignIn, 400);
+      return;
+    }
+    try {
+      google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        callback: handleGoogleSignIn,
+        auto_select: false,
+        error_callback: (error) => {
+          const messages = {
+            popup_failed_to_open: 'Your browser blocked the Google pop-up. Allow pop-ups for this site and try again.',
+            popup_closed: 'Google sign-in window was closed before finishing. Please try again.',
+            opt_out_or_no_session: 'Google sign-in is unavailable for this browser session. Sign in with your email and password instead.',
+          };
+          showError(messages[error?.type] || 'Google sign-in could not start. Please try again or sign in with your email and password.');
+        },
+      });
+
+      const wrap = document.getElementById('googleSignInBtn');
+      if (!wrap) return;
+      wrap.innerHTML = '';
+      const width = Math.min(400, Math.max(200, Math.round(wrap.clientWidth) || 320));
+      google.accounts.id.renderButton(wrap, {
+        theme: 'outline',
+        size: 'large',
+        type: 'standard',
+        text: 'signin_with',
+        shape: 'rectangular',
+        logo_alignment: 'left',
+        width,
+      });
+      googleReady = true;
+      checkGoogleOrigin();
+    } catch (err) {
+      console.error('[Google Sign-In] Failed to render button:', err);
+    }
+  }
+  initGoogleSignIn();
+
+  // Asks the backend whether Google accepts this origin (Google Cloud Console >
+  // Authorized JavaScript origins). When it does not, Google silently refuses to
+  // render a working button - so we surface an actionable error instead.
+  async function checkGoogleOrigin() {
+    const blockedMsg = (origin) => `Google sign-in is blocked: ${origin} is not in "Authorized JavaScript origins" for this Google Client ID. Add it in Google Cloud Console > APIs & Services > Credentials, then reload.`;
+
+    try {
+      const cached = JSON.parse(sessionStorage.getItem('google_origin_check') || 'null');
+      if (cached && cached.allowed === false) showError(blockedMsg(window.location.origin));
+      if (cached && cached.allowed === true && Date.now() - cached.checkedAt < 60 * 60 * 1000) return;
+
+      const res = await fetch(`${API_URL}/auth/google-origin-check`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ origin: window.location.origin }),
+      });
+      const data = await res.json();
+      if (!res.ok || typeof data.allowed !== 'boolean') return;
+
+      sessionStorage.setItem('google_origin_check', JSON.stringify({ allowed: data.allowed, checkedAt: Date.now() }));
+      if (data.allowed === false) showError(blockedMsg(window.location.origin));
+    } catch (err) {
+      // Diagnostic only - never block the sign-in flow.
+    }
+  }
+
+  async function handleGoogleSignIn(response) {
+    if (googleSigningIn) return;
+    const credential = response?.credential;
+    if (!credential) {
+      showError('Google sign-in was cancelled. Please try again.');
+      return;
+    }
+
+    googleSigningIn = true;
+    hideMessages();
+    showSuccess('Verifying Google account...');
+
+    try {
+      const res = await fetch(`${API_URL}/auth/google-login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ credential, role: selectedRole }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.token) {
+        throw new Error(data.message || 'Google sign-in failed. Please try again.');
+      }
+
+      localStorage.setItem('erp_token', data.token);
+      localStorage.setItem('erp_user', JSON.stringify(data.user));
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      if (data.refreshToken) {
+        localStorage.setItem('erp_refresh_token', data.refreshToken);
+        localStorage.setItem('refreshToken', data.refreshToken);
+      }
+
+      showSuccess(`Welcome, ${data.user.name || 'User'}! Redirecting...`);
+      setTimeout(() => redirectToDashboard(data), 750);
+    } catch (err) {
+      hideMessages();
+      showError(err.message || 'Google sign-in failed. Please try again.');
+    } finally {
+      googleSigningIn = false;
     }
   }
 

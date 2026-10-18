@@ -120,6 +120,18 @@ Upload the `frontend/` directory to your document root and copy the `.htaccess` 
 Copy `.env.production.example` to `.env` and fill in your production values (MongoDB URI, JWT secret, OpenAI key, etc.).
 
 - `RATE_LIMIT_GENERAL` — optional override for the general rate limiter (requests per 15 minutes per IP; default 1000 in development, 100 in production). Raise it for E2E/CI runs or deployments behind a shared NAT where many users share one IP.
+- `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_IDS` (comma-separated) — accepted Google OAuth web clients. If unset, the server falls back to the client ID shipped with the frontend so sign-in works without any env setup.
+
+## 🔑 Google Sign-In Setup
+
+The login and register pages render the real Google Identity Services button and POST the ID token to `POST /api/auth/google-login`, which verifies it server-side and creates/signs in the user.
+
+1. **Server:** set `GOOGLE_CLIENT_ID` in `.env` (see `.env.example`).
+2. **Google Cloud Console → APIs & Services → Credentials → your OAuth 2.0 Web client → Authorized JavaScript origins** must list *every* URL the app is served from, otherwise Google refuses to render a working button (the page shows an actionable error via `POST /api/auth/google-origin-check`):
+   - `http://localhost:5000` and `http://127.0.0.1:5000` — local development
+   - `https://vishvaerp.vercel.app` — allowed today
+   - `https://vishvaerp.com` and `https://www.vishvaerp.com` — custom domain, **not** allowed today (add them)
+3. Behaviour notes: existing accounts always sign in with their stored role; new accounts can be provisioned as `student`, `faculty`, `parent` or `collegeAdmin` (**not** `superadmin`), and a new `collegeAdmin` gets its own college plus trial subscription, exactly like normal registration.
 
 ## 🚢 Deployment URLs
 - **Landing:** https://vishvaerp.com/
