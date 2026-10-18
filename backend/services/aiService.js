@@ -363,12 +363,19 @@ async function geminiStream({ systemPrompt, prompt, history = [], maxTokens, onT
 }
 
 // No provider configured (or a caller without a key): stream the local template.
-async function streamFallback(prompt, systemPrompt, onToken) {
+// When failedProvider is set, the key EXISTS but the live service errored
+// (429/network) — append a truthful note instead of implying no key is set.
+async function streamFallback(prompt, systemPrompt, onToken, failedProvider = null) {
   const fallback = buildFallbackResponse(prompt, systemPrompt);
   const chunks = fallback.match(/.{1,28}(\s|$)/g) || [fallback];
   for (const chunk of chunks) {
     onToken(chunk);
     await delay(8);
+  }
+  if (failedProvider) {
+    const note = `\n\n_Note: the live ${failedProvider} AI did not respond just now (rate limit or network), so this built-in offline answer was shown instead._`;
+    onToken(note);
+    return fallback + note;
   }
   return fallback;
 }
@@ -403,10 +410,10 @@ const askAI = async (prompt, systemPrompt = SYSTEM_PROMPTS.chat, options = {}) =
     return response.choices[0].message.content;
   } catch (error) {
     console.error(`AI provider error (${provider}):`, error?.message || error);
-    return buildFallbackResponse(prompt, systemPrompt, options);
+    const base = buildFallbackResponse(prompt, systemPrompt, options);
+    return `${base}\n\n_Note: the live ${provider} AI did not respond just now (rate limit or network), so this built-in offline answer was shown instead._`;
   }
 };
-
 // Streaming AI call
 const streamAI = async ({ prompt, systemPrompt = SYSTEM_PROMPTS.chat, history = [], onToken }) => {
   const provider = getAIProvider();
@@ -438,9 +445,7 @@ const streamAI = async ({ prompt, systemPrompt = SYSTEM_PROMPTS.chat, history = 
     return fullText;
   } catch (error) {
     console.error(`AI stream error (${provider}):`, error?.message || error);
-    const fallback = buildFallbackResponse(prompt, systemPrompt);
-    onToken(fallback);
-    return fallback;
+    return streamFallback(prompt, systemPrompt, onToken, provider);
   }
 };
 
