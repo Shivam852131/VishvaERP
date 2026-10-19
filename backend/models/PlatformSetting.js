@@ -348,9 +348,11 @@ const platformSettingSchema = new mongoose.Schema({
     },
     auth: {
       loginTitle: { type: String, default: 'Welcome back' },
-      loginSubtitle: { type: String, default: 'Sign in to your Vishva ERP workspace' },
-      registerTitle: { type: String, default: 'Create your institution' },
-      registerSubtitle: { type: String, default: 'Start with the core ERP and expand anytime' },
+      loginSubtitle: { type: String, default: 'Sign in to your VishvaERP account' },
+      registerTitle: { type: String, default: 'Create Account' },
+      registerSubtitle: { type: String, default: 'Join VishvaERP and transform your institution' },
+      heroTitle: { type: String, default: 'Enterprise Academic Platform' },
+      heroDescription: { type: String, default: 'The complete ERP built for educational institutions \u2014 managing thousands of students, faculty, and operations in one place.' },
     },
   },
   // ── Dashboard UI text overrides (key -> replacement string) ──

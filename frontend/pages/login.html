@@ -439,11 +439,11 @@
   <div class="login-left">
     <div class="brand">
       <div class="brand-icon"><img src="../icons/logo.png" alt="VishvaERP"></div>
-      <div class="brand-name">Vishva <span>ERP</span></div>
+      <div class="brand-name" data-cms-brand="branding.siteName">Vishva <span>ERP</span></div>
     </div>
     <div class="left-hero">
-      <h1>Enterprise Academic Platform</h1>
-      <p>The complete ERP built for educational institutions — managing thousands of students, faculty, and operations in one place.</p>
+      <h1 data-cms="auth.heroTitle">Enterprise Academic Platform</h1>
+      <p data-cms="auth.heroDescription">The complete ERP built for educational institutions — managing thousands of students, faculty, and operations in one place.</p>
     </div>
     <div class="feature-list">
       <div class="feature-item"><i class="fas fa-check-circle"></i> Role-based access for 5 user types</div>
@@ -462,8 +462,8 @@
 
   <!-- ── Right Panel ── -->
   <div class="login-right">
-    <h2>Welcome back</h2>
-    <p class="subtitle">Sign in to your VishvaERP account</p>
+    <h2 data-cms="auth.loginTitle">Welcome back</h2>
+    <p class="subtitle" data-cms="auth.loginSubtitle">Sign in to your VishvaERP account</p>
 
     <!-- Active Session Notification Banner (Prevents auto-redirect trap!) -->
     <div id="activeSessionBanner" style="display:none;background:#EEF2FF;border:1px solid #C7D2FE;border-radius:10px;padding:12px 14px;margin-bottom:16px">
@@ -1417,5 +1417,6 @@
     }
   });
 </script>
+  <script src="../js/site-content.js"></script>
 </body>
 </html>

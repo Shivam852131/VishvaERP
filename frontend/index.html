@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Vishva ERP | AI-Powered Campus ERP for Colleges and Universities</title>
-  <meta name="description" content="Vishva ERP is an enterprise academic platform for colleges and universities covering admissions, timetable, smart attendance, exams, fees, HR, logistics, and analytics.">
-  <meta name="keywords" content="ERP, college ERP, university ERP, campus management, smart attendance, timetable, AI education, student portal, faculty portal, Vishva ERP">
+  <title data-cms-meta="seo.title">Vishva ERP | AI-Powered Campus ERP for Colleges and Universities</title>
+  <meta name="description" data-cms-meta="seo.description" content="Vishva ERP is an enterprise academic platform for colleges and universities covering admissions, timetable, smart attendance, exams, fees, HR, logistics, and analytics.">
+  <meta name="keywords" data-cms-meta="seo.keywords" content="ERP, college ERP, university ERP, campus management, smart attendance, timetable, AI education, student portal, faculty portal, Vishva ERP">
   <meta name="robots" content="index, follow">
   <meta name="theme-color" content="#6366F1">
   <meta name="mobile-web-app-capable" content="yes">
@@ -64,6 +64,7 @@
   </script>
 </head>
 <body class="landing-page antialiased">
+    <div id="lp-announcement" hidden style="position:fixed;top:0;left:0;right:0;z-index:120;background:linear-gradient(90deg,#7C3AED,#0EA5E9);color:#fff;text-align:center;padding:9px 16px;font-size:13.5px;font-weight:600;letter-spacing:.01em"><span id="lp-announcement-text"></span><a id="lp-announcement-link" href="#" style="color:#fff;text-decoration:underline;margin-left:10px" hidden></a></div>
 
   <!-- ═══════════════ NAV ═══════════════ -->
   <nav class="lp-nav" id="mainNav">
@@ -71,7 +72,7 @@
     <div class="lp-nav-inner">
       <a href="#top" class="lp-nav-brand" aria-label="Vishva ERP home">
         <span class="lp-brand-icon"><img src="icons/logo.png" alt="VishvaERP"></span>
-        <span class="lp-brand-text">Vishva <strong>ERP</strong></span>
+        <span data-cms-brand="branding.siteName" class="lp-brand-text">Vishva <strong>ERP</strong></span>
       </a>
       <div class="lp-nav-links" id="navLinks">
         <a href="#features" class="lp-nav-link">Features</a>
@@ -95,7 +96,7 @@
     <div class="lp-drawer-overlay" id="drawerOverlay"></div>
     <div class="lp-drawer-panel" id="drawerContent">
       <div class="lp-drawer-header">
-        <a href="#top" class="lp-nav-brand"><span class="lp-brand-icon"><img src="icons/logo.png" alt="VishvaERP"></span><span class="lp-brand-text" style="color:#0F172A">Vishva <strong>ERP</strong></span></a>
+        <a href="#top" class="lp-nav-brand"><span class="lp-brand-icon"><img src="icons/logo.png" alt="VishvaERP"></span><span data-cms-brand="branding.siteName" class="lp-brand-text" style="color:#0F172A">Vishva <strong>ERP</strong></span></a>
         <button class="lp-drawer-close" id="closeDrawer" aria-label="Close"><i class="fas fa-times"></i></button>
       </div>
       <div class="lp-drawer-links">
@@ -140,23 +141,23 @@
       <div class="lp-hero-content">
         <div class="lp-hero-badge" data-reveal>
           <span class="lp-live-dot"></span>
-          Campus-grade operating system for modern institutions
+          <span data-cms="hero.badge">Campus-grade operating system for modern institutions</span>
         </div>
-        <h1 data-reveal>Run your entire campus from <span class="lp-gradient-text">one intelligent platform.</span></h1>
-        <p class="lp-hero-desc" data-reveal>
+        <h1 data-reveal data-cms="hero.title" data-cms-accent="hero.titleAccent">Run your entire campus from <span class="lp-gradient-text">one intelligent platform.</span></h1>
+        <p class="lp-hero-desc" data-reveal data-cms="hero.description">
           Vishva ERP unifies admissions, timetable planning, smart attendance, examinations, fee management, HR, logistics, and analytics into a single connected system.
         </p>
-        <div class="lp-hero-tags" data-reveal>
+        <div class="lp-hero-tags" data-reveal data-cms-list="hero.tags" data-cms-render="heroTags">
           <span><i class="fas fa-check-circle"></i> Multi-campus ready</span>
           <span><i class="fas fa-shield-halved"></i> Role-based controls</span>
           <span><i class="fas fa-bolt"></i> Real-time workflows</span>
           <span><i class="fas fa-robot"></i> AI-powered</span>
         </div>
         <div class="lp-hero-actions" data-reveal>
-          <a href="./pages/register.html" class="lp-btn-hero-primary">Register Institution <i class="fas fa-arrow-right"></i></a>
-          <a href="./pages/login.html" class="lp-btn-hero-secondary">Sign In <i class="fas fa-right-to-bracket"></i></a>
+          <a href="./pages/register.html" class="lp-btn-hero-primary" data-cms-href="hero.primaryCtaHref"><span data-cms="hero.primaryCtaLabel">Register Institution</span> <i class="fas fa-arrow-right"></i></a>
+          <a href="./pages/login.html" class="lp-btn-hero-secondary" data-cms-href="hero.secondaryCtaHref"><span data-cms="hero.secondaryCtaLabel">Sign In</span> <i class="fas fa-right-to-bracket"></i></a>
         </div>
-        <div class="lp-hero-proof" data-reveal>
+        <div class="lp-hero-proof" data-reveal data-cms-list="hero.proof" data-cms-render="proof">
           <span><i class="fas fa-check"></i> Free to start</span>
           <span><i class="fas fa-check"></i> No credit card required</span>
           <span><i class="fas fa-check"></i> Setup in minutes</span>
@@ -684,11 +685,11 @@
     <section class="lp-section" id="features" data-reveal>
       <div class="lp-container">
         <div class="lp-section-header">
-          <span class="lp-kicker">Core capabilities</span>
-          <h2>Built for the daily demands of running a real institution.</h2>
-          <p>Vishva ERP is designed around operational outcomes: fewer manual registers, faster decisions, better student visibility, and cleaner governance.</p>
+          <span class="lp-kicker" data-cms="sections.features.kicker">Core capabilities</span>
+          <h2 data-cms="sections.features.title">Built for the daily demands of running a real institution.</h2>
+          <p data-cms="sections.features.description">Vishva ERP is designed around operational outcomes: fewer manual registers, faster decisions, better student visibility, and cleaner governance.</p>
         </div>
-        <div class="lp-features-grid">
+        <div class="lp-features-grid" data-cms-list="sections.features.items" data-cms-render="featureCard">
           <article class="lp-feature-card lp-feature-highlight" data-tilt>
             <div class="lp-feature-num">01</div>
             <h3>Academic delivery without timetable chaos</h3>
@@ -717,12 +718,12 @@
     <section class="lp-section lp-section-alt" id="platform" data-reveal>
       <div class="lp-container">
         <div class="lp-section-header">
-          <span class="lp-kicker">Executive operations</span>
-          <h2>One command center for every campus decision.</h2>
-          <p>Replace scattered spreadsheets with a live operating layer for academics, revenue, compliance, and student success.</p>
+          <span class="lp-kicker" data-cms="sections.platform.kicker">Executive operations</span>
+          <h2 data-cms="sections.platform.title">One command center for every campus decision.</h2>
+          <p data-cms="sections.platform.description">Replace scattered spreadsheets with a live operating layer for academics, revenue, compliance, and student success.</p>
         </div>
         <div class="lp-platform-layout">
-          <div class="lp-platform-ops">
+          <div class="lp-platform-ops" data-cms-list="sections.platform.ops" data-cms-render="opsRow">
             <div class="lp-op-row" data-tilt>
               <i class="fas fa-route" style="color:#0EA5E9"></i>
               <div><strong>Admission-to-alumni lifecycle</strong><span>Applications, enrollment, sections, certificates, and alumni records.</span></div>
@@ -773,7 +774,7 @@
     <!-- ═══════════════ ACADEMIC ENGINE ═══════════════ -->
     <section class="lp-engine" data-reveal>
       <div class="lp-container">
-        <div class="lp-engine-grid">
+        <div class="lp-engine-grid" data-cms-list="sections.engine.cards" data-cms-render="engineCard">
           <article class="lp-engine-card" data-tilt>
             <div class="lp-engine-icon"><i class="fas fa-calendar-week"></i></div>
             <strong>Dynamic Timetable Engine</strong>
@@ -797,11 +798,11 @@
     <section class="lp-section lp-section-alt" id="modules" data-reveal>
       <div class="lp-container">
         <div class="lp-section-header">
-          <span class="lp-kicker">ERP modules</span>
-          <h2>Everything a real institution runs every day.</h2>
-          <p>Core modules designed for repeated operational use, not brochure screens. Each area connects to the same data.</p>
+          <span class="lp-kicker" data-cms="sections.modules.kicker">ERP modules</span>
+          <h2 data-cms="sections.modules.title">Everything a real institution runs every day.</h2>
+          <p data-cms="sections.modules.description">Core modules designed for repeated operational use, not brochure screens. Each area connects to the same data.</p>
         </div>
-        <div class="lp-modules-grid">
+        <div class="lp-modules-grid" data-cms-list="sections.modules.items" data-cms-render="moduleCard">
           <article class="lp-module" data-tilt><div class="lp-module-icon" style="background:linear-gradient(135deg,#EEF2FF,#E0E7FF);color:#4F46E5"><i class="fas fa-user-plus"></i></div><h3>Admissions & Enrollment</h3><p>Lead capture, application review, document checks, seat allocation, and parent accounts.</p></article>
           <article class="lp-module" data-tilt><div class="lp-module-icon" style="background:linear-gradient(135deg,#F0F9FF,#E0F2FE);color:#0284C7"><i class="fas fa-calendar-check"></i></div><h3>Attendance & Timetable</h3><p>Batch-wise schedules, shortage alerts, smart location, faculty workload, and live class links.</p></article>
           <article class="lp-module" data-tilt><div class="lp-module-icon" style="background:linear-gradient(135deg,#ECFDF5,#D1FAE5);color:#059669"><i class="fas fa-file-signature"></i></div><h3>Exams & Results</h3><p>Subject plans, marks entry, grading, CGPA, bulk uploads, and parent/student views.</p></article>
@@ -818,11 +819,11 @@
     <section class="lp-section" data-reveal>
       <div class="lp-container">
         <div class="lp-section-header">
-          <span class="lp-kicker">Connected operations</span>
-          <h2>Every department works from the same record.</h2>
-          <p>Admissions become student records, timetable slots become attendance sessions, results become parent visibility, and fees become finance dashboards.</p>
+          <span class="lp-kicker" data-cms="sections.flow.kicker">Connected operations</span>
+          <h2 data-cms="sections.flow.title">Every department works from the same record.</h2>
+          <p data-cms="sections.flow.description">Admissions become student records, timetable slots become attendance sessions, results become parent visibility, and fees become finance dashboards.</p>
         </div>
-        <div class="lp-flow">
+        <div class="lp-flow" data-cms-list="sections.flow.nodes" data-cms-render="flowNodes">
           <div class="lp-flow-node lp-flow-active" data-tilt><i class="fas fa-user-plus"></i><strong>Admissions</strong><span>Applications to enrollment</span></div>
           <div class="lp-flow-arrow"><i class="fas fa-arrow-right"></i></div>
           <div class="lp-flow-node" data-tilt><i class="fas fa-calendar-week"></i><strong>Academics</strong><span>Courses, timetable, classes</span></div>
@@ -840,11 +841,11 @@
     <section class="lp-section lp-section-alt" id="roles" data-reveal>
       <div class="lp-container">
         <div class="lp-section-header">
-          <span class="lp-kicker">Role portals</span>
-          <h2>Different users, one connected source of truth.</h2>
-          <p>Every stakeholder gets the workspace they need while administrators keep centralized governance.</p>
+          <span class="lp-kicker" data-cms="sections.roles.kicker">Role portals</span>
+          <h2 data-cms="sections.roles.title">Different users, one connected source of truth.</h2>
+          <p data-cms="sections.roles.description">Every stakeholder gets the workspace they need while administrators keep centralized governance.</p>
         </div>
-        <div class="lp-roles-grid">
+        <div class="lp-roles-grid" data-cms-list="sections.roles.items" data-cms-render="roleCard">
           <a href="./pages/super-admin/dashboard.html" class="lp-role lp-role-super" data-tilt><span><i class="fas fa-satellite-dish"></i></span><h3>Super Admin</h3><p>Tenant control, system health, plan management, broadcast tools, and audit logs.</p></a>
           <a href="./pages/college-admin/dashboard.html" class="lp-role lp-role-college" data-tilt><span><i class="fas fa-university"></i></span><h3>College Admin</h3><p>Run admissions, faculty, students, fees, logistics, notices, courses, and HR.</p></a>
           <a href="./pages/faculty/dashboard.html" class="lp-role lp-role-faculty" data-tilt><span><i class="fas fa-chalkboard-user"></i></span><h3>Faculty</h3><p>Attendance, grading, live classes, assignments, leave, timetable, and AI support.</p></a>
@@ -859,10 +860,10 @@
       <div class="lp-container">
         <div class="lp-ai-layout">
           <div>
-            <span class="lp-kicker">AI and analytics</span>
-            <h2>Turn campus data into early action.</h2>
-            <p>Vishva ERP combines live operational data with AI-assisted workflows so administrators see what needs attention before it becomes a problem.</p>
-            <div class="lp-insights">
+            <span class="lp-kicker" data-cms="sections.ai.kicker">AI and analytics</span>
+            <h2 data-cms="sections.ai.title">Turn campus data into early action.</h2>
+            <p data-cms="sections.ai.description">Vishva ERP combines live operational data with AI-assisted workflows so administrators see what needs attention before it becomes a problem.</p>
+            <div class="lp-insights" data-cms-list="sections.ai.insights" data-cms-render="insightRow">
               <div><i class="fas fa-triangle-exclamation"></i><span>Attendance shortage prediction before exam eligibility deadlines.</span></div>
               <div><i class="fas fa-money-check-dollar"></i><span>Fee collection prioritization by amount, due date, and student risk.</span></div>
               <div><i class="fas fa-wand-magic-sparkles"></i><span>AI-generated exam papers, notes, summaries, and student doubt support.</span></div>
@@ -884,10 +885,10 @@
       <div class="lp-container">
         <div class="lp-install-layout">
           <div>
-            <span class="lp-kicker lp-kicker-light">Multi-Platform Access</span>
-            <h2>Your campus platform, everywhere.</h2>
-            <p>Built mobile-first. Whether you are a student checking attendance or an administrator approving leaves, the experience is fast, native, and always in sync.</p>
-            <div class="lp-install-features">
+            <span class="lp-kicker lp-kicker-light" data-cms="sections.install.kicker">Multi-Platform Access</span>
+            <h2 data-cms="sections.install.title">Your campus platform, everywhere.</h2>
+            <p data-cms="sections.install.description">Built mobile-first. Whether you are a student checking attendance or an administrator approving leaves, the experience is fast, native, and always in sync.</p>
+            <div class="lp-install-features" data-cms-list="sections.install.items" data-cms-render="installFeature">
               <div><div class="lp-install-icon"><i class="fas fa-bolt"></i></div><div><strong>Instant Updates</strong><span>One codebase means app and web always have the latest features.</span></div></div>
               <div><div class="lp-install-icon"><i class="fas fa-bell"></i></div><div><strong>Role-Based Notifications</strong><span>Native alerts for fee dues, exam results, and academic notices.</span></div></div>
               <div><div class="lp-install-icon"><i class="fas fa-shield-halved"></i></div><div><strong>Secure &amp; Private</strong><span>End-to-end encryption with role-based access controls.</span></div></div>
@@ -941,11 +942,11 @@
     <section class="lp-section" data-reveal>
       <div class="lp-container">
         <div class="lp-section-header">
-          <span class="lp-kicker">Implementation path</span>
-          <h2>Move from setup to daily operations quickly.</h2>
-          <p>Start with the core ERP and expand into intelligence, automation, and campus-wide communication.</p>
+          <span class="lp-kicker" data-cms="sections.implementation.kicker">Implementation path</span>
+          <h2 data-cms="sections.implementation.title">Move from setup to daily operations quickly.</h2>
+          <p data-cms="sections.implementation.description">Start with the core ERP and expand into intelligence, automation, and campus-wide communication.</p>
         </div>
-        <div class="lp-steps">
+        <div class="lp-steps" data-cms-list="sections.implementation.steps" data-cms-render="stepCard">
           <div class="lp-step" data-tilt><div class="lp-step-num">01</div><strong>Create tenant</strong><em>Institution, admins, plan, departments</em></div>
           <div class="lp-step" data-tilt><div class="lp-step-num">02</div><strong>Load master data</strong><em>Students, faculty, courses, batches</em></div>
           <div class="lp-step" data-tilt><div class="lp-step-num">03</div><strong>Run operations</strong><em>Attendance, fees, notices, exams</em></div>
@@ -960,10 +961,10 @@
       <div class="lp-container">
         <div class="lp-security-layout">
           <div>
-            <span class="lp-kicker">Security and governance</span>
-            <h2>Designed for institutional control, privacy, and auditability.</h2>
-            <p>Vishva ERP keeps sensitive academic, financial, and attendance data inside role-aware workflows. Smart attendance is consent-based.</p>
-            <div class="lp-security-list">
+            <span class="lp-kicker" data-cms="sections.security.kicker">Security and governance</span>
+            <h2 data-cms="sections.security.title">Designed for institutional control, privacy, and auditability.</h2>
+            <p data-cms="sections.security.description">Vishva ERP keeps sensitive academic, financial, and attendance data inside role-aware workflows. Smart attendance is consent-based.</p>
+            <div class="lp-security-list" data-cms-list="sections.security.points" data-cms-render="securityPoint">
               <div><i class="fas fa-user-shield"></i><span>Scoped access for Super Admin, College Admin, Faculty, Student, and Parent users.</span></div>
               <div><i class="fas fa-clock-rotate-left"></i><span>Full audit trail for attendance, fees, exams, notices, leaves, and communication.</span></div>
               <div><i class="fas fa-location-crosshairs"></i><span>Privacy-first smart attendance with student consent and classroom geofence signals.</span></div>
@@ -985,11 +986,11 @@
     <section class="lp-section" id="pricing" data-reveal>
       <div class="lp-container">
         <div class="lp-section-header">
-          <span class="lp-kicker">Deployment models</span>
-          <h2>Fit for single colleges and university networks.</h2>
-          <p>Use the same platform for a focused campus rollout or a larger multi-institution command layer.</p>
+          <span class="lp-kicker" data-cms="pricing.kicker">Deployment models</span>
+          <h2 data-cms="pricing.title">Fit for single colleges and university networks.</h2>
+          <p data-cms="pricing.description">Use the same platform for a focused campus rollout or a larger multi-institution command layer.</p>
         </div>
-        <div class="lp-plans-grid">
+        <div class="lp-plans-grid" data-cms-list="pricing.plans" data-cms-render="planCard">
           <article class="lp-plan" data-tilt>
             <h3>College ERP</h3>
             <p>For single colleges and autonomous institutions modernizing daily administration.</p>
@@ -1017,13 +1018,13 @@
     <section class="lp-cta" data-reveal>
       <div class="lp-cta-glow"></div>
       <div class="lp-container lp-cta-inner">
-        <span class="lp-kicker lp-kicker-light">Ready to modernize your campus?</span>
-        <h2>Bring admissions, academics, attendance, finance, HR, and analytics into one intelligent platform.</h2>
+        <span class="lp-kicker lp-kicker-light" data-cms="cta.kicker">Ready to modernize your campus?</span>
+        <h2 data-cms="cta.title">Bring admissions, academics, attendance, finance, HR, and analytics into one intelligent platform.</h2>
         <div class="lp-cta-actions">
-          <a href="./pages/register.html" class="lp-btn-hero-primary">Register Institution <i class="fas fa-arrow-right"></i></a>
-          <a href="./pages/login.html" class="lp-btn-hero-secondary">Sign In <i class="fas fa-right-to-bracket"></i></a>
+          <a href="./pages/register.html" class="lp-btn-hero-primary"><span data-cms="cta.primaryCtaLabel">Register Institution</span> <i class="fas fa-arrow-right"></i></a>
+          <a href="./pages/login.html" class="lp-btn-hero-secondary"><span data-cms="cta.secondaryCtaLabel">Sign In</span> <i class="fas fa-right-to-bracket"></i></a>
         </div>
-        <div class="lp-cta-proof">
+        <div class="lp-cta-proof" data-cms-list="cta.proof" data-cms-render="proof">
           <span><i class="fas fa-check"></i> Free to start</span>
           <span><i class="fas fa-check"></i> No credit card required</span>
           <span><i class="fas fa-check"></i> Setup in minutes</span>
@@ -1035,14 +1036,14 @@
   <!-- ═══════════════ FOOTER ═══════════════ -->
   <footer class="lp-footer">
     <div class="lp-container">
-      <div class="lp-footer-grid">
+      <div class="lp-footer-grid" data-cms-list="footer.columns" data-cms-render="footerCol">
         <div class="lp-footer-brand">
-          <a href="#top" class="lp-nav-brand"><span class="lp-brand-icon"><img src="icons/logo.png" alt="VishvaERP"></span><span class="lp-brand-text">Vishva <strong>ERP</strong></span></a>
-          <p>Enterprise academic management platform for colleges, universities, school groups, and training institutions.</p>
+          <a href="#top" class="lp-nav-brand"><span class="lp-brand-icon"><img src="icons/logo.png" alt="VishvaERP"></span><span data-cms-brand="branding.siteName" class="lp-brand-text">Vishva <strong>ERP</strong></span></a>
+          <p data-cms="footer.description">Enterprise academic management platform for colleges, universities, school groups, and training institutions.</p>
           <div class="lp-footer-social">
-            <a href="#" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
-            <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
-            <a href="#" aria-label="GitHub"><i class="fab fa-github"></i></a>
+            <a href="#" data-cms-href="footer.twitter" aria-label="Twitter"><i class="fab fa-twitter"></i></a>
+            <a href="#" data-cms-href="footer.linkedin" aria-label="LinkedIn"><i class="fab fa-linkedin-in"></i></a>
+            <a href="#" data-cms-href="footer.github" aria-label="GitHub"><i class="fab fa-github"></i></a>
           </div>
         </div>
         <div class="lp-footer-col"><strong>Platform</strong><a href="#features">Features</a><a href="#platform">Command Center</a><a href="#modules">Modules</a><a href="#security">Security</a></div>
@@ -1050,13 +1051,14 @@
         <div class="lp-footer-col"><strong>Get Started</strong><a href="./pages/register.html">Register Institution</a><a href="./pages/login.html">Sign In</a><a href="#pricing">Pricing</a></div>
       </div>
       <div class="lp-footer-bottom">
-        <span>&copy; 2026 Vishva ERP. All rights reserved.</span>
-        <span>Enterprise academic management platform.</span>
+        <span data-cms="footer.copyright">&copy; 2026 Vishva ERP. All rights reserved.</span>
+        <span data-cms="footer.tagline">Enterprise academic management platform.</span>
       </div>
     </div>
   </footer>
 
   <script src="./js/shared.js?v=2"></script>
+  <script src="./js/site-content.js"></script>
   <script>
   (function() {
     var apkBtn = document.getElementById('apkDownloadBtn');
