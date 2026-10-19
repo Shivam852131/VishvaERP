@@ -519,7 +519,14 @@ const getBroadcastHistory = asyncHandler(async (req, res) => {
 
 const getPlatformSettings = asyncHandler(async (req, res) => {
     const settings = await ensurePlatformSettings();
-    res.json({ success: true, settings: sanitizeSettings(settings) });
+    // Schema defaults let the Website Builder prefill/reset any section.
+    let defaults;
+    try {
+      defaults = { website: new PlatformSetting().toObject().website };
+    } catch (_) {
+      defaults = { website: {} };
+    }
+    res.json({ success: true, settings: sanitizeSettings(settings), defaults });
   });
 
 const updatePlatformSettings = asyncHandler(async (req, res) => {

@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Website Builder — Super Admin | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../css/custom.css">
+  <style>
+    :root {
+      --wb-primary: #4F46E5;
+      --wb-card-border: #E2E8F0;
+      --wb-text-dark: #0F172A;
+      --wb-text-muted: #64748B;
+    }
+    .wb-hero {
+      background: linear-gradient(135deg, #0F172A 0%, #1E1B4B 50%, #312E81 100%);
+      border-radius: 20px;
+      padding: 24px 28px;
+      color: #fff;
+      margin-bottom: 24px;
+      box-shadow: 0 12px 30px -8px rgba(15, 23, 42, 0.4);
+      position: relative;
+      overflow: hidden;
+    }
+    .wb-hero::after {
+      content: '';
+      position: absolute;
+      top: -40%;
+      right: -10%;
+      width: 420px;
+      height: 420px;
+      background: radial-gradient(circle, rgba(99, 102, 241, 0.22) 0%, rgba(255, 255, 255, 0) 70%);
+      pointer-events: none;
+    }
+    .wb-hero-inner { position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
+    .wb-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(34, 197, 94, 0.15); border: 1px solid rgba(34, 197, 94, 0.45);
+      color: #4ADE80; border-radius: 999px; padding: 3px 10px; font-size: 11px; font-weight: 700;
+    }
+    .wb-pill.dirty { background: rgba(245, 158, 11, 0.16); border-color: rgba(245, 158, 11, 0.5); color: #FCD34D; }
+    .wb-nav-btn {
+      display: flex; align-items: center; gap: 10px; width: 100%;
+      padding: 9px 12px; border: 0; background: transparent; border-radius: 10px;
+      font-size: 13.5px; font-weight: 600; color: #334155; cursor: pointer; text-align: left;
+      transition: background .15s, color .15s;
+    }
+    .wb-nav-btn:hover { background: #F1F5F9; }
+    .wb-nav-btn.active { background: #EEF2FF; color: var(--wb-primary); }
+    .wb-nav-btn i { width: 18px; text-align: center; font-size: 13px; }
+    .wb-field { margin-bottom: 16px; }
+    .wb-label { display: block; font-size: 12.5px; font-weight: 700; color: var(--wb-text-dark); margin-bottom: 6px; }
+    .wb-hint { font-size: 11.5px; color: var(--wb-text-muted); margin-top: 4px; }
+    .wb-input, .wb-textarea {
+      width: 100%; padding: 9px 12px; border: 1px solid var(--wb-card-border); border-radius: 10px;
+      font-size: 13.5px; color: var(--wb-text-dark); background: #fff; font-family: inherit;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .wb-input:focus, .wb-textarea:focus {
+      outline: none; border-color: var(--wb-primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.12);
+    }
+    .wb-textarea { min-height: 74px; resize: vertical; }
+    .wb-list-block { border: 1px solid var(--wb-card-border); border-radius: 14px; padding: 14px; margin-bottom: 18px; background: #F8FAFC; }
+    .wb-list-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .wb-list-title { font-size: 12.5px; font-weight: 800; color: var(--wb-text-dark); }
+    .wb-row { background: #fff; border: 1px solid var(--wb-card-border); border-radius: 12px; padding: 12px; margin-bottom: 10px; }
+    .wb-row-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .wb-row-num { font-size: 11px; font-weight: 800; color: #94A3B8; letter-spacing: .04em; }
+    .wb-row-actions { display: flex; gap: 6px; }
+    .wb-icon-btn {
+      width: 26px; height: 26px; border-radius: 8px; border: 1px solid var(--wb-card-border);
+      background: #fff; color: #64748B; font-size: 11px; cursor: pointer; display: inline-flex;
+      align-items: center; justify-content: center; transition: all .15s;
+    }
+    .wb-icon-btn:hover { border-color: var(--wb-primary); color: var(--wb-primary); background: #EEF2FF; }
+    .wb-icon-btn.danger:hover { border-color: #EF4444; color: #EF4444; background: #FEF2F2; }
+    .wb-grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .wb-sub-link { display: grid; grid-template-columns: 1fr 1.4fr auto; gap: 8px; align-items: center; margin-bottom: 8px; }
+    .wb-add-btn {
+      border: 1px dashed #CBD5E1; background: #fff; color: var(--wb-primary); font-size: 12px;
+      font-weight: 700; padding: 7px 12px; border-radius: 9px; cursor: pointer; width: 100%;
+      transition: all .15s;
+    }
+    .wb-add-btn:hover { border-color: var(--wb-primary); background: #EEF2FF; }
+    .wb-toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border: 1px solid var(--wb-card-border); border-radius: 10px; background: #fff; margin-bottom: 16px; }
+    .wb-section-desc { font-size: 13px; color: var(--wb-text-muted); margin: -4px 0 18px 0; }
+    @media (max-width: 900px) { .wb-grid2 { grid-template-columns: 1fr; } .wb-sub-link { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <aside class="erp-sidebar theme-superadmin" id="sidebar">
+    <div class="sidebar-header">
+      <a class="sidebar-logo" href="../../index.html" title="VishvaERP Home">
+        <div class="sidebar-logo-icon"><img src="../../icons/logo.png" alt="Vi"></div>
+        <div class="sidebar-logo-text">Vishva <span>ERP</span></div>
+      </a>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" id="sidebar-avatar">S</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name" id="sidebar-user-name">Super Admin</div>
+        <div class="sidebar-user-role">Platform Administrator</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-tachometer-alt"></i> Dashboard</a>
+      <div class="nav-section-label">Management</div>
+      <a href="colleges.html" class="nav-link"><i class="nav-link-icon fas fa-university"></i> Colleges</a>
+      <a href="users.html" class="nav-link"><i class="nav-link-icon fas fa-users-cog"></i> All Users</a>
+      <a href="plans.html" class="nav-link"><i class="nav-link-icon fas fa-tags"></i> Subscription Plans</a>
+      <div class="nav-section-label">Database</div>
+      <a href="database.html" class="nav-link"><i class="nav-link-icon fas fa-database"></i> DB Manager</a>
+      <a href="audit-logs.html" class="nav-link"><i class="nav-link-icon fas fa-history"></i> Audit Logs</a>
+      <div class="nav-section-label">Platform</div>
+      <a href="analytics.html" class="nav-link"><i class="nav-link-icon fas fa-chart-line"></i> Analytics</a>
+      <a href="system.html" class="nav-link"><i class="nav-link-icon fas fa-server"></i> System Health</a>
+      <a href="broadcast.html" class="nav-link"><i class="nav-link-icon fas fa-bullhorn"></i> Broadcast</a>
+      <a href="website-editor.html" class="nav-link active"><i class="nav-link-icon fas fa-pen-ruler"></i> Website Builder</a>
+      <a href="settings.html" class="nav-link"><i class="nav-link-icon fas fa-cog"></i> Settings</a>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">Super Admin / <span>Website Builder</span></div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-avatar" id="topbar-avatar">S</div>
+      </div>
+    </header>
+
+    <div class="erp-content page-enter" style="padding:24px">
+      <!-- BUILDER HERO -->
+      <div class="wb-hero">
+        <div class="wb-hero-inner">
+          <div>
+            <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+              <h1 style="font-size:22px;font-weight:800;letter-spacing:-0.02em;margin:0">Website Builder</h1>
+              <span class="wb-pill" id="dirtyPill" hidden><i class="fas fa-circle" style="font-size:7px"></i> Unsaved changes</span>
+              <span class="wb-pill" id="savedPill"><i class="fas fa-check-circle"></i> All changes saved</span>
+            </div>
+            <p style="font-size:13px;color:#CBD5E1;margin:4px 0 0 0">
+              Edit every section of the public website — hero, features, pricing, footer, branding, login pages. No coding needed.
+            </p>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px">
+            <a class="btn btn-secondary btn-sm" href="../../index.html" target="_blank" style="background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.2);color:#FFFFFF">
+              <i class="fas fa-external-link-alt"></i> View Website
+            </a>
+            <button class="btn btn-primary btn-sm" id="btnSaveTop" onclick="window.__wbSave && window.__wbSave(this)">
+              <i class="fas fa-save"></i> Save Changes
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- BUILDER GRID -->
+      <div style="display:grid;grid-template-columns:260px 1fr;gap:24px;align-items:start">
+        <!-- Section nav -->
+        <div class="card" style="border-radius:18px;border:1px solid var(--wb-card-border);box-shadow:0 2px 6px rgba(0,0,0,0.03)">
+          <div class="card-body" style="padding:14px">
+            <div style="font-size:11px;font-weight:800;color:#94A3B8;letter-spacing:.06em;text-transform:uppercase;margin:2px 0 10px 4px">Page Sections</div>
+            <div id="panelNav"></div>
+          </div>
+        </div>
+
+        <!-- Editor panel -->
+        <div id="panelRoot">
+          <div class="card" style="border-radius:18px;border:1px solid var(--wb-card-border)">
+            <div class="card-body" style="padding:24px;color:#64748B;font-size:14px">
+              <i class="fas fa-spinner fa-spin"></i> Loading website content…
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../../js/shared.js"></script>
+  <script src="../../live/live-admin-pages.js"></script>
+  <script>
+  (function () {
+    'use strict';
+
+    // ── Auth guard ────────────────────────────────────────────────────────
+    var me = (function () { try { return JSON.parse(localStorage.getItem('erp_user') || 'null'); } catch (e) { return null; } })();
+    if (!me || (me.role && me.role !== 'superadmin')) {
+      window.location.replace('../login.html');
+      return;
+    }
+    var nameEl = document.getElementById('sidebar-user-name');
+    var avatarEl = document.getElementById('sidebar-avatar');
+    if (me.name && nameEl) nameEl.textContent = me.name;
+    if (me.name && avatarEl) avatarEl.textContent = String(me.name).charAt(0).toUpperCase();
+
+    // ── Spec: every editable panel ────────────────────────────────────────
+    var ICONS = { key: 'fas fa-key', hint: 'Font Awesome class, e.g. fas fa-bolt' };
+    var PANELS = [
+      { id: 'hero', label: 'Hero Section', icon: 'fas fa-heading', path: 'hero',
+        desc: 'The first screen: badge, heading with gradient highlight, description, chips, buttons and proof points.',
+        fields: [
+          { key: 'enabled', label: 'Show this section', type: 'toggle' },
+          { key: 'badge', label: 'Badge text', type: 'text' },
+          { key: 'title', label: 'Main heading', type: 'text' },
+          { key: 'titleAccent', label: 'Gradient highlight', type: 'text', hint: 'The part of the heading shown in gradient colour — must appear inside the main heading.' },
+          { key: 'description', label: 'Description', type: 'textarea' },
+          { key: 'primaryCtaLabel', label: 'Primary button label', type: 'text' },
+          { key: 'primaryCtaHref', label: 'Primary button link', type: 'text' },
+          { key: 'secondaryCtaLabel', label: 'Secondary button label', type: 'text' },
+          { key: 'secondaryCtaHref', label: 'Secondary button link', type: 'text' },
+          { key: 'tags', label: 'Feature chips', type: 'list', itemFields: [
+            { key: 'label', label: 'Chip text', type: 'text' },
+            { key: 'icon', label: 'Icon', type: 'text', hint: ICONS.hint } ] },
+          { key: 'proof', label: 'Proof points', type: 'strings' }
+        ] },
+      { id: 'announcement', label: 'Announcement Bar', icon: 'fas fa-bullhorn', path: 'announcement',
+        desc: 'Optional bar fixed at the very top of the website (above the navigation).',
+        fields: [
+          { key: 'enabled', label: 'Show announcement bar', type: 'toggle' },
+          { key: 'text', label: 'Message', type: 'text' },
+          { key: 'linkLabel', label: 'Button label', type: 'text' },
+          { key: 'link', label: 'Button link', type: 'text' }
+        ] },
+      { id: 'features', label: 'Features', icon: 'fas fa-star', path: 'sections.features',
+        desc: '"Core capabilities" section with the numbered highlight card and icon cards.',
+        fields: [
+          { key: 'enabled', label: 'Show this section', type: 'toggle' },
+          { key: 'kicker', label: 'Small label', type: 'text' },
+          { key: 'title', label: 'Section heading', type: 'text' },
+          { key: 'description', label: 'Section description', type: 'textarea' },
+          { key: 'items', label: 'Feature cards', type: 'list', itemFields: [
+            { key: 'title', label: 'Title', type: 'text' },
+            { key: 'description', label: 'Description', type: 'textarea' },
+            { key: 'icon', label: 'Icon', type: 'text', hint: 'Card 1 stays the numbered highlight card; icons apply to the rest. ' + ICONS.hint } ] }
+        ] },
+      { id: 'platform', label: 'Command Center', icon: 'fas fa-gauge-high', path: 'sections.platform',
+        desc: '"Executive operations" section with the operation rows and preview panel.',
+        fields: [
+          { key: 'enabled', label: 'Show this section', type: 'toggle' },
+          { key: 'kicker', label: 'Small label', type: 'text' },
+          { key: 'title', label: 'Section heading', type: 'text' },
+          { key: 'description', label: 'Section description', type: 'textarea' },
+          { key: 'ops', label: 'Operation rows', type: 'list', itemFields: [
+            { key: 'title', label: 'Title', type: 'text' },
+            { key: 'description', label: 'Description', type: 'textarea' },
+            { key: 'icon', label: 'Icon', type: 'text', hint: ICONS.hint } ] }
+        ] },
+      { id: 'engine', label: 'Academic Engine', icon: 'fas fa-microchip', path: 'sections.engine',
+        desc: 'The three engine cards (timetable, smart attendance, AI layer).',
+        fields: [
+          { key: 'enabled', label: 'Show this section', type: 'toggle' },
+          { key: 'cards', label: 'Engine cards', type: 'list', itemFields: [
+            { key: 'title', label: 'Title', type: 'text' },
+            { key: 'description', label: 'Description', type: 'textarea' },
+            { key: 'icon', label: 'Icon', type: 'text', hint: ICONS.hint } ] }
+        ] },
+      { id: 'modules', label: 'ERP Modules', icon: 'fas fa-layer-group', path: 'sections.modules',
+        desc: 'The eight module cards (Admissions, Attendance, Exams, Fees, HR, Transport, Comms, AI).',
+        fields: [
+          { key: 'enabled', label: 'Show this section', type: 'toggle' },
+          { key: 'kicker', label: 'Small label', type: 'text' },
+          { key: 'title', label: 'Section heading', type: 'text' },
+          { key: 'description', label: 'Section description', type: 'textarea' },
+          { key: 'items', label: 'Module cards', type: 'list', itemFields: [
+            { key: 'title', label: 'Title', type: 'text' },
+            { key: 'description', label: 'Description', type: 'textarea' },
+            { key: 'icon', label: 'Icon', type: 'text', hint: ICONS.hint } ] }
+        ] },
+      { id: 'flow', label: 'Connected Flow', icon: 'fas fa-arrow-right-arrow-left', path: 'sections.flow',
+        desc: 'The department flow: Admissions → Academics → Attendance → Finance → Analytics.',
+        fields: [
+          { key: 'enabled', label: 'Show this section', type: 'toggle' },
+          { key: 'kicker', label: 'Small label', type: 'text' },
+          { key: 'title', label: 'Section heading', type: 'text' },
+          { key: 'description', label: 'Section description', type: 'textarea' },
+          { key: 'nodes', label: 'Flow nodes', type: 'list', itemFields: [
+            { key: 'title', label: 'Title', type: 'text' },
+            { key: 'description', label: 'Description', type: 'text' },
+            { key: 'icon', label: 'Icon', type: 'text', hint: ICONS.hint } ] }
+        ] },
+      { id: 'roles', label: 'Role Portals', icon: 'fas fa-users', path: 'sections.roles',
+        desc: 'The five portal cards: Super Admin, College Admin, Faculty, Student, Parent.',
+        fields: [
+          { key: 'enabled', label: 'Show this section', type: 'toggle' },
+          { key: 'kicker', label: 'Small label', type: 'text' },
+          { key: 'title', label: 'Section heading', type: 'text' },
+          { key: 'description', label: 'Section description', type: 'textarea' },
+          { key: 'items', label: 'Portal cards', type: 'list', itemFields: [
+            { key: 'title', label: 'Title', type: 'text' },
+            { key: 'description', label: 'Description', type: 'textarea' },
+            { key: 'href', label: 'Link', type: 'text' },
+            { key: 'icon', label: 'Icon', type: 'text', hint: ICONS.hint } ] }
+        ] },
+      { id: 'ai', label: 'AI & Analytics', icon: 'fas fa-brain', path: 'sections.ai',
+        desc: 'The AI section: heading plus the insight rows next to the AI panel.',
+        fields: [
+          { key: 'enabled', label: 'Show this section', type: 'toggle' },
+          { key: 'kicker', label: 'Small label', type: 'text' },
+          { key: 'title', label: 'Section heading', type: 'text' },
+          { key: 'description', label: 'Section description', type: 'textarea' },
+          { key: 'insights', label: 'Insight rows', type: 'list', itemFields: [
+            { key: 'text', label: 'Text', type: 'textarea' },
+            { key: 'icon', label: 'Icon', type: 'text', hint: ICONS.hint } ] }
+        ] },
+      { id: 'install', label: 'App Install', icon: 'fas fa-mobile-screen', path: 'sections.install',
+        desc: '"Multi-platform access" section (PWA / APK install).',
+        fields: [
+          { key: 'enabled', label: 'Show this section', type: 'toggle' },
+          { key: 'kicker', label: 'Small label', type: 'text' },
+          { key: 'title', label: 'Section heading', type: 'text' },
+          { key: 'description', label: 'Section description', type: 'textarea' },
+          { key: 'items', label: 'Highlight rows', type: 'list', itemFields: [
+            { key: 'title', label: 'Title', type: 'text' },
+            { key: 'description', label: 'Description', type: 'textarea' },
+            { key: 'icon', label: 'Icon', type: 'text', hint: ICONS.hint } ] }
+        ] },
+      { id: 'implementation', label: 'Implementation Steps', icon: 'fas fa-list-ol', path: 'sections.implementation',
+        desc: 'The five setup steps (01 Create tenant … 05 Optimize with AI).',
+        fields: [
+          { key: 'enabled', label: 'Show this section', type: 'toggle' },
+          { key: 'kicker', label: 'Small label', type: 'text' },
+          { key: 'title', label: 'Section heading', type: 'text' },
+          { key: 'description', label: 'Section description', type: 'textarea' },
+          { key: 'steps', label: 'Steps', type: 'list', itemFields: [
+            { key: 'num', label: 'Number', type: 'text' },
+            { key: 'title', label: 'Title', type: 'text' },
+            { key: 'description', label: 'Description', type: 'text' } ] }
+        ] },
+      { id: 'security', label: 'Security', icon: 'fas fa-shield-halved', path: 'sections.security',
+        desc: 'Governance section: heading plus the four security points.',
+        fields: [
+          { key: 'enabled', label: 'Show this section', type: 'toggle' },
+          { key: 'kicker', label: 'Small label', type: 'text' },
+          { key: 'title', label: 'Section heading', type: 'text' },
+          { key: 'description', label: 'Section description', type: 'textarea' },
+          { key: 'points', label: 'Security points', type: 'list', itemFields: [
+            { key: 'text', label: 'Text', type: 'textarea' },
+            { key: 'icon', label: 'Icon', type: 'text', hint: ICONS.hint } ] }
+        ] },
+      { id: 'pricing', label: 'Pricing / Plans', icon: 'fas fa-tags', path: 'pricing',
+        desc: 'Deployment models: the three plan cards.',
+        fields: [
+          { key: 'enabled', label: 'Show this section', type: 'toggle' },
+          { key: 'kicker', label: 'Small label', type: 'text' },
+          { key: 'title', label: 'Section heading', type: 'text' },
+          { key: 'description', label: 'Section description', type: 'textarea' },
+          { key: 'plans', label: 'Plan cards', type: 'list', itemFields: [
+            { key: 'title', label: 'Plan name', type: 'text' },
+            { key: 'description', label: 'Description', type: 'textarea' },
+            { key: 'highlight', label: 'Highlight line', type: 'text' },
+            { key: 'badge', label: 'Badge (e.g. Recommended)', type: 'text' },
+            { key: 'featured', label: 'Featured plan', type: 'toggle' },
+            { key: 'ctaLabel', label: 'Button label', type: 'text' },
+            { key: 'ctaHref', label: 'Button link', type: 'text' } ] }
+        ] },
+      { id: 'cta', label: 'Bottom CTA', icon: 'fas fa-flag-checkered', path: 'cta',
+        desc: 'The final "Ready to modernize your campus?" call-to-action band.',
+        fields: [
+          { key: 'enabled', label: 'Show this section', type: 'toggle' },
+          { key: 'kicker', label: 'Small label', type: 'text' },
+          { key: 'title', label: 'Heading', type: 'text' },
+          { key: 'primaryCtaLabel', label: 'Primary button label', type: 'text' },
+          { key: 'secondaryCtaLabel', label: 'Secondary button label', type: 'text' },
+          { key: 'proof', label: 'Proof points', type: 'strings' }
+        ] },
+      { id: 'footer', label: 'Footer', icon: 'fas fa-shoe-prints', path: 'footer',
+        desc: 'Footer description, link columns, social links and copyright line.',
+        fields: [
+          { key: 'description', label: 'Footer description', type: 'textarea' },
+          { key: 'columns', label: 'Link columns', type: 'columns' },
+          { key: 'twitter', label: 'Twitter / X link', type: 'text' },
+          { key: 'linkedin', label: 'LinkedIn link', type: 'text' },
+          { key: 'github', label: 'GitHub link', type: 'text' },
+          { key: 'copyright', label: 'Copyright line', type: 'text' },
+          { key: 'tagline', label: 'Bottom tagline', type: 'text' }
+        ] },
+      { id: 'branding', label: 'Branding & SEO', icon: 'fas fa-palette', path: '',
+        desc: 'Site name and logo shown on the website and login pages, plus search-engine metadata.',
+        fields: [
+          { path: 'branding.siteName', label: 'Site name', type: 'text' },
+          { path: 'branding.logoUrl', label: 'Logo image URL', type: 'text', hint: 'Leave empty to use the default logo (icons/logo.png).' },
+          { path: 'branding.tagline', label: 'Tagline (login page headline)', type: 'text' },
+          { path: 'branding.supportEmail', label: 'Support email', type: 'text' },
+          { path: 'seo.title', label: 'Browser tab / search title', type: 'text' },
+          { path: 'seo.description', label: 'Search description', type: 'textarea' },
+          { path: 'seo.keywords', label: 'Search keywords', type: 'textarea' }
+        ] },
+      { id: 'auth', label: 'Login & Register', icon: 'fas fa-right-to-bracket', path: 'auth',
+        desc: 'Headlines shown on the login and registration pages.',
+        fields: [
+          { key: 'loginTitle', label: 'Login headline', type: 'text' },
+          { key: 'loginSubtitle', label: 'Login sub-line', type: 'text' },
+          { key: 'heroTitle', label: 'Login page left headline', type: 'text' },
+          { key: 'heroDescription', label: 'Login page left description', type: 'textarea' },
+          { key: 'registerTitle', label: 'Register headline', type: 'text' },
+          { key: 'registerSubtitle', label: 'Register sub-line', type: 'text' }
+        ] }
+    ];
+
+    // ── State ─────────────────────────────────────────────────────────────
+    var state = null;       // working copy (what Save sends)
+    var defaults = null;    // schema defaults (what Reset uses)
+    var currentId = 'hero';
+    var dirty = false;
+    var panelRoot = document.getElementById('panelRoot');
+    var panelNav = document.getElementById('panelNav');
+
+    function esc(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+    function clone(v) { return v === undefined ? v : JSON.parse(JSON.stringify(v)); }
+    function getPath(obj, path) {
+      if (!obj || !path) return undefined;
+      var parts = String(path).split('.'), cur = obj;
+      for (var i = 0; i < parts.length; i++) { if (cur == null) return undefined; cur = cur[parts[i]]; }
+      return cur;
+    }
+    function setPath(obj, path, value) {
+      var parts = String(path).split('.'), cur = obj;
+      for (var i = 0; i < parts.length - 1; i++) {
+        if (cur[parts[i]] == null || typeof cur[parts[i]] !== 'object') cur[parts[i]] = {};
+        cur = cur[parts[i]];
+      }
+      cur[parts[parts.length - 1]] = value;
+    }
+    function fieldPath(panel, field) { return field.path || (panel.path ? panel.path + '.' + field.key : field.key); }
+    function currentPanel() {
+      for (var i = 0; i < PANELS.length; i++) if (PANELS[i].id === currentId) return PANELS[i];
+      return PANELS[0];
+    }
+
+    function setDirty(v) {
+      dirty = v;
+      document.getElementById('dirtyPill').hidden = !v;
+      document.getElementById('savedPill').hidden = v;
+    }
+
+    // ── Field renderers ───────────────────────────────────────────────────
+    function renderField(panel, field) {
+      var path = fieldPath(panel, field);
+      var val = getPath(state, path);
+      if (field.type === 'toggle') {
+        return '<div class="wb-toggle-row"><div><div class="wb-label" style="margin:0">' + esc(field.label) + '</div>' +
+          (field.hint ? '<div class="wb-hint" style="margin-top:2px">' + esc(field.hint) + '</div>' : '') +
+          '</div><label class="toggle-switch"><input type="checkbox" data-path="' + esc(path) + '"' + (val ? ' checked' : '') +
+          '><span class="toggle-slider"></span></label></div>';
+      }
+      var input;
+      if (field.type === 'textarea') {
+        input = '<textarea class="wb-textarea" data-path="' + esc(path) + '" rows="3">' + esc(val || '') + '</textarea>';
+      } else {
+        input = '<input type="text" class="wb-input" data-path="' + esc(path) + '" value="' + esc(val == null ? '' : val) + '">';
+      }
+      return '<div class="wb-field"><label class="wb-label">' + esc(field.label) + '</label>' + input +
+        (field.hint ? '<div class="wb-hint">' + esc(field.hint) + '</div>' : '') + '</div>';
+    }
+
+    function rowActions(listPath, i, extra) {
+      return '<div class="wb-row-actions">' +
+        '<button class="wb-icon-btn" data-op="up" data-list="' + esc(listPath) + '" data-i="' + i + '" title="Move up"><i class="fas fa-arrow-up"></i></button>' +
+        '<button class="wb-icon-btn" data-op="down" data-list="' + esc(listPath) + '" data-i="' + i + '" title="Move down"><i class="fas fa-arrow-down"></i></button>' +
+        (extra || '') +
+        '<button class="wb-icon-btn danger" data-op="remove" data-list="' + esc(listPath) + '" data-i="' + i + '" title="Remove"><i class="fas fa-trash"></i></button>' +
+        '</div>';
+    }
+
+    function renderList(panel, field) {
+      var path = fieldPath(panel, field);
+      var items = getPath(state, path);
+      if (!Array.isArray(items)) items = [];
+      var html = '<div class="wb-list-block"><div class="wb-list-head"><span class="wb-list-title">' + esc(field.label) +
+        ' <span style="color:#94A3B8;font-weight:600">(' + items.length + ')</span></span></div>';
+      items.forEach(function (item, i) {
+        html += '<div class="wb-row"><div class="wb-row-bar"><span class="wb-row-num">ITEM ' + (i + 1) + '</span>' +
+          rowActions(path, i) + '</div><div class="wb-grid2">';
+        field.itemFields.forEach(function (f) {
+          var ipath = path + '.' + i + '.' + f.key;
+          var v = getPath(state, ipath);
+          if (f.type === 'toggle') {
+            html += '<div class="wb-field" style="margin-bottom:0"><label class="wb-label">' + esc(f.label) +
+              '</label><label class="toggle-switch"><input type="checkbox" data-path="' + esc(ipath) + '"' + (v ? ' checked' : '') +
+              '><span class="toggle-slider"></span></label></div>';
+          } else if (f.type === 'textarea') {
+            html += '<div class="wb-field" style="margin-bottom:0;grid-column:1/-1"><label class="wb-label">' + esc(f.label) +
+              '</label><textarea class="wb-textarea" data-path="' + esc(ipath) + '" rows="2">' + esc(v || '') + '</textarea>' +
+              (f.hint ? '<div class="wb-hint">' + esc(f.hint) + '</div>' : '') + '</div>';
+          } else {
+            html += '<div class="wb-field" style="margin-bottom:0"><label class="wb-label">' + esc(f.label) +
+              '</label><input type="text" class="wb-input" data-path="' + esc(ipath) + '" value="' + esc(v == null ? '' : v) + '">' +
+              (f.hint ? '<div class="wb-hint">' + esc(f.hint) + '</div>' : '') + '</div>';
+          }
+        });
+        html += '</div></div>';
+      });
+      html += '<button class="wb-add-btn" data-op="add" data-list="' + esc(path) + '"><i class="fas fa-plus"></i> Add ' +
+        esc(field.label.replace(/s$/, '')) + '</button></div>';
+      return html;
+    }
+
+    function renderStrings(panel, field) {
+      var path = fieldPath(panel, field);
+      var items = getPath(state, path);
+      if (!Array.isArray(items)) items = [];
+      var html = '<div class="wb-list-block"><div class="wb-list-head"><span class="wb-list-title">' + esc(field.label) +
+        ' <span style="color:#94A3B8;font-weight:600">(' + items.length + ')</span></span></div>';
+      items.forEach(function (item, i) {
+        html += '<div class="wb-row"><div class="wb-row-bar"><span class="wb-row-num">ITEM ' + (i + 1) + '</span>' +
+          rowActions(path, i) + '</div>' +
+          '<input type="text" class="wb-input" data-path="' + esc(path + '.' + i) + '" value="' + esc(item == null ? '' : item) + '"></div>';
+      });
+      html += '<button class="wb-add-btn" data-op="add" data-list="' + esc(path) + '" data-kind="string"><i class="fas fa-plus"></i> Add item</button></div>';
+      return html;
+    }
+
+    function renderColumns(panel, field) {
+      var path = fieldPath(panel, field);
+      var cols = getPath(state, path);
+      if (!Array.isArray(cols)) cols = [];
+      var html = '<div class="wb-list-block"><div class="wb-list-head"><span class="wb-list-title">' + esc(field.label) +
+        ' <span style="color:#94A3B8;font-weight:600">(' + cols.length + ')</span></span></div>';
+      cols.forEach(function (col, i) {
+        var cpath = path + '.' + i;
+        html += '<div class="wb-row"><div class="wb-row-bar"><span class="wb-row-num">COLUMN ' + (i + 1) + '</span>' +
+          rowActions(path, i) + '</div>' +
+          '<div class="wb-field"><label class="wb-label">Column title</label>' +
+          '<input type="text" class="wb-input" data-path="' + esc(cpath + '.title') + '" value="' + esc((col && col.title) || '') + '"></div>' +
+          '<label class="wb-label">Links</label>';
+        var links = (col && Array.isArray(col.links)) ? col.links : [];
+        links.forEach(function (link, j) {
+          html += '<div class="wb-sub-link">' +
+            '<input type="text" class="wb-input" data-path="' + esc(cpath + '.links.' + j + '.label') + '" value="' + esc(link.label || '') + '" placeholder="Label">' +
+            '<input type="text" class="wb-input" data-path="' + esc(cpath + '.links.' + j + '.href') + '" value="' + esc(link.href || '') + '" placeholder="Link">' +
+            '<button class="wb-icon-btn danger" data-op="link-remove" data-list="' + esc(cpath + '.links') + '" data-i="' + j + '" title="Remove link"><i class="fas fa-times"></i></button>' +
+            '</div>';
+        });
+        html += '<button class="wb-add-btn" data-op="link-add" data-list="' + esc(cpath + '.links') + '"><i class="fas fa-plus"></i> Add link</button></div>';
+      });
+      html += '<button class="wb-add-btn" data-op="add" data-list="' + esc(path) + '" data-kind="column"><i class="fas fa-plus"></i> Add column</button></div>';
+      return html;
+    }
+
+    function renderPanel() {
+      var panel = currentPanel();
+      var html = '<div class="card" style="border-radius:18px;border:1px solid var(--wb-card-border);box-shadow:0 2px 6px rgba(0,0,0,0.03)">' +
+        '<div class="card-header" style="background:#F8FAFC;border-bottom:1px solid var(--wb-card-border);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">' +
+        '<div class="card-title" style="font-weight:800;font-size:15px;color:#0F172A;display:flex;align-items:center;gap:8px">' +
+        '<i class="' + esc(panel.icon) + '" style="color:#4F46E5"></i> ' + esc(panel.label) + '</div>' +
+        '<button class="btn btn-secondary btn-sm" data-reset="1"><i class="fas fa-rotate-left"></i> Reset section</button>' +
+        '</div><div class="card-body" style="padding:24px">' +
+        '<div class="wb-section-desc">' + esc(panel.desc || '') + '</div>';
+      panel.fields.forEach(function (field) {
+        if (field.type === 'list') html += renderList(panel, field);
+        else if (field.type === 'strings') html += renderStrings(panel, field);
+        else if (field.type === 'columns') html += renderColumns(panel, field);
+        else html += renderField(panel, field);
+      });
+      html += '</div><div class="card-footer" style="background:#F8FAFC;border-top:1px solid var(--wb-card-border);padding:16px 24px;text-align:right">' +
+        '<a class="btn btn-secondary btn-sm" href="../../index.html" target="_blank" style="margin-right:8px"><i class="fas fa-external-link-alt"></i> View Website</a>' +
+        '<button class="btn btn-primary" data-save="1"><i class="fas fa-save"></i> Save Changes</button>' +
+        '</div></div>';
+      panelRoot.innerHTML = html;
+    }
+
+    function renderNav() {
+      var html = '';
+      PANELS.forEach(function (p) {
+        html += '<button class="wb-nav-btn' + (p.id === currentId ? ' active' : '') + '" data-panel="' + p.id + '">' +
+          '<i class="' + esc(p.icon) + '"></i> ' + esc(p.label) + '</button>';
+      });
+      panelNav.innerHTML = html;
+    }
+
+    // ── Mutations ─────────────────────────────────────────────────────────
+    function listOps(op, listPath, i, kind) {
+      var arr = getPath(state, listPath);
+      if (!Array.isArray(arr)) arr = [];
+      if (op === 'add') {
+        if (kind === 'string') arr.push('');
+        else if (kind === 'column') arr.push({ title: 'New column', links: [{ label: 'Link', href: '#' }] });
+        else arr.push({});
+      } else if (op === 'remove') {
+        arr.splice(i, 1);
+      } else if (op === 'up' && i > 0) {
+        var t = arr[i - 1]; arr[i - 1] = arr[i]; arr[i] = t;
+      } else if (op === 'down' && i < arr.length - 1) {
+        var t2 = arr[i + 1]; arr[i + 1] = arr[i]; arr[i] = t2;
+      }
+      setPath(state, listPath, arr);
+    }
+
+    function resetSection() {
+      var panel = currentPanel();
+      panel.fields.forEach(function (field) {
+        var p = fieldPath(panel, field);
+        setPath(state, p, clone(getPath(defaults, p)));
+      });
+      renderPanel();
+      setDirty(true);
+      window.showToast && window.showToast('Section reset to defaults — press Save Changes to apply', 'info');
+    }
+
+    // ── Save ──────────────────────────────────────────────────────────────
+    window.__wbSave = async function (btn) {
+      if (!state) return;
+      try {
+        window.setLoading && window.setLoading(btn, true);
+        await window.api.request('/super-admin/settings', { method: 'PUT', body: { website: state } });
+        setDirty(false);
+        window.showToast && window.showToast('Website saved — refresh the site to see your changes', 'success');
+      } catch (e) {
+        window.showToast && window.showToast((e && e.message) || 'Save failed', 'error');
+      } finally {
+        window.setLoading && window.setLoading(btn, false);
+      }
+    };
+
+    // ── Events (delegated) ────────────────────────────────────────────────
+    panelNav.addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-panel]');
+      if (!btn) return;
+      currentId = btn.getAttribute('data-panel');
+      renderNav();
+      renderPanel();
+    });
+
+    panelRoot.addEventListener('input', function (e) {
+      var el = e.target.closest('[data-path]');
+      if (!el || !state) return;
+      setPath(state, el.getAttribute('data-path'), el.type === 'checkbox' ? el.checked : el.value);
+      setDirty(true);
+    });
+
+    panelRoot.addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-op], [data-reset], [data-save]');
+      if (!btn || !state) return;
+      if (btn.hasAttribute('data-save')) { window.__wbSave(btn); return; }
+      if (btn.hasAttribute('data-reset')) { resetSection(); return; }
+      var op = btn.getAttribute('data-op');
+      var listPath = btn.getAttribute('data-list');
+      var i = parseInt(btn.getAttribute('data-i'), 10);
+      if (op === 'link-add') {
+        var links = getPath(state, listPath);
+        if (!Array.isArray(links)) links = [];
+        links.push({ label: 'New link', href: '#' });
+        setPath(state, listPath, links);
+      } else {
+        listOps(op, listPath, i, btn.getAttribute('data-kind'));
+      }
+      setDirty(true);
+      renderPanel();
+    });
+
+    // ── Load ──────────────────────────────────────────────────────────────
+    (async function load() {
+      try {
+        var res = await window.api.request('/super-admin/settings');
+        state = clone((res.settings && res.settings.website) || {});
+        defaults = clone((res.defaults && res.defaults.website) || state);
+        renderNav();
+        renderPanel();
+        setDirty(false);
+      } catch (e) {
+        panelRoot.innerHTML = '<div class="card" style="border-radius:18px;border:1px solid #FECACA"><div class="card-body" style="padding:24px;color:#B91C1C;font-size:14px">' +
+          '<i class="fas fa-triangle-exclamation"></i> ' + esc((e && e.message) || 'Failed to load website content') + '</div></div>';
+      }
+    })();
+  })();
+  </script>
+</body>
+</html>
