@@ -32,28 +32,28 @@
     <div class="sidebar-user"><div class="sidebar-avatar" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)" id="sidebar-avatar">S</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Student</div><div class="sidebar-user-role" id="sidebar-user-role">B.Tech CS</div></div></div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Overview</div>
-      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <a data-cms="nav.dashboard" href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
       <div class="nav-section-label">Academics</div>
-      <a href="live-class.html" class="nav-link"><i class="nav-link-icon fas fa-video"></i> Live Classes</a>
-      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-reader"></i> My Courses</a>
-      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Attendance</a>
-      <a href="results.html" class="nav-link"><i class="nav-link-icon fas fa-poll"></i> Results</a>
-      <a href="assignments.html" class="nav-link"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
-      <a href="timetable.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-week"></i> Timetable</a>
-      <a href="notes.html" class="nav-link"><i class="nav-link-icon fas fa-sticky-note"></i> Notes</a>
+      <a data-cms="nav.live-classes" href="live-class.html" class="nav-link"><i class="nav-link-icon fas fa-video"></i> Live Classes</a>
+      <a data-cms="nav.my-courses" href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-reader"></i> My Courses</a>
+      <a data-cms="nav.attendance" href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Attendance</a>
+      <a data-cms="nav.results" href="results.html" class="nav-link"><i class="nav-link-icon fas fa-poll"></i> Results</a>
+      <a data-cms="nav.assignments" href="assignments.html" class="nav-link"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
+      <a data-cms="nav.timetable" href="timetable.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-week"></i> Timetable</a>
+      <a data-cms="nav.notes" href="notes.html" class="nav-link"><i class="nav-link-icon fas fa-sticky-note"></i> Notes</a>
       <div class="nav-section-label">Exam Prep</div>
-      <a href="exam-prep.html" class="nav-link active"><i class="nav-link-icon fas fa-brain"></i> Practice Dashboard</a>
-      <a href="assessments.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-check"></i> Skill Assessments</a>
-      <a href="quiz-history.html" class="nav-link"><i class="nav-link-icon fas fa-history"></i> Quiz History</a>
+      <a data-cms="nav.practice-dashboard" href="exam-prep.html" class="nav-link active"><i class="nav-link-icon fas fa-brain"></i> Practice Dashboard</a>
+      <a data-cms="nav.skill-assessments" href="assessments.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-check"></i> Skill Assessments</a>
+      <a data-cms="nav.quiz-history" href="quiz-history.html" class="nav-link"><i class="nav-link-icon fas fa-history"></i> Quiz History</a>
       <div class="nav-section-label">Career Center</div>
-      <a href="career.html" class="nav-link"><i class="nav-link-icon fas fa-rocket"></i> Career Dashboard</a>
-      <a href="skills.html" class="nav-link"><i class="nav-link-icon fas fa-tools"></i> Skills Profile</a>
-      <a href="placements.html" class="nav-link"><i class="nav-link-icon fas fa-briefcase"></i> Placements</a>
+      <a data-cms="nav.career-dashboard" href="career.html" class="nav-link"><i class="nav-link-icon fas fa-rocket"></i> Career Dashboard</a>
+      <a data-cms="nav.skills-profile" href="skills.html" class="nav-link"><i class="nav-link-icon fas fa-tools"></i> Skills Profile</a>
+      <a data-cms="nav.placements" href="placements.html" class="nav-link"><i class="nav-link-icon fas fa-briefcase"></i> Placements</a>
       <div class="nav-section-label">Finance</div>
-      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-receipt"></i> Fees</a>
+      <a data-cms="nav.fees" href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-receipt"></i> Fees</a>
       <div class="nav-section-label">Tools</div>
-      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Services</a>
-      <a href="../messages.html" class="nav-link"><i class="nav-link-icon fas fa-comment-dots"></i> Chat</a>
+      <a data-cms="nav.ai-services" href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Services</a>
+      <a data-cms="nav.chat" href="../messages.html" class="nav-link"><i class="nav-link-icon fas fa-comment-dots"></i> Chat</a>
     </nav>
     <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
   </aside>
@@ -74,7 +74,7 @@
 
     <div class="erp-content page-enter">
       <div class="page-header">
-        <h1 class="page-title"><i class="fas fa-brain" style="color:#6366F1;margin-right:10px"></i>Exam Prep &amp; Practice</h1>
+        <h1 data-cms="student.exam-prep.h1.1" class="page-title"><i class="fas fa-brain" style="color:#6366F1;margin-right:10px"></i>Exam Prep &amp; Practice</h1>
         <p class="page-subtitle">Take timed quizzes, track weak areas, and get personalized practice recommendations.</p>
       </div>
 
@@ -89,7 +89,7 @@
       <!-- AI RECOMMENDATIONS -->
       <div class="prep-card" style="margin-bottom:24px">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px">
-          <h2 style="font-weight:800;font-size:16px"><i class="fas fa-lightbulb" style="color:#F59E0B;margin-right:8px"></i>Personalized Practice Recommendations</h2>
+          <h2 data-cms="student.exam-prep.h2.1" style="font-weight:800;font-size:16px"><i class="fas fa-lightbulb" style="color:#F59E0B;margin-right:8px"></i>Personalized Practice Recommendations</h2>
           <button class="btn btn-secondary btn-sm" id="aiTipBtn"><i class="fas fa-magic"></i> Ask AI Coach</button>
         </div>
         <div id="recList"><div class="skeleton" style="height:20px;width:40%;margin-bottom:10px"></div><div class="skeleton" style="height:20px;width:60%"></div></div>
@@ -265,5 +265,6 @@
   })();
 })();
 </script>
+  <script src="../../js/ui-text.js"></script>
 </body>
 </html>

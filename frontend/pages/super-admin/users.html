@@ -476,23 +476,23 @@
     <div class="sidebar-user"><div class="sidebar-avatar">S</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Super Admin</div><div class="sidebar-user-role">Platform Administrator</div></div></div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Overview</div>
-      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-satellite-dish"></i> System Overview</a>
-      <a href="analytics.html" class="nav-link"><i class="nav-link-icon fas fa-chart-line"></i> Analytics</a>
+      <a data-cms="nav.system-overview" href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-satellite-dish"></i> System Overview</a>
+      <a data-cms="nav.analytics" href="analytics.html" class="nav-link"><i class="nav-link-icon fas fa-chart-line"></i> Analytics</a>
       <div class="nav-section-label">Management</div>
-      <a href="colleges.html" class="nav-link"><i class="nav-link-icon fas fa-university"></i> Colleges</a>
-      <a href="users.html" class="nav-link active"><i class="nav-link-icon fas fa-users"></i> Platform Users</a>
-      <a href="plans.html" class="nav-link"><i class="nav-link-icon fas fa-tags"></i> Subscription Plans</a>
+      <a data-cms="nav.colleges" href="colleges.html" class="nav-link"><i class="nav-link-icon fas fa-university"></i> Colleges</a>
+      <a data-cms="nav.platform-users" href="users.html" class="nav-link active"><i class="nav-link-icon fas fa-users"></i> Platform Users</a>
+      <a data-cms="nav.subscription-plans" href="plans.html" class="nav-link"><i class="nav-link-icon fas fa-tags"></i> Subscription Plans</a>
       <div class="nav-section-label">Database</div>
-      <a href="database.html" class="nav-link"><i class="nav-link-icon fas fa-database"></i> DB Manager</a>
-      <a href="audit-logs.html" class="nav-link"><i class="nav-link-icon fas fa-history"></i> Audit Logs</a>
+      <a data-cms="nav.db-manager" href="database.html" class="nav-link"><i class="nav-link-icon fas fa-database"></i> DB Manager</a>
+      <a data-cms="nav.audit-logs" href="audit-logs.html" class="nav-link"><i class="nav-link-icon fas fa-history"></i> Audit Logs</a>
       <div class="nav-section-label">Platform</div>
-      <a href="system.html" class="nav-link"><i class="nav-link-icon fas fa-server"></i> System Health</a>
-      <a href="broadcast.html" class="nav-link"><i class="nav-link-icon fas fa-bullhorn"></i> Broadcast</a>
-      <a href="website-editor.html" class="nav-link"><i class="nav-link-icon fas fa-pen-ruler"></i> Website Builder</a>
-      <a href="settings.html" class="nav-link"><i class="nav-link-icon fas fa-cog"></i> Settings</a>
+      <a data-cms="nav.system-health" href="system.html" class="nav-link"><i class="nav-link-icon fas fa-server"></i> System Health</a>
+      <a data-cms="nav.broadcast" href="broadcast.html" class="nav-link"><i class="nav-link-icon fas fa-bullhorn"></i> Broadcast</a>
+      <a data-cms="nav.website-builder" href="website-editor.html" class="nav-link"><i class="nav-link-icon fas fa-pen-ruler"></i> Website Builder</a>
+      <a data-cms="nav.settings" href="settings.html" class="nav-link"><i class="nav-link-icon fas fa-cog"></i> Settings</a>
       <div class="nav-section-label">Tools</div>
-      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Hub</a>
-      <a href="../messages.html" class="nav-link"><i class="nav-link-icon fas fa-comments"></i> Messages</a>
+      <a data-cms="nav.ai-hub" href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Hub</a>
+      <a data-cms="nav.messages" href="../messages.html" class="nav-link"><i class="nav-link-icon fas fa-comments"></i> Messages</a>
     </nav>
     <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
   </aside>
@@ -520,7 +520,7 @@
             </div>
             <div>
               <div class="flex items-center gap-3">
-                <h1 class="page-title text-2xl font-black text-slate-900 tracking-tight" style="margin:0">Platform Users</h1>
+                <h1 data-cms="super-admin.users.h1.1" class="page-title text-2xl font-black text-slate-900 tracking-tight" style="margin:0">Platform Users</h1>
                 <span class="text-xs font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200/70">Enterprise RBAC</span>
               </div>
               <p class="page-subtitle text-slate-500 font-medium text-xs mt-1">Manage user identities, institutional roles, access permissions, and account statuses.</p>
@@ -707,7 +707,7 @@
     <div class="flex items-center gap-3">
       <div class="user-avatar-circle text-lg" id="udAvatar">U</div>
       <div>
-        <h3 class="text-base font-extrabold text-slate-900" id="udName">User Profile</h3>
+        <h3 data-cms="super-admin.users.h3.1" class="text-base font-extrabold text-slate-900" id="udName">User Profile</h3>
         <p class="text-xs text-slate-500 font-mono" id="udEmail">user@example.com</p>
       </div>
     </div>
@@ -898,5 +898,6 @@
 
 <script src="../../js/shared.js"></script>
 <script src="../../live/live-admin-pages.js"></script>
+  <script src="../../js/ui-text.js"></script>
 </body>
 </html>

@@ -305,15 +305,15 @@
     </div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Overview</div>
-      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <a data-cms="nav.dashboard" href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
       <div class="nav-section-label">Teaching</div>
-      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-check"></i> Attendance</a>
-      <a href="grades.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-list"></i> Grades &amp; Results</a>
-      <a href="assignments.html" class="nav-link"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
-      <a href="timetable.html" class="nav-link active"><i class="nav-link-icon fas fa-calendar-alt"></i> Timetable</a>
-      <a href="notes.html" class="nav-link"><i class="nav-link-icon fas fa-sticky-note"></i> Notes</a>
+      <a data-cms="nav.attendance" href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-check"></i> Attendance</a>
+      <a data-cms="nav.grades-amp-results" href="grades.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-list"></i> Grades &amp; Results</a>
+      <a data-cms="nav.assignments" href="assignments.html" class="nav-link"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
+      <a data-cms="nav.timetable" href="timetable.html" class="nav-link active"><i class="nav-link-icon fas fa-calendar-alt"></i> Timetable</a>
+      <a data-cms="nav.notes" href="notes.html" class="nav-link"><i class="nav-link-icon fas fa-sticky-note"></i> Notes</a>
       <div class="nav-section-label">Tools</div>
-      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Assistant</a>
+      <a data-cms="nav.ai-assistant" href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Assistant</a>
     </nav>
     <div class="sidebar-footer">
       <button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
@@ -347,7 +347,7 @@
       <!-- Page Header with Conflict Status & Academic Term Pill -->
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;flex-wrap:wrap;gap:12px">
         <div>
-          <h1 class="page-title" style="font-size:24px;font-weight:800;color:#0F172A;display:flex;align-items:center;gap:10px">
+          <h1 data-cms="faculty.timetable.h1.1" class="page-title" style="font-size:24px;font-weight:800;color:#0F172A;display:flex;align-items:center;gap:10px">
             <span>📅</span> Teaching Schedule &amp; Slot Allocation
           </h1>
           <p class="page-subtitle" style="color:#64748B;font-size:14px;margin-top:2px">
@@ -430,7 +430,7 @@
               </span>
             </div>
 
-            <h2 id="heroNextTitle" style="font-size:22px;font-weight:900;line-height:1.25;margin-bottom:8px">
+            <h2 data-cms="faculty.timetable.h2.1" id="heroNextTitle" style="font-size:22px;font-weight:900;line-height:1.25;margin-bottom:8px">
               Checking schedule...
             </h2>
             <p id="heroNextMeta" style="font-size:13px;color:#D1FAE5;line-height:1.5;margin-bottom:20px">
@@ -467,7 +467,7 @@
         <div class="card" style="padding:20px;display:flex;flex-direction:column;justify-content:space-between;border-radius:16px;border:1px solid #E2E8F0;box-shadow:0 1px 3px rgba(0,0,0,0.04)">
           <div>
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-              <h3 style="font-size:15px;font-weight:800;color:#0F172A;display:flex;align-items:center;gap:6px">
+              <h3 data-cms="faculty.timetable.h3.1" style="font-size:15px;font-weight:800;color:#0F172A;display:flex;align-items:center;gap:6px">
                 <i class="fas fa-list-ol text-emerald-600"></i> Today's Class Queue
               </h3>
               <span class="badge badge-gray" id="todayDayName" style="font-size:11px;font-weight:700">Friday</span>
@@ -562,7 +562,7 @@
         <div style="background:white;border:1px solid #E2E8F0;border-radius:14px;padding:18px 24px;margin-bottom:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
           <div>
             <div style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:1px;color:#059669">Daily Lecture Agenda</div>
-            <h2 style="font-size:20px;font-weight:900;color:#0F172A;margin-top:2px" id="dailyAgendaDayTitle">Tuesday Schedule</h2>
+            <h2 data-cms="faculty.timetable.h2.2" style="font-size:20px;font-weight:900;color:#0F172A;margin-top:2px" id="dailyAgendaDayTitle">Tuesday Schedule</h2>
             <div style="font-size:13px;color:#64748B" id="dailyAgendaDayMeta">1 lecture • 2 teaching hours</div>
           </div>
           <div style="display:flex;gap:10px">
@@ -1723,5 +1723,6 @@
   }
 </script>
 <script src="../../live/live-admin-pages.js"></script>
+  <script src="../../js/ui-text.js"></script>
 </body>
 </html>

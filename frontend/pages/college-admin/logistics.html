@@ -14,27 +14,27 @@
     <div class="sidebar-user"><div class="sidebar-avatar" id="sidebar-avatar">A</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Admin</div><div class="sidebar-user-role">College Administrator</div></div></div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Overview</div>
-      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <a data-cms="nav.dashboard" href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
       <div class="nav-section-label">Academics</div>
-      <a href="students.html" class="nav-link"><i class="nav-link-icon fas fa-user-graduate"></i> Students</a>
-      <a href="faculty.html" class="nav-link"><i class="nav-link-icon fas fa-chalkboard-teacher"></i> Faculty</a>
-      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-open"></i> Courses & Exams</a>
-      <a href="notices.html" class="nav-link"><i class="nav-link-icon fas fa-bullhorn"></i> Notice Board</a>
-      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-check"></i> Attendance</a>
+      <a data-cms="nav.students" href="students.html" class="nav-link"><i class="nav-link-icon fas fa-user-graduate"></i> Students</a>
+      <a data-cms="nav.faculty" href="faculty.html" class="nav-link"><i class="nav-link-icon fas fa-chalkboard-teacher"></i> Faculty</a>
+      <a data-cms="nav.courses-exams" href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-open"></i> Courses & Exams</a>
+      <a data-cms="nav.notice-board" href="notices.html" class="nav-link"><i class="nav-link-icon fas fa-bullhorn"></i> Notice Board</a>
+      <a data-cms="nav.attendance" href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-check"></i> Attendance</a>
       <div class="nav-section-label">Finance & HR</div>
-      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-file-invoice-dollar"></i> Fee Management</a>
-      <a href="hr.html" class="nav-link"><i class="nav-link-icon fas fa-user-md"></i> HR & Leave</a>
-      <a href="subscription.html" class="nav-link"><i class="nav-link-icon fas fa-credit-card"></i> Subscription</a>
+      <a data-cms="nav.fee-management" href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-file-invoice-dollar"></i> Fee Management</a>
+      <a data-cms="nav.hr-leave" href="hr.html" class="nav-link"><i class="nav-link-icon fas fa-user-md"></i> HR & Leave</a>
+      <a data-cms="nav.subscription" href="subscription.html" class="nav-link"><i class="nav-link-icon fas fa-credit-card"></i> Subscription</a>
       <div class="nav-section-label">Smart Campus</div>
-      <a href="iot-dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-microchip"></i> IoT Dashboard</a>
-      <a href="sustainability.html" class="nav-link"><i class="nav-link-icon fas fa-leaf"></i> Sustainability</a>
-      <a href="ai-intelligence.html" class="nav-link"><i class="nav-link-icon fas fa-brain"></i> AI Intelligence</a>
+      <a data-cms="nav.iot-dashboard" href="iot-dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-microchip"></i> IoT Dashboard</a>
+      <a data-cms="nav.sustainability" href="sustainability.html" class="nav-link"><i class="nav-link-icon fas fa-leaf"></i> Sustainability</a>
+      <a data-cms="nav.ai-intelligence" href="ai-intelligence.html" class="nav-link"><i class="nav-link-icon fas fa-brain"></i> AI Intelligence</a>
       <div class="nav-section-label">Facilities</div>
-      <a href="logistics.html" class="nav-link active"><i class="nav-link-icon fas fa-bus"></i> Logistics & Hostel</a>
-      <a href="visitors.html" class="nav-link"><i class="nav-link-icon fas fa-door-open"></i> Visitors</a>
-      <a href="library.html" class="nav-link"><i class="nav-link-icon fas fa-book"></i> Library</a>
+      <a data-cms="nav.logistics-hostel" href="logistics.html" class="nav-link active"><i class="nav-link-icon fas fa-bus"></i> Logistics & Hostel</a>
+      <a data-cms="nav.visitors" href="visitors.html" class="nav-link"><i class="nav-link-icon fas fa-door-open"></i> Visitors</a>
+      <a data-cms="nav.library" href="library.html" class="nav-link"><i class="nav-link-icon fas fa-book"></i> Library</a>
       <div class="nav-section-label">Tools</div>
-      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Hub</a>
+      <a data-cms="nav.ai-hub" href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Hub</a>
     </nav>
     <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
   </aside>
@@ -54,7 +54,7 @@
     <div class="erp-content">
       <div class="page-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
         <div>
-          <h1 class="page-title">🚌 Logistics & Hostel</h1>
+          <h1 data-cms="college-admin.logistics.h1.1" class="page-title">🚌 Logistics & Hostel</h1>
           <p class="page-subtitle">Manage transport routes, hostels, and room allocations.</p>
         </div>
         <div style="display:flex;gap:10px">
@@ -318,5 +318,6 @@ window.exportLogisticsCSV = function() {
   window.open('/api/logistics/export?token=' + encodeURIComponent(token || ''));
 };
 </script>
+  <script src="../../js/ui-text.js"></script>
 </body>
 </html>

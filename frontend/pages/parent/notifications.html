@@ -25,17 +25,17 @@
     <div class="sidebar-user"><div class="sidebar-avatar" style="background:linear-gradient(135deg,#F59E0B,#D97706)" id="sidebar-avatar">P</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Parent</div><div class="sidebar-user-role">Parent Dashboard</div></div></div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Overview</div>
-      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <a data-cms="nav.dashboard" href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
       <div class="nav-section-label">Academics</div>
-      <a href="child-profile.html" class="nav-link"><i class="nav-link-icon fas fa-user-graduate"></i> Child Profile</a>
-      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-check"></i> Attendance</a>
-      <a href="results.html" class="nav-link"><i class="nav-link-icon fas fa-poll"></i> Results</a>
+      <a data-cms="nav.child-profile" href="child-profile.html" class="nav-link"><i class="nav-link-icon fas fa-user-graduate"></i> Child Profile</a>
+      <a data-cms="nav.attendance" href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-check"></i> Attendance</a>
+      <a data-cms="nav.results" href="results.html" class="nav-link"><i class="nav-link-icon fas fa-poll"></i> Results</a>
       <div class="nav-section-label">Finance</div>
-      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-rupee-sign"></i> Fees</a>
+      <a data-cms="nav.fees" href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-rupee-sign"></i> Fees</a>
       <div class="nav-section-label">Communication</div>
-      <a href="notifications.html" class="nav-link active"><i class="nav-link-icon fas fa-bell"></i> Notifications</a>
+      <a data-cms="nav.notifications" href="notifications.html" class="nav-link active"><i class="nav-link-icon fas fa-bell"></i> Notifications</a>
       <div class="nav-section-label">Tools</div>
-      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Parent Assistant</a>
+      <a data-cms="nav.ai-parent-assistant" href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Parent Assistant</a>
     </nav>
     <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
   </aside>
@@ -51,7 +51,7 @@
     <div class="erp-content page-enter">
 
       <div class="page-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
-        <div><h1 class="page-title"><i class="fas fa-bell"></i> Notification Settings</h1><p class="page-subtitle">Manage how you receive notifications about your child's progress</p></div>
+        <div><h1 data-cms="parent.notifications.h1.1" class="page-title"><i class="fas fa-bell"></i> Notification Settings</h1><p class="page-subtitle">Manage how you receive notifications about your child's progress</p></div>
         <button class="btn btn-primary" onclick="saveAllPreferences()"><i class="fas fa-save"></i> Save All Settings</button>
       </div>
 
@@ -91,7 +91,7 @@
 
       <!-- MASTER TOGGLES -->
       <div class="card" style="padding:20px;margin-bottom:20px">
-        <h3 style="font-weight:700;font-size:15px;margin-bottom:16px"><i class="fas fa-toggle-on" style="color:#10B981;margin-right:8px"></i>Master Channel Toggles</h3>
+        <h3 data-cms="parent.notifications.h3.1" style="font-weight:700;font-size:15px;margin-bottom:16px"><i class="fas fa-toggle-on" style="color:#10B981;margin-right:8px"></i>Master Channel Toggles</h3>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:20px">
           <div class="pref-row" style="border:none">
             <div><div style="font-weight:600;font-size:13px">Push Notifications</div><div style="font-size:11px;color:#64748B">Browser & mobile push</div></div>
@@ -110,7 +110,7 @@
 
       <!-- EVENT PREFERENCES -->
       <div class="card" style="padding:20px;margin-bottom:20px">
-        <h3 style="font-weight:700;font-size:15px;margin-bottom:16px"><i class="fas fa-sliders-h" style="color:#4F46E5;margin-right:8px"></i>Event Preferences</h3>
+        <h3 data-cms="parent.notifications.h3.2" style="font-weight:700;font-size:15px;margin-bottom:16px"><i class="fas fa-sliders-h" style="color:#4F46E5;margin-right:8px"></i>Event Preferences</h3>
         <div style="overflow-x:auto">
           <table style="width:100%;border-collapse:collapse">
             <thead>
@@ -129,7 +129,7 @@
 
       <!-- QUIET HOURS -->
       <div class="card" style="padding:20px;margin-bottom:20px">
-        <h3 style="font-weight:700;font-size:15px;margin-bottom:16px"><i class="fas fa-moon" style="color:#6366F1;margin-right:8px"></i>Quiet Hours</h3>
+        <h3 data-cms="parent.notifications.h3.3" style="font-weight:700;font-size:15px;margin-bottom:16px"><i class="fas fa-moon" style="color:#6366F1;margin-right:8px"></i>Quiet Hours</h3>
         <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap">
           <div class="pref-row" style="border:none;padding:0">
             <div><div style="font-weight:600;font-size:13px">Enable Quiet Hours</div><div style="font-size:11px;color:#64748B">Pause non-critical notifications</div></div>
@@ -145,7 +145,7 @@
 
       <!-- NOTIFICATION HISTORY -->
       <div class="card" style="padding:20px">
-        <h3 style="font-weight:700;font-size:15px;margin-bottom:16px"><i class="fas fa-history" style="color:#F59E0B;margin-right:8px"></i>Recent Notifications</h3>
+        <h3 data-cms="parent.notifications.h3.4" style="font-weight:700;font-size:15px;margin-bottom:16px"><i class="fas fa-history" style="color:#F59E0B;margin-right:8px"></i>Recent Notifications</h3>
         <div id="notifHistory" style="max-height:400px;overflow-y:auto"></div>
       </div>
 
@@ -323,5 +323,6 @@ window.loadParentNotifications = loadParentNotifications;
 })();
 </script>
 <script src="../../live/live-pages.js"></script>
+  <script src="../../js/ui-text.js"></script>
 </body>
 </html>

@@ -133,21 +133,21 @@
     </div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Overview</div>
-      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <a data-cms="nav.dashboard" href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
       <div class="nav-section-label">Teaching</div>
-      <a href="live-class.html" class="nav-link active"><i class="nav-link-icon fas fa-video"></i> Live Classes</a>
-      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-check"></i> Attendance</a>
-      <a href="grades.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-list"></i> Grades & Results</a>
-      <a href="assignments.html" class="nav-link"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
-      <a href="timetable.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Timetable</a>
-      <a href="notes.html" class="nav-link"><i class="nav-link-icon fas fa-sticky-note"></i> Notes</a>
+      <a data-cms="nav.live-classes" href="live-class.html" class="nav-link active"><i class="nav-link-icon fas fa-video"></i> Live Classes</a>
+      <a data-cms="nav.attendance" href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-check"></i> Attendance</a>
+      <a data-cms="nav.grades-results" href="grades.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-list"></i> Grades & Results</a>
+      <a data-cms="nav.assignments" href="assignments.html" class="nav-link"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
+      <a data-cms="nav.timetable" href="timetable.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Timetable</a>
+      <a data-cms="nav.notes" href="notes.html" class="nav-link"><i class="nav-link-icon fas fa-sticky-note"></i> Notes</a>
       <div class="nav-section-label">Career Center</div>
-      <a href="../college-admin/placement.html" class="nav-link"><i class="nav-link-icon fas fa-briefcase"></i> Placements</a>
+      <a data-cms="nav.placements" href="../college-admin/placement.html" class="nav-link"><i class="nav-link-icon fas fa-briefcase"></i> Placements</a>
       <div class="nav-section-label">HR</div>
-      <a href="leave.html" class="nav-link"><i class="nav-link-icon fas fa-file-signature"></i> Leave & HR</a>
+      <a data-cms="nav.leave-hr" href="leave.html" class="nav-link"><i class="nav-link-icon fas fa-file-signature"></i> Leave & HR</a>
       <div class="nav-section-label">Tools</div>
-      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Assistant</a>
-      <a href="../messages.html" class="nav-link"><i class="nav-link-icon fas fa-comments"></i> Messages</a>
+      <a data-cms="nav.ai-assistant" href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Assistant</a>
+      <a data-cms="nav.messages" href="../messages.html" class="nav-link"><i class="nav-link-icon fas fa-comments"></i> Messages</a>
     </nav>
     <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
   </aside>
@@ -175,7 +175,7 @@
         <!-- Header & KPIs -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div>
-            <h1 class="page-title flex items-center gap-3">
+            <h1 data-cms="faculty.live-class.h1.1" class="page-title flex items-center gap-3">
               <span>Virtual Classroom Studio</span>
               <span class="badge badge-success"><i class="fas fa-shield-alt mr-1"></i> HD Live Host</span>
             </h1>
@@ -245,7 +245,7 @@
                   <i class="fas fa-video"></i>
                 </div>
                 <div>
-                  <h2 class="text-base font-bold text-slate-900">Initiate Virtual Lecture</h2>
+                  <h2 data-cms="faculty.live-class.h2.1" class="text-base font-bold text-slate-900">Initiate Virtual Lecture</h2>
                   <p class="text-xs text-slate-500">Students in the assigned batch will receive instant push and portal notifications.</p>
                 </div>
               </div>
@@ -368,7 +368,7 @@
               </div>
             </div>
             <div>
-              <h2 class="text-lg font-bold text-white flex items-center gap-2">
+              <h2 data-cms="faculty.live-class.h2.2" class="text-lg font-bold text-white flex items-center gap-2">
                 <span id="activeTopicDisplay">Live Lecture</span>
               </h2>
               <div class="text-xs text-slate-400 flex items-center gap-2 mt-0.5">
@@ -415,7 +415,7 @@
               <!-- Loading / Fallback Screen -->
               <div id="loading-meet" class="absolute inset-0 flex flex-col items-center justify-center text-white bg-slate-950 p-6 text-center z-10">
                 <div class="w-16 h-16 rounded-full border-4 border-emerald-500 border-t-transparent animate-spin mb-4"></div>
-                <h3 class="text-lg font-bold text-slate-100">Connecting Virtual Classroom Channel...</h3>
+                <h3 data-cms="faculty.live-class.h3.1" class="text-lg font-bold text-slate-100">Connecting Virtual Classroom Channel...</h3>
                 <p class="text-xs text-slate-400 mt-1 max-w-sm">Initializing high-definition encrypted audio & video stream.</p>
                 <div id="jitsiFallbackAlert" class="mt-4 text-xs bg-slate-800/80 text-slate-300 p-3 rounded-lg border border-slate-700 max-w-md hidden">
                   <i class="fas fa-info-circle text-sky-400 mr-1"></i> Jitsi Meet external script blocked by network/browser sandbox. Interactive Presentation Canvas is active!
@@ -1605,5 +1605,6 @@
   };
 </script>
 <script src="../../live/live-admin-pages.js"></script>
+  <script src="../../js/ui-text.js"></script>
 </body>
 </html>

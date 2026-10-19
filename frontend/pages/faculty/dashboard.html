@@ -15,23 +15,23 @@
     <div class="sidebar-user"><div class="sidebar-avatar" style="background:linear-gradient(135deg,#059669,#10B981)" id="sidebar-avatar">F</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Professor</div><div class="sidebar-user-role">Faculty Member</div></div></div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Overview</div>
-      <a href="dashboard.html" class="nav-link active"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <a data-cms="nav.dashboard" href="dashboard.html" class="nav-link active"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
       <div class="nav-section-label">Teaching</div>
-      <a href="live-class.html" class="nav-link"><i class="nav-link-icon fas fa-video"></i> Live Classes</a>
-      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-check"></i> Attendance</a>
-      <a href="grades.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-list"></i> Grades & Results</a>
-      <a href="assignments.html" class="nav-link"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
-      <a href="quiz-builder.html" class="nav-link"><i class="nav-link-icon fas fa-layer-group"></i> Quiz Builder</a>
-      <a href="question-bank.html" class="nav-link"><i class="nav-link-icon fas fa-database"></i> Question Bank</a>
-      <a href="timetable.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Timetable</a>
-      <a href="notes.html" class="nav-link"><i class="nav-link-icon fas fa-sticky-note"></i> Notes</a>
+      <a data-cms="nav.live-classes" href="live-class.html" class="nav-link"><i class="nav-link-icon fas fa-video"></i> Live Classes</a>
+      <a data-cms="nav.attendance" href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-check"></i> Attendance</a>
+      <a data-cms="nav.grades-results" href="grades.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-list"></i> Grades & Results</a>
+      <a data-cms="nav.assignments" href="assignments.html" class="nav-link"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
+      <a data-cms="nav.quiz-builder" href="quiz-builder.html" class="nav-link"><i class="nav-link-icon fas fa-layer-group"></i> Quiz Builder</a>
+      <a data-cms="nav.question-bank" href="question-bank.html" class="nav-link"><i class="nav-link-icon fas fa-database"></i> Question Bank</a>
+      <a data-cms="nav.timetable" href="timetable.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Timetable</a>
+      <a data-cms="nav.notes" href="notes.html" class="nav-link"><i class="nav-link-icon fas fa-sticky-note"></i> Notes</a>
       <div class="nav-section-label">Career Center</div>
-      <a href="../college-admin/placement.html" class="nav-link"><i class="nav-link-icon fas fa-briefcase"></i> Placements</a>
+      <a data-cms="nav.placements" href="../college-admin/placement.html" class="nav-link"><i class="nav-link-icon fas fa-briefcase"></i> Placements</a>
       <div class="nav-section-label">HR</div>
-      <a href="leave.html" class="nav-link"><i class="nav-link-icon fas fa-file-signature"></i> Leave & HR</a>
+      <a data-cms="nav.leave-hr" href="leave.html" class="nav-link"><i class="nav-link-icon fas fa-file-signature"></i> Leave & HR</a>
       <div class="nav-section-label">Tools</div>
-      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Assistant</a>
-      <a href="../messages.html" class="nav-link"><i class="nav-link-icon fas fa-comments"></i> Messages</a>
+      <a data-cms="nav.ai-assistant" href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Assistant</a>
+      <a data-cms="nav.messages" href="../messages.html" class="nav-link"><i class="nav-link-icon fas fa-comments"></i> Messages</a>
     </nav>
     <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
   </aside>
@@ -59,7 +59,7 @@
     <div class="erp-content page-enter">
       <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
         <div>
-          <h1 class="page-title" id="welcomeMsg">Welcome, Professor</h1>
+          <h1 data-cms="faculty.dashboard.h1.1" class="page-title" id="welcomeMsg">Welcome, Professor</h1>
           <p class="page-subtitle">Your classes, grading queue, and HR actions for today.</p>
         </div>
         <div style="display:flex;gap:10px">
@@ -124,5 +124,6 @@
 
 <script src="../../js/shared.js"></script>
 <script src="../../live/live-admin-pages.js"></script>
+  <script src="../../js/ui-text.js"></script>
 </body>
 </html>

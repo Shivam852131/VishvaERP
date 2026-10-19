@@ -21,12 +21,12 @@
     <div class="sidebar-user"><div class="sidebar-avatar" style="background:linear-gradient(135deg,#0284C7,#0EA5E9)" id="sidebar-avatar">S</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Student</div><div class="sidebar-user-role" id="sidebar-user-role">B.Tech CS</div></div></div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Exam Prep</div>
-      <a href="exam-prep.html" class="nav-link"><i class="nav-link-icon fas fa-brain"></i> Practice Dashboard</a>
-      <a href="assessments.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-check"></i> Skill Assessments</a>
-      <a href="quiz-history.html" class="nav-link active"><i class="nav-link-icon fas fa-history"></i> Quiz History</a>
+      <a data-cms="nav.practice-dashboard" href="exam-prep.html" class="nav-link"><i class="nav-link-icon fas fa-brain"></i> Practice Dashboard</a>
+      <a data-cms="nav.skill-assessments" href="assessments.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-check"></i> Skill Assessments</a>
+      <a data-cms="nav.quiz-history" href="quiz-history.html" class="nav-link active"><i class="nav-link-icon fas fa-history"></i> Quiz History</a>
       <div class="nav-section-label">Academics</div>
-      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
-      <a href="results.html" class="nav-link"><i class="nav-link-icon fas fa-poll"></i> Results</a>
+      <a data-cms="nav.dashboard" href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <a data-cms="nav.results" href="results.html" class="nav-link"><i class="nav-link-icon fas fa-poll"></i> Results</a>
     </nav>
     <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
   </aside>
@@ -39,7 +39,7 @@
     </header>
     <div class="erp-content page-enter">
       <div class="page-header">
-        <h1 class="page-title"><i class="fas fa-history" style="color:#6366F1;margin-right:10px"></i>Quiz History</h1>
+        <h1 data-cms="student.quiz-history.h1.1" class="page-title"><i class="fas fa-history" style="color:#6366F1;margin-right:10px"></i>Quiz History</h1>
         <p class="page-subtitle">Every quiz you've completed, with scores and review.</p>
       </div>
       <div id="histList"><div style="padding:20px"><div style="height:20px;background:#F1F5F9;border-radius:8px;margin-bottom:10px"></div><div style="height:20px;background:#F1F5F9;border-radius:8px;width:60%"></div></div></div>
@@ -91,5 +91,6 @@
   };
 })();
 </script>
+  <script src="../../js/ui-text.js"></script>
 </body>
 </html>

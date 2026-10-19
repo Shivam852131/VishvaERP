@@ -28,14 +28,14 @@
     <div class="sidebar-user"><div class="sidebar-avatar" style="background:linear-gradient(135deg,#7C3AED,#A78BFA)" id="sidebar-avatar">F</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Faculty</div><div class="sidebar-user-role" id="sidebar-user-role">Faculty</div></div></div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Overview</div>
-      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <a data-cms="nav.dashboard" href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
       <div class="nav-section-label">Teaching</div>
-      <a href="grades.html" class="nav-link"><i class="nav-link-icon fas fa-poll"></i> Grades &amp; Results</a>
-      <a href="assignments.html" class="nav-link"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
-      <a href="quiz-builder.html" class="nav-link"><i class="nav-link-icon fas fa-layer-group"></i> Quiz Builder</a>
-      <a href="question-bank.html" class="nav-link active"><i class="nav-link-icon fas fa-database"></i> Question Bank</a>
+      <a data-cms="nav.grades-amp-results" href="grades.html" class="nav-link"><i class="nav-link-icon fas fa-poll"></i> Grades &amp; Results</a>
+      <a data-cms="nav.assignments" href="assignments.html" class="nav-link"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
+      <a data-cms="nav.quiz-builder" href="quiz-builder.html" class="nav-link"><i class="nav-link-icon fas fa-layer-group"></i> Quiz Builder</a>
+      <a data-cms="nav.question-bank" href="question-bank.html" class="nav-link active"><i class="nav-link-icon fas fa-database"></i> Question Bank</a>
       <div class="nav-section-label">Tools</div>
-      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Services</a>
+      <a data-cms="nav.ai-services" href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Services</a>
     </nav>
     <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
   </aside>
@@ -48,7 +48,7 @@
     </header>
     <div class="erp-content page-enter">
       <div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:12px">
-        <div><h1 class="page-title"><i class="fas fa-database" style="color:#7C3AED;margin-right:10px"></i>Question Bank</h1><p class="page-subtitle">Manage reusable MCQ &amp; descriptive questions.</p></div>
+        <div><h1 data-cms="faculty.question-bank.h1.1" class="page-title"><i class="fas fa-database" style="color:#7C3AED;margin-right:10px"></i>Question Bank</h1><p class="page-subtitle">Manage reusable MCQ &amp; descriptive questions.</p></div>
         <div style="display:flex;gap:10px"><button class="btn btn-secondary" onclick="openTemplate()"><i class="fas fa-download"></i> CSV Template</button><button class="btn btn-primary" onclick="openEditor()"><i class="fas fa-plus"></i> Add Question</button></div>
       </div>
 
@@ -72,7 +72,7 @@
 <!-- EDITOR MODAL -->
 <div id="editorModal" style="display:none;position:fixed;inset:0;background:rgba(15,23,42,0.5);z-index:60;align-items:center;justify-content:center">
   <div style="background:white;border-radius:18px;max-width:620px;width:92%;max-height:90vh;overflow:auto;padding:24px">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><h3 style="font-weight:800;font-size:16px" id="edTitle">Add Question</h3><button class="btn btn-secondary btn-sm" onclick="hide('editorModal')">✕</button></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><h3 data-cms="faculty.question-bank.h3.1" style="font-weight:800;font-size:16px" id="edTitle">Add Question</h3><button class="btn btn-secondary btn-sm" onclick="hide('editorModal')">✕</button></div>
     <input type="hidden" id="edId">
     <div class="form-group"><label class="form-label">Subject *</label><select class="form-control" id="edSubject"></select></div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
@@ -148,5 +148,6 @@
   init();
 })();
 </script>
+  <script src="../../js/ui-text.js"></script>
 </body>
 </html>

@@ -59,16 +59,16 @@
     <div class="sidebar-user"><div class="sidebar-avatar" style="background:linear-gradient(135deg,#9333EA,#A855F7)" id="sidebar-avatar">P</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Parent</div><div class="sidebar-user-role" id="sidebar-ward-name">Ward</div></div></div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Ward Overview</div>
-      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
-      <a href="child-profile.html" class="nav-link"><i class="nav-link-icon fas fa-id-card"></i> Child Profile</a>
+      <a data-cms="nav.dashboard" href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <a data-cms="nav.child-profile" href="child-profile.html" class="nav-link"><i class="nav-link-icon fas fa-id-card"></i> Child Profile</a>
       <div class="nav-section-label">Academics</div>
-      <a href="attendance.html" class="nav-link active"><i class="nav-link-icon fas fa-user-check"></i> Attendance</a>
-      <a href="results.html" class="nav-link"><i class="nav-link-icon fas fa-poll"></i> Exam Results</a>
+      <a data-cms="nav.attendance" href="attendance.html" class="nav-link active"><i class="nav-link-icon fas fa-user-check"></i> Attendance</a>
+      <a data-cms="nav.exam-results" href="results.html" class="nav-link"><i class="nav-link-icon fas fa-poll"></i> Exam Results</a>
       <div class="nav-section-label">Facilities</div>
-      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-rupee-sign"></i> Fee Details</a>
+      <a data-cms="nav.fee-details" href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-rupee-sign"></i> Fee Details</a>
       <div class="nav-section-label">Communication</div>
-      <a href="notifications.html" class="nav-link"><i class="nav-link-icon fas fa-bell"></i> Notifications</a>
-      <a href="../messages.html" class="nav-link"><i class="nav-link-icon fas fa-envelope"></i> Teacher Messages</a>
+      <a data-cms="nav.notifications" href="notifications.html" class="nav-link"><i class="nav-link-icon fas fa-bell"></i> Notifications</a>
+      <a data-cms="nav.teacher-messages" href="../messages.html" class="nav-link"><i class="nav-link-icon fas fa-envelope"></i> Teacher Messages</a>
     </nav>
     <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
   </aside>
@@ -102,7 +102,7 @@
         </div>
         <div style="flex:1;min-width:180px">
           <div style="font-size:12px;opacity:.7;font-weight:600;text-transform:uppercase;letter-spacing:.06em">Ward Attendance Monitor</div>
-          <h1 style="font-size:26px;font-weight:900;margin:6px 0" id="wardNameHero">Loading…</h1>
+          <h1 data-cms="parent.attendance.h1.1" style="font-size:26px;font-weight:900;margin:6px 0" id="wardNameHero">Loading…</h1>
           <div style="font-size:13px;opacity:.85" id="heroDesc">Fetching attendance data…</div>
         </div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;flex:1;min-width:240px">
@@ -505,5 +505,6 @@ async function loadParentAttendance() {
 window.loadParentAttendance = loadParentAttendance;
 </script>
 <script src="../../live/live-pages.js"></script>
+  <script src="../../js/ui-text.js"></script>
 </body>
 </html>

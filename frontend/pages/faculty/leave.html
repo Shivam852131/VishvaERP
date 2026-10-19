@@ -56,16 +56,16 @@
     <div class="sidebar-user"><div class="sidebar-avatar" style="background:linear-gradient(135deg,#059669,#10B981)" id="sidebar-avatar">F</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Professor</div><div class="sidebar-user-role">Faculty Member</div></div></div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Overview</div>
-      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <a data-cms="nav.dashboard" href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
       <div class="nav-section-label">Teaching</div>
-      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-check"></i> Attendance</a>
-      <a href="grades.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-list"></i> Grades & Results</a>
-      <a href="assignments.html" class="nav-link"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
-      <a href="timetable.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Timetable</a>
-      <a href="live-class.html" class="nav-link"><i class="nav-link-icon fas fa-video"></i> Live Classes</a>
-      <a href="notes.html" class="nav-link"><i class="nav-link-icon fas fa-sticky-note"></i> Notes</a>
+      <a data-cms="nav.attendance" href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-check"></i> Attendance</a>
+      <a data-cms="nav.grades-results" href="grades.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-list"></i> Grades & Results</a>
+      <a data-cms="nav.assignments" href="assignments.html" class="nav-link"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
+      <a data-cms="nav.timetable" href="timetable.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Timetable</a>
+      <a data-cms="nav.live-classes" href="live-class.html" class="nav-link"><i class="nav-link-icon fas fa-video"></i> Live Classes</a>
+      <a data-cms="nav.notes" href="notes.html" class="nav-link"><i class="nav-link-icon fas fa-sticky-note"></i> Notes</a>
       <div class="nav-section-label">HR & Admin</div>
-      <a href="leave.html" class="nav-link active"><i class="nav-link-icon fas fa-file-signature"></i> Leave & HR</a>
+      <a data-cms="nav.leave-hr" href="leave.html" class="nav-link active"><i class="nav-link-icon fas fa-file-signature"></i> Leave & HR</a>
     </nav>
     <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
   </aside>
@@ -84,7 +84,7 @@
       <!-- Page Header -->
       <div class="page-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;margin-bottom:24px">
         <div>
-          <h1 class="page-title" style="font-size:24px;font-weight:800;color:#0F172A;display:flex;align-items:center;gap:10px">
+          <h1 data-cms="faculty.leave.h1.1" class="page-title" style="font-size:24px;font-weight:800;color:#0F172A;display:flex;align-items:center;gap:10px">
             <i class="fas fa-calendar-minus text-emerald-600"></i> Faculty Leave & Covering Portal
           </h1>
           <p class="page-subtitle" style="color:#64748B;margin-top:4px">Manage your annual academic leave balances, designate substitute lecture coverage, and respond to peer covering requests.</p>
@@ -210,7 +210,7 @@
       <div id="tabSubRequestsContent" class="hidden space-y-4">
         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
           <div class="mb-4">
-            <h2 class="text-lg font-bold text-slate-900">Lecture Coverage Requests</h2>
+            <h2 data-cms="faculty.leave.h2.1" class="text-lg font-bold text-slate-900">Lecture Coverage Requests</h2>
             <p class="text-xs text-slate-500">Colleagues who have designated you to cover classes or laboratories during their planned absence.</p>
           </div>
           <div id="subRequestsList" class="space-y-3">
@@ -232,7 +232,7 @@
           <i class="fas fa-paper-plane"></i>
         </div>
         <div>
-          <h3 class="font-bold text-slate-900 text-lg">Apply for Leave</h3>
+          <h3 data-cms="faculty.leave.h3.1" class="font-bold text-slate-900 text-lg">Apply for Leave</h3>
           <p class="text-xs text-slate-500">Submit an institutional leave request with substitute coverage</p>
         </div>
       </div>
@@ -641,5 +641,6 @@
     loadFacultyLeaves();
   });
 </script>
+  <script src="../../js/ui-text.js"></script>
 </body>
 </html>

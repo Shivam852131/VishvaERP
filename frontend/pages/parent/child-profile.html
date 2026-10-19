@@ -45,16 +45,16 @@
     <div class="sidebar-user"><div class="sidebar-avatar" style="background:linear-gradient(135deg,#D97706,#F59E0B)" id="sidebar-avatar">P</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Parent</div><div class="sidebar-user-role" id="sidebar-ward-name">Ward Profile</div></div></div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Ward Overview</div>
-      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
-      <a href="child-profile.html" class="nav-link active"><i class="nav-link-icon fas fa-id-card"></i> Child Profile</a>
+      <a data-cms="nav.dashboard" href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <a data-cms="nav.child-profile" href="child-profile.html" class="nav-link active"><i class="nav-link-icon fas fa-id-card"></i> Child Profile</a>
       <div class="nav-section-label">Academics</div>
-      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-user-check"></i> Attendance</a>
-      <a href="results.html" class="nav-link"><i class="nav-link-icon fas fa-poll"></i> Exam Results</a>
+      <a data-cms="nav.attendance" href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-user-check"></i> Attendance</a>
+      <a data-cms="nav.exam-results" href="results.html" class="nav-link"><i class="nav-link-icon fas fa-poll"></i> Exam Results</a>
       <div class="nav-section-label">Facilities</div>
-      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-rupee-sign"></i> Fee Details</a>
+      <a data-cms="nav.fee-details" href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-rupee-sign"></i> Fee Details</a>
       <div class="nav-section-label">Communication</div>
-      <a href="notifications.html" class="nav-link"><i class="nav-link-icon fas fa-bell"></i> Notifications</a>
-      <a href="../messages.html" class="nav-link"><i class="nav-link-icon fas fa-envelope"></i> Teacher Messages</a>
+      <a data-cms="nav.notifications" href="notifications.html" class="nav-link"><i class="nav-link-icon fas fa-bell"></i> Notifications</a>
+      <a data-cms="nav.teacher-messages" href="../messages.html" class="nav-link"><i class="nav-link-icon fas fa-envelope"></i> Teacher Messages</a>
     </nav>
     <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
   </aside>
@@ -87,7 +87,7 @@
         
         <div style="flex:1;min-width:260px">
           <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:4px">
-            <h1 style="font-size:26px;font-weight:900;color:#78350F;margin:0" id="childProfileName">Student</h1>
+            <h1 data-cms="parent.child-profile.h1.1" style="font-size:26px;font-weight:900;color:#78350F;margin:0" id="childProfileName">Student</h1>
             <span class="badge badge-success" id="childProfileStatus" style="font-size:11px;font-weight:800;padding:3px 10px">Active Enrollment</span>
           </div>
           <div style="font-size:14px;color:#92400E;font-weight:600;margin-bottom:8px" id="childProfileMeta">
@@ -164,7 +164,7 @@
               <div style="display:flex;align-items:center;gap:18px">
                 <div class="avatar avatar-lg" style="width:64px;height:64px;font-size:24px;background:#FEF3C7;color:#D97706" id="mentorAvatar">F</div>
                 <div style="flex:1">
-                  <h3 style="font-size:18px;font-weight:800;color:#1E293B;margin:0" id="mentorName">Assigned Faculty Mentor</h3>
+                  <h3 data-cms="parent.child-profile.h3.1" style="font-size:18px;font-weight:800;color:#1E293B;margin:0" id="mentorName">Assigned Faculty Mentor</h3>
                   <div style="font-size:13px;color:#64748B;margin-top:2px" id="mentorDesignation">Department Faculty</div>
                   <div style="font-size:12px;color:#059669;margin-top:4px" id="mentorContact"><i class="fas fa-envelope mr-1"></i> mentor@college.edu</div>
                 </div>
@@ -326,5 +326,6 @@ function switchProfileTab(tab) {
 window.switchProfileTab = switchProfileTab;
 </script>
 <script src="../../live/live-pages.js"></script>
+  <script src="../../js/ui-text.js"></script>
 </body>
 </html>

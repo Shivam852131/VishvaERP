@@ -111,15 +111,15 @@
     </div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Overview</div>
-      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <a data-cms="nav.dashboard" href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
       <div class="nav-section-label">Teaching</div>
-      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-check"></i> Attendance</a>
-      <a href="grades.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-list"></i> Grades & Results</a>
-      <a href="assignments.html" class="nav-link active"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
-      <a href="timetable.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Timetable</a>
-      <a href="notes.html" class="nav-link"><i class="nav-link-icon fas fa-sticky-note"></i> Notes</a>
+      <a data-cms="nav.attendance" href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-check"></i> Attendance</a>
+      <a data-cms="nav.grades-results" href="grades.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-list"></i> Grades & Results</a>
+      <a data-cms="nav.assignments" href="assignments.html" class="nav-link active"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
+      <a data-cms="nav.timetable" href="timetable.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Timetable</a>
+      <a data-cms="nav.notes" href="notes.html" class="nav-link"><i class="nav-link-icon fas fa-sticky-note"></i> Notes</a>
       <div class="nav-section-label">Tools</div>
-      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Assistant</a>
+      <a data-cms="nav.ai-assistant" href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Assistant</a>
     </nav>
     <div class="sidebar-footer">
       <button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
@@ -146,7 +146,7 @@
       <!-- Page Title & Quick Actions -->
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;flex-wrap:wrap;gap:12px">
         <div>
-          <h1 class="page-title" style="font-size:24px;font-weight:800;color:#0F172A;display:flex;align-items:center;gap:10px">
+          <h1 data-cms="faculty.assignments.h1.1" class="page-title" style="font-size:24px;font-weight:800;color:#0F172A;display:flex;align-items:center;gap:10px">
             <span>📝</span> Assignments & Evaluation Workstation
           </h1>
           <p class="page-subtitle" style="color:#64748B;font-size:14px;margin-top:2px">
@@ -248,7 +248,7 @@
         <div style="width:64px;height:64px;border-radius:50%;background:#F0FDF4;color:#059669;display:flex;align-items:center;justify-content:center;margin:0 auto 16px auto;font-size:28px">
           <i class="fas fa-clipboard-check"></i>
         </div>
-        <h3 style="font-size:18px;font-weight:700;color:#0F172A;margin-bottom:6px">No Assignments Found</h3>
+        <h3 data-cms="faculty.assignments.h3.1" style="font-size:18px;font-weight:700;color:#0F172A;margin-bottom:6px">No Assignments Found</h3>
         <p style="font-size:13px;color:#64748B;max-width:400px;margin:0 auto 16px auto">
           No assignments match your filter criteria or none have been published yet.
         </p>
@@ -346,7 +346,7 @@
         <div style="font-size:11px;font-weight:700;color:#059669;text-transform:uppercase;letter-spacing:0.5px" id="subModalSubject">
           Subject Code
         </div>
-        <h3 class="modal-title" id="subModalTitle" style="font-size:18px;font-weight:800;color:#0F172A">
+        <h3 data-cms="faculty.assignments.h3.2" class="modal-title" id="subModalTitle" style="font-size:18px;font-weight:800;color:#0F172A">
           Assignment Submissions & Grading
         </h3>
       </div>
@@ -1176,5 +1176,6 @@
   }
 </script>
 <script src="../../live/live-admin-pages.js"></script>
+  <script src="../../js/ui-text.js"></script>
 </body>
 </html>

@@ -56,22 +56,22 @@
     <div class="sidebar-user"><div class="sidebar-avatar" id="sidebar-avatar">A</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Admin</div><div class="sidebar-user-role">College Administrator</div></div></div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Overview</div>
-      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <a data-cms="nav.dashboard" href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
       <div class="nav-section-label">Academics</div>
-      <a href="students.html" class="nav-link"><i class="nav-link-icon fas fa-user-graduate"></i> Students</a>
-      <a href="faculty.html" class="nav-link"><i class="nav-link-icon fas fa-chalkboard-teacher"></i> Faculty</a>
-      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-open"></i> Courses & Exams</a>
-      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-check"></i> Attendance</a>
+      <a data-cms="nav.students" href="students.html" class="nav-link"><i class="nav-link-icon fas fa-user-graduate"></i> Students</a>
+      <a data-cms="nav.faculty" href="faculty.html" class="nav-link"><i class="nav-link-icon fas fa-chalkboard-teacher"></i> Faculty</a>
+      <a data-cms="nav.courses-exams" href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-open"></i> Courses & Exams</a>
+      <a data-cms="nav.attendance" href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-check"></i> Attendance</a>
       <div class="nav-section-label">Finance & HR</div>
-      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-file-invoice-dollar"></i> Fee Management</a>
-      <a href="hr.html" class="nav-link active"><i class="nav-link-icon fas fa-user-tie"></i> HR & Leave</a>
+      <a data-cms="nav.fee-management" href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-file-invoice-dollar"></i> Fee Management</a>
+      <a data-cms="nav.hr-leave" href="hr.html" class="nav-link active"><i class="nav-link-icon fas fa-user-tie"></i> HR & Leave</a>
       <div class="nav-section-label">Campus Life</div>
-      <a href="transport.html" class="nav-link"><i class="nav-link-icon fas fa-bus"></i> Transport Fleet</a>
-      <a href="hostel.html" class="nav-link"><i class="nav-link-icon fas fa-building"></i> Hostel Living</a>
-      <a href="complaints.html" class="nav-link"><i class="nav-link-icon fas fa-exclamation-circle"></i> Complaints & Grievances</a>
-      <a href="library.html" class="nav-link"><i class="nav-link-icon fas fa-book"></i> Library</a>
-      <a href="placement.html" class="nav-link"><i class="nav-link-icon fas fa-briefcase"></i> Placements</a>
-      <a href="visitors.html" class="nav-link"><i class="nav-link-icon fas fa-id-badge"></i> Visitors</a>
+      <a data-cms="nav.transport-fleet" href="transport.html" class="nav-link"><i class="nav-link-icon fas fa-bus"></i> Transport Fleet</a>
+      <a data-cms="nav.hostel-living" href="hostel.html" class="nav-link"><i class="nav-link-icon fas fa-building"></i> Hostel Living</a>
+      <a data-cms="nav.complaints-grievances" href="complaints.html" class="nav-link"><i class="nav-link-icon fas fa-exclamation-circle"></i> Complaints & Grievances</a>
+      <a data-cms="nav.library" href="library.html" class="nav-link"><i class="nav-link-icon fas fa-book"></i> Library</a>
+      <a data-cms="nav.placements" href="placement.html" class="nav-link"><i class="nav-link-icon fas fa-briefcase"></i> Placements</a>
+      <a data-cms="nav.visitors" href="visitors.html" class="nav-link"><i class="nav-link-icon fas fa-id-badge"></i> Visitors</a>
     </nav>
     <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
   </aside>
@@ -92,7 +92,7 @@
       <!-- Page Header -->
       <div class="page-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;margin-bottom:24px">
         <div>
-          <h1 class="page-title" style="font-size:24px;font-weight:800;color:#0F172A;display:flex;align-items:center;gap:10px">
+          <h1 data-cms="college-admin.hr.h1.1" class="page-title" style="font-size:24px;font-weight:800;color:#0F172A;display:flex;align-items:center;gap:10px">
             <i class="fas fa-user-tie text-indigo-600"></i> HR, Faculty Workload & Leave Management
           </h1>
           <p class="page-subtitle" style="color:#64748B;margin-top:4px">Supervise institution staff presence, review multi-tier leave requests, audit substitute coverages, and balance teaching workloads.</p>
@@ -220,7 +220,7 @@
         <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
           <div class="flex items-center justify-between mb-4">
             <div>
-              <h2 class="text-lg font-bold text-slate-900">Faculty Teaching Load & Contact Hours</h2>
+              <h2 data-cms="college-admin.hr.h2.1" class="text-lg font-bold text-slate-900">Faculty Teaching Load & Contact Hours</h2>
               <p class="text-xs text-slate-500">Live lecture allocations, weekly teaching contact hours, and subject assignments derived from the active timetable grid.</p>
             </div>
           </div>
@@ -234,7 +234,7 @@
       <div id="tabAnalyticsContent" class="hidden space-y-6">
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-            <h3 class="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
+            <h3 data-cms="college-admin.hr.h3.1" class="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
               <i class="fas fa-pie-chart text-indigo-600"></i> Leave Types Distribution (Approved)
             </h3>
             <div id="leaveTypeBreakdown" class="space-y-3">
@@ -243,7 +243,7 @@
           </div>
 
           <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-            <h3 class="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
+            <h3 data-cms="college-admin.hr.h3.2" class="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
               <i class="fas fa-building text-indigo-600"></i> Department-Wise Absenteeism Today
             </h3>
             <div id="deptAbsenteeismBreakdown" class="space-y-3">
@@ -266,7 +266,7 @@
           <i class="fas fa-file-signature"></i>
         </div>
         <div>
-          <h3 class="font-bold text-slate-900 text-lg">Review Leave Application</h3>
+          <h3 data-cms="college-admin.hr.h3.3" class="font-bold text-slate-900 text-lg">Review Leave Application</h3>
           <p class="text-xs text-slate-500" id="modalApplicantSub">Applicant details</p>
         </div>
       </div>
@@ -639,5 +639,6 @@
     loadHRData();
   });
 </script>
+  <script src="../../js/ui-text.js"></script>
 </body>
 </html>

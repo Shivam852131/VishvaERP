@@ -86,7 +86,13 @@
     .wb-add-btn:hover { border-color: var(--wb-primary); background: #EEF2FF; }
     .wb-toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border: 1px solid var(--wb-card-border); border-radius: 10px; background: #fff; margin-bottom: 16px; }
     .wb-section-desc { font-size: 13px; color: var(--wb-text-muted); margin: -4px 0 18px 0; }
-    @media (max-width: 900px) { .wb-grid2 { grid-template-columns: 1fr; } .wb-sub-link { grid-template-columns: 1fr; } }
+    .wb-group { border: 1px solid var(--wb-card-border); border-radius: 12px; margin-bottom: 10px; background: #fff; overflow: hidden; }
+    .wb-group summary { cursor: pointer; padding: 10px 14px; font-size: 12.5px; font-weight: 800; color: #334155; background: #F8FAFC; display: flex; align-items: center; justify-content: space-between; }
+    .wb-group summary::-webkit-details-marker { display: none; }
+    .wb-group summary:hover { background: #F1F5F9; }
+    .wb-ctrow { display: grid; grid-template-columns: 1fr 1.3fr; gap: 12px; align-items: center; padding: 9px 14px; border-top: 1px solid #F1F5F9; }
+    .wb-ctpages { font-size: 10.5px; font-weight: 800; background: #EEF2FF; color: #4F46E5; border-radius: 999px; padding: 1px 7px; vertical-align: middle; }
+    @media (max-width: 900px) { .wb-grid2 { grid-template-columns: 1fr; } .wb-sub-link { grid-template-columns: 1fr; } .wb-ctrow { grid-template-columns: 1fr; } }
   </style>
 </head>
 <body>
@@ -106,20 +112,20 @@
     </div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Overview</div>
-      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-tachometer-alt"></i> Dashboard</a>
+      <a data-cms="nav.dashboard" href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-tachometer-alt"></i> Dashboard</a>
       <div class="nav-section-label">Management</div>
-      <a href="colleges.html" class="nav-link"><i class="nav-link-icon fas fa-university"></i> Colleges</a>
-      <a href="users.html" class="nav-link"><i class="nav-link-icon fas fa-users-cog"></i> All Users</a>
-      <a href="plans.html" class="nav-link"><i class="nav-link-icon fas fa-tags"></i> Subscription Plans</a>
+      <a data-cms="nav.colleges" href="colleges.html" class="nav-link"><i class="nav-link-icon fas fa-university"></i> Colleges</a>
+      <a data-cms="nav.all-users" href="users.html" class="nav-link"><i class="nav-link-icon fas fa-users-cog"></i> All Users</a>
+      <a data-cms="nav.subscription-plans" href="plans.html" class="nav-link"><i class="nav-link-icon fas fa-tags"></i> Subscription Plans</a>
       <div class="nav-section-label">Database</div>
-      <a href="database.html" class="nav-link"><i class="nav-link-icon fas fa-database"></i> DB Manager</a>
-      <a href="audit-logs.html" class="nav-link"><i class="nav-link-icon fas fa-history"></i> Audit Logs</a>
+      <a data-cms="nav.db-manager" href="database.html" class="nav-link"><i class="nav-link-icon fas fa-database"></i> DB Manager</a>
+      <a data-cms="nav.audit-logs" href="audit-logs.html" class="nav-link"><i class="nav-link-icon fas fa-history"></i> Audit Logs</a>
       <div class="nav-section-label">Platform</div>
-      <a href="analytics.html" class="nav-link"><i class="nav-link-icon fas fa-chart-line"></i> Analytics</a>
-      <a href="system.html" class="nav-link"><i class="nav-link-icon fas fa-server"></i> System Health</a>
-      <a href="broadcast.html" class="nav-link"><i class="nav-link-icon fas fa-bullhorn"></i> Broadcast</a>
-      <a href="website-editor.html" class="nav-link active"><i class="nav-link-icon fas fa-pen-ruler"></i> Website Builder</a>
-      <a href="settings.html" class="nav-link"><i class="nav-link-icon fas fa-cog"></i> Settings</a>
+      <a data-cms="nav.analytics" href="analytics.html" class="nav-link"><i class="nav-link-icon fas fa-chart-line"></i> Analytics</a>
+      <a data-cms="nav.system-health" href="system.html" class="nav-link"><i class="nav-link-icon fas fa-server"></i> System Health</a>
+      <a data-cms="nav.broadcast" href="broadcast.html" class="nav-link"><i class="nav-link-icon fas fa-bullhorn"></i> Broadcast</a>
+      <a data-cms="nav.website-builder" href="website-editor.html" class="nav-link active"><i class="nav-link-icon fas fa-pen-ruler"></i> Website Builder</a>
+      <a data-cms="nav.settings" href="settings.html" class="nav-link"><i class="nav-link-icon fas fa-cog"></i> Settings</a>
     </nav>
     <div class="sidebar-footer">
       <button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
@@ -144,7 +150,7 @@
         <div class="wb-hero-inner">
           <div>
             <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
-              <h1 style="font-size:22px;font-weight:800;letter-spacing:-0.02em;margin:0">Website Builder</h1>
+              <h1 data-cms="super-admin.website-editor.h1.1" style="font-size:22px;font-weight:800;letter-spacing:-0.02em;margin:0">Website Builder</h1>
               <span class="wb-pill" id="dirtyPill" hidden><i class="fas fa-circle" style="font-size:7px"></i> Unsaved changes</span>
               <span class="wb-pill" id="savedPill"><i class="fas fa-check-circle"></i> All changes saved</span>
             </div>
@@ -187,6 +193,7 @@
 
   <script src="../../js/shared.js"></script>
   <script src="../../live/live-admin-pages.js"></script>
+  <script src="../../js/ui-text-catalog.js"></script>
   <script>
   (function () {
     'use strict';
@@ -403,7 +410,10 @@
           { key: 'heroDescription', label: 'Login page left description', type: 'textarea' },
           { key: 'registerTitle', label: 'Register headline', type: 'text' },
           { key: 'registerSubtitle', label: 'Register sub-line', type: 'text' }
-        ] }
+        ] },
+      { id: 'uitext', label: 'Dashboard Text', icon: 'fas fa-font', type: 'catalog', path: '',
+        desc: 'Text on every dashboard page — page headings and menu labels. Leave a field empty to keep the page default. Menu labels are shared: renaming "Dashboard" renames it on every dashboard.',
+        fields: [] }
     ];
 
     // ── State ─────────────────────────────────────────────────────────────
@@ -411,6 +421,7 @@
     var defaults = null;    // schema defaults (what Reset uses)
     var currentId = 'hero';
     var dirty = false;
+    var uiTextState = {};   // flat map: key -> override string ('' = page default)
     var panelRoot = document.getElementById('panelRoot');
     var panelNav = document.getElementById('panelNav');
 
@@ -550,21 +561,66 @@
       return html;
     }
 
+    function renderCatalogBody(panel) {
+      var cat = window.__UI_TEXT_CATALOG || [];
+      return '<div class="wb-section-desc">' + esc(panel.desc || '') + '</div>' +
+        '<input type="text" class="wb-input" id="wbCatalogSearch" placeholder="Search text, page or key…" style="margin-bottom:14px" value="">' +
+        '<div id="wbCatalogList">' + catalogListHtml(cat, '') + '</div>';
+    }
+
+    function catalogListHtml(cat, q) {
+      q = (q || '').toLowerCase();
+      var filtered = cat.filter(function (e) {
+        return !q ||
+          String(e.default || '').toLowerCase().indexOf(q) !== -1 ||
+          String(e.page || '').toLowerCase().indexOf(q) !== -1 ||
+          String(e.key).toLowerCase().indexOf(q) !== -1;
+      });
+      if (!filtered.length) {
+        return '<div style="color:#94A3B8;font-size:13px;padding:10px 0">No matching text found.</div>';
+      }
+      var groups = {}, order = [];
+      filtered.forEach(function (e) {
+        var g = e.page || 'other';
+        if (!groups[g]) { groups[g] = []; order.push(g); }
+        groups[g].push(e);
+      });
+      var html = '';
+      order.forEach(function (g) {
+        html += '<details class="wb-group" open><summary>' + esc(g) +
+          ' <span style="color:#94A3B8;font-weight:600">(' + groups[g].length + ')</span></summary>';
+        groups[g].forEach(function (e) {
+          var val = uiTextState[e.key] || '';
+          html += '<div class="wb-ctrow"><div class="wb-ctinfo">' +
+            '<div class="wb-label" style="margin:0">' + esc(e.default) +
+            (e.pages > 1 ? ' <span class="wb-ctpages">' + e.pages + ' pages</span>' : '') + '</div>' +
+            '<div class="wb-hint">' + esc(e.key) + '</div></div>' +
+            '<input type="text" class="wb-input" data-uitext="' + esc(e.key) + '" value="' + esc(val) +
+            '" placeholder="' + esc(e.default) + '"></div>';
+        });
+        html += '</details>';
+      });
+      return html;
+    }
+
     function renderPanel() {
       var panel = currentPanel();
       var html = '<div class="card" style="border-radius:18px;border:1px solid var(--wb-card-border);box-shadow:0 2px 6px rgba(0,0,0,0.03)">' +
         '<div class="card-header" style="background:#F8FAFC;border-bottom:1px solid var(--wb-card-border);padding:16px 24px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">' +
         '<div class="card-title" style="font-weight:800;font-size:15px;color:#0F172A;display:flex;align-items:center;gap:8px">' +
         '<i class="' + esc(panel.icon) + '" style="color:#4F46E5"></i> ' + esc(panel.label) + '</div>' +
-        '<button class="btn btn-secondary btn-sm" data-reset="1"><i class="fas fa-rotate-left"></i> Reset section</button>' +
+        '<button class="btn btn-secondary btn-sm" data-reset="1"><i class="fas fa-rotate-left"></i> ' +
+        (panel.type === 'catalog' ? 'Clear all overrides' : 'Reset section') + '</button>' +
         '</div><div class="card-body" style="padding:24px">' +
-        '<div class="wb-section-desc">' + esc(panel.desc || '') + '</div>';
-      panel.fields.forEach(function (field) {
-        if (field.type === 'list') html += renderList(panel, field);
-        else if (field.type === 'strings') html += renderStrings(panel, field);
-        else if (field.type === 'columns') html += renderColumns(panel, field);
-        else html += renderField(panel, field);
-      });
+        (panel.type === 'catalog' ? renderCatalogBody(panel) : '<div class="wb-section-desc">' + esc(panel.desc || '') + '</div>');
+      if (panel.type !== 'catalog') {
+        panel.fields.forEach(function (field) {
+          if (field.type === 'list') html += renderList(panel, field);
+          else if (field.type === 'strings') html += renderStrings(panel, field);
+          else if (field.type === 'columns') html += renderColumns(panel, field);
+          else html += renderField(panel, field);
+        });
+      }
       html += '</div><div class="card-footer" style="background:#F8FAFC;border-top:1px solid var(--wb-card-border);padding:16px 24px;text-align:right">' +
         '<a class="btn btn-secondary btn-sm" href="../../index.html" target="_blank" style="margin-right:8px"><i class="fas fa-external-link-alt"></i> View Website</a>' +
         '<button class="btn btn-primary" data-save="1"><i class="fas fa-save"></i> Save Changes</button>' +
@@ -601,6 +657,15 @@
 
     function resetSection() {
       var panel = currentPanel();
+      if (panel.type === 'catalog') {
+        // Keep the keys but blank their values — the save payload then sends
+        // each as null, which is what actually deletes the override server-side.
+        Object.keys(uiTextState).forEach(function (k) { uiTextState[k] = ''; });
+        renderPanel();
+        setDirty(true);
+        window.showToast && window.showToast('All dashboard text overrides cleared — press Save Changes to apply', 'info');
+        return;
+      }
       panel.fields.forEach(function (field) {
         var p = fieldPath(panel, field);
         setPath(state, p, clone(getPath(defaults, p)));
@@ -615,9 +680,19 @@
       if (!state) return;
       try {
         window.setLoading && window.setLoading(btn, true);
-        await window.api.request('/super-admin/settings', { method: 'PUT', body: { website: state } });
+        // Dashboard text: empty/null values delete the override (page default).
+        var uiPayload = {};
+        Object.keys(uiTextState).forEach(function (k) {
+          var v = uiTextState[k];
+          uiPayload[k] = (v && String(v).trim()) ? v : null;
+        });
+        await window.api.request('/super-admin/settings', {
+          method: 'PUT',
+          body: { website: state, uiText: uiPayload }
+        });
+        Object.keys(uiPayload).forEach(function (k) { if (!uiPayload[k]) delete uiTextState[k]; });
         setDirty(false);
-        window.showToast && window.showToast('Website saved — refresh the site to see your changes', 'success');
+        window.showToast && window.showToast('Saved — refresh the page to see your changes', 'success');
       } catch (e) {
         window.showToast && window.showToast((e && e.message) || 'Save failed', 'error');
       } finally {
@@ -635,6 +710,19 @@
     });
 
     panelRoot.addEventListener('input', function (e) {
+      // Dashboard Text: live search re-renders only the list (keeps focus).
+      if (e.target.id === 'wbCatalogSearch') {
+        var list = document.getElementById('wbCatalogList');
+        if (list) list.innerHTML = catalogListHtml(window.__UI_TEXT_CATALOG || [], e.target.value);
+        return;
+      }
+      // Dashboard Text: override input (flat key, no path nesting).
+      var ue = e.target.closest('[data-uitext]');
+      if (ue && uiTextState) {
+        uiTextState[ue.getAttribute('data-uitext')] = ue.value;
+        setDirty(true);
+        return;
+      }
       var el = e.target.closest('[data-path]');
       if (!el || !state) return;
       setPath(state, el.getAttribute('data-path'), el.type === 'checkbox' ? el.checked : el.value);
@@ -667,6 +755,7 @@
         var res = await window.api.request('/super-admin/settings');
         state = clone((res.settings && res.settings.website) || {});
         defaults = clone((res.defaults && res.defaults.website) || state);
+        uiTextState = clone((res.settings && res.settings.uiText) || {});
         renderNav();
         renderPanel();
         setDirty(false);
@@ -677,5 +766,6 @@
     })();
   })();
   </script>
+  <script src="../../js/ui-text.js"></script>
 </body>
 </html>

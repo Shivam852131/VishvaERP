@@ -15,26 +15,26 @@
     <div class="sidebar-user"><div class="sidebar-avatar" id="sidebar-avatar">A</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Admin</div><div class="sidebar-user-role">College Administrator</div></div></div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Overview</div>
-      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <a data-cms="nav.dashboard" href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
       <div class="nav-section-label">Academics</div>
-      <a href="students.html" class="nav-link"><i class="nav-link-icon fas fa-user-graduate"></i> Students</a>
-      <a href="faculty.html" class="nav-link"><i class="nav-link-icon fas fa-chalkboard-teacher"></i> Faculty</a>
-      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-open"></i> Courses</a>
-      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-check"></i> Attendance</a>
+      <a data-cms="nav.students" href="students.html" class="nav-link"><i class="nav-link-icon fas fa-user-graduate"></i> Students</a>
+      <a data-cms="nav.faculty" href="faculty.html" class="nav-link"><i class="nav-link-icon fas fa-chalkboard-teacher"></i> Faculty</a>
+      <a data-cms="nav.courses" href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-open"></i> Courses</a>
+      <a data-cms="nav.attendance" href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-check"></i> Attendance</a>
       <div class="nav-section-label">Campus Life</div>
-      <a href="events.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Events</a>
-      <a href="grievances.html" class="nav-link"><i class="nav-link-icon fas fa-exclamation-circle"></i> Grievances</a>
-      <a href="feedback.html" class="nav-link active"><i class="nav-link-icon fas fa-star"></i> Feedback</a>
-      <a href="inventory.html" class="nav-link"><i class="nav-link-icon fas fa-boxes"></i> Inventory</a>
-      <a href="placement.html" class="nav-link"><i class="nav-link-icon fas fa-briefcase"></i> Placement</a>
-      <a href="alumni.html" class="nav-link"><i class="nav-link-icon fas fa-users"></i> Alumni</a>
-      <a href="visitors.html" class="nav-link"><i class="nav-link-icon fas fa-id-card-visitor"></i> Visitors</a>
+      <a data-cms="nav.events" href="events.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Events</a>
+      <a data-cms="nav.grievances" href="grievances.html" class="nav-link"><i class="nav-link-icon fas fa-exclamation-circle"></i> Grievances</a>
+      <a data-cms="nav.feedback" href="feedback.html" class="nav-link active"><i class="nav-link-icon fas fa-star"></i> Feedback</a>
+      <a data-cms="nav.inventory" href="inventory.html" class="nav-link"><i class="nav-link-icon fas fa-boxes"></i> Inventory</a>
+      <a data-cms="nav.placement" href="placement.html" class="nav-link"><i class="nav-link-icon fas fa-briefcase"></i> Placement</a>
+      <a data-cms="nav.alumni" href="alumni.html" class="nav-link"><i class="nav-link-icon fas fa-users"></i> Alumni</a>
+      <a data-cms="nav.visitors" href="visitors.html" class="nav-link"><i class="nav-link-icon fas fa-id-card-visitor"></i> Visitors</a>
       <div class="nav-section-label">Smart Campus</div>
-      <a href="iot-dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-microchip"></i> IoT Dashboard</a>
-      <a href="sustainability.html" class="nav-link"><i class="nav-link-icon fas fa-leaf"></i> Sustainability</a>
-      <a href="ai-intelligence.html" class="nav-link"><i class="nav-link-icon fas fa-brain"></i> AI Intelligence</a>
+      <a data-cms="nav.iot-dashboard" href="iot-dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-microchip"></i> IoT Dashboard</a>
+      <a data-cms="nav.sustainability" href="sustainability.html" class="nav-link"><i class="nav-link-icon fas fa-leaf"></i> Sustainability</a>
+      <a data-cms="nav.ai-intelligence" href="ai-intelligence.html" class="nav-link"><i class="nav-link-icon fas fa-brain"></i> AI Intelligence</a>
       <div class="nav-section-label">Facilities</div>
-      <a href="library.html" class="nav-link"><i class="nav-link-icon fas fa-book"></i> Library</a>
+      <a data-cms="nav.library" href="library.html" class="nav-link"><i class="nav-link-icon fas fa-book"></i> Library</a>
     </nav>
     <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
   </aside>
@@ -42,14 +42,14 @@
   <div class="erp-main">
     <header class="erp-topbar"><div class="topbar-left"><button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button><div class="topbar-breadcrumb">College Admin / <span>Feedback</span></div></div><div class="topbar-right"><div class="topbar-avatar" id="topbar-avatar">A</div></div></header>
     <div class="erp-content page-enter">
-      <div class="page-header"><h1 class="page-title"><i class="fas fa-star"></i> Feedback Analytics</h1><p class="page-subtitle">Student and faculty feedback insights</p></div>
+      <div class="page-header"><h1 data-cms="college-admin.feedback.h1.1" class="page-title"><i class="fas fa-star"></i> Feedback Analytics</h1><p class="page-subtitle">Student and faculty feedback insights</p></div>
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px" id="statsRow"></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">
-        <div class="card" style="padding:20px"><h3 style="font-weight:700;font-size:14px;margin-bottom:16px"><i class="fas fa-chart-bar"></i> Ratings by Type</h3><canvas id="typeChart" height="200"></canvas></div>
-        <div class="card" style="padding:20px"><h3 style="font-weight:700;font-size:14px;margin-bottom:16px"><i class="fas fa-chart-radar"></i> Average Ratings</h3><canvas id="radarChart" height="200"></canvas></div>
+        <div class="card" style="padding:20px"><h3 data-cms="college-admin.feedback.h3.1" style="font-weight:700;font-size:14px;margin-bottom:16px"><i class="fas fa-chart-bar"></i> Ratings by Type</h3><canvas id="typeChart" height="200"></canvas></div>
+        <div class="card" style="padding:20px"><h3 data-cms="college-admin.feedback.h3.2" style="font-weight:700;font-size:14px;margin-bottom:16px"><i class="fas fa-chart-radar"></i> Average Ratings</h3><canvas id="radarChart" height="200"></canvas></div>
       </div>
       <div class="card" style="padding:20px">
-        <h3 style="font-weight:700;font-size:16px;margin-bottom:16px"><i class="fas fa-comments"></i> Recent Feedback</h3>
+        <h3 data-cms="college-admin.feedback.h3.3" style="font-weight:700;font-size:16px;margin-bottom:16px"><i class="fas fa-comments"></i> Recent Feedback</h3>
         <div id="feedbackList"></div>
       </div>
     </div>
@@ -91,5 +91,6 @@ async function loadFeedback(){
 }
 loadFeedback();
 </script>
+  <script src="../../js/ui-text.js"></script>
 </body>
 </html>

@@ -100,17 +100,17 @@
     <div class="sidebar-user"><div class="sidebar-avatar" style="background:linear-gradient(135deg,#059669,#10B981)" id="sidebar-avatar">F</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Professor</div><div class="sidebar-user-role">Faculty Member</div></div></div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Overview</div>
-      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <a data-cms="nav.dashboard" href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
       <div class="nav-section-label">Teaching</div>
-      <a href="attendance.html" class="nav-link active"><i class="nav-link-icon fas fa-calendar-check"></i> Attendance</a>
-      <a href="grades.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-list"></i> Grades &amp; Results</a>
-      <a href="assignments.html" class="nav-link"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
-      <a href="timetable.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Timetable</a>
-      <a href="notes.html" class="nav-link"><i class="nav-link-icon fas fa-sticky-note"></i> Notes</a>
+      <a data-cms="nav.attendance" href="attendance.html" class="nav-link active"><i class="nav-link-icon fas fa-calendar-check"></i> Attendance</a>
+      <a data-cms="nav.grades-amp-results" href="grades.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-list"></i> Grades &amp; Results</a>
+      <a data-cms="nav.assignments" href="assignments.html" class="nav-link"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
+      <a data-cms="nav.timetable" href="timetable.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Timetable</a>
+      <a data-cms="nav.notes" href="notes.html" class="nav-link"><i class="nav-link-icon fas fa-sticky-note"></i> Notes</a>
       <div class="nav-section-label">HR</div>
-      <a href="leave.html" class="nav-link"><i class="nav-link-icon fas fa-file-signature"></i> Leave &amp; HR</a>
+      <a data-cms="nav.leave-amp-hr" href="leave.html" class="nav-link"><i class="nav-link-icon fas fa-file-signature"></i> Leave &amp; HR</a>
       <div class="nav-section-label">Tools</div>
-      <a href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Assistant</a>
+      <a data-cms="nav.ai-assistant" href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Assistant</a>
     </nav>
     <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
   </aside>
@@ -135,7 +135,7 @@
         <div style="position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px">
           <div>
             <div style="font-size:12px;opacity:.8;font-weight:600;text-transform:uppercase;letter-spacing:.06em">Attendance Command Center</div>
-            <h1 style="font-size:24px;font-weight:900;margin:4px 0">Take Attendance</h1>
+            <h1 data-cms="faculty.attendance.h1.1" style="font-size:24px;font-weight:900;margin:4px 0">Take Attendance</h1>
             <div style="font-size:13px;opacity:.85" id="heroSubtitle">Select a subject to begin roll call or monitor live presence.</div>
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -350,7 +350,7 @@
 <div class="excuse-modal-overlay" id="excuseModal">
   <div class="excuse-modal">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
-      <h3 style="font-size:18px;font-weight:800;color:#1E293B;margin:0"><i class="fas fa-file-exclamation" style="color:#6366F1;margin-right:8px"></i>Excuse Students</h3>
+      <h3 data-cms="faculty.attendance.h3.1" style="font-size:18px;font-weight:800;color:#1E293B;margin:0"><i class="fas fa-file-exclamation" style="color:#6366F1;margin-right:8px"></i>Excuse Students</h3>
       <button onclick="closeExcuseModal()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#94A3B8">&times;</button>
     </div>
     <div id="excuseModalContent">
@@ -1056,5 +1056,6 @@ window.generateQR = generateQR;
 window.pollQRStatus = pollQRStatus;
 window.stopQRSession = stopQRSession;
 </script>
+  <script src="../../js/ui-text.js"></script>
 </body>
 </html>

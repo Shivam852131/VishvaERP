@@ -190,25 +190,25 @@
     <div class="sidebar-user"><div class="sidebar-avatar" id="sidebar-avatar">A</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Admin</div><div class="sidebar-user-role">College Administrator</div></div></div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Overview</div>
-      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <a data-cms="nav.dashboard" href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
       <div class="nav-section-label">Academics</div>
-      <a href="students.html" class="nav-link"><i class="nav-link-icon fas fa-user-graduate"></i> Students</a>
-      <a href="faculty.html" class="nav-link"><i class="nav-link-icon fas fa-chalkboard-teacher"></i> Faculty</a>
-      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-check"></i> Attendance</a>
+      <a data-cms="nav.students" href="students.html" class="nav-link"><i class="nav-link-icon fas fa-user-graduate"></i> Students</a>
+      <a data-cms="nav.faculty" href="faculty.html" class="nav-link"><i class="nav-link-icon fas fa-chalkboard-teacher"></i> Faculty</a>
+      <a data-cms="nav.attendance" href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-check"></i> Attendance</a>
       <div class="nav-section-label">Campus Life</div>
-      <a href="events.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Events</a>
-      <a href="grievances.html" class="nav-link"><i class="nav-link-icon fas fa-exclamation-circle"></i> Grievances</a>
-      <a href="feedback.html" class="nav-link"><i class="nav-link-icon fas fa-star"></i> Feedback</a>
-      <a href="inventory.html" class="nav-link"><i class="nav-link-icon fas fa-boxes"></i> Inventory</a>
-      <a href="placement.html" class="nav-link"><i class="nav-link-icon fas fa-briefcase"></i> Placement</a>
-      <a href="alumni.html" class="nav-link active"><i class="nav-link-icon fas fa-users"></i> Alumni</a>
-      <a href="visitors.html" class="nav-link"><i class="nav-link-icon fas fa-id-card-visitor"></i> Visitors</a>
+      <a data-cms="nav.events" href="events.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Events</a>
+      <a data-cms="nav.grievances" href="grievances.html" class="nav-link"><i class="nav-link-icon fas fa-exclamation-circle"></i> Grievances</a>
+      <a data-cms="nav.feedback" href="feedback.html" class="nav-link"><i class="nav-link-icon fas fa-star"></i> Feedback</a>
+      <a data-cms="nav.inventory" href="inventory.html" class="nav-link"><i class="nav-link-icon fas fa-boxes"></i> Inventory</a>
+      <a data-cms="nav.placement" href="placement.html" class="nav-link"><i class="nav-link-icon fas fa-briefcase"></i> Placement</a>
+      <a data-cms="nav.alumni" href="alumni.html" class="nav-link active"><i class="nav-link-icon fas fa-users"></i> Alumni</a>
+      <a data-cms="nav.visitors" href="visitors.html" class="nav-link"><i class="nav-link-icon fas fa-id-card-visitor"></i> Visitors</a>
       <div class="nav-section-label">Smart Campus</div>
-      <a href="iot-dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-microchip"></i> IoT Dashboard</a>
-      <a href="sustainability.html" class="nav-link"><i class="nav-link-icon fas fa-leaf"></i> Sustainability</a>
-      <a href="ai-intelligence.html" class="nav-link"><i class="nav-link-icon fas fa-brain"></i> AI Intelligence</a>
+      <a data-cms="nav.iot-dashboard" href="iot-dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-microchip"></i> IoT Dashboard</a>
+      <a data-cms="nav.sustainability" href="sustainability.html" class="nav-link"><i class="nav-link-icon fas fa-leaf"></i> Sustainability</a>
+      <a data-cms="nav.ai-intelligence" href="ai-intelligence.html" class="nav-link"><i class="nav-link-icon fas fa-brain"></i> AI Intelligence</a>
       <div class="nav-section-label">Facilities</div>
-      <a href="library.html" class="nav-link"><i class="nav-link-icon fas fa-book"></i> Library</a>
+      <a data-cms="nav.library" href="library.html" class="nav-link"><i class="nav-link-icon fas fa-book"></i> Library</a>
     </nav>
     <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
   </aside>
@@ -230,7 +230,7 @@
             <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px">
               <div style="width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;font-size:18px"><i class="fas fa-users"></i></div>
               <div>
-                <h1 style="font-size:22px;font-weight:900;line-height:1.2">Alumni Network</h1>
+                <h1 data-cms="college-admin.alumni.h1.1" style="font-size:22px;font-weight:900;line-height:1.2">Alumni Network</h1>
                 <p style="font-size:13px;opacity:0.85;margin-top:2px">Manage alumni directory, events, and donations</p>
               </div>
             </div>
@@ -248,11 +248,11 @@
       <!-- CHARTS -->
       <div class="charts-grid">
         <div class="data-card">
-          <h3><i class="fas fa-chart-bar" style="margin-right:6px;color:#7C3AED"></i> Alumni by Year</h3>
+          <h3 data-cms="college-admin.alumni.h3.1"><i class="fas fa-chart-bar" style="margin-right:6px;color:#7C3AED"></i> Alumni by Year</h3>
           <div style="position:relative;height:220px"><canvas id="yearChart"></canvas></div>
         </div>
         <div class="data-card">
-          <h3><i class="fas fa-chart-pie" style="margin-right:6px;color:#EC4899"></i> By Department</h3>
+          <h3 data-cms="college-admin.alumni.h3.2"><i class="fas fa-chart-pie" style="margin-right:6px;color:#EC4899"></i> By Department</h3>
           <div style="position:relative;height:220px"><canvas id="deptChart"></canvas></div>
         </div>
       </div>
@@ -262,7 +262,7 @@
         <!-- ALUMNI DIRECTORY -->
         <div class="data-card">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-            <h3 style="margin-bottom:0"><i class="fas fa-user-graduate" style="margin-right:6px;color:#7C3AED"></i> Alumni Directory</h3>
+            <h3 data-cms="college-admin.alumni.h3.3" style="margin-bottom:0"><i class="fas fa-user-graduate" style="margin-right:6px;color:#7C3AED"></i> Alumni Directory</h3>
             <span style="font-size:11px;color:#94A3B8;font-weight:600" id="alumniCount">0 total</span>
           </div>
           <div class="alumni-search">
@@ -275,14 +275,14 @@
         <!-- EVENTS + DONATIONS -->
         <div class="data-card">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-            <h3 style="margin-bottom:0"><i class="fas fa-calendar" style="margin-right:6px;color:#059669"></i> Alumni Events</h3>
+            <h3 data-cms="college-admin.alumni.h3.4" style="margin-bottom:0"><i class="fas fa-calendar" style="margin-right:6px;color:#059669"></i> Alumni Events</h3>
             <span style="font-size:11px;color:#94A3B8;font-weight:600" id="eventCount">0 total</span>
           </div>
           <div class="scrollable-list" id="eventList"></div>
 
           <div style="margin-top:20px;padding-top:16px;border-top:1px solid #F1F5F9">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
-              <h3 style="margin:0"><i class="fas fa-hand-holding-heart" style="margin-right:6px;color:#D97706"></i> Recent Donations</h3>
+              <h3 data-cms="college-admin.alumni.h3.5" style="margin:0"><i class="fas fa-hand-holding-heart" style="margin-right:6px;color:#D97706"></i> Recent Donations</h3>
               <span style="font-size:11px;color:#94A3B8;font-weight:600" id="donationCount">0 total</span>
             </div>
             <div class="scrollable-list" id="donationList"></div>
@@ -297,7 +297,7 @@
 <!-- ADD ALUMNI MODAL -->
 <div class="modal-overlay" id="addAlumniModal">
   <div class="modal-box">
-    <div class="modal-head"><h3>Add Alumni</h3><button class="modal-close" onclick="closeModal('addAlumniModal')">&times;</button></div>
+    <div class="modal-head"><h3 data-cms="college-admin.alumni.h3.6">Add Alumni</h3><button class="modal-close" onclick="closeModal('addAlumniModal')">&times;</button></div>
     <div class="modal-body">
       <div class="form-group"><label class="form-label">Name *</label><input class="form-control" id="alName" placeholder="Full name"></div>
       <div class="form-grid">
@@ -321,7 +321,7 @@
 <!-- CREATE EVENT MODAL -->
 <div class="modal-overlay" id="createEventModal">
   <div class="modal-box">
-    <div class="modal-head"><h3>Create Alumni Event</h3><button class="modal-close" onclick="closeModal('createEventModal')">&times;</button></div>
+    <div class="modal-head"><h3 data-cms="college-admin.alumni.h3.7">Create Alumni Event</h3><button class="modal-close" onclick="closeModal('createEventModal')">&times;</button></div>
     <div class="modal-body">
       <div class="form-group"><label class="form-label">Title *</label><input class="form-control" id="evTitle" placeholder="e.g. Annual Reunion 2026"></div>
       <div class="form-group"><label class="form-label">Type</label>
@@ -527,5 +527,6 @@ document.querySelectorAll('.modal-overlay').forEach(function(overlay) {
 
 loadAll();
 </script>
+  <script src="../../js/ui-text.js"></script>
 </body>
 </html>

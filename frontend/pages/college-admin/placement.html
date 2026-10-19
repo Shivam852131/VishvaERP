@@ -167,26 +167,26 @@
     <div class="sidebar-user"><div class="sidebar-avatar" id="sidebar-avatar">A</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Admin</div><div class="sidebar-user-role">College Administrator</div></div></div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Overview</div>
-      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <a data-cms="nav.dashboard" href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
       <div class="nav-section-label">Academics</div>
-      <a href="students.html" class="nav-link"><i class="nav-link-icon fas fa-user-graduate"></i> Students</a>
-      <a href="faculty.html" class="nav-link"><i class="nav-link-icon fas fa-chalkboard-teacher"></i> Faculty</a>
-      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-check"></i> Attendance</a>
+      <a data-cms="nav.students" href="students.html" class="nav-link"><i class="nav-link-icon fas fa-user-graduate"></i> Students</a>
+      <a data-cms="nav.faculty" href="faculty.html" class="nav-link"><i class="nav-link-icon fas fa-chalkboard-teacher"></i> Faculty</a>
+      <a data-cms="nav.attendance" href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-check"></i> Attendance</a>
       <div class="nav-section-label">Campus Life</div>
-      <a href="events.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Events</a>
-      <a href="grievances.html" class="nav-link"><i class="nav-link-icon fas fa-exclamation-circle"></i> Grievances</a>
-      <a href="feedback.html" class="nav-link"><i class="nav-link-icon fas fa-star"></i> Feedback</a>
-      <a href="inventory.html" class="nav-link"><i class="nav-link-icon fas fa-boxes"></i> Inventory</a>
-      <a href="placement.html" class="nav-link active"><i class="nav-link-icon fas fa-briefcase"></i> Placement</a>
-      <a href="alumni.html" class="nav-link"><i class="nav-link-icon fas fa-users"></i> Alumni</a>
-      <a href="visitors.html" class="nav-link"><i class="nav-link-icon fas fa-id-card-visitor"></i> Visitors</a>
+      <a data-cms="nav.events" href="events.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Events</a>
+      <a data-cms="nav.grievances" href="grievances.html" class="nav-link"><i class="nav-link-icon fas fa-exclamation-circle"></i> Grievances</a>
+      <a data-cms="nav.feedback" href="feedback.html" class="nav-link"><i class="nav-link-icon fas fa-star"></i> Feedback</a>
+      <a data-cms="nav.inventory" href="inventory.html" class="nav-link"><i class="nav-link-icon fas fa-boxes"></i> Inventory</a>
+      <a data-cms="nav.placement" href="placement.html" class="nav-link active"><i class="nav-link-icon fas fa-briefcase"></i> Placement</a>
+      <a data-cms="nav.alumni" href="alumni.html" class="nav-link"><i class="nav-link-icon fas fa-users"></i> Alumni</a>
+      <a data-cms="nav.visitors" href="visitors.html" class="nav-link"><i class="nav-link-icon fas fa-id-card-visitor"></i> Visitors</a>
       <div class="nav-section-label">Facilities</div>
-      <a href="logistics.html" class="nav-link"><i class="nav-link-icon fas fa-bus"></i> Logistics &amp; Hostel</a>
-      <a href="library.html" class="nav-link"><i class="nav-link-icon fas fa-book"></i> Library</a>
+      <a data-cms="nav.logistics-amp-hostel" href="logistics.html" class="nav-link"><i class="nav-link-icon fas fa-bus"></i> Logistics &amp; Hostel</a>
+      <a data-cms="nav.library" href="library.html" class="nav-link"><i class="nav-link-icon fas fa-book"></i> Library</a>
       <div class="nav-section-label">Smart Campus</div>
-      <a href="iot-dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-microchip"></i> IoT Dashboard</a>
-      <a href="sustainability.html" class="nav-link"><i class="nav-link-icon fas fa-leaf"></i> Sustainability</a>
-      <a href="ai-intelligence.html" class="nav-link"><i class="nav-link-icon fas fa-brain"></i> AI Intelligence</a>
+      <a data-cms="nav.iot-dashboard" href="iot-dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-microchip"></i> IoT Dashboard</a>
+      <a data-cms="nav.sustainability" href="sustainability.html" class="nav-link"><i class="nav-link-icon fas fa-leaf"></i> Sustainability</a>
+      <a data-cms="nav.ai-intelligence" href="ai-intelligence.html" class="nav-link"><i class="nav-link-icon fas fa-brain"></i> AI Intelligence</a>
     </nav>
     <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
   </aside>
@@ -213,7 +213,7 @@
             <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px">
               <div style="width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;font-size:20px"><i class="fas fa-graduation-cap"></i></div>
               <div>
-                <h1 style="font-size:22px;font-weight:900;line-height:1.2">Placement &amp; Career Cell</h1>
+                <h1 data-cms="college-admin.placement.h1.1" style="font-size:22px;font-weight:900;line-height:1.2">Placement &amp; Career Cell</h1>
                 <p style="font-size:13px;opacity:0.9;margin-top:2px">ATS Applicant Tracking, Corporate Drives, and NIRF/NAAC Accreditation</p>
               </div>
             </div>
@@ -249,7 +249,7 @@
         <div class="data-card">
           <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;margin-bottom:18px">
             <div>
-              <h3 style="font-size:15px;font-weight:800;color:#0F172A;margin:0"><i class="fas fa-users-viewfinder text-indigo-600 mr-2"></i>Applicant Tracking System (ATS)</h3>
+              <h3 data-cms="college-admin.placement.h3.1" style="font-size:15px;font-weight:800;color:#0F172A;margin:0"><i class="fas fa-users-viewfinder text-indigo-600 mr-2"></i>Applicant Tracking System (ATS)</h3>
               <p style="font-size:12px;color:#64748B;margin-top:2px">Review student submissions, ATS match scores, schedule interviews, and issue offers</p>
             </div>
             <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
@@ -296,7 +296,7 @@
         <div class="data-card">
           <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;margin-bottom:18px">
             <div>
-              <h3 style="font-size:15px;font-weight:800;color:#0F172A;margin:0"><i class="fas fa-calendar-check text-indigo-600 mr-2"></i>Campus Placement Drives Schedule</h3>
+              <h3 data-cms="college-admin.placement.h3.2" style="font-size:15px;font-weight:800;color:#0F172A;margin:0"><i class="fas fa-calendar-check text-indigo-600 mr-2"></i>Campus Placement Drives Schedule</h3>
               <p style="font-size:12px;color:#64748B;margin-top:2px">Manage visiting corporate partners, recruitment dates, venues &amp; test rounds</p>
             </div>
             <button class="btn btn-primary" onclick="openModal('addDriveModal')"><i class="fas fa-plus"></i> Schedule New Drive</button>
@@ -314,7 +314,7 @@
           <div class="data-card">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
               <div>
-                <h3 style="font-size:15px;font-weight:800;color:#0F172A;margin:0"><i class="fas fa-building text-indigo-600 mr-2"></i>Partner Companies</h3>
+                <h3 data-cms="college-admin.placement.h3.3" style="font-size:15px;font-weight:800;color:#0F172A;margin:0"><i class="fas fa-building text-indigo-600 mr-2"></i>Partner Companies</h3>
                 <p style="font-size:11px;color:#64748B;margin-top:2px" id="companyCountSub">0 registered</p>
               </div>
               <button class="btn btn-primary btn-sm" onclick="openModal('addCompanyModal')"><i class="fas fa-plus"></i> Add</button>
@@ -325,7 +325,7 @@
           <div class="data-card">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
               <div>
-                <h3 style="font-size:15px;font-weight:800;color:#0F172A;margin:0"><i class="fas fa-briefcase text-emerald-600 mr-2"></i>Job Postings &amp; Roles</h3>
+                <h3 data-cms="college-admin.placement.h3.4" style="font-size:15px;font-weight:800;color:#0F172A;margin:0"><i class="fas fa-briefcase text-emerald-600 mr-2"></i>Job Postings &amp; Roles</h3>
                 <p style="font-size:11px;color:#64748B;margin-top:2px" id="jobCountSub">0 openings</p>
               </div>
               <button class="btn btn-primary btn-sm" onclick="openModal('addJobModal')"><i class="fas fa-plus"></i> Post Job</button>
@@ -339,11 +339,11 @@
       <div id="tabContentAnalytics" class="tab-content" style="display:none">
         <div class="pipeline-grid">
           <div class="data-card">
-            <h3 style="font-size:14px;font-weight:800;margin-bottom:14px"><i class="fas fa-chart-bar text-indigo-600 mr-2"></i>Application Status Distribution</h3>
+            <h3 data-cms="college-admin.placement.h3.5" style="font-size:14px;font-weight:800;margin-bottom:14px"><i class="fas fa-chart-bar text-indigo-600 mr-2"></i>Application Status Distribution</h3>
             <div style="position:relative;height:240px"><canvas id="pipelineChart"></canvas></div>
           </div>
           <div class="data-card">
-            <h3 style="font-size:14px;font-weight:800;margin-bottom:14px"><i class="fas fa-chart-pie text-emerald-600 mr-2"></i>Job Types &amp; Opportunities</h3>
+            <h3 data-cms="college-admin.placement.h3.6" style="font-size:14px;font-weight:800;margin-bottom:14px"><i class="fas fa-chart-pie text-emerald-600 mr-2"></i>Job Types &amp; Opportunities</h3>
             <div style="position:relative;height:240px"><canvas id="jobTypeChart"></canvas></div>
           </div>
         </div>
@@ -356,7 +356,7 @@
 <!-- ADD COMPANY MODAL -->
 <div class="modal-overlay" id="addCompanyModal">
   <div class="modal-box">
-    <div class="modal-head"><h3>Register Partner Company</h3><button class="modal-close" onclick="closeModal('addCompanyModal')">&times;</button></div>
+    <div class="modal-head"><h3 data-cms="college-admin.placement.h3.7">Register Partner Company</h3><button class="modal-close" onclick="closeModal('addCompanyModal')">&times;</button></div>
     <div class="modal-body">
       <div class="form-group"><label class="form-label">Company Name *</label><input class="form-control" id="compName" placeholder="e.g. Google India"></div>
       <div class="form-grid">
@@ -385,7 +385,7 @@
 <!-- POST JOB MODAL -->
 <div class="modal-overlay" id="addJobModal">
   <div class="modal-box">
-    <div class="modal-head"><h3>Publish Job Opening</h3><button class="modal-close" onclick="closeModal('addJobModal')">&times;</button></div>
+    <div class="modal-head"><h3 data-cms="college-admin.placement.h3.8">Publish Job Opening</h3><button class="modal-close" onclick="closeModal('addJobModal')">&times;</button></div>
     <div class="modal-body">
       <div class="form-group"><label class="form-label">Job Title *</label><input class="form-control" id="jobTitle" placeholder="e.g. Associate Software Engineer"></div>
       <div class="form-group"><label class="form-label">Hiring Company *</label><select class="form-control" id="jobCompany"></select></div>
@@ -421,7 +421,7 @@
 <!-- SCHEDULE DRIVE MODAL -->
 <div class="modal-overlay" id="addDriveModal">
   <div class="modal-box">
-    <div class="modal-head"><h3>Schedule Placement Drive</h3><button class="modal-close" onclick="closeModal('addDriveModal')">&times;</button></div>
+    <div class="modal-head"><h3 data-cms="college-admin.placement.h3.9">Schedule Placement Drive</h3><button class="modal-close" onclick="closeModal('addDriveModal')">&times;</button></div>
     <div class="modal-body">
       <div class="form-group"><label class="form-label">Drive Title *</label><input class="form-control" id="driveTitle" placeholder="e.g. TCS Pan-India Campus Recruitment 2026"></div>
       <div class="form-grid">
@@ -454,7 +454,7 @@
 <!-- UPDATE APPLICATION STATUS MODAL -->
 <div class="modal-overlay" id="updateStatusModal">
   <div class="modal-box">
-    <div class="modal-head"><h3>Update Candidate Stage</h3><button class="modal-close" onclick="closeModal('updateStatusModal')">&times;</button></div>
+    <div class="modal-head"><h3 data-cms="college-admin.placement.h3.10">Update Candidate Stage</h3><button class="modal-close" onclick="closeModal('updateStatusModal')">&times;</button></div>
     <div class="modal-body">
       <input type="hidden" id="statusAppId">
       <div class="form-group"><label class="form-label">Candidate Name</label><input class="form-control" id="statusStudentName" readonly style="background:#F8FAFC"></div>
@@ -497,7 +497,7 @@
 <!-- CANDIDATE DETAILS MODAL -->
 <div class="modal-overlay" id="applicantDetailsModal">
   <div class="modal-box" style="max-width:640px">
-    <div class="modal-head"><h3>Candidate Profile &amp; Submission</h3><button class="modal-close" onclick="closeModal('applicantDetailsModal')">&times;</button></div>
+    <div class="modal-head"><h3 data-cms="college-admin.placement.h3.11">Candidate Profile &amp; Submission</h3><button class="modal-close" onclick="closeModal('applicantDetailsModal')">&times;</button></div>
     <div class="modal-body" id="applicantDetailsBody">
       <div style="text-align:center;padding:30px"><i class="fas fa-spinner fa-spin mr-2"></i>Loading details...</div>
     </div>
@@ -1079,5 +1079,6 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
 
 loadAll();
 </script>
+  <script src="../../js/ui-text.js"></script>
 </body>
 </html>

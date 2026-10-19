@@ -91,21 +91,21 @@
     <div class="sidebar-user"><div class="sidebar-avatar" id="sidebar-avatar">S</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Student</div><div class="sidebar-user-role">B.Tech | Academic Portal</div></div></div>
     <nav class="sidebar-nav">
       <div class="nav-section-label">Academics</div>
-      <a href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
-      <a href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book"></i> My Courses</a>
-      <a href="timetable.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Timetable</a>
-      <a href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-user-check"></i> Attendance</a>
-      <a href="assignments.html" class="nav-link"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
-      <a href="results.html" class="nav-link"><i class="nav-link-icon fas fa-poll"></i> Results</a>
-      <a href="live-class.html" class="nav-link"><i class="nav-link-icon fas fa-video"></i> Live Classes</a>
+      <a data-cms="nav.dashboard" href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <a data-cms="nav.my-courses" href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book"></i> My Courses</a>
+      <a data-cms="nav.timetable" href="timetable.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Timetable</a>
+      <a data-cms="nav.attendance" href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-user-check"></i> Attendance</a>
+      <a data-cms="nav.assignments" href="assignments.html" class="nav-link"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
+      <a data-cms="nav.results" href="results.html" class="nav-link"><i class="nav-link-icon fas fa-poll"></i> Results</a>
+      <a data-cms="nav.live-classes" href="live-class.html" class="nav-link"><i class="nav-link-icon fas fa-video"></i> Live Classes</a>
       <div class="nav-section-label">Career Center</div>
-      <a href="career.html" class="nav-link"><i class="nav-link-icon fas fa-rocket"></i> Career Dashboard</a>
-      <a href="skills.html" class="nav-link"><i class="nav-link-icon fas fa-tools"></i> Skills Profile</a>
-      <a href="placements.html" class="nav-link"><i class="nav-link-icon fas fa-briefcase"></i> Placements</a>
-      <a href="assessments.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-check"></i> Assessments</a>
+      <a data-cms="nav.career-dashboard" href="career.html" class="nav-link"><i class="nav-link-icon fas fa-rocket"></i> Career Dashboard</a>
+      <a data-cms="nav.skills-profile" href="skills.html" class="nav-link"><i class="nav-link-icon fas fa-tools"></i> Skills Profile</a>
+      <a data-cms="nav.placements" href="placements.html" class="nav-link"><i class="nav-link-icon fas fa-briefcase"></i> Placements</a>
+      <a data-cms="nav.assessments" href="assessments.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-check"></i> Assessments</a>
       <div class="nav-section-label">Facilities</div>
-      <a href="library.html" class="nav-link active"><i class="nav-link-icon fas fa-book-reader"></i> Library</a>
-      <a href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-rupee-sign"></i> Fee Details</a>
+      <a data-cms="nav.library" href="library.html" class="nav-link active"><i class="nav-link-icon fas fa-book-reader"></i> Library</a>
+      <a data-cms="nav.fee-details" href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-rupee-sign"></i> Fee Details</a>
     </nav>
     <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
   </aside>
@@ -128,7 +128,7 @@
           <div style="display:flex;align-items:center;gap:14px">
             <div style="width:46px;height:46px;border-radius:14px;background:rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;font-size:20px"><i class="fas fa-book-reader"></i></div>
             <div>
-              <h1 style="font-size:22px;font-weight:900;line-height:1.2">Digital Library &amp; Academic Reading</h1>
+              <h1 data-cms="student.library.h1.1" style="font-size:22px;font-weight:900;line-height:1.2">Digital Library &amp; Academic Reading</h1>
               <p style="font-size:13px;opacity:0.9;margin-top:2px">Search reference stacks, reserve copies, track return due dates &amp; renew loans</p>
             </div>
           </div>
@@ -183,7 +183,7 @@
         <!-- MY ISSUED BOOKS SIDEBAR -->
         <div class="card" style="background:white;border:1px solid #E2E8F0;border-radius:16px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,0.04)">
           <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-            <h3 style="font-size:14px;font-weight:800;color:#0F172A;margin:0"><i class="fas fa-bookmark text-sky-600 mr-2"></i>My Borrowed Books</h3>
+            <h3 data-cms="student.library.h3.1" style="font-size:14px;font-weight:800;color:#0F172A;margin:0"><i class="fas fa-bookmark text-sky-600 mr-2"></i>My Borrowed Books</h3>
             <span style="font-size:11px;font-weight:700;color:#0284C7;background:#E0F2FE;padding:2px 8px;border-radius:999px" id="issuedBadge">0 Loans</span>
           </div>
           <div id="issuedList" style="display:flex;flex-direction:column;gap:12px">
@@ -361,5 +361,6 @@ document.getElementById('categoryFilters').addEventListener('click', function(e)
 loadStats();
 loadMyLoans().then(loadBooks);
 </script>
+  <script src="../../js/ui-text.js"></script>
 </body>
 </html>
