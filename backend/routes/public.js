@@ -5,9 +5,73 @@ const Attendance = require('../models/Attendance');
 const Fee = require('../models/Fee');
 const Course = require('../models/Course');
 const Notice = require('../models/Notice');
+const PlatformSetting = require('../models/PlatformSetting');
+const { protect } = require('../middleware/auth');
 const { getDbHealth } = require('../config/db');
 
 const router = express.Router();
+
+// ─────────────────────────────────────────────────────────────
+// WEBSITE CMS — public content for the landing/auth pages
+// ─────────────────────────────────────────────────────────────
+let websiteCache = { data: null, at: 0 };
+const WEBSITE_CACHE_MS = 30 * 1000;
+
+// @desc    Website content (landing page + auth pages + UI text overrides)
+// @route   GET /api/public/website
+// @access  Public
+router.get('/website', async (req, res) => {
+  try {
+    if (websiteCache.data && Date.now() - websiteCache.at < WEBSITE_CACHE_MS) {
+      return res.status(200).json({ success: true, ...websiteCache.data, cached: true });
+    }
+    // Hydrate (not .lean()) so schema defaults fill any missing website fields.
+    const doc = await PlatformSetting.findOne({ key: 'platform' });
+    const settings = doc ? doc.toObject() : new PlatformSetting().toObject();
+    const payload = {
+      website: settings.website || {},
+      uiText: settings.uiText || {},
+      branding: {
+        siteName: settings.website?.branding?.siteName || settings.general?.platformName || 'Vishva ERP',
+        logoUrl: settings.website?.branding?.logoUrl || settings.general?.logoUrl || '',
+      },
+    };
+    websiteCache = { data: payload, at: Date.now() };
+    res.status(200).json({ success: true, ...payload, cached: false });
+  } catch (error) {
+    console.error('Error in /api/public/website:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch website content' });
+  }
+});
+
+// Used by the editor to invalidate the cache immediately after a save.
+const invalidateWebsiteCache = () => { websiteCache = { data: null, at: 0 }; };
+router.invalidateWebsiteCache = invalidateWebsiteCache;
+
+// @desc    Branding for the caller's own college (portal name, colors, logo)
+// @route   GET /api/public/college-branding
+// @access  Private (any authenticated portal user)
+router.get('/college-branding', protect, async (req, res) => {
+  try {
+    const college = await College.findById(req.user.collegeId)
+      .select('name code logo theme')
+      .lean();
+    if (!college) return res.status(200).json({ success: true, branding: null });
+    res.status(200).json({
+      success: true,
+      branding: {
+        collegeId: String(college._id),
+        name: college.name,
+        code: college.code,
+        logo: college.logo || '',
+        theme: college.theme || {},
+      },
+    });
+  } catch (error) {
+    console.error('Error in /api/public/college-branding:', error);
+    res.status(500).json({ success: false, message: 'Failed to fetch college branding' });
+  }
+});
 
 // @desc    Get live real-world overview for landing page and public telemetry
 // @route   GET /api/public/live-overview

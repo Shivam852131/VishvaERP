@@ -24,6 +24,15 @@ const collegeSchema = new mongoose.Schema({
     currency: { type: String, default: 'INR' },
     gradingSystem: { type: String, enum: ['percentage', 'gpa', 'cgpa'], default: 'cgpa' },
   },
+  // Per-college portal theming (managed by the College Admin, visible to all
+  // portal users of this college). Empty values = use platform defaults.
+  theme: {
+    portalName: { type: String, default: '' },
+    tagline: { type: String, default: '' },
+    primaryColor: { type: String, default: '' },
+    accentColor: { type: String, default: '' },
+    logoUrl: { type: String, default: '' },
+  },
 }, { timestamps: true });
 
 module.exports = mongoose.model('College', collegeSchema);

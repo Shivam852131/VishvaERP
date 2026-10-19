@@ -104,6 +104,8 @@ const sanitizeSettings = (settings) => ({
     apiKeyMasked: maskSecret(settings.ai?.apiKey || ''),
     apiKeyConfigured: Boolean(settings.ai?.apiKey),
   },
+  website: settings.website,
+  uiText: settings.uiText || {},
   updatedAt: settings.updatedAt,
 });
 
@@ -522,7 +524,7 @@ const getPlatformSettings = asyncHandler(async (req, res) => {
 
 const updatePlatformSettings = asyncHandler(async (req, res) => {
     const settings = await ensurePlatformSettings();
-    const { general, security, email, storage, ai } = req.body;
+    const { general, security, email, storage, ai, website, uiText } = req.body;
 
     if (general) settings.general = { ...asPlain(settings.general), ...general };
     if (security) settings.security = { ...asPlain(settings.security), ...security };
@@ -535,9 +537,24 @@ const updatePlatformSettings = asyncHandler(async (req, res) => {
         apiKey: ai.apiKey !== undefined && ai.apiKey !== '' ? ai.apiKey : settings.ai.apiKey,
       };
     }
+    if (website && typeof website === 'object') {
+      // Shallow-merge each top-level website section; the editor always sends
+      // complete form state per section, so a section arrives whole.
+      settings.website = { ...asPlain(settings.website), ...website };
+    }
+    if (uiText && typeof uiText === 'object') {
+      // Merge overrides; a null value removes that key (back to page default).
+      const merged = { ...asPlain(settings.uiText) };
+      Object.entries(uiText).forEach(([key, value]) => {
+        if (value === null || value === '') delete merged[key];
+        else merged[key] = String(value).slice(0, 500);
+      });
+      settings.uiText = merged;
+    }
 
     await settings.save();
     emitDataChange(req, { roles: ['superadmin'], resource: 'platform-settings', action: 'updated' });
+    try { require('../routes/public').invalidateWebsiteCache?.(); } catch (e) { /* cache module unavailable */ }
 
     res.json({ success: true, message: 'Platform settings updated', settings: sanitizeSettings(settings) });
   });
