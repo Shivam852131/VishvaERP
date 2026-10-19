@@ -21,3 +21,6 @@ Users/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Runtime file uploads (avatars, temp, notes)
+backend/uploads/

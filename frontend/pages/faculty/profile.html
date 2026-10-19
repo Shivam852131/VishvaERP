@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>My Profile — Faculty | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../css/custom.css">
+  <style>
+    .pf-cover{background:linear-gradient(135deg,var(--primary) 0%,#7C3AED 55%,#A855F7 100%);border-radius:16px 16px 0 0;height:110px;position:relative;overflow:hidden}
+    .pf-cover::after{content:'';position:absolute;top:-60%;right:-10%;width:340px;height:340px;background:radial-gradient(circle,rgba(255,255,255,0.12) 0%,transparent 70%);border-radius:50%}
+    .pf-head{background:#fff;border:1px solid #E2E8F0;border-top:0;border-radius:0 0 16px 16px;padding:0 26px 22px;position:relative}
+    .pf-avatar-wrap{width:96px;height:96px;border-radius:50%;border:4px solid #fff;box-shadow:0 4px 14px rgba(15,23,42,0.18);margin-top:-48px;background:linear-gradient(135deg,var(--primary),#818CF8);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;flex-shrink:0}
+    .pf-avatar-wrap img{width:100%;height:100%;object-fit:cover;display:none}
+    .pf-avatar-initials{font-size:34px;font-weight:900;color:#fff;letter-spacing:1px}
+    .pf-photo-btns{position:absolute;right:14px;top:14px;display:flex;gap:8px;z-index:2}
+    .pf-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;background:#F1F5F9;color:#475569;font-size:11.5px;font-weight:700;border:1px solid #E2E8F0}
+    .pf-chip-ok{background:#ECFDF5;color:#047857;border-color:#A7F3D0}
+    .pf-chip-warn{background:#FFFBEB;color:#B45309;border-color:#FDE68A}
+    .pf-meta-item{font-size:12px;color:#64748B;display:flex;align-items:center;gap:7px}
+    .pf-meta-item i{color:#94A3B8;width:14px;text-align:center}
+    .pf-meter{height:8px;border-radius:4px;background:#F1F5F9;overflow:hidden;margin:8px 0 4px}
+    .pf-meter-fill{height:100%;border-radius:4px;transition:width .5s ease}
+    .pf-tabs{display:flex;gap:6px;background:#F1F5F9;padding:5px;border-radius:12px;margin:18px 0;flex-wrap:wrap}
+    .pf-tab{flex:1;min-width:130px;padding:10px 14px;border-radius:9px;border:none;background:transparent;color:#64748B;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .15s}
+    .pf-tab:hover{color:#334155}
+    .pf-tab.active{background:#fff;color:var(--primary);box-shadow:0 2px 8px rgba(15,23,42,0.08)}
+    .pf-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:20px;align-items:start}
+    @media (max-width:1000px){.pf-grid{grid-template-columns:1fr}}
+    @media (max-width:640px){.pf-form-grid{grid-template-columns:1fr}}
+    .pf-label{display:block;font-size:12.5px;font-weight:700;color:#334155;margin-bottom:6px}
+    .pf-input{width:100%;padding:10px 14px;border:1px solid #E2E8F0;border-radius:10px;font-size:13.5px;color:#0F172A;background:#fff;transition:border-color .15s,box-shadow .15s}
+    .pf-input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-light)}
+    .pf-rec-row{display:flex;justify-content:space-between;gap:14px;padding:10px 0;border-bottom:1px dashed #F1F5F9;font-size:13px}
+    .pf-rec-row:last-child{border-bottom:0}
+    .pf-rec-label{color:#64748B;font-weight:600;flex-shrink:0}
+    .pf-rec-value{color:#0F172A;font-weight:700;text-align:right}
+    .pf-rec-empty{color:#CBD5E1;font-weight:600}
+    .pf-rec-hint{color:#94A3B8;font-weight:600;font-size:11.5px}
+    .pf-children{margin-top:12px;display:flex;flex-direction:column;gap:8px}
+    .pf-child-card{display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px solid #E2E8F0;border-radius:10px;background:#F8FAFC}
+    .pf-child-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--primary),#818CF8);color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .pf-child-name{font-size:13px;font-weight:800;color:#0F172A}
+    .pf-child-meta{font-size:11.5px;color:#64748B}
+    .pf-checklist{list-style:none;margin:10px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+    .pf-checklist li{font-size:12px;color:#94A3B8;display:flex;align-items:center;gap:8px}
+    .pf-checklist li.ok{color:#047857}
+    .pf-pwd-meter{height:8px;border-radius:4px;background:#F1F5F9;overflow:hidden;margin:8px 0}
+    .pf-pwd-meter-fill{height:100%;border-radius:4px;width:0;transition:width .25s ease,background .25s}
+    .pf-eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:#94A3B8;cursor:pointer;padding:4px}
+    .pf-eye:hover{color:#334155}
+    .pf-pwd-wrap{position:relative}
+    .pf-device{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px dashed #F1F5F9}
+    .pf-device:last-child{border-bottom:0}
+    .pf-device i{color:var(--primary);font-size:16px;width:22px;text-align:center}
+    .pf-device-name{font-size:13px;font-weight:700;color:#0F172A}
+    .pf-device-meta{font-size:11.5px;color:#94A3B8}
+    .pf-empty-sm{font-size:12.5px;color:#94A3B8;padding:10px 0;line-height:1.5}
+    .pf-empty{text-align:center;padding:38px 16px;color:#94A3B8}
+    .pf-empty i{font-size:36px;margin-bottom:10px;display:block;color:#CBD5E1}
+    .pf-empty small{display:block;margin-top:4px;font-size:12px}
+    .pf-notif{display:flex;gap:13px;padding:13px;border:1px solid #F1F5F9;border-radius:12px;margin-bottom:8px;background:#fff;align-items:flex-start;transition:border-color .15s}
+    .pf-notif.unread{border-color:#C7D2FE;background:#F8FAFF}
+    .pf-notif-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+    .pf-notif-title{font-size:13.5px;font-weight:800;color:#0F172A}
+    .pf-notif-text{font-size:12.5px;color:#64748B;margin-top:2px;line-height:1.45}
+    .pf-notif-time{font-size:11px;color:#94A3B8;margin-top:4px}
+    .pf-dot{width:8px;height:8px;border-radius:50%;background:var(--primary);display:inline-block;margin-left:5px;vertical-align:middle}
+    .pf-notif-read{margin-left:auto;background:#fff;border:1px solid #E2E8F0;border-radius:8px;color:#10B981;width:30px;height:30px;cursor:pointer;flex-shrink:0;transition:all .15s}
+    .pf-notif-read:hover{background:#ECFDF5;border-color:#A7F3D0}
+    .pf-theme-card{flex:1;min-width:130px;border:2px solid #E2E8F0;border-radius:14px;padding:18px;cursor:pointer;text-align:center;background:#fff;transition:all .15s;position:relative}
+    .pf-theme-card:hover{border-color:#C7D2FE}
+    .pf-theme-card.selected{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-light)}
+    .pf-theme-card i{font-size:26px;color:var(--primary);margin-bottom:8px;display:block}
+    .pf-theme-name{font-size:13.5px;font-weight:800;color:#0F172A}
+    .pf-theme-desc{font-size:11.5px;color:#94A3B8;margin-top:3px}
+    .pf-theme-check{position:absolute;top:10px;right:10px;color:var(--primary);display:none}
+    .pf-theme-card.selected .pf-theme-check{display:block}
+    .pf-stat-strip{display:flex;gap:10px;flex-wrap:wrap}
+    .pf-stat{flex:1;min-width:150px;border:1px solid #E2E8F0;border-radius:12px;padding:13px 15px;background:#F8FAFC}
+    .pf-stat-label{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:0.6px;color:#94A3B8;display:flex;align-items:center;gap:6px}
+    .pf-stat-value{font-size:13.5px;font-weight:800;color:#0F172A;margin-top:4px}
+    .pf-dirty{display:none;align-items:center;gap:6px;padding:5px 12px;border-radius:999px;background:#FEF3C7;color:#B45309;font-size:11.5px;font-weight:800;border:1px solid #FDE68A}
+
+  </style>
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-faculty" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon"><img src="../../icons/logo.png" alt="Vi"></div><div class="sidebar-logo-text">Vishva <span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" style="background:linear-gradient(135deg,#059669,#10B981)" id="sidebar-avatar">F</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Professor</div><div class="sidebar-user-role">Faculty Member</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a data-cms="nav.dashboard" href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <div class="nav-section-label">Teaching</div>
+      <a data-cms="nav.live-classes" href="live-class.html" class="nav-link"><i class="nav-link-icon fas fa-video"></i> Live Classes</a>
+      <a data-cms="nav.attendance" href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-check"></i> Attendance</a>
+      <a data-cms="nav.grades-results" href="grades.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-list"></i> Grades & Results</a>
+      <a data-cms="nav.assignments" href="assignments.html" class="nav-link"><i class="nav-link-icon fas fa-tasks"></i> Assignments</a>
+      <a data-cms="nav.quiz-builder" href="quiz-builder.html" class="nav-link"><i class="nav-link-icon fas fa-layer-group"></i> Quiz Builder</a>
+      <a data-cms="nav.question-bank" href="question-bank.html" class="nav-link"><i class="nav-link-icon fas fa-database"></i> Question Bank</a>
+      <a data-cms="nav.timetable" href="timetable.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Timetable</a>
+      <a data-cms="nav.notes" href="notes.html" class="nav-link"><i class="nav-link-icon fas fa-sticky-note"></i> Notes</a>
+      <div class="nav-section-label">Career Center</div>
+      <a data-cms="nav.placements" href="../college-admin/placement.html" class="nav-link"><i class="nav-link-icon fas fa-briefcase"></i> Placements</a>
+      <div class="nav-section-label">HR</div>
+      <a data-cms="nav.leave-hr" href="leave.html" class="nav-link"><i class="nav-link-icon fas fa-file-signature"></i> Leave & HR</a>
+      <div class="nav-section-label">Tools</div>
+      <a data-cms="nav.ai-assistant" href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Assistant</a>
+      <a data-cms="nav.messages" href="../messages.html" class="nav-link"><i class="nav-link-icon fas fa-comments"></i> Messages</a>
+    <a data-cms="nav.profile" href="profile.html" class="nav-link active"><i class="nav-link-icon fas fa-user-circle"></i> My Profile</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">Faculty / <span>My Profile</span></div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-search"><i class="fas fa-search"></i><input type="text" placeholder="Search students..."></div>
+        <div style="position:relative">
+          <button class="topbar-btn" id="notif-btn"><i class="fas fa-bell"></i><span class="topbar-badge">1</span></button>
+          <div class="notif-panel" id="notif-panel">
+            <div style="padding:14px 16px;border-bottom:1px solid #F1F5F9;font-weight:700;font-size:14px">Notifications</div>
+            <div class="notif-item unread"><div class="notif-dot"></div><div><div style="font-size:13px;font-weight:600">Leave Approved</div><div style="font-size:12px;color:#64748B">Your April 10–11 leave has been approved</div></div></div>
+          </div>
+        </div>
+        <div class="topbar-avatar" id="topbar-avatar">F</div>
+      </div>
+    </header>
+
+    <div class="erp-content page-enter">
+
+      <!-- PROFILE HEADER -->
+      <div style="border-radius:16px;border:1px solid #E2E8F0;overflow:hidden;background:#fff;box-shadow:0 2px 6px rgba(0,0,0,0.03)" class="mb-6">
+        <div class="pf-cover"></div>
+        <div class="pf-head">
+          <div class="pf-photo-btns">
+            <span class="pf-dirty" id="pfDirty"><i class="fas fa-pen"></i> Unsaved changes</span>
+            <button class="btn btn-secondary btn-sm" id="btnPickPhoto"><i class="fas fa-camera"></i> Change photo</button>
+            <button class="btn btn-secondary btn-sm" id="btnRemovePhoto" style="display:none"><i class="fas fa-trash"></i></button>
+            <input type="file" id="inputPhoto" accept="image/*" hidden>
+          </div>
+          <div style="display:flex;gap:20px;align-items:flex-end;flex-wrap:wrap">
+            <div class="pf-avatar-wrap" id="pfAvatarWrap">
+              <img id="pfAvatar" alt="Profile photo">
+              <span class="pf-avatar-initials" id="pfInitials">…</span>
+            </div>
+            <div style="flex:1;min-width:220px;padding-bottom:4px">
+              <h1 id="pfName" data-cms="faculty.profile.h1.1" style="font-size:24px;font-weight:900;color:#0F172A;margin-bottom:2px">My Profile</h1>
+              <div id="pfEmail" style="font-size:13.5px;color:#64748B;margin-bottom:9px">…</div>
+              <div id="pfChips" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+            </div>
+          </div>
+          <div style="display:flex;gap:22px;flex-wrap:wrap;align-items:center;margin-top:16px">
+            <div style="flex:1;min-width:220px">
+              <div class="pf-meter"><div class="pf-meter-fill" id="pfMeterFill" style="width:0%"></div></div>
+              <div id="pfMeterText" style="font-size:12px;color:#64748B">Loading profile…</div>
+            </div>
+            <div id="pfMeta" style="display:flex;gap:18px;flex-wrap:wrap"></div>
+          </div>
+          <div style="margin-top:14px;font-size:12.5px;color:#64748B;display:flex;gap:10px;align-items:center;flex-wrap:wrap"><span><i class="fas fa-building-columns" style="margin-right:6px;color:#94A3B8"></i><span id="pfCollege">…</span></span> <span class="pf-chip" id="pfRoleChip" style="display:none"></span></div>
+        </div>
+      </div>
+
+      <!-- TABS -->
+      <div class="pf-tabs">
+        <button class="pf-tab active" data-tab="personal"><i class="fas fa-id-card"></i> Personal Info</button>
+        <button class="pf-tab" data-tab="security"><i class="fas fa-shield-halved"></i> Security</button>
+        <button class="pf-tab" data-tab="notifications"><i class="fas fa-bell"></i> Notifications</button>
+        <button class="pf-tab" data-tab="appearance"><i class="fas fa-palette"></i> Appearance</button>
+      </div>
+
+      <!-- PERSONAL -->
+      <div data-panel="personal">
+        <div class="pf-grid">
+          <div class="card" style="border-radius:16px">
+            <div class="card-header" style="padding:18px 22px"><div class="card-title" style="font-weight:800"><i class="fas fa-pen-to-square" style="color:var(--primary);margin-right:6px"></i> Edit personal details</div></div>
+            <div class="card-body" style="padding:22px">
+              <form id="personalForm" autocomplete="off">
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px" class="pf-form-grid">
+                  <div>
+                    <label class="pf-label" for="fName">Full name</label>
+                    <input type="text" id="fName" class="pf-input" maxlength="80" required>
+                  </div>
+                  <div>
+                    <label class="pf-label" for="fPhone">Phone</label>
+                    <input type="tel" id="fPhone" class="pf-input" maxlength="20" placeholder="+91 98765 43210">
+                  </div>
+                  <div>
+                    <label class="pf-label" for="fGender">Gender</label>
+                    <select id="fGender" class="pf-input">
+                      <option value="">Prefer not to say</option>
+                      <option value="male">Male</option>
+                      <option value="female">Female</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="pf-label" for="fDob">Date of birth</label>
+                    <input type="date" id="fDob" class="pf-input">
+                  </div>
+                  <div>
+                    <label class="pf-label" for="fBlood">Blood group</label>
+                    <select id="fBlood" class="pf-input">
+                      <option value="">Not specified</option>
+                      <option value="A+">A+</option>
+                      <option value="A-">A-</option>
+                      <option value="B+">B+</option>
+                      <option value="B-">B-</option>
+                      <option value="AB+">AB+</option>
+                      <option value="AB-">AB-</option>
+                      <option value="O+">O+</option>
+                      <option value="O-">O-</option>
+                    </select>
+                  </div>
+                  <div style="grid-column:1/-1">
+                    <label class="pf-label" for="fAddress">Address</label>
+                    <textarea id="fAddress" class="pf-input" rows="2" maxlength="300" placeholder="Hostel, street, city — where we can reach you"></textarea>
+                  </div>
+                </div>
+                <div style="display:flex;gap:10px;margin-top:18px;justify-content:flex-end">
+                  <button type="button" class="btn btn-secondary" id="btnDiscard">Discard changes</button>
+                  <button type="submit" class="btn btn-primary" id="btnSaveProfile"><i class="fas fa-check"></i> Save profile</button>
+                </div>
+              </form>
+            </div>
+          </div>
+          <div class="card" style="border-radius:16px">
+            <div class="card-header" style="padding:18px 22px"><div class="card-title" style="font-weight:800"><i class="fas fa-lock" style="color:#94A3B8;margin-right:6px"></i> Official record</div></div>
+            <div class="card-body" style="padding:22px">
+              <div style="font-size:12px;color:#94A3B8;margin:-6px 0 8px">Managed by your institution. Contact the administration office to correct these details.</div>
+              <div id="recGrid"><div class="pf-empty-sm">Loading record…</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SECURITY -->
+      <div data-panel="security" style="display:none">
+        <div class="pf-grid">
+          <div class="card" style="border-radius:16px">
+            <div class="card-header" style="padding:18px 22px"><div class="card-title" style="font-weight:800"><i class="fas fa-key" style="color:var(--primary);margin-right:6px"></i> Change password</div></div>
+            <div class="card-body" style="padding:22px">
+              <form id="passwordForm" autocomplete="off">
+                <div style="margin-bottom:14px">
+                  <label class="pf-label" for="fCurPwd">Current password</label>
+                  <div class="pf-pwd-wrap">
+                    <input type="password" id="fCurPwd" class="pf-input" style="padding-right:42px" required>
+                    <button type="button" class="pf-eye" data-toggle-pwd="fCurPwd" title="Show password"><i class="fas fa-eye"></i></button>
+                  </div>
+                </div>
+                <div style="margin-bottom:6px">
+                  <label class="pf-label" for="fNewPwd">New password</label>
+                  <div class="pf-pwd-wrap">
+                    <input type="password" id="fNewPwd" class="pf-input" style="padding-right:42px" required>
+                    <button type="button" class="pf-eye" data-toggle-pwd="fNewPwd" title="Show password"><i class="fas fa-eye"></i></button>
+                  </div>
+                  <div class="pf-pwd-meter"><div class="pf-pwd-meter-fill" id="pwdMeterFill"></div></div>
+                  <div id="pwdMeterLabel" style="font-size:11.5px;font-weight:700;color:#94A3B8;min-height:15px"></div>
+                </div>
+                <div style="margin-bottom:12px">
+                  <label class="pf-label" for="fConfirmPwd">Confirm new password</label>
+                  <div class="pf-pwd-wrap">
+                    <input type="password" id="fConfirmPwd" class="pf-input" style="padding-right:42px" required>
+                    <button type="button" class="pf-eye" data-toggle-pwd="fConfirmPwd" title="Show password"><i class="fas fa-eye"></i></button>
+                  </div>
+                </div>
+                <ul class="pf-checklist" id="pwdChecks"></ul>
+                <div style="display:flex;justify-content:flex-end;margin-top:18px">
+                  <button type="submit" class="btn btn-primary" id="btnChangePwd"><i class="fas fa-shield-halved"></i> Update password</button>
+                </div>
+              </form>
+            </div>
+          </div>
+          <div>
+            <div class="card" style="border-radius:16px;margin-bottom:20px">
+              <div class="card-header" style="padding:18px 22px"><div class="card-title" style="font-weight:800"><i class="fas fa-shield" style="color:var(--primary);margin-right:6px"></i> Account status</div></div>
+              <div class="card-body" style="padding:18px 22px">
+                <div class="pf-stat-strip" style="flex-direction:column">
+                  <div class="pf-stat"><div class="pf-stat-label"><i class="fas fa-envelope"></i> Email</div><div class="pf-stat-value" id="acctVerify">…</div></div>
+                  <div class="pf-stat"><div class="pf-stat-label"><i class="fas fa-clock-rotate-left"></i> Last sign-in</div><div class="pf-stat-value" id="acctLastLogin">…</div></div>
+                  <div class="pf-stat"><div class="pf-stat-label"><i class="fas fa-calendar-day"></i> Account created</div><div class="pf-stat-value" id="acctCreated">…</div></div>
+                  <div class="pf-stat"><div class="pf-stat-label"><i class="fas fa-id-badge"></i> Role</div><div class="pf-stat-value" id="acctRole">…</div></div>
+                </div>
+                <div id="twofaStatus" style="margin-top:14px;font-size:12.5px;color:#64748B;line-height:1.5"></div>
+              </div>
+            </div>
+            <div class="card" style="border-radius:16px">
+              <div class="card-header" style="padding:18px 22px"><div class="card-title" style="font-weight:800"><i class="fas fa-laptop-code" style="color:var(--primary);margin-right:6px"></i> Devices</div></div>
+              <div class="card-body" style="padding:18px 22px">
+                <div id="devicesList"><div class="pf-empty-sm">Loading…</div></div>
+                <div style="margin-top:10px;padding-top:10px;border-top:1px dashed #F1F5F9;font-size:12px;color:#94A3B8"><i class="fas fa-satellite-dish" style="margin-right:6px"></i><span id="deviceTokensText">…</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- NOTIFICATIONS -->
+      <div data-panel="notifications" style="display:none">
+        <div class="card" style="border-radius:16px">
+          <div class="card-header" style="padding:18px 22px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+            <div class="card-title" style="font-weight:800"><i class="fas fa-bell" style="color:var(--primary);margin-right:6px"></i> Recent notifications</div>
+            <div style="display:flex;gap:10px;align-items:center">
+              <span id="notifUnread" style="font-size:12px;font-weight:700;color:#64748B">…</span>
+              <button class="btn btn-secondary btn-sm" id="btnNotifRefresh"><i class="fas fa-rotate"></i> Refresh</button>
+              <button class="btn btn-primary btn-sm" id="btnMarkAllRead"><i class="fas fa-check-double"></i> Mark all read</button>
+            </div>
+          </div>
+          <div class="card-body" style="padding:20px 22px">
+            <div id="notifList"><div class="pf-empty"><i class="fas fa-spinner fa-spin"></i></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- APPEARANCE -->
+      <div data-panel="appearance" style="display:none">
+        <div class="card" style="border-radius:16px">
+          <div class="card-header" style="padding:18px 22px"><div class="card-title" style="font-weight:800"><i class="fas fa-palette" style="color:var(--primary);margin-right:6px"></i> Theme</div></div>
+          <div class="card-body" style="padding:22px">
+            <div style="display:flex;gap:14px;flex-wrap:wrap">
+              <div class="pf-theme-card" data-theme="light">
+                <i class="fas fa-sun pf-theme-check"></i>
+                <i class="fas fa-sun"></i>
+                <div class="pf-theme-name">Light</div>
+                <div class="pf-theme-desc">Bright, high-contrast campus look</div>
+              </div>
+              <div class="pf-theme-card" data-theme="dark">
+                <i class="fas fa-circle-check pf-theme-check"></i>
+                <i class="fas fa-moon"></i>
+                <div class="pf-theme-name">Dark</div>
+                <div class="pf-theme-desc">Easy on the eyes at night</div>
+              </div>
+              <div class="pf-theme-card" data-theme="system">
+                <i class="fas fa-circle-check pf-theme-check"></i>
+                <i class="fas fa-laptop"></i>
+                <div class="pf-theme-name">System</div>
+                <div class="pf-theme-desc">Follow your device setting automatically</div>
+              </div>
+            </div>
+            <div style="margin-top:16px;font-size:12.5px;color:#94A3B8">The theme applies instantly and is remembered on this device for every VishvaERP page you open.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+  <script src="../../js/shared.js"></script>
+  <script src="../../live/live-pages.js"></script>
+  <script src="../../js/profile-page.js"></script>
+  <script src="../../js/ui-text.js"></script>
+  <script src="../../js/portal-branding.js"></script>
+</body>
+</html>

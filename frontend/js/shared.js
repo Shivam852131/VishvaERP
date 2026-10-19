@@ -69,11 +69,14 @@ const api = {
         }
         const errorMsg = data.message || data.errors?.[0]?.msg || `HTTP Error ${res.status}`;
         if (!options.silent) showToast(errorMsg, 'error');
-        throw new Error(errorMsg);
+        // Mark as already-toasted so the outer catch does not show it twice.
+        const httpError = new Error(errorMsg);
+        httpError.toastShown = true;
+        throw httpError;
       }
       return data;
     } catch (error) {
-      if (!options.silent) {
+      if (!options.silent && !error.toastShown) {
         const errorMsg = error.name === 'TypeError' && error.message.includes('fetch') 
           ? 'Network Error: Cannot connect to server.' 
           : error.message;

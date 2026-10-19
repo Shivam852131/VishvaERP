@@ -12,7 +12,7 @@ const uploadAvatar = asyncHandler(async (req, res) => {
   const url = await saveFile(processed, 'avatars', req.file.filename);
 
   if (req.file.path && req.file.path !== path.join(getDir('avatars'), req.file.filename)) {
-    fs.unlink(req.file.path).catch(() => {});
+    fs.promises.unlink(req.file.path).catch(() => {});
   }
 
   res.json({ success: true, message: 'Avatar uploaded', url });
@@ -27,7 +27,7 @@ const uploadImage = asyncHandler(async (req, res) => {
   const url = await saveFile(processed, req.body.subdir || 'temp', req.file.filename);
 
   if (req.file.path && req.file.path !== path.join(getDir(req.body.subdir || 'temp'), req.file.filename)) {
-    fs.unlink(req.file.path).catch(() => {});
+    fs.promises.unlink(req.file.path).catch(() => {});
   }
 
   res.json({ success: true, message: 'Image uploaded', url });

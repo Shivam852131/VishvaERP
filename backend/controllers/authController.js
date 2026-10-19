@@ -376,12 +376,71 @@ const getMe = asyncHandler(async (req, res) => {
 // @route   PUT /api/auth/profile
 // @access  Private
 const updateProfile = asyncHandler(async (req, res) => {
-  const { name, phone, avatar } = req.body;
-  const user = await User.findByIdAndUpdate(
-    req.user._id,
-    { name, phone, avatar },
-    { new: true, runValidators: true }
-  );
+  const GENDERS = ['male', 'female', 'other'];
+  const BLOOD_GROUPS = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+  const updates = {};
+  const body = req.body || {};
+
+  if (body.name !== undefined) {
+    const name = String(body.name || '').trim();
+    if (name.length < 2 || name.length > 80) {
+      return res.status(400).json({ success: false, message: 'Name must be between 2 and 80 characters' });
+    }
+    updates.name = name;
+  }
+  if (body.phone !== undefined) {
+    const phone = String(body.phone || '').trim();
+    if (phone && !/^[+\d][\d\s()-]{5,19}$/.test(phone)) {
+      return res.status(400).json({ success: false, message: 'Enter a valid phone number' });
+    }
+    updates.phone = phone;
+  }
+  if (body.avatar !== undefined) {
+    const avatar = String(body.avatar || '').trim();
+    if (avatar && !/^(\/uploads\/|https?:\/\/)/.test(avatar)) {
+      return res.status(400).json({ success: false, message: 'Avatar must be an uploaded file URL' });
+    }
+    updates.avatar = avatar || null;
+  }
+  if (body.gender !== undefined) {
+    const gender = String(body.gender || '').trim();
+    if (gender && !GENDERS.includes(gender)) {
+      return res.status(400).json({ success: false, message: 'Invalid gender value' });
+    }
+    updates.gender = gender || null;
+  }
+  if (body.dateOfBirth !== undefined) {
+    const raw = String(body.dateOfBirth || '').trim();
+    if (raw) {
+      const dob = new Date(raw);
+      if (Number.isNaN(dob.getTime()) || dob > new Date() || dob.getFullYear() < 1900) {
+        return res.status(400).json({ success: false, message: 'Enter a valid date of birth' });
+      }
+      updates.dateOfBirth = dob;
+    } else {
+      updates.dateOfBirth = null;
+    }
+  }
+  if (body.address !== undefined) {
+    const address = String(body.address || '').trim();
+    if (address.length > 300) {
+      return res.status(400).json({ success: false, message: 'Address must be under 300 characters' });
+    }
+    updates.address = address;
+  }
+  if (body.bloodGroup !== undefined) {
+    const bloodGroup = String(body.bloodGroup || '').trim().toUpperCase();
+    if (bloodGroup && !BLOOD_GROUPS.includes(bloodGroup)) {
+      return res.status(400).json({ success: false, message: 'Invalid blood group' });
+    }
+    updates.bloodGroup = bloodGroup || null;
+  }
+
+  if (!Object.keys(updates).length) {
+    return res.status(400).json({ success: false, message: 'No valid fields to update' });
+  }
+
+  const user = await User.findByIdAndUpdate(req.user._id, updates, { new: true, runValidators: true });
   res.json({ success: true, message: 'Profile updated', user });
 });
 
@@ -389,12 +448,17 @@ const updateProfile = asyncHandler(async (req, res) => {
 // @route   PUT /api/auth/change-password
 // @access  Private
 const changePassword = asyncHandler(async (req, res) => {
+  const { currentPassword, newPassword } = req.body || {};
   if (!currentPassword || !newPassword || typeof currentPassword !== 'string' || typeof newPassword !== 'string') {
     return res.status(400).json({ success: false, message: 'Current password and new password are required' });
   }
 
   if (newPassword.length < 6) {
     return res.status(400).json({ success: false, message: 'New password must be at least 6 characters' });
+  }
+
+  if (currentPassword === newPassword) {
+    return res.status(400).json({ success: false, message: 'New password must be different from the current one' });
   }
 
   const user = await User.findById(req.user._id).select('+password');
