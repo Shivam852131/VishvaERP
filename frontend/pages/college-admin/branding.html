@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Portal Branding — College Admin | VishvaERP</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../../css/custom.css">
+  <style>
+    .brand-hero{background:linear-gradient(135deg,#0F172A 0%,#1E1B4B 60%,#312E81 100%);border-radius:16px;padding:32px;color:white;position:relative;overflow:hidden}
+    .brand-hero::before{content:'';position:absolute;top:-40%;right:-15%;width:380px;height:380px;background:radial-gradient(circle,rgba(129,140,248,0.18) 0%,transparent 70%);border-radius:50%}
+    .brand-field{margin-bottom:18px}
+    .brand-label{display:block;font-size:12.5px;font-weight:700;color:#334155;margin-bottom:6px}
+    .brand-hint{font-size:11.5px;color:#94A3B8;margin-top:4px}
+    .brand-input{width:100%;padding:10px 14px;border:1px solid #E2E8F0;border-radius:10px;font-size:13.5px;color:#0F172A;background:#fff;transition:border-color .15s, box-shadow .15s}
+    .brand-input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-light)}
+    .color-row{display:flex;gap:10px;align-items:center}
+    .color-row input[type="color"]{width:46px;height:42px;padding:3px;border:1px solid #E2E8F0;border-radius:10px;cursor:pointer;background:#fff;flex-shrink:0}
+    .preview-mock{background:#0F172A;border-radius:14px;padding:18px;width:270px;color:#94A3B8;flex-shrink:0}
+    .pv-header{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+    .pv-logo{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;flex-shrink:0;overflow:hidden}
+    .pv-logo img{width:100%;height:100%;object-fit:cover}
+    .pv-brand{font-size:14px;font-weight:800;color:#fff;line-height:1.1}
+    .pv-user{display:flex;align-items:center;gap:9px;margin-bottom:14px}
+    .pv-avatar{width:30px;height:30px;border-radius:50%;background:#334155;display:flex;align-items:center;justify-content:center;color:#E2E8F0;font-weight:800;font-size:12px}
+    .pv-name{font-size:12px;font-weight:700;color:#E2E8F0;line-height:1.2}
+    .pv-role{font-size:10.5px;color:#64748B}
+    .pv-link{display:flex;align-items:center;gap:9px;padding:7px 10px;border-radius:8px;font-size:12px;margin-bottom:3px}
+    .pv-link.active{background:rgba(255,255,255,0.08);color:#E2E8F0;font-weight:700;position:relative}
+    .pv-link.active::before{content:'';position:absolute;left:0;top:7px;bottom:7px;width:3px;border-radius:3px}
+    .swatch-strip{display:flex;gap:8px;margin-top:14px}
+    .swatch{flex:1;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;letter-spacing:0.4px}
+  </style>
+</head>
+<body>
+<div class="erp-layout">
+  <aside class="erp-sidebar theme-college" id="sidebar">
+    <div class="sidebar-header"><a class="sidebar-logo" href="../../index.html"><div class="sidebar-logo-icon"><img src="../../icons/logo.png" alt="Vi"></div><div class="sidebar-logo-text">Vishva <span>ERP</span></div></a></div>
+    <div class="sidebar-user"><div class="sidebar-avatar" id="sidebar-avatar">A</div><div class="sidebar-user-info"><div class="sidebar-user-name" id="sidebar-user-name">Admin</div><div class="sidebar-user-role">College Administrator</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Overview</div>
+      <a data-cms="nav.dashboard" href="dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-home"></i> Dashboard</a>
+      <div class="nav-section-label">Academics</div>
+      <a data-cms="nav.students" href="students.html" class="nav-link"><i class="nav-link-icon fas fa-user-graduate"></i> Students</a>
+      <a data-cms="nav.faculty" href="faculty.html" class="nav-link"><i class="nav-link-icon fas fa-chalkboard-teacher"></i> Faculty</a>
+      <a data-cms="nav.courses" href="courses.html" class="nav-link"><i class="nav-link-icon fas fa-book-open"></i> Courses</a>
+      <a data-cms="nav.notices" href="notices.html" class="nav-link"><i class="nav-link-icon fas fa-bullhorn"></i> Notices</a>
+      <a data-cms="nav.attendance" href="attendance.html" class="nav-link"><i class="nav-link-icon fas fa-clipboard-check"></i> Attendance</a>
+      <div class="nav-section-label">Finance & HR</div>
+      <a data-cms="nav.fees" href="fees.html" class="nav-link"><i class="nav-link-icon fas fa-file-invoice-dollar"></i> Fees</a>
+      <a data-cms="nav.hr-leave" href="hr.html" class="nav-link"><i class="nav-link-icon fas fa-user-md"></i> HR & Leave</a>
+      <a data-cms="nav.subscription" href="subscription.html" class="nav-link"><i class="nav-link-icon fas fa-credit-card"></i> Subscription</a>
+      <a data-cms="nav.branding" href="branding.html" class="nav-link active"><i class="nav-link-icon fas fa-palette"></i> Portal Branding</a>
+      <div class="nav-section-label">Campus Life</div>
+      <a data-cms="nav.events" href="events.html" class="nav-link"><i class="nav-link-icon fas fa-calendar-alt"></i> Events</a>
+      <a data-cms="nav.grievances" href="grievances.html" class="nav-link"><i class="nav-link-icon fas fa-exclamation-circle"></i> Grievances</a>
+      <a data-cms="nav.feedback" href="feedback.html" class="nav-link"><i class="nav-link-icon fas fa-star"></i> Feedback</a>
+      <a data-cms="nav.inventory" href="inventory.html" class="nav-link"><i class="nav-link-icon fas fa-boxes"></i> Inventory</a>
+      <a data-cms="nav.placement" href="placement.html" class="nav-link"><i class="nav-link-icon fas fa-briefcase"></i> Placement</a>
+      <a data-cms="nav.alumni" href="alumni.html" class="nav-link"><i class="nav-link-icon fas fa-users"></i> Alumni</a>
+      <a data-cms="nav.visitors" href="visitors.html" class="nav-link"><i class="nav-link-icon fas fa-id-card-visitor"></i> Visitors</a>
+      <div class="nav-section-label">Smart Campus</div>
+      <a data-cms="nav.iot-dashboard" href="iot-dashboard.html" class="nav-link"><i class="nav-link-icon fas fa-microchip"></i> IoT Dashboard</a>
+      <a data-cms="nav.sustainability" href="sustainability.html" class="nav-link"><i class="nav-link-icon fas fa-leaf"></i> Sustainability</a>
+      <a data-cms="nav.ai-intelligence" href="ai-intelligence.html" class="nav-link"><i class="nav-link-icon fas fa-brain"></i> AI Intelligence</a>
+      <div class="nav-section-label">Facilities</div>
+      <a data-cms="nav.logistics" href="logistics.html" class="nav-link"><i class="nav-link-icon fas fa-bus"></i> Logistics</a>
+      <a data-cms="nav.library" href="library.html" class="nav-link"><i class="nav-link-icon fas fa-book"></i> Library</a>
+      <div class="nav-section-label">Tools</div>
+      <a data-cms="nav.ai-hub" href="../ai-tools.html" class="nav-link"><i class="nav-link-icon fas fa-robot"></i> AI Hub</a>
+      <a data-cms="nav.messages" href="../messages.html" class="nav-link"><i class="nav-link-icon fas fa-comments"></i> Messages</a>
+    </nav>
+    <div class="sidebar-footer"><button class="sidebar-logout logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button></div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <div class="erp-main">
+    <header class="erp-topbar">
+      <div class="topbar-left">
+        <button class="topbar-hamburger" id="hamburger"><i class="fas fa-bars"></i></button>
+        <div class="topbar-breadcrumb">College Admin / <span>Portal Branding</span></div>
+      </div>
+      <div class="topbar-right">
+        <div class="topbar-avatar" id="topbar-avatar">A</div>
+      </div>
+    </header>
+
+    <div class="erp-content page-enter">
+
+      <!-- HERO -->
+      <div class="brand-hero mb-6">
+        <div style="position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:20px">
+          <div>
+            <div style="font-size:13px;opacity:.75;margin-bottom:4px;display:flex;align-items:center;gap:6px"><i class="fas fa-palette"></i> White-label your campus</div>
+            <h1 data-cms="college-admin.branding.h1.1" style="font-size:28px;font-weight:900;margin-bottom:4px">Portal Branding</h1>
+            <div style="font-size:14px;opacity:.85">Name, colors and logo for every page your college uses</div>
+          </div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap">
+            <button class="btn btn-secondary" id="btnReset" onclick="window.__resetBranding(this)" style="background:rgba(255,255,255,0.12);border-color:rgba(255,255,255,0.25);color:#fff"><i class="fas fa-rotate-left"></i> Reset to Vishva defaults</button>
+            <button class="btn btn-primary" id="btnSave" onclick="window.__saveBranding(this)"><i class="fas fa-check"></i> Save branding</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1.25fr 0.75fr;gap:20px" class="brand-grid">
+        <!-- FORM -->
+        <div class="card" style="border-radius:16px">
+          <div class="card-header" style="padding:18px 22px"><div class="card-title" style="font-weight:800"><i class="fas fa-sliders" style="color:var(--primary);margin-right:6px"></i> Identity</div></div>
+          <div class="card-body" style="padding:22px">
+            <div class="brand-field">
+              <label class="brand-label" for="portalName">Portal name</label>
+              <input type="text" id="portalName" class="brand-input" maxlength="80" placeholder="e.g. Sunrise University Portal">
+              <div class="brand-hint">Shown as the wordmark in the sidebar and in browser tab titles.</div>
+            </div>
+            <div class="brand-field">
+              <label class="brand-label" for="tagline">Tagline</label>
+              <input type="text" id="tagline" class="brand-input" maxlength="120" placeholder="e.g. Excellence in education since 1992">
+              <div class="brand-hint">Displayed under each user's name in the sidebar.</div>
+            </div>
+            <div class="brand-field">
+              <label class="brand-label" for="primaryColor">Primary color</label>
+              <div class="color-row">
+                <input type="color" id="primaryColor" value="#4F46E5" title="Pick primary color">
+                <input type="text" id="primaryHex" class="brand-input" placeholder="#4F46E5" spellcheck="false">
+              </div>
+              <div class="brand-hint">Buttons, links, focus rings and the active menu highlight.</div>
+            </div>
+            <div class="brand-field">
+              <label class="brand-label" for="accentColor">Accent color</label>
+              <div class="color-row">
+                <input type="color" id="accentColor" value="#818CF8" title="Pick accent color">
+                <input type="text" id="accentHex" class="brand-input" placeholder="#818CF8" spellcheck="false">
+              </div>
+              <div class="brand-hint">Menu marker bar and the sidebar logo gradient.</div>
+            </div>
+            <div class="brand-field" style="margin-bottom:0">
+              <label class="brand-label" for="logoUrl">Logo image URL</label>
+              <input type="text" id="logoUrl" class="brand-input" maxlength="500" placeholder="https://your college logo (PNG/SVG, square works best)">
+              <div class="brand-hint">Replaces the sidebar logo icon. Leave empty to keep the Vishva logo.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- LIVE PREVIEW -->
+        <div class="card" style="border-radius:16px;align-self:start">
+          <div class="card-header" style="padding:18px 22px"><div class="card-title" style="font-weight:800"><i class="fas fa-eye" style="color:var(--primary);margin-right:6px"></i> Live preview</div></div>
+          <div class="card-body" style="padding:22px">
+            <div class="preview-mock">
+              <div class="pv-header">
+                <div class="pv-logo" id="pvLogo"><i class="fas fa-graduation-cap"></i></div>
+                <div>
+                  <div class="pv-brand" id="pvBrand">Vishva ERP</div>
+                </div>
+              </div>
+              <div class="pv-user">
+                <div class="pv-avatar">A</div>
+                <div>
+                  <div class="pv-name">Admin</div>
+                  <div class="pv-role" id="pvTag">College Administrator</div>
+                </div>
+              </div>
+              <div class="pv-link"><i class="fas fa-home" style="width:14px"></i> Dashboard</div>
+              <div class="pv-link active" id="pvActive"><i class="fas fa-palette" style="width:14px"></i> Portal Branding</div>
+              <div class="pv-link"><i class="fas fa-user-graduate" style="width:14px"></i> Students</div>
+            </div>
+            <div class="swatch-strip">
+              <div class="swatch" id="pvPrimary">PRIMARY</div>
+              <div class="swatch" id="pvAccent">ACCENT</div>
+            </div>
+            <div class="brand-hint" style="margin-top:12px">Applies instantly to all student, faculty, parent and admin portals after saving.</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script src="../../js/shared.js"></script>
+<script src="../../live/live-admin-pages.js"></script>
+<script>
+(function () {
+  'use strict';
+  var $ = function (id) { return document.getElementById(id); };
+
+  function hexToRgb(hex) {
+    var h = String(hex || '').replace('#', '').trim();
+    if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+    if (!/^[0-9a-fA-F]{6}$/.test(h)) return null;
+    return { r: parseInt(h.slice(0, 2), 16), g: parseInt(h.slice(2, 4), 16), b: parseInt(h.slice(4, 6), 16) };
+  }
+  function rgba(hex, a) {
+    var c = hexToRgb(hex);
+    return c ? 'rgba(' + c.r + ',' + c.g + ',' + c.b + ',' + a + ')' : 'rgba(148,163,184,' + a + ')';
+  }
+
+  function updatePreview() {
+    var p = $('primaryHex').value.trim() || '#4F46E5';
+    var a = $('accentHex').value.trim() || '#818CF8';
+    var validP = hexToRgb(p), validA = hexToRgb(a);
+    $('pvBrand').textContent = $('portalName').value.trim() || 'Vishva ERP';
+    $('pvTag').textContent = $('tagline').value.trim() || 'College Administrator';
+    var logoUrl = $('logoUrl').value.trim();
+    $('pvLogo').innerHTML = logoUrl
+      ? '<img src="' + logoUrl.replace(/"/g, '&quot;') + '" alt="" onerror="this.parentNode.innerHTML=\'<i class=&quot;fas fa-graduation-cap&quot;></i>\'">'
+      : '<i class="fas fa-graduation-cap"></i>';
+    $('pvLogo').style.background = validP
+      ? 'linear-gradient(135deg,' + p + ',' + (validA ? a : p) + ')'
+      : 'linear-gradient(135deg,#4F46E5,#818CF8)';
+    var active = $('pvActive');
+    active.style.background = rgba(p, 0.22);
+    active.style.color = validP ? '#E0E7FF' : '#E2E8F0';
+    active.style.borderLeft = '3px solid ' + (validA ? a : p);
+    $('pvPrimary').style.background = validP ? p : '#4F46E5';
+    $('pvAccent').style.background = validA ? a : '#818CF8';
+  }
+
+  function syncPair(pickerId, hexId) {
+    $(pickerId).addEventListener('input', function () { $(hexId).value = this.value; updatePreview(); });
+    $(hexId).addEventListener('input', function () {
+      if (/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(this.value.trim())) { $(pickerId).value = this.value.trim(); updatePreview(); }
+    });
+  }
+  syncPair('primaryColor', 'primaryHex');
+  syncPair('accentColor', 'accentHex');
+  ['portalName', 'tagline', 'logoUrl'].forEach(function (id) {
+    $(id).addEventListener('input', updatePreview);
+  });
+
+  window.__saveBranding = async function (btn) {
+    var p = $('primaryHex').value.trim();
+    var a = $('accentHex').value.trim();
+    if ((p && !hexToRgb(p)) || (a && !hexToRgb(a))) {
+      window.showToast && window.showToast('Colors must be hex like #4F46E5', 'error');
+      return;
+    }
+    try {
+      window.setLoading && window.setLoading(btn, true);
+      await window.api.request('/college-admin/branding', {
+        method: 'PUT',
+        body: {
+          portalName: $('portalName').value.trim(),
+          tagline: $('tagline').value.trim(),
+          primaryColor: p,
+          accentColor: a,
+          logoUrl: $('logoUrl').value.trim()
+        }
+      });
+      window.showToast && window.showToast('Branding saved — open any portal page to see it', 'success');
+    } catch (e) {
+      window.showToast && window.showToast((e && e.message) || 'Save failed', 'error');
+    } finally {
+      window.setLoading && window.setLoading(btn, false);
+    }
+  };
+
+  window.__resetBranding = async function (btn) {
+    try {
+      window.setLoading && window.setLoading(btn, true);
+      await window.api.request('/college-admin/branding', {
+        method: 'PUT',
+        body: { portalName: '', tagline: '', primaryColor: '', accentColor: '', logoUrl: '' }
+      });
+      $('portalName').value = '';
+      $('tagline').value = '';
+      $('logoUrl').value = '';
+      $('primaryColor').value = '#4F46E5';
+      $('primaryHex').value = '#4F46E5';
+      $('accentColor').value = '#818CF8';
+      $('accentHex').value = '#818CF8';
+      updatePreview();
+      window.showToast && window.showToast('Branding reset to Vishva defaults', 'info');
+    } catch (e) {
+      window.showToast && window.showToast((e && e.message) || 'Reset failed', 'error');
+    } finally {
+      window.setLoading && window.setLoading(btn, false);
+    }
+  };
+
+  async function load() {
+    try {
+      var res = await window.api.request('/college-admin/branding');
+      var theme = (res && res.branding && res.branding.theme) || {};
+      $('portalName').value = theme.portalName || '';
+      $('tagline').value = theme.tagline || '';
+      $('logoUrl').value = theme.logoUrl || '';
+      if (theme.primaryColor) { $('primaryColor').value = theme.primaryColor; $('primaryHex').value = theme.primaryColor; }
+      if (theme.accentColor) { $('accentColor').value = theme.accentColor; $('accentHex').value = theme.accentColor; }
+    } catch (e) {
+      /* defaults shown */
+    }
+    updatePreview();
+  }
+  load();
+})();
+</script>
+  <script src="../../js/ui-text.js"></script>
+  <script src="../../js/portal-branding.js"></script>
+</body>
+</html>
