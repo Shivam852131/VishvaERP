@@ -9,7 +9,8 @@ const protect = async (req, res, next) => {
       token = req.headers.authorization.split(' ')[1];
     } else if (req.cookies && req.cookies.token) {
       token = req.cookies.token;
-    } else if (req.query && req.query.token) {
+    } else if (req.method === 'GET' && req.query && req.query.token) {
+      // Allow query tokens strictly for GET requests (such as CSV exports / PDF downloads via window.open)
       token = req.query.token;
     }
 
@@ -26,6 +27,11 @@ const protect = async (req, res, next) => {
 
     if (!user.isActive) {
       return res.status(401).json({ success: false, message: 'Account is deactivated' });
+    }
+
+    // Check token revocation / session invalidation
+    if (decoded.tokenVersion !== undefined && user.tokenVersion !== undefined && decoded.tokenVersion !== user.tokenVersion) {
+      return res.status(401).json({ success: false, message: 'Session expired or invalidated. Please log in again.' });
     }
 
     req.user = user;

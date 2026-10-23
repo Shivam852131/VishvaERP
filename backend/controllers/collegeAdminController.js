@@ -344,7 +344,12 @@ const getFaculty = asyncHandler(async (req, res) => {
 
 // @desc    Create/update user (student/faculty/parent)
 const createUser = asyncHandler(async (req, res) => {
-    const role = req.body.role || (req.originalUrl.includes('faculty') ? 'faculty' : 'student');
+    let role = req.body.role || (req.originalUrl.includes('faculty') ? 'faculty' : 'student');
+    // Strictly prevent College Admin from provisioning Super Admin accounts
+    if (!['faculty', 'student', 'parent'].includes(role)) {
+      role = req.originalUrl.includes('faculty') ? 'faculty' : 'student';
+    }
+
     const userData = {
       name: req.body.name,
       email: req.body.email,
@@ -363,6 +368,7 @@ const createUser = asyncHandler(async (req, res) => {
       dateOfBirth: req.body.dateOfBirth || req.body.sDob,
       gender: req.body.gender || req.body.sGender,
       bloodGroup: req.body.bloodGroup || req.body.sBloodGroup,
+      tokenVersion: 0,
     };
 
     const existingUser = await User.findOne({ email: userData.email });
@@ -393,6 +399,7 @@ const createUser = asyncHandler(async (req, res) => {
           collegeId: req.user.collegeId,
           phone: req.body.parentPhone,
           children: [user._id],
+          tokenVersion: 0,
         });
         parentCredentials = { email: parent.email, password: generatedPassword };
       } else if (!parent.children.some((childId) => String(childId) === String(user._id))) {
@@ -416,10 +423,25 @@ const createUser = asyncHandler(async (req, res) => {
 
 // @desc    Update user
 const updateUser = asyncHandler(async (req, res) => {
+    // Whitelist allowed fields to prevent mass assignment (prohibit role/collegeId elevation)
+    const allowedFields = [
+      'name', 'phone', 'address', 'department', 'rollNo', 'semester',
+      'designation', 'section', 'enrollmentNo', 'admissionDate',
+      'dateOfBirth', 'gender', 'bloodGroup', 'avatar'
+    ];
+    const safeUpdates = {};
+    allowedFields.forEach((field) => {
+      if (req.body[field] !== undefined) safeUpdates[field] = req.body[field];
+    });
+
+    if (safeUpdates.semester !== undefined) {
+      safeUpdates.semester = parseSemester(safeUpdates.semester);
+    }
+
     const user = await User.findOneAndUpdate(
       { _id: req.params.id, collegeId: req.user.collegeId },
-      req.body,
-      { new: true }
+      safeUpdates,
+      { new: true, runValidators: true }
     ).select('-password');
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
     emitDataChange(req, { collegeId: String(req.user.collegeId), roles: ['superadmin'], resource: 'users', action: 'updated' });

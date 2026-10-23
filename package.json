@@ -9,6 +9,7 @@
     "seed": "node backend/seeder.js",
     "install:all": "npm install",
     "frontend:build": "npm --prefix frontend-react run build",
+    "test:security": "node tests/security_verification.js",
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:install": "playwright install chromium",

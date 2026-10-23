@@ -47,7 +47,7 @@ router.get('/export', authorize('collegeAdmin', 'superadmin'), exportFeesCSV);
 
 router.get('/:id', getFeeById);
 router.get('/:id/receipt', downloadFeeReceipt);
-router.post('/:id/pay', authorize('collegeAdmin', 'student', 'parent'), payFee);
+router.post('/:id/pay', authorize('collegeAdmin'), payFee);
 router.post('/:id/create-order', authorize('collegeAdmin', 'student', 'parent'), createFeeOrder);
 router.get('/:id/payment-status', authorize('collegeAdmin', 'student', 'parent'), getFeePaymentStatus);
 router.post('/verify-payment', authorize('collegeAdmin', 'student', 'parent'), verifyFeePayment);

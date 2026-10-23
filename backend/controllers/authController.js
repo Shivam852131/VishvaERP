@@ -3,7 +3,7 @@ const User = require('../models/User');
 const College = require('../models/College');
 const OTP = require('../models/OTP');
 const Subscription = require('../models/Subscription');
-const { generateToken, generateRefreshToken, verifyRefreshToken, generateResetToken } = require('../config/jwt');
+const { generateToken, generateRefreshToken, verifyRefreshToken, generateResetToken, hashResetToken } = require('../config/jwt');
 const { validationResult } = require('express-validator');
 const { sendPasswordResetEmail, sendWelcomeEmail, sendOTP: sendOTPEmail, sendVerificationOTP: sendVerificationOTPEmail } = require('../services/emailService');
 const { sendWhatsApp } = require('../services/whatsappService');
@@ -97,6 +97,13 @@ const register = asyncHandler(async (req, res) => {
 
   const { name, email, password, role, collegeId, phone, collegeName } = req.body;
 
+  // Strictly block any unauthenticated creation of superadmin or unapproved faculty accounts
+  if (role === 'superadmin' || role === 'faculty') {
+    return res.status(403).json({ success: false, message: 'Registration for this role is not permitted via public registration' });
+  }
+
+  const effectiveRole = role === 'collegeAdmin' ? 'collegeAdmin' : 'student';
+
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
   if (!passwordRegex.test(password)) {
     return res.status(400).json({ success: false, message: 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&)' });
@@ -110,8 +117,8 @@ const register = asyncHandler(async (req, res) => {
 
   let assignedCollegeId = collegeId;
 
-  // Validate college for non-superadmin
-  if (role !== 'superadmin' && assignedCollegeId) {
+  // Validate college for student
+  if (effectiveRole !== 'superadmin' && assignedCollegeId) {
     const college = await College.findById(assignedCollegeId);
     if (!college || !college.isActive) {
       return res.status(400).json({ success: false, message: 'Invalid or inactive college' });
@@ -119,7 +126,7 @@ const register = asyncHandler(async (req, res) => {
   }
 
   // Auto-create a college if a collegeAdmin registers externally without an ID
-  if (role === 'collegeAdmin' && !assignedCollegeId) {
+  if (effectiveRole === 'collegeAdmin' && !assignedCollegeId) {
     const { endDate } = buildTrialWindow();
     const newCollege = await College.create({
       name: collegeName || `${name}'s College`,
@@ -134,15 +141,15 @@ const register = asyncHandler(async (req, res) => {
     assignedCollegeId = newCollege._id;
   }
 
-  const user = await User.create({ name, email, password, role, collegeId: assignedCollegeId || null, phone });
+  const user = await User.create({ name, email, password, role: effectiveRole, collegeId: assignedCollegeId || null, phone, tokenVersion: 0 });
 
-  if (role === 'collegeAdmin' && assignedCollegeId) {
+  if (effectiveRole === 'collegeAdmin' && assignedCollegeId) {
     await College.findByIdAndUpdate(assignedCollegeId, { adminId: user._id, email, phone }, { runValidators: false });
     await ensureCollegeTrialSubscription(assignedCollegeId, 'basic');
   }
 
-  const token = generateToken({ id: user._id, role: user.role, collegeId: user.collegeId });
-  const refreshToken = generateRefreshToken({ id: user._id, role: user.role, collegeId: user.collegeId });
+  const token = generateToken({ id: user._id, role: user.role, collegeId: user.collegeId, tokenVersion: user.tokenVersion || 0 });
+  const refreshToken = generateRefreshToken({ id: user._id, role: user.role, collegeId: user.collegeId, tokenVersion: user.tokenVersion || 0 });
 
   // Send welcome email in background (don't block registration)
   sendWelcomeEmail(email, name, 'Set via registration', role).catch(() => {});
@@ -220,8 +227,8 @@ const login = asyncHandler(async (req, res) => {
 
   logAudit(req, 'login', 'user', { resourceId: user._id, description: `User login: ${user.email}`, metadata: { role: user.role, collegeId: user.collegeId } });
 
-  const token = generateToken({ id: user._id, role: user.role, collegeId: user.collegeId });
-  const refreshToken = generateRefreshToken({ id: user._id, role: user.role, collegeId: user.collegeId });
+  const token = generateToken({ id: user._id, role: user.role, collegeId: user.collegeId, tokenVersion: user.tokenVersion || 0 });
+  const refreshToken = generateRefreshToken({ id: user._id, role: user.role, collegeId: user.collegeId, tokenVersion: user.tokenVersion || 0 });
 
   // For college admins, check subscription status
   let subscriptionActive = null;
@@ -272,8 +279,13 @@ const refreshToken = asyncHandler(async (req, res) => {
       return res.status(401).json({ success: false, message: 'Invalid refresh token' });
     }
 
-    const newToken = generateToken({ id: user._id, role: user.role, collegeId: user.collegeId });
-    const newRefreshToken = generateRefreshToken({ id: user._id, role: user.role, collegeId: user.collegeId });
+    // Check token revocation
+    if (decoded.tokenVersion !== undefined && user.tokenVersion !== undefined && decoded.tokenVersion !== user.tokenVersion) {
+      return res.status(401).json({ success: false, message: 'Refresh token has been revoked' });
+    }
+
+    const newToken = generateToken({ id: user._id, role: user.role, collegeId: user.collegeId, tokenVersion: user.tokenVersion || 0 });
+    const newRefreshToken = generateRefreshToken({ id: user._id, role: user.role, collegeId: user.collegeId, tokenVersion: user.tokenVersion || 0 });
 
     res.json({
       success: true,
@@ -294,15 +306,17 @@ const forgotPassword = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: 'Email is required' });
   }
 
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email: email.toLowerCase() });
+  // Prevent user enumeration: Return same generic response even if email is not found
   if (!user) {
-    return res.status(404).json({ success: false, message: 'No account found with that email' });
+    return res.json({ success: true, message: 'If an account with that email exists, a password reset link has been sent.' });
   }
 
   const resetToken = generateResetToken();
   const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/#/reset-password/${resetToken}`;
 
-  user.resetPasswordToken = resetToken;
+  // Store SHA-256 hashed token to prevent database leak of active reset tokens
+  user.resetPasswordToken = hashResetToken(resetToken);
   user.resetPasswordExpire = new Date(Date.now() + 3600000); // 1 hour
   await user.save({ validateBeforeSave: false });
 
@@ -315,7 +329,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
     });
   }
 
-  res.json({ success: true, message: 'Password reset link sent to your email' });
+  res.json({ success: true, message: 'If an account with that email exists, a password reset link has been sent.' });
 });
 
 // @desc    Reset password
@@ -329,10 +343,19 @@ const resetPassword = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: 'Password must be at least 6 characters' });
   }
 
-  const user = await User.findOne({
-    resetPasswordToken: token,
+  const hashedToken = hashResetToken(token);
+  // Match hashed token, with legacy unhashed fallback for transition period
+  let user = await User.findOne({
+    resetPasswordToken: hashedToken,
     resetPasswordExpire: { $gt: new Date() },
   }).select('+password');
+
+  if (!user) {
+    user = await User.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpire: { $gt: new Date() },
+    }).select('+password');
+  }
 
   if (!user) {
     return res.status(400).json({ success: false, message: 'Invalid or expired reset token' });
@@ -341,7 +364,11 @@ const resetPassword = asyncHandler(async (req, res) => {
   user.password = password;
   user.resetPasswordToken = undefined;
   user.resetPasswordExpire = undefined;
+  // Increment tokenVersion to revoke all previously active sessions across all devices
+  user.tokenVersion = (user.tokenVersion || 0) + 1;
   await user.save();
+
+  logAudit(req, 'password_reset', 'user', { resourceId: user._id, description: `Password reset completed: ${user.email}` });
 
   res.json({ success: true, message: 'Password reset successfully. You can now log in.' });
 });
@@ -477,7 +504,10 @@ const changePassword = asyncHandler(async (req, res) => {
   }
 
   user.password = newPassword;
+  user.tokenVersion = (user.tokenVersion || 0) + 1;
   await user.save();
+
+  logAudit(req, 'password_change', 'user', { resourceId: user._id, description: `Password changed for: ${user.email}` });
 
   res.json({ success: true, message: 'Password changed successfully' });
 });
@@ -560,13 +590,14 @@ const verifyOTPLogin = asyncHandler(async (req, res) => {
   let user = await User.findOne({ email: email.toLowerCase() });
 
   if (!user) {
-    // Auto-create user with OTP login
-    const userRole = role || 'student';
+    // Auto-create user with OTP login (disallow superadmin/faculty/collegeAdmin privilege escalation)
+    const userRole = (role === 'student' || role === 'parent') ? role : 'student';
     user = await User.create({
       name: email.split('@')[0],
       email: email.toLowerCase(),
       password: crypto.randomBytes(16).toString('hex'),
       role: userRole,
+      tokenVersion: 0,
     });
   }
 
@@ -576,8 +607,8 @@ const verifyOTPLogin = asyncHandler(async (req, res) => {
 
   logAudit(req, 'otp-login', 'user', { resourceId: user._id, description: `OTP login: ${user.email}`, metadata: { role: user.role } });
 
-  const token = generateToken({ id: user._id, role: user.role, collegeId: user.collegeId });
-  const refreshToken = generateRefreshToken({ id: user._id, role: user.role, collegeId: user.collegeId });
+  const token = generateToken({ id: user._id, role: user.role, collegeId: user.collegeId, tokenVersion: user.tokenVersion || 0 });
+  const refreshToken = generateRefreshToken({ id: user._id, role: user.role, collegeId: user.collegeId, tokenVersion: user.tokenVersion || 0 });
 
   let subscriptionActive = null;
   if (user.role === 'collegeAdmin' && user.collegeId) {
@@ -848,8 +879,8 @@ const googleLogin = asyncHandler(async (req, res) => {
 
   logAudit(req, 'google-login', 'user', { resourceId: user._id, description: `Google login: ${user.email}`, metadata: { role: user.role } });
 
-  const token = generateToken({ id: user._id, role: user.role, collegeId: user.collegeId });
-  const refreshToken = generateRefreshToken({ id: user._id, role: user.role, collegeId: user.collegeId });
+  const token = generateToken({ id: user._id, role: user.role, collegeId: user.collegeId, tokenVersion: user.tokenVersion || 0 });
+  const refreshToken = generateRefreshToken({ id: user._id, role: user.role, collegeId: user.collegeId, tokenVersion: user.tokenVersion || 0 });
 
   let subscriptionActive = null;
   if (user.role === 'collegeAdmin' && user.collegeId) {
@@ -965,12 +996,14 @@ const verifyPhoneOTP = asyncHandler(async (req, res) => {
   let user = await User.findOne({ phone: cleaned });
 
   if (!user) {
+    const userRole = (role === 'student' || role === 'parent') ? role : 'student';
     user = await User.create({
       name: `User ${cleaned.slice(-4)}`,
       email: `phone_${cleaned.replace('+', '')}@vishvaerp.local`,
       phone: cleaned,
       password: crypto.randomBytes(16).toString('hex'),
-      role: role || 'student',
+      role: userRole,
+      tokenVersion: 0,
     });
   }
 
@@ -979,8 +1012,8 @@ const verifyPhoneOTP = asyncHandler(async (req, res) => {
 
   logAudit(req, 'phone-otp-login', 'user', { resourceId: user._id, description: `Phone OTP login: ${cleaned}`, metadata: { role: user.role } });
 
-  const token = generateToken({ id: user._id, role: user.role, collegeId: user.collegeId });
-  const refreshToken = generateRefreshToken({ id: user._id, role: user.role, collegeId: user.collegeId });
+  const token = generateToken({ id: user._id, role: user.role, collegeId: user.collegeId, tokenVersion: user.tokenVersion || 0 });
+  const refreshToken = generateRefreshToken({ id: user._id, role: user.role, collegeId: user.collegeId, tokenVersion: user.tokenVersion || 0 });
 
   let subscriptionActive = null;
   if (user.role === 'collegeAdmin' && user.collegeId) {
@@ -1006,9 +1039,22 @@ const verifyPhoneOTP = asyncHandler(async (req, res) => {
   });
 });
 
+// @desc    Logout user and invalidate active tokens
+// @route   POST /api/auth/logout
+// @access  Private
+const logout = asyncHandler(async (req, res) => {
+  if (req.user) {
+    req.user.tokenVersion = (req.user.tokenVersion || 0) + 1;
+    await req.user.save({ validateBeforeSave: false });
+    logAudit(req, 'logout', 'user', { resourceId: req.user._id, description: `User logged out: ${req.user.email}` });
+  }
+  res.json({ success: true, message: 'Logged out successfully' });
+});
+
 module.exports = {
   register,
   login,
+  logout,
   refreshToken,
   forgotPassword,
   resetPassword,

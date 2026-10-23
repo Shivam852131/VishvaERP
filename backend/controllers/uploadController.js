@@ -63,12 +63,23 @@ const uploadMultiple = asyncHandler(async (req, res) => {
 
 const deleteUpload = asyncHandler(async (req, res) => {
   const { url } = req.body;
-  if (!url) {
+  if (!url || typeof url !== 'string') {
     return res.status(400).json({ success: false, message: 'File URL is required' });
   }
 
-  await deleteFile(url);
-  res.json({ success: true, message: 'File deleted' });
+  if (url.includes('..') || url.includes('\0')) {
+    return res.status(400).json({ success: false, message: 'Invalid file URL: path traversal prohibited' });
+  }
+
+  try {
+    const deleted = await deleteFile(url);
+    if (!deleted) {
+      return res.status(404).json({ success: false, message: 'File not found or already removed' });
+    }
+    res.json({ success: true, message: 'File deleted' });
+  } catch (error) {
+    res.status(400).json({ success: false, message: error.message });
+  }
 });
 
 module.exports = { uploadAvatar, uploadImage, uploadFile, uploadMultiple, deleteUpload };

@@ -49,6 +49,7 @@ const userSchema = new mongoose.Schema({
   googleId: { type: String, sparse: true },
   resetPasswordToken: { type: String },
   resetPasswordExpire: { type: Date },
+  tokenVersion: { type: Number, default: 0 },
 }, { timestamps: true });
 
 // Hash password before save

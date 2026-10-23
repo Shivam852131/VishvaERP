@@ -49,10 +49,21 @@ const getGrievanceById = asyncHandler(async (req, res) => {
   if (!grievance) return res.status(404).json({ success: false, message: 'Grievance not found' });
 
   const isStaff = ['collegeAdmin', 'superadmin', 'faculty'].includes(req.user.role);
+  
+  // Non-staff (students & parents) can strictly only view grievances they themselves raised
+  if (!isStaff && String(grievance.raisedBy?._id || grievance.raisedBy) !== String(req.user._id)) {
+    return res.status(403).json({ success: false, message: 'Access denied: You are not authorized to view this grievance' });
+  }
+
   const grievanceObj = grievance.toObject();
 
   if (!isStaff) {
     grievanceObj.responses = (grievanceObj.responses || []).filter(r => !r.isInternal);
+  }
+
+  // Preserve whistleblower anonymity: redact raisedBy details if marked anonymous
+  if (grievanceObj.isAnonymous && req.user.role !== 'superadmin') {
+    grievanceObj.raisedBy = { name: 'Anonymous Student', role: 'student' };
   }
 
   // Enrich responses with 'from' field for frontend display compatibility

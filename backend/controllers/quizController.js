@@ -804,9 +804,9 @@ const getRecommendations = asyncHandler(async (req, res) => {
       const { askAI } = require('../services/aiService');
       const list = recommendations.map(r => `${r.unit}/${r.chapter}: ${r.accuracy}% accuracy over ${r.asked} questions`).join('; ');
       aiTip = await askAI(
-        `A student has weak areas: ${list}. In 2-3 sentences, give a focused, encouraging study tip and a suggested practice order.`,
-        'You are an expert exam coach. Be concise and specific.',
-        { maxTokens: 180 }
+        `A student has demonstrated performance gaps in: ${list}. Provide a concise, deeply encouraging cognitive study tip and a strategic order of revision. Speak in natural, warm human language as a senior academic mentor.`,
+        'You are an empathetic, world-class university academic mentor. Guide students with cognitive learning science and genuine human encouragement. Avoid robotic clichés.',
+        { maxTokens: 250 }
       );
     } catch (e) { aiTip = null; }
   }

@@ -12,6 +12,7 @@ const cluster = require('cluster');
 const { connectDB, disconnectDB } = require('./config/db');
 const { logger, requestLogger } = require('./config/logger');
 const User = require('./models/User');
+const { verifyToken } = require('./config/jwt');
 const { generalLimiter } = require('./middleware/rateLimiter');
 const errorHandler = require('./middleware/errorMiddleware');
 const correlationId = require('./middleware/correlationId');
@@ -77,7 +78,7 @@ const corsOptions = {
       return;
     }
 
-    callback(new Error(`CORS blocked origin: ${origin}`));
+    callback(null, false);
   },
   credentials: true,
 };
@@ -89,6 +90,24 @@ const io = new Server(server, {
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
   },
+});
+
+// Authenticate socket connections if token provided
+io.use((socket, next) => {
+  const token = socket.handshake.auth?.token ||
+    (socket.handshake.headers?.authorization && socket.handshake.headers.authorization.replace(/^Bearer\s+/i, '')) ||
+    socket.handshake.query?.token;
+
+  if (token) {
+    try {
+      const decoded = verifyToken(token);
+      socket.user = decoded;
+    } catch (err) {
+      logger.warn('Socket connection rejected: invalid auth token', { error: err.message });
+      return next(new Error('Authentication failed: invalid token'));
+    }
+  }
+  next();
 });
 
 // Pass Socket.io to req so routes can use it
@@ -105,7 +124,19 @@ app.use(correlationId);
 app.use(cors(corsOptions));
 app.use(helmet({
   crossOriginEmbedderPolicy: false,
-  contentSecurityPolicy: false,
+  contentSecurityPolicy: isProduction ? {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'", "'unsafe-eval'", "https://cdn.jsdelivr.net", "https://cdnjs.cloudflare.com", "https://checkout.razorpay.com", "https://meet.jit.si", "https://8x8.vc"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com", "https://cdnjs.cloudflare.com", "https://cdn.jsdelivr.net"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com", "data:"],
+      imgSrc: ["'self'", "data:", "blob:", "https:"],
+      connectSrc: ["'self'", "ws:", "wss:", "https://api.razorpay.com", "https://meet.jit.si", "https://8x8.vc"],
+      frameSrc: ["'self'", "https://api.razorpay.com", "https://checkout.razorpay.com", "https://meet.jit.si", "https://8x8.vc"],
+      objectSrc: ["'none'"],
+      baseUri: ["'self'"],
+    },
+  } : false,
   referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
 }));
 
@@ -243,19 +274,37 @@ app.use(errorHandler);
 
 // Socket.io Logic
 io.on('connection', (socket) => {
-  logger.info('Client connected', { socketId: socket.id });
+  logger.info('Client connected', { socketId: socket.id, authenticated: Boolean(socket.user) });
 
   socket.on('join_room', (roomId) => {
-    socket.join(roomId);
-    logger.debug('User joined room', { socketId: socket.id, roomId });
+    if (!roomId || typeof roomId !== 'string' || roomId.length > 100) return;
+    const sanitizedRoom = roomId.replace(/[^a-zA-Z0-9_\-:]/g, '');
+    socket.join(sanitizedRoom);
+    logger.debug('User joined room', { socketId: socket.id, roomId: sanitizedRoom });
   });
 
   socket.on('send_message', (data) => {
-    io.to(data.roomId).emit('receive_message', data);
+    if (!data || !data.roomId || typeof data.roomId !== 'string') return;
+    const sanitizedRoom = data.roomId.replace(/[^a-zA-Z0-9_\-:]/g, '');
+    const payload = {
+      ...data,
+      roomId: sanitizedRoom,
+      senderId: socket.user ? (socket.user.id || socket.user._id) : (data.senderId || 'anonymous'),
+      timestamp: new Date().toISOString(),
+    };
+    io.to(sanitizedRoom).emit('receive_message', payload);
   });
 
   socket.on('join_user', (userId) => {
-    socket.join(`user:${userId}`);
+    if (socket.user && (socket.user.id || socket.user._id)) {
+      const authUserId = String(socket.user.id || socket.user._id);
+      socket.join(`user:${authUserId}`);
+      logger.debug('Authenticated user joined personal room', { socketId: socket.id, userId: authUserId });
+    } else if (!isProduction && userId) {
+      socket.join(`user:${userId}`);
+    } else {
+      logger.warn('Unauthenticated socket attempted to subscribe to private user channel', { socketId: socket.id });
+    }
   });
 
   socket.on('disconnect', () => {

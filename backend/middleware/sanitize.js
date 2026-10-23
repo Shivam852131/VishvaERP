@@ -1,15 +1,20 @@
 const sanitize = (req, res, next) => {
-  const stripHtml = (value) => {
+  // Strip dangerous NoSQL operator injection keys ($where, $gt, $ne, etc.) and sanitize strings
+  const sanitizeValue = (value) => {
     if (typeof value === 'string') {
       return value.replace(/<[^>]*>/g, '').trim();
     }
     if (Array.isArray(value)) {
-      return value.map(stripHtml);
+      return value.map(sanitizeValue);
     }
     if (value && typeof value === 'object') {
       const cleaned = {};
       for (const [key, val] of Object.entries(value)) {
-        cleaned[key] = stripHtml(val);
+        // Drop any keys starting with $ or containing dots to prevent MongoDB operator injection
+        if (key.startsWith('$') || key.includes('.')) {
+          continue;
+        }
+        cleaned[key] = sanitizeValue(val);
       }
       return cleaned;
     }
@@ -17,15 +22,15 @@ const sanitize = (req, res, next) => {
   };
 
   if (req.body && typeof req.body === 'object') {
-    req.body = stripHtml(req.body);
+    req.body = sanitizeValue(req.body);
   }
 
   if (req.query && typeof req.query === 'object') {
-    for (const [key, val] of Object.entries(req.query)) {
-      if (typeof val === 'string') {
-        req.query[key] = val.replace(/<[^>]*>/g, '').trim();
-      }
-    }
+    req.query = sanitizeValue(req.query);
+  }
+
+  if (req.params && typeof req.params === 'object') {
+    req.params = sanitizeValue(req.params);
   }
 
   next();

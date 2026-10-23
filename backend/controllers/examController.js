@@ -197,17 +197,29 @@ const addResults = asyncHandler(async (req, res) => {
 
 // @desc    Get student results with credit-weighted SGPA & CGPA, semester breakdowns, and radar competencies
 const getStudentResults = asyncHandler(async (req, res) => {
-  let studentId = req.params.studentId || req.user._id;
-  if (req.user.role === 'parent' && !req.params.studentId) {
+  let studentId;
+  if (req.user.role === 'student') {
+    // Students may strictly view only their own academic results
+    studentId = req.user._id;
+  } else if (req.user.role === 'parent') {
     const parent = await User.findById(req.user._id).select('children');
     let children = (parent?.children || []).map(String);
     if (!children.length) {
       const linked = await User.find({ collegeId: req.user.collegeId, role: 'student', parentId: req.user._id }).select('_id');
       children = linked.map(s => String(s._id));
     }
-    studentId = req.query.studentId && children.includes(String(req.query.studentId))
-      ? req.query.studentId
-      : children[0];
+    const requested = req.params.studentId || req.query.studentId;
+    if (requested) {
+      if (!children.includes(String(requested))) {
+        return res.status(403).json({ success: false, message: 'Access denied: You can only view results for your linked children' });
+      }
+      studentId = requested;
+    } else {
+      studentId = children[0];
+    }
+  } else {
+    // Faculty, CollegeAdmin, SuperAdmin
+    studentId = req.params.studentId || req.query.studentId || req.user._id;
   }
 
   if (!studentId) {

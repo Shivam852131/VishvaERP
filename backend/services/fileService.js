@@ -65,13 +65,30 @@ async function saveFile(buffer, subdir, filename) {
 }
 
 async function deleteFile(fileUrl) {
-  if (!fileUrl) return;
-  const relativePath = fileUrl.replace(/^\/uploads\//, '');
-  const filePath = path.join(UPLOAD_DIR, relativePath);
-  try {
-    await fs.promises.unlink(filePath);
-  } catch {
+  if (!fileUrl || typeof fileUrl !== 'string') return false;
+  
+  // Prohibit null bytes and directory traversal sequences
+  if (fileUrl.includes('\0') || fileUrl.includes('..')) {
+    throw new Error('Invalid file path: path traversal sequence detected');
   }
+
+  const relativePath = fileUrl.replace(/^\/?uploads\//, '');
+  const filePath = path.resolve(UPLOAD_DIR, relativePath);
+
+  // Strict boundary check: filePath must strictly start with UPLOAD_DIR
+  if (!filePath.startsWith(UPLOAD_DIR) || filePath === UPLOAD_DIR) {
+    throw new Error('Access denied: target path is outside upload directory');
+  }
+
+  try {
+    if (fs.existsSync(filePath)) {
+      await fs.promises.unlink(filePath);
+      return true;
+    }
+  } catch (err) {
+    console.error('deleteFile error:', err.message);
+  }
+  return false;
 }
 
 function getDir(subdir) {

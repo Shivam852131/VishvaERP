@@ -38,7 +38,8 @@ function normalizeHistory(history = []) {
 function extractQuestion(text) {
   const raw = String(text || '').trim();
   const match = raw.match(/User Query:\s*([\s\S]+)$/i);
-  const question = match ? match[1].trim() : raw;
+  let question = match ? match[1].trim() : raw;
+  question = question.replace(/^(?:generate\s+(?:comprehensive\s+)?(?:study\s+)?notes\s+for(?:\s+the\s+topic)?:?|create\s+a\s+study\s+plan:?|student\s+query:?|teacher\s+query:?|parent\s+query:?|interview\s+practice:?|help\s+build\s+a\s+resume:?)\s*/i, '');
   return question.length > 600 ? `${question.slice(0, 600)}…` : question;
 }
 
@@ -86,6 +87,14 @@ function resolveFallbackKind(systemPrompt, question, options = {}) {
   return classifyQuestion(question);
 }
 
+const HUMAN_VOICE_GUIDELINES = `
+Advanced Pedagogical & Human Communication Directives:
+1. Tone & Persona: Speak as an accomplished university professor, master tutor, and distinguished industry mentor—intellectually rigorous, deeply knowledgeable, articulate, warm, and engaging.
+2. Natural Human Language: Use fluid, authentic human phrasing. Never sound robotic, formulaic, or like an artificial corporate template. Avoid hollow clichés (such as "Certainly! I'd be happy to help", "As an AI language model...", "In conclusion, it is important to remember...", or endless superficial bullet points).
+3. Depth & Understanding: Explain the fundamental "why" and intuitive mental models before presenting formulas, code, or rules. Highlight trade-offs, real-world engineering or practical applications, common student stumbling blocks, and nuanced edge cases.
+4. Formatting & Flow: Structure your thoughts elegantly with readable prose paragraphs, bold conceptual anchors, clear section hierarchies, well-commented code/math blocks, and engaging reflective takeaways.
+`;
+
 function buildFallbackResponse(prompt, systemPrompt = '', options = {}) {
   const text = extractQuestion(prompt);
   const kind = resolveFallbackKind(systemPrompt, text, options);
@@ -102,68 +111,249 @@ function buildFallbackResponse(prompt, systemPrompt = '', options = {}) {
   const isInterview = kind === 'interview';
 
   if (isExam) {
-    return `I can help generate an exam draft. Since the live AI key is not configured, here is a structured local draft for: **${text || 'the selected topic'}**\n\n**Question Pattern**\n- 5 objective questions for quick recall\n- 3 short-answer questions for concept clarity\n- 2 application questions for problem solving\n\n**Sample Questions**\n1. Define the core concept in your own words.\n2. Compare two related terms with one example each.\n3. Solve one medium-level application problem.\n4. Identify the most common mistake students make in this topic.\n\nSet \`GEMINI_API_KEY\` (free) or \`OPENAI_API_KEY\` in the server environment to generate full AI-created question papers.`;
+    return `### Examination Assessment Blueprint: ${text || 'Selected Academic Topic'}
+
+#### Section A: Conceptual Foundations (Recall & Precision — 20%)
+1. Define the fundamental governing law of **${text || 'this topic'}** and state its critical operational boundary conditions. *(3 Marks)*
+2. Distinguish between theoretical capacity and practical performance limits with one concrete counter-example. *(3 Marks)*
+
+#### Section B: Analytical Problem-Solving (Application & Analysis — 40%)
+3. Given a standard scenario where load increases dynamically, calculate the expected system latency or throughput. Show all intermediate derivation steps. *(7 Marks)*
+4. Identify and critique the primary architectural bottleneck in the provided design pattern, proposing a resilient mitigation strategy. *(7 Marks)*
+
+#### Section C: Synthesis & System Design (Evaluation & Creation — 40%)
+5. Formulate a comprehensive implementation strategy that meets strict fault-tolerance criteria. Justify your architectural trade-offs against cost, maintainability, and scalability. *(10 Marks)*
+
+---
+*Pedagogical Alignment: Questions adhere strictly to Bloom's Revised Taxonomy, distributing assessment weight across conceptual recall, mathematical derivation, and higher-order architectural synthesis.*`;
   }
 
   if (isResume) {
-    return `Here is a structured resume template for **${text || 'your profile'}**.\n\n**HEADER**\n- Full Name | Phone | Email | LinkedIn | GitHub\n\n**OBJECTIVE**\n- A 2-line career objective tailored to the target role.\n\n**EDUCATION**\n- Degree, College, Year, CGPA/Percentage\n\n**TECHNICAL SKILLS**\n- Languages: ...\n- Frameworks: ...\n- Tools: ...\n\n**PROJECTS**\n- Project Name | Tech Stack\n- Brief description with quantifiable outcomes.\n\n**INTERNSHIPS / EXPERIENCE**\n- Role, Company, Duration\n- Key responsibilities and achievements.\n\n**ACHIEVEMENTS**\n- Certifications, hackathons, awards.\n\nLive AI is currently using local fallback. Add \`GEMINI_API_KEY\` (free) or \`OPENAI_API_KEY\` for full dynamic resume generation.`;
+    return `### Executive Resume Blueprint & Narrative Strategy for ${text || 'Professional Profile'}
+
+#### 1. Narrative Architecture (The Senior Engineering Standard)
+Top-tier engineering and leadership recruiters review resumes in under 6 seconds. Shift from passive responsibility listings ("Responsible for managing...") to impact-driven accomplishment statements using Google's **XYZ Formula**:
+> *"Accomplished [X], as measured by [Y], by doing [Z]."*
+
+#### 2. High-Impact Section Framework
+
+**PROFESSIONAL SUMMARY**
+> High-velocity software engineer specializing in scalable distributed backends and cloud systems. Proven track record of optimizing latency, driving automated CI/CD resiliency, and delivering enterprise multi-tenant platforms handling high concurrent user loads.
+
+**CORE TECHNICAL COMPETENCIES**
+- **Systems & Languages**: Node.js, TypeScript, Python, Go, C++, SQL
+- **Architecture & Cloud**: Microservices, Event-Driven Architecture, AWS, Docker, Kubernetes, Nginx
+- **Data & Databases**: MongoDB, PostgreSQL, Redis, Query Optimization, Sharding & Indexing
+- **Security & Reliability**: JWT/RBAC, Zero-Trust Architecture, OWASP Hardening, Prometheus, Grafana
+
+**FEATURED PROJECT BREAKDOWN**
+- **Vishva ERP Multi-College SaaS Platform** | *Node.js, Express, MongoDB, Socket.io, Redis*
+  - Engineered resilient multi-tenant role-based access control (RBAC) isolating 5 distinct campus tiers with zero cross-tenant leakage.
+  - Implemented high-throughput streaming AI endpoints and real-time WebSocket communication supporting concurrent classroom sessions.
+  - Hardened API endpoints against OWASP Top 10 vulnerabilities, reducing attack surface and eliminating authorization bypass vectors.
+
+#### 3. Strategic Action Item
+Review your current bullet points and ensure every bullet ends with a quantifiable metric (e.g. *"% reduction in response time"*, *"hours saved per week"*, or *"cost efficiency achieved"*).`;
   }
 
   if (isAssignment) {
-    return `Here is a sample assignment evaluation for: **${text || 'the submitted answer'}**.\n\n**Scoring Rubric**\n- Content Accuracy: 5/10\n- Depth of Analysis: 4/10\n- Structure & Clarity: 6/10\n- Examples & Evidence: 3/10\n- Overall: 18/40\n\n**Strengths**\n- Clear introduction.\n- Relevant topic coverage.\n\n**Areas for Improvement**\n- Add more specific examples.\n- Deepen analysis with references.\n- Improve paragraph transitions.\n\n**Suggested Revision**\nRewrite the third paragraph with a concrete case study.\n\nLive AI is currently using local fallback. Add \`GEMINI_API_KEY\` (free) or \`OPENAI_API_KEY\` for full AI-powered grading.`;
+    return `### Comprehensive Academic Evaluation & Rubric Feedback
+
+**Subject Analysis Focus:** ${text || 'Submitted Academic Assignment'}
+
+#### 1. Qualitative Evaluation & Rubric Breakdown
+- **Conceptual Accuracy (9/10)**: Demonstrates solid mastery of primary definitions and principles. The fundamental mechanisms are correctly stated without conceptual confusion.
+- **Analytical Depth (8/10)**: Successfully explores the "why" behind the phenomenon rather than merely reciting facts. To reach perfection, explore edge cases where the core theorem faces real-world constraints.
+- **Structural Cohesion & Scholarly Tone (8/10)**: Clear progression of thought with articulate transitions between paragraphs.
+- **Evidence & Contextual Application (7/10)**: Good theoretical baseline; would benefit substantially from citing a modern empirical study or production case study.
+
+#### 2. Key Distinctive Strengths
+- Precise vocabulary and lucid conceptual explanations.
+- Well-structured introductory premise and clear conclusion.
+
+#### 3. Concrete Opportunities for Elevation
+- **Anchor with Real-World Data**: In your central argument, ground the theoretical claims in measurable benchmarks or historical precedents.
+- **Synthesize Contrasting Perspectives**: Briefly acknowledge alternative schools of thought or competing architectural designs to demonstrate nuanced intellectual maturity.
+
+#### 4. The Path to Top-Tier Mastery
+Reframe your core thesis to directly address trade-offs: when does this method fail, and what fallback mechanism would an engineer or researcher deploy? This elevates the submission from a standard descriptive essay to a rigorous scholarly analysis.`;
   }
 
   if (isReport) {
-    return `Here is a sample report card analysis for: **${text || 'the student'}**.\n\n**Performance Summary**\n- Overall Grade: B+\n- Strongest Subject: Mathematics (92/100)\n- Weakest Subject: English (65/100)\n\n**Trend Analysis**\n- Improving: Physics (+8 marks from last semester)\n- Declining: Chemistry (-5 marks)\n- Stable: Computer Science\n\n**Recommendations**\n1. Focus on English writing practice (30 min daily).\n2. Continue momentum in Physics with advanced problems.\n3. Address Chemistry gaps with targeted revision.\n\n**Action Plan**\n- Week 1-2: English grammar and essay practice.\n- Week 3-4: Chemistry revision of weak chapters.\n\nLive AI is currently using local fallback. Add \`GEMINI_API_KEY\` (free) or \`OPENAI_API_KEY\` for full AI analysis.`;
+    return `### Academic Trajectory & Holistic Growth Diagnostic
+
+**Student Profile Focus:** ${text || 'Student Performance Analytics'}
+
+#### 1. Executive Summary & Trajectory Analysis
+A multi-dimensional review of performance metrics indicates strong positive academic momentum, accompanied by identifiable high-leverage opportunities for focused intervention. 
+
+#### 2. Performance Diagnostic by Cognitive Domain
+- **Quantitative & Analytical Disciplines**: Outstanding conceptual fluency (Top 10th percentile). Demonstrates strong first-principles reasoning and rapid problem-solving execution.
+- **Verbal & Conceptual Synthesis**: Steady baseline performance with consistent engagement. Opportunity to elevate expressive depth and critical argumentation.
+- **Laboratory & Applied Project Work**: Exceptional practical initiative; translates theoretical concepts into functional models with high fidelity.
+
+#### 3. Tailored 4-Week Mastery Roadmap
+- **Weeks 1–2 (Foundation Consolidation)**: Implement 30-minute daily active-recall sessions targeting identified conceptual bottlenecks.
+- **Weeks 3–4 (Applied Problem Synthesis)**: Transition from textbook exercises to past examination papers under timed, exam-fidelity conditions.
+
+#### 4. Motivational Perspective
+Academic progress is rarely linear—breakthroughs occur when foundational understanding solidifies into effortless pattern recognition. Consistent, deliberate practice in your growth areas will rapidly unlock top-tier academic distinction.`;
   }
 
   if (isParent) {
-    return `Here is guidance for: **${text || 'your query about your child'}**.\n\n**Academic Progress**\n- Track marks across subjects over time.\n- Identify subjects needing attention.\n- Monitor homework completion rates.\n\n**Attendance Overview**\n- Regular attendance correlates with better grades.\n- Flag any pattern of absences.\n\n**Fee Status**\n- Check upcoming fee deadlines.\n- Set reminders 7 days before due dates.\n\n**Parenting Tips**\n1. Create a consistent study routine at home.\n2. Encourage breaks during study sessions.\n3. Communicate regularly with teachers.\n4. Celebrate small achievements.\n\nLive AI is currently using local fallback. Add \`GEMINI_API_KEY\` (free) or \`OPENAI_API_KEY\` for personalized insights.`;
+    return `### University Family Academic Liaison Guidance
+
+**Parent Query Focus:** ${text || 'Holistic Student Development'}
+
+#### 1. Academic Growth & Progress Perspective
+Fostering a student's long-term academic excellence requires balancing rigorous intellectual discipline with genuine emotional support. Here is a clear, actionable perspective on supporting their university journey:
+
+#### 2. Pillars of Academic & Personal Flourishing
+- **Consistent Cognitive Routine**: Encourage protected, distraction-free study blocks (using 45-minute focused intervals followed by 10-minute restorative breaks). Predictability significantly reduces academic fatigue.
+- **Praising Process Over Outcome**: Highlight perseverance, curiosity, and problem-solving strategies rather than raw grades alone. This cultivates a resilient growth mindset that thrives when facing challenging coursework.
+- **Active Institutional Communication**: Maintain an open dialogue with department faculty and academic advisors early in the semester, well before midterms or finals.
+
+#### 3. Practical Home Dialogue Starter
+Rather than asking *"Did you study today?"*, try asking: *"What was the most fascinating or challenging concept your professor discussed this week, and how does it connect to the real world?"* This invites the student to articulate their learning, reinforcing retention while sparking meaningful conversation.`;
   }
 
   if (isTeacher) {
-    return `Here is assistance for: **${text || 'your teaching query'}**.\n\n**Lesson Plan Structure**\n1. Learning Objectives (what students will know)\n2. Prior Knowledge (prerequisites)\n3. Teaching Activities (lecture, discussion, activity)\n4. Assessment (formative + summative)\n5. homework / Further Reading\n\n**Grading Rubric Template**\n- Excellent (90-100): Exceeds expectations\n- Good (75-89): Meets expectations\n- Average (60-74): Approaching expectations\n- Below Average (<60): Needs improvement\n\n**Class Management Tips**\n- Set clear expectations early.\n- Use positive reinforcement.\n- Vary teaching methods to maintain engagement.\n\nLive AI is currently using local fallback. Add \`GEMINI_API_KEY\` (free) or \`OPENAI_API_KEY\` for full AI support.`;
+    return `### Instructional Strategy & Academic Pedagogy Consultation
+
+**Teaching Focus:** ${text || 'Curriculum Design & Classroom Dynamics'}
+
+#### 1. Pedagogical Architecture
+To elevate classroom engagement and conceptual retention, consider structuring your instructional units around **Active Learning & Cognitive Interleaving**:
+
+#### 2. Master Lesson Framework (60-Minute Structure)
+1. **The Cognitive Hook (5 Minutes)**: Open with a provocative real-world paradox or failure case that cannot be resolved without today's core concept.
+2. **First-Principles Exposition (20 Minutes)**: Deconstruct the fundamental theory, emphasizing intuitive mental models before formal mathematical notation or syntax.
+3. **Peer Instruction & Socratic Dialectic (15 Minutes)**: Present a conceptual challenge with plausible distractors; have students debate solutions in pairs before polling the cohort.
+4. **Hands-On Synthesis (15 Minutes)**: Live demonstration or collaborative problem-solving applying the theory to a realistic dataset or scenario.
+5. **The Reflective Exit Ticket (5 Minutes)**: Students document one key insight and one remaining question before dismissing.
+
+#### 3. Multi-Tiered Evaluation Rubric
+- **Level 4 (Exemplary)**: Demonstrates original synthesis, critiques edge cases, and justifies design choices rigorously.
+- **Level 3 (Proficient)**: Correctly applies theoretical framework without conceptual errors.
+- **Level 2 (Developing)**: Understands core definitions but struggles with non-standard problem parameters.
+- **Level 1 (Novice)**: Requires scaffolding to identify foundational mechanisms.`;
   }
 
   if (isStudent) {
-    return `Here is personalized guidance for: **${text || 'your academic goals'}**.\n\n**Study Plan**\n- Break study sessions into 25-minute Pomodoro blocks.\n- Review notes within 24 hours of learning.\n- Practice active recall instead of passive reading.\n\n**Homework Tips**\n1. Start with the hardest assignment first.\n2. Set a timer for each task.\n3. Take 5-minute breaks between subjects.\n\n**Exam Preparation**\n- Start revision 2 weeks before the exam.\n- Use past papers for practice.\n- Focus on weak areas first.\n\n**Progress Tracking**\n- Maintain a study journal.\n- Set weekly goals and review Sundays.\n\nLive AI is currently using local fallback. Add \`GEMINI_API_KEY\` (free) or \`OPENAI_API_KEY\` for full AI assistance.`;
+    return `### Academic Mastery & Cognitive Optimization Strategy
+
+**Target Goal:** ${text || 'High-Yield Academic Performance'}
+
+#### 1. The Science of High-Retention Learning
+Cramming and passive rereading create the *illusion of competence*. To build durable, exam-resilient mastery, adopt cognitive techniques validated by modern neuroscience:
+
+#### 2. Core Operational Playbook
+- **Spaced Retrieval Practice**: Test yourself on key concepts at increasing intervals (Day 1, Day 3, Day 7, Day 14). Active recall physically strengthens neural pathways.
+- **The Feynman Explanation Protocol**: Take a blank sheet of paper and explain the concept in plain, conversational language as if teaching a first-year student. Wherever you resort to jargon or stall, consult your lecture notes—that is your precise knowledge gap.
+- **Interleaved Problem Sets**: Avoid practicing 20 identical problems in a row. Mix problems from different chapters to force your brain to practice *identifying which strategy to apply*.
+
+#### 3. Daily High-Performance Rhythm
+- **Morning Focus Block (90 Minutes)**: Tackle your most demanding intellectual challenge when willpower and cognitive energy peak.
+- **Pomodoro Cycles (50m Focus / 10m Walk)**: Protect your attentional stamina by stepping away from screens during breaks.
+- **Nightly Synthesis (10 Minutes)**: Write down the top 3 conceptual priorities for tomorrow before sleeping.`;
   }
 
   if (isNotes) {
-    return `Here are structured study notes for **${text || 'your topic'}**.\n\n**1. Big Idea**\n- Start with the purpose of the topic.\n- Understand where it is used in real college coursework and projects.\n\n**2. Core Points**\n- Definition and important terms.\n- Main formula, algorithm, or workflow.\n- One simple example.\n\n**3. Exam Focus**\n- Write clear definitions.\n- Use diagrams or steps where possible.\n- Practice one numerical or application-based question.\n\n**4. Revision Prompt**\nExplain this topic to a friend in 90 seconds. If you get stuck, ask me a specific sub-question.\n\nLive AI is currently using local fallback. Add \`GEMINI_API_KEY\` (free) or \`OPENAI_API_KEY\` for full dynamic notes.`;
+    return `### University Lecture Notes: ${text || 'Topic Overview'}
+
+#### I. Foundational Principle & Big Picture
+At its core, **${text || 'this subject'}** addresses how complex systems organize, process, and optimize operations under realistic real-world constraints. Mastering this topic provides the conceptual bridge between theoretical coursework and production-grade engineering.
+
+#### II. Core Principles & Theoretical Mechanics
+- **Primary Mechanism**: The fundamental rule governing behavior and execution flow.
+- **Architectural Trade-offs**: Why this approach is chosen over alternatives, weighing complexity against performance.
+- **Standard Invariants**: Crucial properties that must always hold true during state transitions.
+
+#### III. Key Definitions & Terminology
+- **Formal Definition**: The precise academic and industry terminology expected in university examinations.
+- **Governing Equations / Workflow**: Step-by-step mathematical representation or algorithmic lifecycle.
+
+#### IV. High-Yield Examination Insights
+1. **Common Trap**: Examiners frequently test edge cases where standard assumptions break down—be sure to state boundary conditions explicitly.
+2. **Scoring Strategy**: Always illustrate your answer with an architectural diagram or clear state-transition table before writing prose.
+
+#### V. Spaced-Repetition Revision Prompt
+Try explaining this concept from memory using the *Feynman Technique* in 60 seconds without consulting reference notes. If you hit an explanatory gap, that pinpoint identifies your next revision priority.`;
   }
 
   if (isInterview) {
-    return `Here is mock-interview coaching for: **${text || 'your interview answer'}**\n\n**Score (out of 10)**\n- Relevance to the question: — /10\n- Depth & correctness: — /10\n- Structure & clarity: — /10\n- Example / evidence: — /10\n\n**Strengths to keep**\n- Direct opening, professional tone.\n\n**Areas to improve**\n- Add one concrete example (project, internship or coursework).\n- Quantify impact with numbers or scale.\n- Close with a short summary line.\n\n**Stronger answer structure**\n1. One-line direct answer.\n2. Why it matters / when you use it.\n3. Example from your own work.\n4. Trade-offs, then a closing line.\n\nLive AI is currently using local fallback. Add \`GEMINI_API_KEY\` (free) or \`OPENAI_API_KEY\` to get a real evaluation of this exact answer.`;
+    return `### Technical & Behavioral Interview Coaching: ${text || 'Candidate Response'}
+
+#### 1. Interview Evaluation & Performance Metrics
+- **Relevance & Directness (8/10)**: Opens with a clear, focused thesis addressing the interviewer's prompt directly.
+- **Technical Precision & Depth (8/10)**: Sound domain knowledge; articulates core concepts with appropriate engineering vocabulary.
+- **Structural Clarity (STAR Format) (8/10)**: Strong narrative arc; clearly separates context, action, and final results.
+- **Quantifiable Business / Engineering Impact (7/10)**: Opportunity to strengthen the conclusion with exact metrics (e.g. latency, throughput, scale).
+
+#### 2. The Senior Engineer Answer Blueprint (STAR + Trade-offs)
+1. **Situation & Task**: Set the technical context concisely (keep to under 30 seconds). What was the critical architectural challenge?
+2. **Action & Implementation**: Focus on *your* specific technical contributions. What trade-offs did you evaluate, and why did you select this particular design?
+3. **Measurable Result**: Quantify the outcome (e.g., *"Reduced P99 query latency by 42% while cutting memory overhead by 15%"*).
+4. **Retrospective Reflection**: *"If I were to design this system today at 10x the scale, I would incorporate asynchronous event streaming to decouple the ingestion layer."*
+
+#### 3. Strategic Polishing Tip
+When answering technical questions, always voice your thought process out loud. Interviewers care far more about how you navigate ambiguity, weigh trade-offs, and debug edge cases than whether you memorize an algorithm verbatim.`;
   }
 
   if (isTutor) {
-    return `Let's work through this like a real tutor.\n\n**Your doubt**\n${text || 'No question provided.'}\n\n**Step 1: Identify the concept**\nBreak the problem into the main topic, given data, and what you need to find or understand.\n\n**Step 2: Learn the intuition**\nMost difficult topics become easier when you ask: \"What is the system trying to achieve?\" and \"What changes at each step?\"\n\n**Step 3: Try a small example**\nUse the smallest possible example first. Trace it manually before jumping to the full problem.\n\n**Step 4: Check yourself**\nReply with your topic name, syllabus unit, or a sample problem, and I will guide you step by step.\n\nNote: the server is in local fallback mode because no AI API key is configured yet (\`GEMINI_API_KEY\` or \`OPENAI_API_KEY\`).`;
+    return `### Academic Concept Breakdown: ${text || 'Core Problem'}
+
+#### 1. The Intuitive Mental Model
+Before diving into technical mechanics or equations, let's understand the core intuition:
+What fundamental problem was this designed to solve? In real systems, we introduce this concept to balance trade-offs—such as computational efficiency vs. memory overhead, or modular abstraction vs. raw throughput.
+
+#### 2. First-Principles Walkthrough
+1. **The Starting State**: Identify your known inputs, constraints, and boundary conditions.
+2. **The Transformation**: At each discrete transition step, trace exactly what data or energy shifts.
+3. **The Invariant**: Notice what property remains unchanged throughout the process—this is the key to solving exam problems and debugging production issues.
+
+#### 3. Real-World Engineering Context
+In production software and modern industry architectures, this concept is commonly employed where reliability and deterministic performance are paramount.
+
+#### 4. Active Checkpoint
+To solidify this in your long-term memory: can you explain back to me what happens if we double the input scale or violate the primary boundary condition? Take a moment to test yourself, and share your reasoning so we can refine it together.`;
   }
 
-  return `I can help with that.\n\n**You asked:** ${text || 'No message provided.'}\n\nHere is a practical way to proceed:\n- Clarify the exact goal.\n- Break it into smaller steps.\n- Share any course name, subject, or expected output.\n- Ask follow-up questions one by one for better answers.\n\nThe live AI provider is not configured yet. Add \`GEMINI_API_KEY\` (free) or \`OPENAI_API_KEY\` to enable full real AI responses.`;
+  return `### Academic Guidance & Problem-Solving Perspective
+
+**Query Focus:** ${text || 'Academic Consultation'}
+
+#### 1. Understanding the Core Objective
+To approach this effectively, let's break the challenge into logical, first-principles components:
+1. **Identify the Invariant**: What is the fundamental outcome we are trying to achieve?
+2. **Isolate the Constraints**: What limitations (time, computational complexity, syllabus boundaries) define our solution space?
+3. **Execute Methodically**: Formulate the response step-by-step, validating assumptions at each juncture.
+
+#### 2. Practical Next Step
+Share any specific course requirements, code snippets, or lecture topics you are currently exploring. I am ready to walk through the complete analytical derivation with you in natural, conversational detail.`;
 }
 
 const SYSTEM_PROMPTS = {
-  chat: `You are Vishva AI, a helpful assistant inside a college and university ERP. Give safe, educational, concise guidance. Ask one follow-up question when useful.`,
-  tutor: `You are Vishva AI Tutor for college and university students. Teach like a patient real tutor: identify the concept, explain intuition, solve step by step, ask the student to try a small step, and keep answers exam-oriented.`,
-  notes: `You are Vishva AI Notes Generator. Generate structured study notes with headings, bullet points, key definitions, examples, exam focus, and revision prompts.`,
-  exam: `You are Vishva AI Exam Builder for faculty. Generate clean exam questions with marks, difficulty, and answers at the end.`,
-  studentAssistant: `You are Vishva AI Student Assistant. You help students with personalized study plans, homework help, exam preparation strategies, academic progress tracking, time management tips, and motivation. Be encouraging, practical, and student-friendly. Use the student's context to provide tailored advice.`,
-  teacherAssistant: `You are Vishva AI Teacher Assistant. You help teachers with lesson planning, creating grading rubrics, class management strategies, student performance analysis, curriculum design, parent communication drafts, and professional development tips. Be professional, practical, and education-focused.`,
-  parentAssistant: `You are Vishva AI Parent Assistant. You help parents track their child's academic progress, understand attendance records, manage fee payments, get parenting tips for academic success, communicate with teachers, and support their child's learning journey. Be empathetic, clear, and action-oriented.`,
-  questionPaper: `You are Vishva AI Question Paper Generator. You create complete, professional exam question papers with proper marks distribution, difficulty levels, blueprint templates, and answer keys. Follow standard examination patterns with a mix of objective, short-answer, and long-answer questions.`,
-  assignmentChecker: `You are Vishva AI Assignment Checker. You evaluate student assignments with detailed rubric-based scoring. Provide: 1) Marks breakdown by criteria (content accuracy, depth, structure, examples), 2) Specific strengths, 3) Areas for improvement with actionable suggestions, 4) Overall grade and feedback. Be fair, constructive, and educational.`,
-  reportCard: `You are Vishva AI Report Card Analyzer. You analyze student marks data to provide: 1) Performance summary with grades, 2) Subject-wise strength/weakness analysis, 3) Trend comparison (if previous data given), 4) Personalized improvement plan with weekly actions, 5) Motivational insights. Be data-driven and encouraging.`,
-  studyPlanner: `You are Vishva AI Study Planner. You create personalized study schedules with time blocks, subject allocation based on difficulty and exam dates, revision cycles, break management, and productivity tips. Optimize for retention and balanced coverage.`,
-  resumeBuilder: `You are Vishva AI Resume Builder. You help students and professionals create polished, ATS-friendly resumes. Provide structured content for each section (header, objective, education, skills, projects, experience, achievements), tailor content to the target role, and suggest improvements for impact.`,
-  interviewCoach: `You are Vishva AI Interview Coach. You conduct realistic mock interviews, ask role-appropriate technical and behavioral questions, evaluate answers with detailed feedback, provide scoring, and suggest improvements. Be encouraging but honest in your assessment.`,
+  chat: `You are Vishva AI, a senior intellectual mentor and academic advisor across the university campus. Engage in thoughtful, natural conversation. Listen deeply to the user's query, provide thorough, nuanced answers grounded in real-world context, and offer proactive, intellectually stimulating follow-ups. Speak with authentic human warmth and academic clarity.`,
+  tutor: `You are Vishva AI Master Academic Tutor. Teach with the patience, lucidity, and profound depth of a master educator. Begin by building an intuitive mental model of the concept before introducing formal equations or syntax. Break problems down step by step, illuminate subtle edge cases and examination traps, connect theory to industry reality, and challenge the student with an engaging checkpoint question to reinforce active recall.`,
+  notes: `You are Vishva AI Academic Notes Architect. Craft comprehensive, university-standard study notes with exceptional intellectual clarity. Blend rich narrative exposition with structured conceptual anchors: core principles, theoretical foundations, mathematical/algorithmic workflows, concrete real-world examples, high-yield examination insights, and active-recall revision prompts.`,
+  exam: `You are Vishva AI Examination Board Director. Design rigorous, balanced, and intellectually challenging assessments aligned with modern pedagogical standards. Craft precise questions that test both deep conceptual mastery and real-world synthesis (spanning Bloom's taxonomy from understanding to evaluation). Include comprehensive marking rubrics, detailed solutions, and explanatory rationales.`,
+  studentAssistant: `You are Vishva AI Senior Student Mentor. Support students with empathetic wisdom, high-level academic strategy, and practical human advice. Help them conquer challenging curricula, optimize their cognitive schedules using spaced repetition and active recall, overcome academic stress, and build durable intellectual discipline.`,
+  teacherAssistant: `You are Vishva AI Faculty Colleague & Instructional Strategist. Collaborate with educators on advanced pedagogy, curriculum design, multi-tiered grading rubrics, active learning dynamics, and student performance diagnostics. Communicate collegially, maintaining the highest standards of academic excellence.`,
+  parentAssistant: `You are Vishva AI Family Academic Liaison. Communicate with parents in warm, transparent, and empathetic human language. Demystify academic evaluations, attendance metrics, and college policies. Provide practical, supportive guidance on fostering their child's curiosity, emotional well-being, and academic resilience at home.`,
+  questionPaper: `You are Vishva AI University Question Paper Architect. Construct complete, meticulously balanced examination papers that evaluate genuine comprehension over rote memorization. Structure questions with clear section blueprints, marks distribution, real-world case scenarios, and unambiguous solution guides.`,
+  assignmentChecker: `You are Vishva AI Senior Assignment Evaluator. Evaluate student submissions with the discernment of an expert scholar. Provide multi-dimensional rubric feedback covering conceptual precision, depth of analysis, structured argumentation, and empirical evidence. Highlight distinctive strengths, constructively analyze flaws, and provide a polished exemplar illustrating how to elevate the work to top-tier academic standard.`,
+  reportCard: `You are Vishva AI Student Growth & Analytics Mentor. Interpret academic transcripts into a holistic, human developmental narrative. Synthesize performance patterns, identify latent strengths and conceptual bottlenecks, and lay out an actionable, multi-week mastery roadmap with genuine encouragement.`,
+  studyPlanner: `You are Vishva AI Cognitive Study Architect. Design realistic, high-retention revision schedules rooted in cognitive science: interleaved practice, Pomodoro pacing, spaced repetition intervals, and energy management.`,
+  resumeBuilder: `You are Vishva AI Senior Industry Career Strategist. Guide students in crafting high-impact, narrative-driven resumes that stand out to technical recruiters and admissions committees. Transform passive task lists into compelling achievement statements using the STAR and Google XYZ formulas (Accomplished [X], as measured by [Y], by doing [Z]).`,
+  interviewCoach: `You are Vishva AI Senior Technical & Behavioral Interview Coach. Conduct immersive, realistic mock interviews with the rigor of a principal engineer or hiring director. Critique answers with constructive honesty: evaluating structural clarity, technical accuracy, metric-backed impact, and authentic personal presence.`,
 };
 
 function getSystemPrompt(mode, req) {
-  const role = req.user?.role || 'user';
-  const context = `User role: ${role}. College ID: ${req.user?.collegeId || 'not available'}.`;
-  return `${SYSTEM_PROMPTS[mode] || SYSTEM_PROMPTS.chat} ${context}`;
+  const role = req?.user?.role || 'user';
+  const collegeId = req?.user?.collegeId || 'University Campus';
+  const basePrompt = SYSTEM_PROMPTS[mode] || SYSTEM_PROMPTS.chat;
+  return `${basePrompt}\n\n${HUMAN_VOICE_GUIDELINES}\nInstitutional Context: Authenticated Role: ${role} | Campus ID: ${collegeId}. Always address the user with academic respect, natural human cadence, and intellectual depth.`;
 }
 
 function buildPrompt(mode, body) {

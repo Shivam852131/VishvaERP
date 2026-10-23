@@ -468,6 +468,10 @@ const gradeSubmission = asyncHandler(async (req, res) => {
   }
 
   const assignment = submission.assignmentId;
+  if (req.user.role === 'faculty' && String(assignment.facultyId) !== String(req.user._id)) {
+    return res.status(403).json({ success: false, message: 'Not authorized: You can only grade submissions for assignments you created' });
+  }
+
   if (numericMarks > assignment.totalMarks) {
     return res.status(400).json({
       success: false,
@@ -529,6 +533,10 @@ const updateAssignment = asyncHandler(async (req, res) => {
     return res.status(404).json({ success: false, message: 'Assignment not found' });
   }
 
+  if (req.user.role === 'faculty' && String(assignment.facultyId) !== String(req.user._id)) {
+    return res.status(403).json({ success: false, message: 'Not authorized: You can only modify assignments you created' });
+  }
+
   const { title, description, dueDate, totalMarks, maxMarks, isPublished, attachments } = req.body;
 
   if (title) assignment.title = title.trim();
@@ -565,6 +573,10 @@ const deleteAssignment = asyncHandler(async (req, res) => {
 
   if (!assignment) {
     return res.status(404).json({ success: false, message: 'Assignment not found' });
+  }
+
+  if (req.user.role === 'faculty' && String(assignment.facultyId) !== String(req.user._id)) {
+    return res.status(403).json({ success: false, message: 'Not authorized: You can only delete assignments you created' });
   }
 
   await Submission.deleteMany({ assignmentId: assignment._id });

@@ -6,13 +6,16 @@ const Attendance = require('../models/Attendance');
 const { emitDataChange } = require('../utils/realtime');
 const { logAudit } = require('../services/auditService');
 
+const crypto = require('crypto');
+
 function buildRoomName(subject, date = new Date()) {
   const datePart = date.toISOString().split('T')[0];
   const timePart = `${date.getHours()}${date.getMinutes()}${date.getSeconds()}`;
   const code = String(subject.code || subject.name || 'class')
     .replace(/[^a-z0-9]+/gi, '-')
     .replace(/^-+|-+$/g, '');
-  return `VishvaErp-${code}-${datePart}-${timePart}`;
+  const randomSuffix = crypto.randomBytes(8).toString('hex');
+  return `VishvaErp-${code}-${datePart}-${timePart}-${randomSuffix}`;
 }
 
 async function getStudentContext(user) {

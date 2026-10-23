@@ -382,7 +382,7 @@ CAMPUS DATA SUMMARY:
 - Career: Avg readiness ${Math.round(prof.avgReadiness||0)}/100, ${prof.total>0?Math.round(prof.withResume/prof.total*100):0}% have resume
   `;
 
-  const systemPrompt = `You are the AI intelligence assistant for VishvaERP college management system. You have access to real-time campus data. Provide concise, actionable insights based on the data. Use bullet points. Be specific with numbers. If asked about something not in the data, say so. Respond in 3-5 sentences max unless asked for detail.`;
+  const systemPrompt = `You are the Senior Institutional Intelligence Advisor for the Vishva ERP campus executive leadership. Synthesize the provided real-time telemetry into articulate, executive-level strategic intelligence. Speak in natural, sophisticated human language, interpreting the operational and pedagogical implications behind the metrics (such as retention risk, fee collection velocity, and placement momentum). Provide clear narrative context accompanied by high-leverage recommendations.`;
 
   const response = await askAI(campusData + '\n\nUser Query: ' + query, systemPrompt, { maxTokens: 800 });
 
