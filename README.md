@@ -134,10 +134,49 @@ The login and register pages render the real Google Identity Services button and
 3. Behaviour notes: existing accounts always sign in with their stored role; new accounts can be provisioned as `student`, `faculty`, `parent` or `collegeAdmin` (**not** `superadmin`), and a new `collegeAdmin` gets its own college plus trial subscription, exactly like normal registration.
 
 ## 🚢 Deployment URLs
-- **Landing:** https://vishvaerp.com/
-- **Login:** https://vishvaerp.com/pages/login.html
-- **API Health:** https://vishvaerp.com/api/health
-- **Health (DB):** https://vishvaerp.com/api/health/db
+- **Canonical host:** https://vishvaerp.vercel.app/ (Vercel project `vishvaerp`, Root Directory = `frontend`)
+- **Landing:** https://vishvaerp.vercel.app/
+- **Login:** https://vishvaerp.vercel.app/pages/login.html
+- **API Health:** https://vishvaerp.vercel.app/api/health
+- **Health (DB):** https://vishvaerp.vercel.app/api/health/db
+- **llms.txt:** https://vishvaerp.vercel.app/llms.txt
+- **llms-full.txt:** https://vishvaerp.vercel.app/llms-full.txt
+
+> `frontend/vercel.json` is the **live** Vercel config (rewrites `/api`, `/uploads`,
+> `/socket.io` to `https://vishvaerp.onrender.com`). Do not delete it, and never write it
+> with PowerShell `>` — that produces UTF-16, which Vercel cannot parse and fails the
+> deploy instantly. Use Node `fs.writeFileSync` or an editor that saves UTF-8.
+
+## 🔍 SEO, Sitemap & LLM Metadata
+
+- **Indexable pages (only these four):** `/`, `/pages/login.html`, `/pages/register.html`,
+  `/pages/legal/privacy.html`. The other ~86 app pages are login-gated and carry
+  `noindex, nofollow` by design — that is intentional, not a crawl error.
+- **Sitemap / robots:** `frontend/sitemap.xml` and `frontend/robots.txt` must always list
+  the canonical host above.
+- **Open Graph:** all four public pages carry the full 15-tag OG/Twitter set plus a JSON-LD
+  `@graph` (`Organization`, `WebSite`, and `SoftwareApplication` on home / `WebPage` on the
+  others). Social image: `frontend/icons/og-image.png` (1200×630, opaque).
+- **llms.txt / llms-full.txt:** curated LLM navigation map plus a full content digest for
+  retrieval. Keep them in sync with real product changes.
+- **Re-running the metadata codemods:** `node scripts/add-noindex-codemod.js` (idempotent;
+  re-applies `noindex` to app pages and respects the 4-page allowlist).
+
+### Bing Webmaster Tools verification
+
+Two ways to verify — pick one:
+
+1. **Zero-code (recommended):** in Bing Webmaster Tools choose **Import from Google Search
+   Console**. This reuses the Google ownership you already passed, so no new file or tag is
+   needed.
+2. **Direct meta tag:** get the 8-character code from Bing WMT → Settings → Ownership and
+   verification → Meta tag, then replace the instructional comment in each of the four
+   public pages with the real tag:
+   ```html
+   <meta name="msvalidate.01" content="YOUR-CODE-HERE">
+   ```
+   A placeholder is deliberately **not** shipped to production, because a fake
+   `msvalidate.01` would make Bing report "verification failed" instead of "not attempted".
 
 ## 🔐 Default Test Credentials
 

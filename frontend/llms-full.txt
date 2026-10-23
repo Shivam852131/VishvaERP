@@ -1,0 +1,305 @@
+# Vishva ERP — Full Content Digest
+
+This file is the complete, unabridged content reference for Vishva ERP. It exists so that
+AI assistants and retrieval systems can answer questions accurately without scraping the
+site or guessing. Companion file: `/llms.txt` (curated navigation map).
+
+Canonical site: https://vishvaerp.vercel.app
+Version: 2.1.0 · Academic year reference: 2026-27 · Last updated: 2026-10-23
+
+---
+
+## 1. What Vishva ERP is
+
+Vishva ERP is a **campus-grade operating system for modern institutions** — an enterprise,
+multi-tenant SaaS platform for colleges, universities, school groups, coaching centres and
+vocational training organisations.
+
+Tagline: *"Run your entire campus from one intelligent platform."*
+
+Vishva ERP unifies admissions, timetable planning, smart attendance, examinations, fee
+management, HR, logistics, and analytics into a single connected system. Headline claims on
+the landing page are: **Multi-campus ready · Role-based controls · Real-time workflows ·
+AI-powered**.
+
+**It is a multi-tenant SaaS, not a single college.** One backend serves many isolated
+institutions (tenants). Data, settings and portals are scoped per institution. A
+demonstration instance shows AY 2026-27, a campus command centre, live biometric telemetry
+from Gate FaceID terminals, turnstiles and lecture halls, and figures such as 50K+ active
+users, 200+ colleges and 99.9% uptime.
+
+Onboarding is positioned as: **Free to start · No credit card required · Setup in minutes.**
+
+---
+
+## 2. Product pillars
+
+1. **Dynamic Timetable Engine** — Live weekly grids, next-class signals, room movement,
+   faculty workload, and day-wise academic flow.
+2. **Consent-Based Smart Attendance** — Classroom geofences, teacher presence, live student
+   heartbeat, source badges, and manual override.
+3. **Real-Time AI Academic Layer** — AI Tutor, notes, exam support, risk summaries, and
+   action queues connected to ERP operations.
+4. **Institution Command Center** — One command centre for every campus decision; replaces
+   scattered spreadsheets with a live operating layer for academics, revenue, compliance
+   and student success. Includes admission-to-alumni lifecycle, role and tenant isolation,
+   and predictive action queues.
+5. **Executive operations** — Admission-to-alumni lifecycle (applications, enrollment,
+   sections, certificates, alumni records), role/tenant isolation, predictive action queues
+   (attendance shortages, fee risk, assignment backlog, leave load).
+
+---
+
+## 3. ERP modules (full descriptions)
+
+Core modules designed for repeated operational use, not brochure screens. Each area connects
+to the same data.
+
+| Module | Description |
+| --- | --- |
+| **Admissions & Enrollment** | Lead capture, application review, document checks, seat allocation, and parent accounts. |
+| **Attendance & Timetable** | Batch-wise schedules, shortage alerts, smart location, faculty workload, and live class links. |
+| **Exams & Results** | Subject plans, marks entry, grading, CGPA, bulk uploads, and parent/student views. |
+| **Fees & Finance** | Fee heads, dues, receipts, partial payments, reminders, collection charts, and risk lists. |
+| **HR, Leave & Payroll** | Staff profiles, leave approvals, department capacity, HR alerts, and payroll-ready records. |
+| **Hostel & Transport** | Rooms, routes, vehicles, allocations, capacity tracking, and transport communication. |
+| **Communications** | Notices, broadcasts, real-time messages, parent alerts, and audit trails. |
+| **AI Tools Hub** | Exam generation, notes, doubt solving, insight summaries, and admin automation. |
+
+### Connected operations
+
+Every department works from the same record. Admissions become student records, timetable
+slots become attendance sessions, results become parent visibility, and fees become finance
+dashboards.
+
+Flow: Admissions (applications to enrollment) → Academics (courses, timetable, classes) →
+Attendance (manual and smart signals) → Finance (dues, receipts, collections) → Analytics
+(risk, readiness, decisions).
+
+### Demonstration command centre figures
+
+The landing page renders a live-telemetry demo containing: active learners (live DB),
+attendance biometric sync percentage, fee collection ledger sync, active faculty & staff,
+and a real-time biometric & campus stream fed from Gate FaceID terminals, turnstiles and
+lecture halls. Each row carries Student/Faculty identity, department and PRN (e.g.
+`PRN-2026-CS108`), terminal mode (FaceID Gate, Smart RFID Swipe, Geofence QR, Biometric
+Scan), room/location with verification status, and a Present/Absent state. The fees engine
+shows transaction IDs (e.g. `TXN-BATCH-841`), course/semester categories, amounts, payment
+method (UPI, Net Banking) and settlement status, plus automated dues recovery: smart
+reminders before grace-period expiry sent over WhatsApp & SMS, and an auto-receipt
+generator issuing GST-compliant 80G tax receipts.
+
+---
+
+## 4. AI and analytics (full description)
+
+Vishva ERP combines live operational data with AI-assisted workflows so administrators see
+what needs attention before it becomes a problem.
+
+- **Attendance shortage prediction** before exam eligibility deadlines.
+- **Fee collection prioritization** by amount, due date, and student risk.
+- **AI-generated exam papers, notes, summaries, and student doubt support.**
+- **Executive reporting** across colleges, departments, roles, plans, and revenue.
+
+### Campus predictive intelligence model
+
+Deep-learning models tracking student retention, academic performance risk, and exam
+scheduling (model v4.2, shown as Active):
+
+- **Dropout Risk Prediction** — Identifies multi-factor risk (attendance drops + test score
+  declines + fee delays) roughly **60 days before semester exams**, with an advertised
+  96.4% early prediction accuracy.
+- **Conflict-Free Exam Timetabler** — Genetic-algorithm scheduling of examinations across
+  courses, invigilators and exam halls with zero overlap (demo: 480 courses, 140
+  invigilators, 36 halls, 100% conflict-free).
+- **Live AI Recommendations** — Remedial class suggestions for flagged students, plus
+  attendance/fee/timetable balancing hints.
+
+### AI Action Queue
+
+Generated from live ERP signals. Example rows: students below 75% attendance (notify mentors
+and parents today); INR 8.2L due in the next 7 days (send fee reminders to high-value
+pending accounts); departments needing timetable balancing where faculty workload exceeds
+the target threshold.
+
+---
+
+## 5. Role portals
+
+Different users, one connected source of truth. Every stakeholder gets the workspace they
+need while administrators keep centralised governance.
+
+| Role | Workspace |
+| --- | --- |
+| **Super Admin** | Tenant control, system health, plan management, broadcast tools, and audit logs. |
+| **College Admin** | Run admissions, faculty, students, fees, logistics, notices, courses, and HR. |
+| **Faculty** | Attendance, grading, live classes, assignments, leave, timetable, and AI support. |
+| **Student** | Courses, attendance, assignments, fees, live classes, library, results, and AI tutor. |
+| **Parent** | Ward profile, attendance, results, fee status, notices, and mentor messages. |
+
+---
+
+## 6. Security and governance
+
+Designed for institutional control, privacy, and auditability. Vishva ERP keeps sensitive
+academic, financial, and attendance data inside role-aware workflows. **Smart attendance is
+consent-based.**
+
+- Scoped access for Super Admin, College Admin, Faculty, Student and Parent users.
+- Full audit trail for attendance, fees, exams, notices, leaves and communication.
+- Privacy-first smart attendance with student consent and classroom geofence signals.
+- Tenant-aware data model for institutions, departments, users and role portals.
+
+Governance readiness panel: Enterprise · Role-based access Enabled · Smart attendance
+consent **Required** · Action auditability Live · Multi-campus separation Ready.
+
+---
+
+## 7. Deployment models
+
+Fit for single colleges and university networks. Use the same platform for a focused campus
+rollout or a larger multi-institution command layer.
+
+1. **College ERP** — For single colleges and autonomous institutions modernizing daily
+   administration. Core campus suite.
+2. **University Network** *(Recommended)* — For multi-campus groups needing central oversight
+   with isolated institutional workspaces. Advanced analytics and governance.
+3. **School & Training** — For schools, coaching, vocational academies, and training
+   organizations with role portals. Flexible academic operations.
+
+### Implementation path
+
+Move from setup to daily operations quickly — start with the core ERP and expand into
+intelligence, automation and campus-wide communication:
+
+1. **Create tenant** — Institution, admins, plan, departments.
+2. **Load master data** — Students, faculty, courses, batches.
+3. **Run operations** — Attendance, fees, notices, exams.
+4. **Connect users** — Student, faculty, parent portals.
+5. **Optimize with AI** — Insights, reports, recommendations.
+
+### Multi-platform access
+
+Built mobile-first. Whether you are a student checking attendance or an administrator
+approving leaves, the experience is fast, native and always in sync. One codebase means app
+and web always have the latest features. Role-based notifications deliver native alerts for
+fee dues, exam results and academic notices. End-to-end encryption with role-based access
+controls.
+
+Distribution channels:
+
+- **Instant Install (PWA)** — Best for browser-based native experience.
+- **Android APK** — Full native shell for power users (~15 MB, v2.1.0, updated Jul 2026).
+- **iOS** — Tap Share in Safari, then "Add to Home Screen" to install.
+
+Native shells are built from the same web codebase via Capacitor, so web updates reach
+mobile instantly.
+
+---
+
+## 8. Sign-in page (`/pages/login.html`)
+
+*"The complete ERP built for educational institutions — managing thousands of students,
+faculty, and operations in one place."*
+
+Feature bullets shown: role-based access for 5 user types · real-time timetable & slot
+allocation · live attendance command center · automated clash & conflict auditing ·
+multi-college support with complete isolation. Social proof strip: 50K+ active users,
+200+ colleges, 99.9% uptime, 24/7 support.
+
+Sign-in methods:
+
+- **Email / password** with optional "Remember me" and "Trust this device for 30 days".
+- **OTP over email** — 6-digit code with resend timer.
+- **OTP over phone / WhatsApp** — requires country code, e.g. `+919876543210`.
+- **Social OAuth** — Google, Microsoft, GitHub.
+
+The page includes a role prefill demo ("⚡ Quick Demo: Click any role below to prefill
+credentials") covering Super Admin, College Admin, Faculty, Student and Parent, plus
+rate-limit and invalid-credential messaging.
+
+---
+
+## 9. Registration page (`/pages/register.html`)
+
+Four-step wizard: **1 Role → 2 Details → 3 Security → 4 Verify**.
+
+1. **Select Your Role** — College Admin (manage your entire institution), Faculty (classes,
+   attendance, assignments, grades), Student (courses, assignments, results, campus
+   services), Parent (monitor your child's academic progress and fee status).
+2. **Personal Details** — Full name, phone number, college/institution name, email address,
+   optional referral code. Social signup via Microsoft/GitHub also offered.
+3. **Secure Your Account** — Password with validation rules: 8+ characters, uppercase,
+   lowercase, number, special character, passwords must match. Agreement to Terms of Service
+   and Privacy Policy required.
+4. **Verify Your Email** — 6-digit code with resend timer.
+
+Success state: *"Your college workspace is ready with a 30-day free trial."*
+
+---
+
+## 10. Privacy policy (`/pages/legal/privacy.html`)
+
+**Last Updated: June 27, 2026.**
+
+**1. Data Collection** — Vishva ERP collects institutional and personal data necessary for
+academic operations, including but not limited to names, emails, roll numbers, attendance
+records, and financial transactions.
+
+**2. Native App & Push Notifications** — The Android and iOS applications collect device
+tokens to provide real-time campus alerts. We do not track user location in the background.
+Location data is only used with explicit consent for smart classroom attendance.
+
+**3. Data Security** — We employ enterprise-grade encryption for all data at rest and in
+transit. Institutional data is isolated using multi-tenant architecture.
+
+---
+
+## 11. Public API surface
+
+Base: `https://vishvaerp.vercel.app/api/v1/`
+
+- `GET /api/health` — Unauthenticated service health check (service name, version, uptime).
+- `GET /api/health/db` — MongoDB connectivity check.
+- Versioned REST modules mirror the ERP areas: attendance, exams, exam-generator, ai,
+  assignments, timetable, fees, leave/hr, logistics, transport, hostel, complaints/grievance,
+  live-classes, academics, notices, public, auth, super-admin, college-admin, quizzes,
+  placements, library, inventory and others. All data endpoints require authentication and
+  are scoped to the caller's institution and role.
+- `/api/` (unversioned) aliases remain for backward compatibility; responses carry
+  `X-API-Deprecation` headers. Prefer `/api/v1/`.
+
+Live site configuration: the web tier is served by Vercel and rewrites `/api/*`, `/uploads/*`
+and `/socket.io/*` to the Node/Express + Socket.io backend, giving a single origin for
+browsers. The backend runs MongoDB (capped collections for real-time streams), Redis-backed
+job queues for analytics refresh, and JWT auth with refresh-token rotation.
+
+---
+
+## 12. Company positioning
+
+Footer: *"Enterprise academic management platform for colleges, universities, school groups,
+and training institutions."* © 2026 Vishva ERP. All rights reserved.
+
+Navigation on the public site: Features · Modules · Platform · Security · Pricing ·
+Sign In · Get Started.
+
+Call to action: *"Ready to modernize your campus? Bring admissions, academics, attendance,
+finance, HR, and analytics into one intelligent platform."* Free to start, no credit card
+required, setup in minutes.
+
+---
+
+## 13. Indexing policy (important for crawlers)
+
+Only four pages are intended for search-engine indexing:
+
+- `/` (home)
+- `/pages/login.html`
+- `/pages/register.html`
+- `/pages/legal/privacy.html`
+
+Every other page (dashboards, chat, AI hub, role portals) is login-gated and deliberately
+marked `noindex, nofollow`, because the content is not meaningful without an authenticated
+session. This is intentional, not a crawl error. Use this file and `/llms.txt` as the
+authoritative source for product capability questions.
