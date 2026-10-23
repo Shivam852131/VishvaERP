@@ -5,4 +5,4 @@ Disallow: /api/
 Disallow: /uploads/
 Disallow: /socket.io/
 
-Sitemap: https://vishvaerp.com/sitemap.xml
+Sitemap: https://vishvaerp.vercel.app/sitemap.xml
