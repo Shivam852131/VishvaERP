@@ -25,12 +25,17 @@ async function generate() {
     ['apple-touch-icon.png', 180],
     ['screenshot-wide.png', 1280, 720],
     ['screenshot-mobile.png', 720, 1280],
+    ['og-image.png', 1200, 630],
   ];
 
   for (const entry of outputs) {
     const [name, width, height = width] = entry;
     const outPath = path.join(iconsDir, name);
-    const pipeline = sharp(svg).resize(width, height, { fit: 'contain', background: '#0F172A' });
+    let pipeline = sharp(svg).resize(width, height, { fit: 'contain', background: '#0F172A' });
+    if (name === 'og-image.png') {
+      // Social scrapers render transparent letterboxing unpredictably - bake the background in.
+      pipeline = pipeline.flatten({ background: '#0F172A' });
+    }
     await pipeline.png().toFile(outPath);
     console.log(`Created ${name}`);
   }
