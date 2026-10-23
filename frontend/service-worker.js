@@ -1,6 +1,6 @@
 // Bump whenever cached shell assets change (e.g. /js/shared.js) so the
 // stale-while-revalidate cache cannot serve outdated code indefinitely.
-const CACHE_VERSION = 'vishva-erp-v4';
+const CACHE_VERSION = 'vishva-erp-v5';
 const APP_SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
