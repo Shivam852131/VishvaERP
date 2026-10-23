@@ -11,34 +11,79 @@ const BACKEND_ORIGIN = window.location.hostname.endsWith('vercel.app')
 const API_URL = BACKEND_ORIGIN ? `${BACKEND_ORIGIN}/api` : '/api';
 
 /* ─── API ─── */
+let _sharedRefreshPromise = null;
+
 const api = {
-  getToken() { return localStorage.getItem('erp_token'); },
-  setToken(token, user) {
+  getToken() { return localStorage.getItem('erp_token') || localStorage.getItem('token'); },
+  getRefreshToken() { return localStorage.getItem('erp_refresh_token') || localStorage.getItem('refreshToken'); },
+  setToken(token, user, refreshToken) {
+    if (!token) return;
     localStorage.setItem('erp_token', token);
-    localStorage.setItem('erp_user', JSON.stringify(user));
     localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify(user));
+    if (user) {
+      localStorage.setItem('erp_user', JSON.stringify(user));
+      localStorage.setItem('user', JSON.stringify(user));
+    }
+    if (refreshToken) {
+      localStorage.setItem('erp_refresh_token', refreshToken);
+      localStorage.setItem('refreshToken', refreshToken);
+    }
   },
   clearToken() {
-    ['erp_token','erp_user','token','user'].forEach(k => localStorage.removeItem(k));
+    ['erp_token','erp_user','erp_refresh_token','token','user','refreshToken'].forEach(k => localStorage.removeItem(k));
   },
   getUser() {
     const u = localStorage.getItem('erp_user') || localStorage.getItem('user');
     return u ? JSON.parse(u) : null;
   },
-  async request(endpoint, options = {}) {
+  async refreshToken() {
+    if (_sharedRefreshPromise) return _sharedRefreshPromise;
+    const refreshToken = this.getRefreshToken();
+    if (!refreshToken) return null;
+
+    _sharedRefreshPromise = (async () => {
+      try {
+        const res = await fetch(`${API_URL}/auth/refresh-token`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refreshToken }),
+        });
+        const data = await res.json();
+        if (res.ok && data.token) {
+          this.setToken(data.token, data.user || this.getUser(), data.refreshToken || refreshToken);
+          return data.token;
+        }
+      } catch (err) {
+        console.warn('[Session] Automatic token refresh failed:', err.message);
+      } finally {
+        _sharedRefreshPromise = null;
+      }
+      return null;
+    })();
+    return _sharedRefreshPromise;
+  },
+  async logout() {
+    const token = this.getToken();
+    try {
+      if (token) {
+        await fetch(`${API_URL}/auth/logout`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
+        });
+      }
+    } catch {}
+    this.clearToken();
+    window.location.href = '/pages/login.html';
+  },
+  async request(endpoint, options = {}, isRetry = false) {
     try {
       const headers = { 'Content-Type': 'application/json', ...options.headers };
-      const token = this.getToken() || localStorage.getItem('token');
+      let token = this.getToken();
       if (token) headers['Authorization'] = `Bearer ${token}`;
 
-      // Auto-serialize plain object bodies. Some pages pass a JSON string and
-      // some pass an object — fetch() would send objects as "[object Object]",
-      // which the JSON body parser rejects with a 400.
       let body = options.body;
       const isForm = typeof FormData !== 'undefined' && body instanceof FormData;
       if (isForm) {
-        // Let fetch set multipart boundary itself.
         if (!options.headers || (!options.headers['Content-Type'] && !options.headers['content-type'])) {
           delete headers['Content-Type'];
         }
@@ -56,9 +101,15 @@ const api = {
       try { data = await res.json(); } catch(e) { data = { message: 'Invalid response from server' }; }
       
       if (!res.ok) {
-        if (res.status === 401 && !endpoint.includes('/auth/')) {
+        // Transparent token refresh on 401
+        if (res.status === 401 && !isRetry && !endpoint.includes('/auth/login') && !endpoint.includes('/auth/register') && !endpoint.includes('/auth/refresh-token')) {
+          const newToken = await this.refreshToken();
+          if (newToken) {
+            return this.request(endpoint, { ...options, _isRetry: true }, true);
+          }
           this.clearToken();
-          window.location.href = '/pages/login.html';
+          const target = window.getSafeRedirectUrl ? window.getSafeRedirectUrl('/pages/login.html') : '/pages/login.html';
+          window.location.href = target;
           return;
         }
         if (res.status === 403 && data.code === 'SUBSCRIPTION_REQUIRED') {
@@ -69,7 +120,6 @@ const api = {
         }
         const errorMsg = data.message || data.errors?.[0]?.msg || `HTTP Error ${res.status}`;
         if (!options.silent) showToast(errorMsg, 'error');
-        // Mark as already-toasted so the outer catch does not show it twice.
         const httpError = new Error(errorMsg);
         httpError.toastShown = true;
         throw httpError;
@@ -85,43 +135,75 @@ const api = {
       throw error;
     }
   },
-  /* Convenience verbs — many pages call api.get/post/put/delete */
+  /* Convenience verbs */
   async get(endpoint, options = {}) {
     return this.request(endpoint, { ...options, method: 'GET' });
   },
   async post(endpoint, body, options = {}) {
-    return this.request(endpoint, { ...options, method: 'POST', body: body !== undefined ? JSON.stringify(body) : undefined });
+    return this.request(endpoint, { ...options, method: 'POST', body: body !== undefined ? body : undefined });
   },
   async put(endpoint, body, options = {}) {
-    return this.request(endpoint, { ...options, method: 'PUT', body: body !== undefined ? JSON.stringify(body) : undefined });
+    return this.request(endpoint, { ...options, method: 'PUT', body: body !== undefined ? body : undefined });
   },
   async delete(endpoint, options = {}) {
     return this.request(endpoint, { ...options, method: 'DELETE' });
   }
 };
 
+/* ─── MULTI-TAB SESSION SYNC ─── */
+window.addEventListener('storage', (event) => {
+  if ((event.key === 'erp_token' || event.key === 'token') && !event.newValue) {
+    if (!window.location.pathname.includes('/pages/login.html') && !window.location.pathname.includes('/pages/register.html')) {
+      window.location.href = '/pages/login.html';
+    }
+  }
+});
+
 /* ─── TOAST ALIAS ─── Legacy pages call toast(msg, type); delegate to showToast ─── */
 function toast(message, type = 'info', duration = 3500) {
   showToast(message, type, duration);
 }
 
-/* ─── HTML ESCAPE ─── Global so inline page scripts can use it; the live-*.js
-   bundles keep their IIFE-local copies and only adopt this if none exists. ─── */
+/* ─── HTML ESCAPE ─── */
 window.escapeHTML = window.escapeHTML || function escapeHTML(value) {
-  return String(value ?? '')
+  if (value === null || value === undefined) return '';
+  return String(value)
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+    .replace(/'/g, '&#39;')
+    .replace(/`/g, '&#96;');
+};
+
+/* ─── SAFE REDIRECT HELPER ─── */
+window.getSafeRedirectUrl = window.getSafeRedirectUrl || function getSafeRedirectUrl(target, fallback = '/pages/login.html') {
+  if (!target || typeof target !== 'string') return fallback;
+  const trimmed = target.trim();
+  if (/^(?:javascript|data|vbscript):/i.test(trimmed)) return fallback;
+  if (trimmed.startsWith('//') || trimmed.startsWith('/\\')) return fallback;
+  if (trimmed.startsWith('/')) return trimmed;
+  try {
+    const parsed = new URL(trimmed, window.location.origin);
+    if (parsed.origin === window.location.origin) {
+      return parsed.pathname + parsed.search + parsed.hash;
+    }
+  } catch {}
+  return fallback;
 };
 
 /* ─── ROUTE GUARD ─── */
 function requireAuth(allowedRoles) {
   const user = api.getUser();
-  if (!user) { window.location.href = '/pages/login.html'; return null; }
+  const token = api.getToken();
+  if (!user || !token) {
+    const target = window.getSafeRedirectUrl('/pages/login.html?redirect=' + encodeURIComponent(window.location.pathname + window.location.search));
+    window.location.href = target;
+    return null;
+  }
   if (Array.isArray(allowedRoles) && allowedRoles.length && !allowedRoles.includes(user.role)) {
-    window.location.href = '/pages/login.html'; return null;
+    window.location.href = '/pages/login.html';
+    return null;
   }
   return user;
 }
@@ -143,7 +225,7 @@ function guardCurrentPage() {
   return requireAuth(roles);
 }
 
-/* ─── TOAST NOTIFICATIONS (Advanced) ─── */
+/* ─── TOAST NOTIFICATIONS (XSS-Safe DOM construction) ─── */
 function showToast(message, type = 'info', duration = 3500) {
   let container = document.getElementById('toast-container');
   if (!container) {
@@ -162,16 +244,30 @@ function showToast(message, type = 'info', duration = 3500) {
   
   const toast = document.createElement('div');
   toast.className = `toast ${type} toast-animate`;
-  toast.innerHTML = `
-    <div class="toast-content">
-      <i class="fas ${icons[type] || icons.info}"></i>
-      <span>${message}</span>
-    </div>
-    <button class="toast-close" onclick="this.parentElement.remove()">
-      <i class="fas fa-times"></i>
-    </button>
-    <div class="toast-progress" style="animation-duration: ${duration}ms"></div>
-  `;
+
+  const content = document.createElement('div');
+  content.className = 'toast-content';
+
+  const icon = document.createElement('i');
+  icon.className = `fas ${icons[type] || icons.info}`;
+  content.appendChild(icon);
+
+  const span = document.createElement('span');
+  span.textContent = String(message ?? ''); // Safe DOM textContent prevents script execution
+  content.appendChild(span);
+  toast.appendChild(content);
+
+  const closeBtn = document.createElement('button');
+  closeBtn.className = 'toast-close';
+  closeBtn.setAttribute('aria-label', 'Close toast');
+  closeBtn.innerHTML = '<i class="fas fa-times"></i>';
+  closeBtn.onclick = () => toast.remove();
+  toast.appendChild(closeBtn);
+
+  const progress = document.createElement('div');
+  progress.className = 'toast-progress';
+  progress.style.animationDuration = `${duration}ms`;
+  toast.appendChild(progress);
   
   container.appendChild(toast);
   
@@ -210,12 +306,12 @@ function showConfirm(options) {
             <div style="width: 60px; height: 60px; margin: 0 auto 20px; background: ${c.bg}; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
               <i class="fas ${type === 'danger' ? 'fa-exclamation-triangle' : type === 'warning' ? 'fa-exclamation-triangle' : type === 'success' ? 'fa-check-circle' : 'fa-info-circle'}" style="font-size: 24px; color: ${c.icon};"></i>
             </div>
-            <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 8px; color: var(--text-primary);">${title}</h3>
-            <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 24px;">${message}</p>
+            <h3 style="font-size: 18px; font-weight: 700; margin-bottom: 8px; color: var(--text-primary);">${window.escapeHTML(title)}</h3>
+            <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 24px;">${window.escapeHTML(message)}</p>
             ${html}
             <div style="display: flex; gap: 12px; justify-content: center;">
-              <button class="btn btn-secondary" id="confirm-cancel">${cancelText}</button>
-              <button class="btn ${c.btn}" id="confirm-ok">${confirmText}</button>
+              <button class="btn btn-secondary" id="confirm-cancel">${window.escapeHTML(cancelText)}</button>
+              <button class="btn ${c.btn}" id="confirm-ok">${window.escapeHTML(confirmText)}</button>
             </div>
           </div>
         </div>

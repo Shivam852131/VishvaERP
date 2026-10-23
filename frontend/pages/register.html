@@ -759,6 +759,10 @@
   /* ========== STEP NAVIGATION ========== */
   function goToStep(step) {
     if (step === 2 && !selectedRole) { showToast('Please select a role first.', 'error'); return; }
+    if (step === 2 && (selectedRole === 'faculty' || selectedRole === 'superadmin')) {
+      showToast('Faculty and Super Admin accounts must be provisioned by institution administrators.', 'error');
+      return;
+    }
 
     document.querySelectorAll('.step-content').forEach(c => c.classList.remove('active'));
     document.getElementById(`step${step}`).classList.add('active');
@@ -788,6 +792,10 @@
 
   /* ========== ROLE SELECTION ========== */
   function selectRole(card, role) {
+    if (role === 'faculty') {
+      showToast('Faculty accounts are created directly by your College Administrator. Please contact your institution.', 'warning');
+      return;
+    }
     document.querySelectorAll('.role-card').forEach(c => c.classList.remove('selected'));
     card.classList.add('selected');
     selectedRole = role;

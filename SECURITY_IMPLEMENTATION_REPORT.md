@@ -96,9 +96,33 @@ All fixes were engineered to adhere to defense-in-depth principles while preserv
 
 ---
 
+### 3.5 Frontend Security Hardening & Session Lifecycle
+- **[frontend/js/api.js](file:///c:/Users/shiva/OneDrive/Desktop/vishva%20erp/frontend/js/api.js)**:
+  - **DOM XSS Defense**: Implemented `escapeHTML(str)` for complete sanitization of dynamic text and refactored `showToast()` to construct DOM nodes safely using `document.createElement` and `.textContent`.
+  - **Open-Redirect Shield**: Added `getSafeRedirectUrl(targetUrl, defaultUrl)` strictly enforcing single-slash relative routes or matching `window.location.origin`, completely blocking protocol-relative (`//evil.com`), backslash (`/\evil.com`), and `javascript:` URIs.
+  - **Pre-flight Token Expiry Check**: Implemented `isTokenExpired(token, bufferSeconds = 30)` to proactively detect impending access token expiration before dispatching API requests.
+  - **Silent Token Rotation & Concurrency Queue**: Transparently catches `401 Unauthorized` responses and silently requests a new access token via `api.refreshToken()`. Concurrent API calls reuse a single inflight refresh promise (`refreshPromise`) and failed requests are seamlessly replayed upon token renewal.
+  - **Multi-Tab Session Sync**: Automatically terminates all open browser tabs when logout occurs in any tab via `storage` event listener synchronization.
+  - **Explicit Server Session Revocation**: Updated `api.logout()` to issue an authenticated `POST /api/auth/logout` to the backend to immediately invalidate the user's `tokenVersion`.
+
+- **[frontend/js/shared.js](file:///c:/Users/shiva/OneDrive/Desktop/vishva%20erp/frontend/js/shared.js)**:
+  - Integrated `escapeHTML`, `getSafeRedirectUrl`, and sanitized dynamic modal contents (`title`, `message`, `confirmText`, `cancelText`) in `showConfirm()`.
+  - Hardened `requireAuth(allowedRoles)` route guard with safe redirect parameter handling.
+  - Added unified `api.refreshToken()`, `api.logout()`, and 401 retry interceptor.
+
+- **[frontend/pages/login.html](file:///c:/Users/shiva/OneDrive/Desktop/vishva%20erp/frontend/pages/login.html)**:
+  - Hardened `redirectToDashboard()` using `getSafeRedirectUrl(redirectParam)` to eliminate post-login open-redirect phishing vectors.
+
+- **[frontend/pages/register.html](file:///c:/Users/shiva/OneDrive/Desktop/vishva%20erp/frontend/pages/register.html)**:
+  - Restricted public role selection to `student` and `parent`. Blocked DOM manipulation attempts to submit privileged roles (`faculty`, `collegeAdmin`, `superadmin`).
+
+---
+
 ## 4. Verification Summary
 
-All implemented controls were exercised via the automated test suite [tests/security_verification.js](file:///c:/Users/shiva/OneDrive/Desktop/vishva%20erp/tests/security_verification.js):
-- Total Security Tests Executed: **11**
-- Tests Passed: **11 (100%)**
-- Regressions Detected: **0**
+All implemented controls were exercised via the comprehensive automated security test suites:
+- **Backend Security Tests ([tests/security_verification.js](file:///c:/Users/shiva/OneDrive/Desktop/vishva%20erp/tests/security_verification.js))**: **11 of 11 passing (100%)**
+- **Frontend Security Tests ([tests/frontend_security.test.js](file:///c:/Users/shiva/OneDrive/Desktop/vishva%20erp/tests/frontend_security.test.js))**: **9 of 9 passing (100%)**
+- **Combined Test Command**: `npm run test:security` — **20 of 20 tests passing (100%)**
+- **Regressions / Breaking Changes**: **0**
+

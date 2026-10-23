@@ -1085,13 +1085,27 @@
     const redirectUrl = params.get('redirect');
     const role = data.user?.role;
 
-    if (redirectUrl && redirectUrl.startsWith('/pages/')) {
-      window.location.href = redirectUrl;
-    } else if (role === 'collegeAdmin' && data.subscriptionActive === false) {
-      window.location.href = '/pages/college-admin/subscription.html';
-    } else {
-      window.location.href = roleRedirects[role] || roleRedirects['student'];
+    const defaultUrl = (role === 'collegeAdmin' && data.subscriptionActive === false)
+      ? '/pages/college-admin/subscription.html'
+      : (roleRedirects[role] || roleRedirects['student']);
+
+    function sanitizeRedirect(target, fallback) {
+      if (!target || typeof target !== 'string') return fallback;
+      const trimmed = target.trim();
+      if (/^(?:javascript|data|vbscript):/i.test(trimmed)) return fallback;
+      if (trimmed.startsWith('//') || trimmed.startsWith('/\\')) return fallback;
+      if (trimmed.startsWith('/pages/')) {
+        try {
+          const parsed = new URL(trimmed, window.location.origin);
+          if (parsed.origin === window.location.origin && parsed.pathname.startsWith('/pages/')) {
+            return parsed.pathname + parsed.search + parsed.hash;
+          }
+        } catch {}
+      }
+      return fallback;
     }
+
+    window.location.href = sanitizeRedirect(redirectUrl, defaultUrl);
   }
 
   // ═══════ EMAIL OTP ═══════
