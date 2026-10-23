@@ -146,6 +146,43 @@
   </div>
 
   <script>
+    /* ─── ANTI-CLICKJACKING (FRAME-BUSTING) ─── */
+    try {
+      if (window.top !== window.self) {
+        if (window.top.location.origin !== window.location.origin) {
+          window.top.location.href = window.self.location.href;
+        }
+      }
+    } catch {
+      try { window.top.location = window.self.location.href; } catch {}
+    }
+
+    function escapeHTML(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;')
+        .replace(/`/g, '&#96;');
+    }
+
+    function getSafeRedirectUrl(target, fallback = '/pages/student/dashboard.html') {
+      if (!target || typeof target !== 'string') return fallback;
+      const trimmed = target.trim();
+      if (/^(?:javascript|data|vbscript):/i.test(trimmed)) return fallback;
+      if (trimmed.startsWith('//') || trimmed.startsWith('/\\')) return fallback;
+      if (trimmed.startsWith('/')) return trimmed;
+      try {
+        const parsed = new URL(trimmed, window.location.origin);
+        if (parsed.origin === window.location.origin) {
+          return parsed.pathname + parsed.search + parsed.hash;
+        }
+      } catch {}
+      return fallback;
+    }
+
     const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
       ? '/api' : 'https://vishvaerp.onrender.com/api';
 
@@ -161,6 +198,7 @@
       student: '/pages/student/dashboard.html',
       parent: '/pages/parent/dashboard.html',
     };
+
 
     const channelInfo = {
       sms: { icon: 'fas fa-sms', color: '#2563EB', bg: '#DBEAFE', inputLabel: 'Phone Number', inputIcon: 'fas fa-phone', placeholder: '+919876543210', showRole: true },
@@ -259,9 +297,9 @@
         }
 
         document.getElementById('successInfo').innerHTML =
-          '<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px"><span class="channel-badge" style="background:' + channelInfo[selectedChannel].bg + ';color:' + channelInfo[selectedChannel].color + '"><i class="' + channelInfo[selectedChannel].icon + '"></i> ' + selectedChannel.toUpperCase() + '</span></div>' +
-          '<div style="font-size:13px;color:#475569"><strong>' + data.user.name + '</strong><br>' + (data.user.email || '') + (data.user.phone ? '<br>' + data.user.phone : '') + '</div>' +
-          '<div style="margin-top:8px"><span class="channel-badge" style="background:#D1FAE5;color:#065F46">Role: ' + data.user.role + '</span></div>';
+          '<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px"><span class="channel-badge" style="background:' + channelInfo[selectedChannel].bg + ';color:' + channelInfo[selectedChannel].color + '"><i class="' + channelInfo[selectedChannel].icon + '"></i> ' + escapeHTML(selectedChannel.toUpperCase()) + '</span></div>' +
+          '<div style="font-size:13px;color:#475569"><strong>' + escapeHTML(data.user.name) + '</strong><br>' + escapeHTML(data.user.email || '') + (data.user.phone ? '<br>' + escapeHTML(data.user.phone) : '') + '</div>' +
+          '<div style="margin-top:8px"><span class="channel-badge" style="background:#D1FAE5;color:#065F46">Role: ' + escapeHTML(data.user.role) + '</span></div>';
 
         showStep(3);
       } catch (e) {
@@ -281,11 +319,15 @@
 
     function goToDashboard() {
       if (userData) {
-        window.location.href = roleRedirects[userData.role] || '/pages/student/dashboard.html';
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirectParam = urlParams.get('redirect');
+        const defaultTarget = roleRedirects[userData.role] || '/pages/student/dashboard.html';
+        window.location.href = redirectParam ? getSafeRedirectUrl(redirectParam, defaultTarget) : defaultTarget;
       } else {
         window.location.href = '/pages/login.html';
       }
     }
+
 
     function startVerifyCountdown() {
       let seconds = 60;

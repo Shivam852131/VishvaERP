@@ -5,6 +5,17 @@
 
 
 
+/* ─── ANTI-CLICKJACKING (FRAME-BUSTING) ─── */
+try {
+  if (window.top !== window.self) {
+    if (window.top.location.origin !== window.location.origin) {
+      window.top.location.href = window.self.location.href;
+    }
+  }
+} catch {
+  try { window.top.location = window.self.location.href; } catch {}
+}
+
 const BACKEND_ORIGIN = window.location.hostname.endsWith('vercel.app')
   ? 'https://vishvaerp.onrender.com'
   : '';
@@ -35,6 +46,19 @@ const api = {
   getUser() {
     const u = localStorage.getItem('erp_user') || localStorage.getItem('user');
     return u ? JSON.parse(u) : null;
+  },
+  isTokenExpired(token, bufferSeconds = 30) {
+    if (!token || typeof token !== 'string') return true;
+    try {
+      const parts = token.split('.');
+      if (parts.length !== 3) return true;
+      const b64 = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+      const payload = JSON.parse(decodeURIComponent(atob(b64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')));
+      if (!payload.exp) return false;
+      return (payload.exp * 1000) <= (Date.now() + (bufferSeconds * 1000));
+    } catch {
+      return false;
+    }
   },
   async refreshToken() {
     if (_sharedRefreshPromise) return _sharedRefreshPromise;
@@ -79,6 +103,10 @@ const api = {
     try {
       const headers = { 'Content-Type': 'application/json', ...options.headers };
       let token = this.getToken();
+      if (token && this.isTokenExpired(token) && !endpoint.includes('/auth/')) {
+        const refreshed = await this.refreshToken();
+        if (refreshed) token = refreshed;
+      }
       if (token) headers['Authorization'] = `Bearer ${token}`;
 
       let body = options.body;
@@ -193,29 +221,63 @@ window.getSafeRedirectUrl = window.getSafeRedirectUrl || function getSafeRedirec
 };
 
 /* ─── ROUTE GUARD ─── */
+const ROLE_DASHBOARDS = {
+  superadmin: '/pages/super-admin/dashboard.html',
+  collegeAdmin: '/pages/college-admin/dashboard.html',
+  faculty: '/pages/faculty/dashboard.html',
+  student: '/pages/student/dashboard.html',
+  parent: '/pages/parent/dashboard.html'
+};
+
 function requireAuth(allowedRoles) {
   const user = api.getUser();
   const token = api.getToken();
   if (!user || !token) {
-    const target = window.getSafeRedirectUrl('/pages/login.html?redirect=' + encodeURIComponent(window.location.pathname + window.location.search));
-    window.location.href = target;
+    const currentTarget = window.location.pathname + window.location.search;
+    const safeTarget = window.getSafeRedirectUrl ? window.getSafeRedirectUrl(currentTarget, '/pages/student/dashboard.html') : currentTarget;
+    window.location.href = '/pages/login.html?redirect=' + encodeURIComponent(safeTarget);
     return null;
   }
-  if (Array.isArray(allowedRoles) && allowedRoles.length && !allowedRoles.includes(user.role)) {
-    window.location.href = '/pages/login.html';
+
+  // Pre-flight JWT expiration check
+  if (api.isTokenExpired && api.isTokenExpired(token, 0)) {
+    const refreshToken = api.getRefreshToken();
+    if (refreshToken) {
+      api.refreshToken().then(newToken => {
+        if (!newToken) {
+          api.clearToken();
+          window.location.href = '/pages/login.html';
+        }
+      });
+    } else {
+      api.clearToken();
+      window.location.href = '/pages/login.html';
+      return null;
+    }
+  }
+
+  const roleList = Array.isArray(allowedRoles) ? allowedRoles : (allowedRoles ? [allowedRoles] : []);
+  if (roleList.length > 0 && !roleList.includes(user.role)) {
+    const targetDashboard = ROLE_DASHBOARDS[user.role] || '/pages/login.html';
+    if (window.showToast) {
+      window.showToast('Access restricted: unauthorized role.', 'error');
+    }
+    window.location.href = targetDashboard;
     return null;
   }
   return user;
 }
 
 function getPageGuardRoles(path = window.location.pathname) {
-  const normalizedPath = String(path || '').replace(/\/+/g, '/');
-  if (normalizedPath.startsWith('/pages/super-admin/')) return ['superadmin'];
-  if (normalizedPath.startsWith('/pages/college-admin/')) return ['collegeAdmin'];
-  if (normalizedPath.startsWith('/pages/faculty/')) return ['faculty'];
-  if (normalizedPath.startsWith('/pages/student/')) return ['student'];
-  if (normalizedPath.startsWith('/pages/parent/')) return ['parent'];
-  if (normalizedPath.endsWith('/pages/messages.html')) return [];
+  const normalizedPath = String(path || '').replace(/\\/g, '/').toLowerCase();
+  if (normalizedPath.includes('/pages/super-admin/')) return ['superadmin'];
+  if (normalizedPath.includes('/pages/college-admin/')) return ['collegeAdmin'];
+  if (normalizedPath.includes('/pages/faculty/')) return ['faculty'];
+  if (normalizedPath.includes('/pages/student/')) return ['student'];
+  if (normalizedPath.includes('/pages/parent/')) return ['parent'];
+  if (normalizedPath.includes('/pages/messages.html') || normalizedPath.includes('/pages/ai-tools.html')) {
+    return ['superadmin', 'collegeAdmin', 'faculty', 'student', 'parent'];
+  }
   return null;
 }
 
@@ -224,6 +286,19 @@ function guardCurrentPage() {
   if (roles === null) return api.getUser();
   return requireAuth(roles);
 }
+
+// Early route guard execution to prevent UI flash or DOM data leakage before redirect
+(function runEarlyRouteGuard() {
+  try {
+    const roles = getPageGuardRoles();
+    if (roles !== null) {
+      const u = requireAuth(roles);
+      if (!u && document.documentElement) {
+        document.documentElement.style.display = 'none';
+      }
+    }
+  } catch {}
+})();
 
 /* ─── TOAST NOTIFICATIONS (XSS-Safe DOM construction) ─── */
 function showToast(message, type = 'info', duration = 3500) {
@@ -1602,11 +1677,22 @@ document.addEventListener('DOMContentLoaded', () => {
   const statsGrid = document.querySelector('.stats-grid');
   if (statsGrid) observer.observe(statsGrid);
 
-  document.querySelectorAll('.logout-btn').forEach(btn => {
-    btn.addEventListener('click', () => { 
-      api.clearToken(); 
-      window.location.href = '/pages/login.html'; 
-    });
+  // Harden all target="_blank" links with noopener noreferrer to prevent reverse tabnabbing
+  document.querySelectorAll('a[target="_blank"]').forEach(a => {
+    const rel = a.getAttribute('rel') || '';
+    const tokens = new Set(rel.split(/\s+/).filter(Boolean));
+    tokens.add('noopener');
+    tokens.add('noreferrer');
+    a.setAttribute('rel', Array.from(tokens).join(' '));
+  });
+
+  // Delegated secure logout across all buttons/links on every page
+  document.addEventListener('click', (e) => {
+    const target = e.target.closest('.logout-btn, [data-action="logout"], a[href$="/logout"], a[href$="#logout"]');
+    if (target) {
+      e.preventDefault();
+      api.logout();
+    }
   });
 });
 
@@ -1620,6 +1706,9 @@ window.openModal = openModal;
 window.closeModal = closeModal;
 window.createModal = createModal;
 window.requireAuth = requireAuth;
+window.getPageGuardRoles = getPageGuardRoles;
+window.guardCurrentPage = guardCurrentPage;
+window.isTokenExpired = (token, buffer) => api.isTokenExpired(token, buffer);
 window.api = api;
 window.animateCounter = animateCounter;
 window.animateAllCounters = animateAllCounters;

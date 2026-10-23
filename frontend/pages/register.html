@@ -693,6 +693,17 @@
 <div id="toast-container"></div>
 
 <script>
+  /* ─── ANTI-CLICKJACKING (FRAME-BUSTING) ─── */
+  try {
+    if (window.top !== window.self) {
+      if (window.top.location.origin !== window.location.origin) {
+        window.top.location.href = window.self.location.href;
+      }
+    }
+  } catch {
+    try { window.top.location = window.self.location.href; } catch {}
+  }
+
   const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? '/api'
     : 'https://vishvaerp.onrender.com/api';
@@ -1136,11 +1147,19 @@
   }
 
   function showToast(message, type = 'info') {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     const icon = type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
-    toast.innerHTML = `<i class="fas ${icon}" style="color:${type === 'success' ? '#10B981' : type === 'error' ? '#EF4444' : '#4F46E5'}"></i><span>${message}</span>`;
-    document.getElementById('toast-container').appendChild(toast);
+    const iconEl = document.createElement('i');
+    iconEl.className = `fas ${icon}`;
+    iconEl.style.color = type === 'success' ? '#10B981' : type === 'error' ? '#EF4444' : '#4F46E5';
+    const spanEl = document.createElement('span');
+    spanEl.textContent = String(message ?? '');
+    toast.appendChild(iconEl);
+    toast.appendChild(spanEl);
+    container.appendChild(toast);
     setTimeout(() => toast.remove(), 4000);
   }
 

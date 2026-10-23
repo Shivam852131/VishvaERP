@@ -25,8 +25,10 @@ RewriteRule ^ index.html [L]
   Header always set X-Frame-Options "SAMEORIGIN"
   Header always set X-XSS-Protection "1; mode=block"
   Header always set Referrer-Policy "strict-origin-when-cross-origin"
-  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+  Header always set Permissions-Policy "camera=(self), microphone=(self), geolocation=(), interest-cohort=()"
+  Header always set Content-Security-Policy "default-src 'self' https: data: blob: 'unsafe-inline' 'unsafe-eval'; connect-src 'self' https: wss: ws:; frame-src 'self' https://meet.jit.si https://api.razorpay.com; frame-ancestors 'self';"
 </IfModule>
+
 
 # Caching
 <IfModule mod_expires.c>

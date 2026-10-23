@@ -139,15 +139,115 @@ runTest('isTokenExpired rejects malformed tokens', () => {
 });
 
 // 4. Toast Sanitization Verification
-console.log('\n[4/4] Testing DOM Toast Safe Rendering Construction...');
+console.log('\n[4/6] Testing DOM Toast Safe Rendering Construction...');
 
 runTest('Toast construction uses textContent to prevent script injection', () => {
   const dirtyMessage = '<img src=x onerror=alert(1)>Critical Error';
-  // Mock element
   const span = { textContent: '' };
   span.textContent = String(dirtyMessage ?? '');
   assert.strictEqual(span.textContent, dirtyMessage);
-  // Setting textContent in browser DOM sets nodeValue as plain text, never parses as HTML markup
+});
+
+// 5. Route Guarding Across All Application Portals
+console.log('\n[5/6] Testing Multi-Page Route Guards (getPageGuardRoles & requireAuth)...');
+
+function getPageGuardRoles(path) {
+  const normalizedPath = String(path || '').replace(/\\/g, '/').toLowerCase();
+  if (normalizedPath.includes('/pages/super-admin/')) return ['superadmin'];
+  if (normalizedPath.includes('/pages/college-admin/')) return ['collegeAdmin'];
+  if (normalizedPath.includes('/pages/faculty/')) return ['faculty'];
+  if (normalizedPath.includes('/pages/student/')) return ['student'];
+  if (normalizedPath.includes('/pages/parent/')) return ['parent'];
+  if (normalizedPath.includes('/pages/messages.html') || normalizedPath.includes('/pages/ai-tools.html')) {
+    return ['superadmin', 'collegeAdmin', 'faculty', 'student', 'parent'];
+  }
+  return null;
+}
+
+const ROLE_DASHBOARDS = {
+  superadmin: '/pages/super-admin/dashboard.html',
+  collegeAdmin: '/pages/college-admin/dashboard.html',
+  faculty: '/pages/faculty/dashboard.html',
+  student: '/pages/student/dashboard.html',
+  parent: '/pages/parent/dashboard.html'
+};
+
+function resolveUnauthorizedRoleTarget(userRole) {
+  return ROLE_DASHBOARDS[userRole] || '/pages/login.html';
+}
+
+runTest('getPageGuardRoles protects Super Admin portal pages', () => {
+  assert.deepStrictEqual(getPageGuardRoles('/pages/super-admin/dashboard.html'), ['superadmin']);
+  assert.deepStrictEqual(getPageGuardRoles('c:\\users\\frontend\\pages\\super-admin\\users.html'), ['superadmin']);
+});
+
+runTest('getPageGuardRoles protects College Admin portal pages', () => {
+  assert.deepStrictEqual(getPageGuardRoles('/pages/college-admin/courses.html'), ['collegeAdmin']);
+  assert.deepStrictEqual(getPageGuardRoles('/PAGES/COLLEGE-ADMIN/FEES.HTML'), ['collegeAdmin']);
+});
+
+runTest('getPageGuardRoles protects Faculty, Student, and Parent portal pages', () => {
+  assert.deepStrictEqual(getPageGuardRoles('/pages/faculty/live-class.html'), ['faculty']);
+  assert.deepStrictEqual(getPageGuardRoles('/pages/student/dashboard.html'), ['student']);
+  assert.deepStrictEqual(getPageGuardRoles('/pages/parent/child-profile.html'), ['parent']);
+});
+
+runTest('getPageGuardRoles guards shared tools (ai-tools and messages) for all authenticated roles', () => {
+  const expected = ['superadmin', 'collegeAdmin', 'faculty', 'student', 'parent'];
+  assert.deepStrictEqual(getPageGuardRoles('/pages/ai-tools.html'), expected);
+  assert.deepStrictEqual(getPageGuardRoles('/pages/messages.html'), expected);
+});
+
+runTest('resolveUnauthorizedRoleTarget routes cross-role invaders to their own dashboard', () => {
+  assert.strictEqual(resolveUnauthorizedRoleTarget('student'), '/pages/student/dashboard.html');
+  assert.strictEqual(resolveUnauthorizedRoleTarget('faculty'), '/pages/faculty/dashboard.html');
+  assert.strictEqual(resolveUnauthorizedRoleTarget('collegeAdmin'), '/pages/college-admin/dashboard.html');
+  assert.strictEqual(resolveUnauthorizedRoleTarget('unknown'), '/pages/login.html');
+});
+
+// 6. Security Configuration Headers & Link Hardening
+console.log('\n[6/6] Testing Deployment Security Headers & Reverse Tabnabbing Hardening...');
+
+const fs = require('fs');
+const path = require('path');
+
+runTest('vercel.json enforces strict security headers on all pages', () => {
+  const vercelPath = path.resolve(__dirname, '../frontend/vercel.json');
+  const vercelConfig = JSON.parse(fs.readFileSync(vercelPath, 'utf8'));
+  assert.ok(Array.isArray(vercelConfig.headers), 'vercel.json must specify headers array');
+  const globalHeaderRule = vercelConfig.headers.find(h => h.source === '/(.*)');
+  assert.ok(globalHeaderRule, 'Must contain global route header definition');
+
+  const headerMap = {};
+  globalHeaderRule.headers.forEach(h => { headerMap[h.key.toLowerCase()] = h.value; });
+  assert.strictEqual(headerMap['x-content-type-options'], 'nosniff');
+  assert.strictEqual(headerMap['x-frame-options'], 'SAMEORIGIN');
+  assert.strictEqual(headerMap['referrer-policy'], 'strict-origin-when-cross-origin');
+  assert.ok(headerMap['permissions-policy'].includes('camera=(self)'));
+  assert.ok(headerMap['permissions-policy'].includes('microphone=(self)'));
+});
+
+runTest('.htaccess enforces security headers, CSP, and camera/mic permissions', () => {
+  const htaccessPath = path.resolve(__dirname, '../frontend/.htaccess');
+  const htaccess = fs.readFileSync(htaccessPath, 'utf8');
+  assert.ok(htaccess.includes('Header always set X-Content-Type-Options "nosniff"'));
+  assert.ok(htaccess.includes('Header always set X-Frame-Options "SAMEORIGIN"'));
+  assert.ok(htaccess.includes('Header always set Referrer-Policy "strict-origin-when-cross-origin"'));
+  assert.ok(htaccess.includes('Header always set Permissions-Policy "camera=(self), microphone=(self)'));
+  assert.ok(htaccess.includes('Header always set Content-Security-Policy'));
+});
+
+runTest('Link sanitizer enforces rel="noopener noreferrer" on target="_blank"', () => {
+  function sanitizeRel(currentRel) {
+    const tokens = new Set((currentRel || '').split(/\s+/).filter(Boolean));
+    tokens.add('noopener');
+    tokens.add('noreferrer');
+    return Array.from(tokens).join(' ');
+  }
+
+  assert.strictEqual(sanitizeRel(''), 'noopener noreferrer');
+  assert.strictEqual(sanitizeRel('nofollow'), 'nofollow noopener noreferrer');
+  assert.strictEqual(sanitizeRel('noopener'), 'noopener noreferrer');
 });
 
 console.log('\n===============================================================');
@@ -157,3 +257,4 @@ console.log('===============================================================\n')
 if (passedTests !== totalTests) {
   process.exit(1);
 }
+

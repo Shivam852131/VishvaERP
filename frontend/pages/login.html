@@ -770,6 +770,33 @@
 <div id="toast-container"></div>
 
 <script>
+  /* ─── ANTI-CLICKJACKING (FRAME-BUSTING) ─── */
+  try {
+    if (window.top !== window.self) {
+      if (window.top.location.origin !== window.location.origin) {
+        window.top.location.href = window.self.location.href;
+      }
+    }
+  } catch {
+    try { window.top.location = window.self.location.href; } catch {}
+  }
+
+  function getSafeRedirectUrl(target, fallback = '/pages/student/dashboard.html') {
+    if (!target || typeof target !== 'string') return fallback;
+    const trimmed = target.trim();
+    if (/^(?:javascript|data|vbscript):/i.test(trimmed)) return fallback;
+    if (trimmed.startsWith('//') || trimmed.startsWith('/\\')) return fallback;
+    if (trimmed.startsWith('/pages/')) {
+      try {
+        const parsed = new URL(trimmed, window.location.origin);
+        if (parsed.origin === window.location.origin && parsed.pathname.startsWith('/pages/')) {
+          return parsed.pathname + parsed.search + parsed.hash;
+        }
+      } catch {}
+    }
+    return fallback;
+  }
+
   // Robust API URL detection (supporting localhost, local IPs, file protocol fallback, and cloud)
   const BACKEND_ORIGIN = window.location.hostname.endsWith('vercel.app')
     ? 'https://vishvaerp.onrender.com'
@@ -841,19 +868,23 @@
       const user = JSON.parse(localStorage.getItem('erp_user') || localStorage.getItem('user'));
       const params = new URLSearchParams(window.location.search);
       const redirectUrl = params.get('redirect');
-      if (redirectUrl && redirectUrl.startsWith('/pages/')) {
-        window.location.href = redirectUrl;
-      } else if (user?.role && roleRedirects[user.role]) {
-        window.location.href = roleRedirects[user.role];
-      } else {
-        window.location.href = '/pages/student/dashboard.html';
-      }
+      const defaultUrl = (user?.role && roleRedirects[user.role]) ? roleRedirects[user.role] : '/pages/student/dashboard.html';
+      window.location.href = redirectUrl ? getSafeRedirectUrl(redirectUrl, defaultUrl) : defaultUrl;
     } catch (e) {
       window.location.href = '/pages/student/dashboard.html';
     }
   }
 
-  function logoutCurrentSession() {
+  async function logoutCurrentSession() {
+    const token = localStorage.getItem('erp_token') || localStorage.getItem('token');
+    try {
+      if (token) {
+        await fetch(`${API_URL}/auth/logout`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` }
+        });
+      }
+    } catch {}
     ['erp_token','erp_user','token','user','erp_refresh_token','refreshToken'].forEach(k => localStorage.removeItem(k));
     document.getElementById('activeSessionBanner').style.display = 'none';
     showToast('Signed out. You can now log into another account.', 'info');
@@ -981,14 +1012,19 @@
     document.getElementById('successMsg').classList.remove('show');
   }
 
-  // ── Toast ──
+  // ── Toast (Safe DOM textContent construction) ──
   function showToast(message, type = 'info') {
     const container = document.getElementById('toast-container');
     if (!container) return;
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
     const icon = type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle';
-    toast.innerHTML = `<i class="fas ${icon}"></i><span>${message}</span>`;
+    const iconEl = document.createElement('i');
+    iconEl.className = `fas ${icon}`;
+    const spanEl = document.createElement('span');
+    spanEl.textContent = String(message ?? '');
+    toast.appendChild(iconEl);
+    toast.appendChild(spanEl);
     container.appendChild(toast);
     setTimeout(() => toast.remove(), 4000);
   }
