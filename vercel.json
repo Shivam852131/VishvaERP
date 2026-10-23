@@ -20,6 +20,10 @@
       "dest": "/api/index.js"
     },
     {
+      "src": "/(google[0-9a-zA-Z_\\-]+\\.html)",
+      "dest": "/frontend/$1"
+    },
+    {
       "src": "/(.*\\.(js|css|png|jpg|jpeg|gif|svg|ico|woff2|ttf|eot|webp|json|webmanifest|xml|txt))",
       "dest": "/frontend/$1"
     },
