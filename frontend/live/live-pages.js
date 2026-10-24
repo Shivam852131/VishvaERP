@@ -611,7 +611,7 @@
   }
 
   async function initMessagesPage() {
-    const state = { conversations: [], users: [], activeId: null };
+    const state = { conversations: [], users: [], activeId: null, isLoading: true };
 
     const AVATAR_GRADIENTS = [
       'linear-gradient(135deg, #4F46E5, #6366F1)',
@@ -627,32 +627,84 @@
       return AVATAR_GRADIENTS[Math.abs(hash) % AVATAR_GRADIENTS.length];
     }
 
-    async function loadContacts() {
-      const [usersRes, convoRes] = await Promise.all([
-        window.api.request('/communications/users', { silent: true }),
-        window.api.request('/communications/conversations', { silent: true }),
-      ]);
-      state.users = usersRes.users || [];
-      state.conversations = convoRes.conversations || [];
-      renderContacts();
-      if (!state.activeId && state.conversations[0]) {
-        if (window.innerWidth > 768) {
-          await window.selectContact(String(state.conversations[0]._id), false);
-        }
-      }
+    function renderContactsSkeleton() {
+      setHTML('contactsList', `
+        <div style="padding:16px">
+          ${[1, 2, 3, 4, 5].map(() => `
+            <div style="display:flex;align-items:center;gap:12px;padding:12px 8px;border-bottom:1px solid var(--msg-card-border);opacity:0.55">
+              <div style="width:42px;height:42px;border-radius:13px;background:rgba(148,163,184,0.3);flex-shrink:0;animation:pulse 1.4s infinite"></div>
+              <div style="flex:1;min-width:0">
+                <div style="width:48%;height:13px;background:rgba(148,163,184,0.3);border-radius:6px;margin-bottom:6px"></div>
+                <div style="width:78%;height:11px;background:rgba(148,163,184,0.2);border-radius:4px"></div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `);
+    }
+
+    function getCombinedContacts() {
+      const userMap = new Map();
+      state.users.forEach((u) => {
+        userMap.set(String(u._id), { ...u });
+      });
+      state.conversations.forEach((c) => {
+        const id = String(c._id);
+        const existing = userMap.get(id) || { _id: c._id, name: c.name, role: c.role, email: '' };
+        userMap.set(id, { ...existing, conversation: c });
+      });
+
+      const list = Array.from(userMap.values());
+      list.sort((a, b) => {
+        const aTime = a.conversation?.lastMessageAt ? new Date(a.conversation.lastMessageAt).getTime() : 0;
+        const bTime = b.conversation?.lastMessageAt ? new Date(b.conversation.lastMessageAt).getTime() : 0;
+        if (aTime && bTime) return bTime - aTime;
+        if (aTime) return -1;
+        if (bTime) return 1;
+        return (a.name || '').localeCompare(b.name || '');
+      });
+      return list;
     }
 
     function renderContacts() {
-      const lookup = new Map(state.conversations.map((item) => [String(item._id), item]));
-      const query = (byId('contactSearch')?.value || '').toLowerCase();
-      const list = state.users
-        .map((user) => ({ ...user, conversation: lookup.get(String(user._id)) }))
-        .filter((item) => !query || item.name.toLowerCase().includes(query) || item.email.toLowerCase().includes(query));
+      const query = (byId('contactSearch')?.value || '').trim().toLowerCase();
+      const allContacts = getCombinedContacts();
+      const list = allContacts.filter((item) => {
+        if (!query) return true;
+        const name = (item.name || '').toLowerCase();
+        const email = (item.email || '').toLowerCase();
+        const role = (ROLE_LABELS[item.role] || item.role || '').toLowerCase();
+        return name.includes(query) || email.includes(query) || role.includes(query);
+      });
+
+      if (!list.length) {
+        setHTML('contactsList', `
+          <div style="padding:48px 20px;text-align:center">
+            <div style="width:52px;height:52px;border-radius:16px;background:var(--msg-primary-light);color:var(--msg-primary);display:inline-flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:12px">
+              <i class="fas fa-comment-dots"></i>
+            </div>
+            <div style="font-weight:700;font-size:14px;color:var(--msg-text-main);margin-bottom:4px">
+              ${query ? 'No matching contacts' : 'No conversations yet'}
+            </div>
+            <div style="font-size:12.5px;color:var(--msg-text-muted);line-height:1.45;margin-bottom:14px">
+              ${query ? 'Try searching by a different name or email' : 'Start a new conversation with campus staff, faculty, or peers'}
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="openModal('newMessageModal')">
+              <i class="fas fa-edit"></i> Start New Chat
+            </button>
+          </div>
+        `);
+        return;
+      }
 
       setHTML('contactsList', list.map((item) => {
         const unread = item.conversation?.unreadCount || 0;
         const active = String(item._id) === String(state.activeId);
         const grad = getAvatarGradient(item.name);
+        const roleName = ROLE_LABELS[item.role] || item.role || 'Member';
+        const snippet = item.conversation?.lastMessage || `Role: ${roleName}`;
+        const timeStr = item.conversation?.lastMessageAt ? formatDate(item.conversation.lastMessageAt, true) : '';
+
         return `
           <div class="contact-item ${unread ? 'unread' : ''}${active ? ' active' : ''}" id="contact-${item._id}" onclick="selectContact('${item._id}', true)">
             <div style="position:relative;flex-shrink:0">
@@ -662,20 +714,81 @@
             <div style="flex:1;min-width:0">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
                 <div class="contact-name">${escapeHTML(item.name)}</div>
+                ${timeStr ? `<span style="font-size:10px;color:var(--msg-text-muted);flex-shrink:0;margin-left:6px">${timeStr.split(',')[0]}</span>` : ''}
+              </div>
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <div class="contact-preview">${escapeHTML(snippet)}</div>
                 ${unread ? `<span class="contact-unread-badge">${unread}</span>` : ''}
               </div>
-              <div class="contact-preview">${escapeHTML(item.conversation?.lastMessage || item.email)}</div>
             </div>
           </div>
         `;
-      }).join('') || '<div class="empty-state" style="padding:30px 16px;text-align:center"><div class="empty-state-title" style="font-size:13px;color:#94A3B8">No conversations found</div></div>');
+      }).join(''));
+
+      renderModalContacts(allContacts);
+    }
+
+    function renderModalContacts(contacts) {
+      const container = byId('modalUserList');
+      if (!container) return;
+      if (!contacts.length) {
+        container.innerHTML = '<div style="padding:14px;text-align:center;font-size:12px;color:var(--msg-text-muted)">No users available</div>';
+        return;
+      }
+      container.innerHTML = contacts.slice(0, 15).map((u) => {
+        const grad = getAvatarGradient(u.name);
+        const role = ROLE_LABELS[u.role] || u.role || 'Member';
+        return `
+          <div class="contact-pick-item" onclick="pickModalContact('${u._id}', '${escapeHTML(u.name)}')">
+            <div class="avatar avatar-xs" style="background:${grad};color:white;width:30px;height:30px;font-size:12px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700">
+              ${(u.name[0] || 'U').toUpperCase()}
+            </div>
+            <div style="flex:1;min-width:0">
+              <div style="font-weight:700;font-size:12.5px;color:var(--msg-text-main);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escapeHTML(u.name)}</div>
+              <div style="font-size:11px;color:var(--msg-text-muted)">${escapeHTML(u.email || role)}</div>
+            </div>
+            <span class="badge" style="font-size:10px;padding:2px 6px">${role}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.pickModalContact = function (id, name) {
+      const toInput = byId('newMsgTo');
+      if (toInput) {
+        toInput.value = name;
+        toInput.dataset.selectedId = id;
+      }
+    };
+
+    async function loadContacts() {
+      try {
+        const [usersRes, convoRes] = await Promise.all([
+          window.api.request('/communications/users', { silent: true }).catch(() => ({ users: [] })),
+          window.api.request('/communications/conversations', { silent: true }).catch(() => ({ conversations: [] })),
+        ]);
+        state.users = usersRes?.users || [];
+        state.conversations = convoRes?.conversations || [];
+        state.isLoading = false;
+        renderContacts();
+
+        if (!state.activeId && state.conversations[0]) {
+          if (window.innerWidth > 768) {
+            await window.selectContact(String(state.conversations[0]._id), false);
+          }
+        }
+      } catch (err) {
+        console.warn('Error loading contacts:', err);
+        state.isLoading = false;
+        renderContacts();
+      }
     }
 
     window.selectContact = async function selectContact(id, fromUserTap = false) {
       state.activeId = id;
       renderContacts();
-      const contact = state.users.find((item) => String(item._id) === String(id));
-      if (!contact) return;
+      const allContacts = getCombinedContacts();
+      const contact = allContacts.find((item) => String(item._id) === String(id)) || { name: 'User', role: 'member' };
 
       const avatar = byId('chatAvatar');
       if (avatar) {
@@ -691,36 +804,46 @@
       setText('chatStatus', '● Online');
 
       const chatLayout = document.querySelector('.chat-layout');
-      if (chatLayout && (fromUserTap || window.innerWidth > 768)) {
+      if (chatLayout && (fromUserTap || window.innerWidth <= 768)) {
         chatLayout.classList.add('thread-active');
+        document.body.classList.add('chat-thread-open');
       }
 
-      const res = await window.api.request(`/communications/messages/${id}`, { silent: true });
-      setHTML('chatMessages', (res.messages || []).map((message) => {
-        const mine = String(message.senderId?._id || message.senderId) === String(getUserId(getUser()));
-        return `
-          <div class="msg-wrapper ${mine ? 'sent' : 'received'}">
-            <div class="msg-bubble ${mine ? 'sent' : 'received'}">
-              <div class="msg-text">${escapeHTML(message.content)}</div>
-              <div class="msg-time">
-                ${formatDate(message.createdAt, true)}
-                ${mine ? '<i class="fas fa-check-double msg-check-icon"></i>' : ''}
+      try {
+        const res = await window.api.request(`/communications/messages/${id}`, { silent: true });
+        const messages = res.messages || [];
+        setHTML('chatMessages', messages.map((message) => {
+          const mine = String(message.senderId?._id || message.senderId) === String(getUserId(getUser()));
+          return `
+            <div class="msg-wrapper ${mine ? 'sent' : 'received'}">
+              <div class="msg-bubble ${mine ? 'sent' : 'received'}">
+                <div class="msg-text">${escapeHTML(message.content)}</div>
+                <div class="msg-time">
+                  ${formatDate(message.createdAt, true)}
+                  ${mine ? '<i class="fas fa-check-double msg-check-icon"></i>' : ''}
+                </div>
               </div>
             </div>
+          `;
+        }).join('') || `
+          <div class="chat-empty-thread">
+            <div class="chat-empty-icon" style="background:${getAvatarGradient(contact.name)}">
+              <i class="fas fa-comments"></i>
+            </div>
+            <div class="chat-empty-title">Conversation with ${escapeHTML(contact.name)}</div>
+            <div class="chat-empty-desc">Send a message below to start chatting. Messages are delivered in real time.</div>
           </div>
-        `;
-      }).join('') || `
-        <div class="chat-empty-thread">
-          <div class="chat-empty-icon" style="background:${getAvatarGradient(contact.name)}">
-            <i class="fas fa-comments"></i>
-          </div>
-          <div class="chat-empty-title">Conversation with ${escapeHTML(contact.name)}</div>
-          <div class="chat-empty-desc">Send a message below to start chatting. Messages are delivered in real time.</div>
-        </div>
-      `);
+        `);
+      } catch (err) {
+        console.warn('Error fetching messages:', err);
+      }
+
       const area = byId('chatMessages');
       if (area) area.scrollTop = area.scrollHeight;
-      loadContacts();
+
+      // Mark unread as 0 locally
+      const convo = state.conversations.find((c) => String(c._id) === String(id));
+      if (convo) convo.unreadCount = 0;
     };
 
     window.backToContacts = function backToContacts() {
@@ -728,6 +851,7 @@
       if (chatLayout) {
         chatLayout.classList.remove('thread-active');
       }
+      document.body.classList.remove('chat-thread-open');
       state.activeId = null;
       renderContacts();
     };
@@ -736,40 +860,137 @@
       const input = byId('msgInput');
       const content = input?.value.trim();
       if (!content || !state.activeId) return;
-      await window.api.request('/communications/messages', {
-        method: 'POST',
-        body: JSON.stringify({ receiverId: state.activeId, content }),
-      });
+
+      const targetId = state.activeId;
       input.value = '';
-      await window.selectContact(state.activeId, true);
+
+      // Optimistically add to DOM
+      const area = byId('chatMessages');
+      if (area) {
+        const empty = area.querySelector('.chat-empty-thread');
+        if (empty) empty.remove();
+        const wrapper = document.createElement('div');
+        wrapper.className = 'msg-wrapper sent';
+        wrapper.innerHTML = `
+          <div class="msg-bubble sent">
+            <div class="msg-text">${escapeHTML(content)}</div>
+            <div class="msg-time">
+              Just now <i class="fas fa-clock msg-check-icon" style="opacity:0.6"></i>
+            </div>
+          </div>
+        `;
+        area.appendChild(wrapper);
+        area.scrollTop = area.scrollHeight;
+      }
+
+      try {
+        await window.api.request('/communications/messages', {
+          method: 'POST',
+          body: JSON.stringify({ receiverId: targetId, content }),
+        });
+        // Update contact lastMessage in state
+        const allContacts = getCombinedContacts();
+        const contact = allContacts.find((c) => String(c._id) === String(targetId));
+        if (contact) {
+          if (!contact.conversation) contact.conversation = { _id: targetId };
+          contact.conversation.lastMessage = content;
+          contact.conversation.lastMessageAt = new Date().toISOString();
+        }
+        renderContacts();
+      } catch (err) {
+        console.warn('Send message error:', err);
+        window.showToast?.('Failed to deliver message', 'error');
+      }
     };
 
     window.startConversation = async function startConversation() {
-      const to = byId('newMsgTo')?.value.trim().toLowerCase();
+      const toInput = byId('newMsgTo');
+      const selectedId = toInput?.dataset.selectedId;
+      const toVal = toInput?.value.trim().toLowerCase();
       const text = byId('newMsgText')?.value.trim();
-      if (!to || !text) {
-        window.showToast('Fill in all fields', 'error');
+
+      if (!toVal || !text) {
+        window.showToast?.('Please fill in recipient and message', 'error');
         return;
       }
-      const target = state.users.find((user) => user.email.toLowerCase() === to || user.name.toLowerCase().includes(to));
+
+      let target = null;
+      if (selectedId) {
+        target = state.users.find((u) => String(u._id) === String(selectedId));
+      }
       if (!target) {
-        window.showToast('User not found', 'error');
+        target = state.users.find((u) => (u.email || '').toLowerCase() === toVal || (u.name || '').toLowerCase().includes(toVal));
+      }
+
+      if (!target) {
+        window.showToast?.('Recipient user not found', 'error');
         return;
       }
-      await window.api.request('/communications/messages', {
-        method: 'POST',
-        body: JSON.stringify({ receiverId: target._id, content: text }),
-      });
-      byId('newMsgTo').value = '';
-      byId('newMsgText').value = '';
-      window.closeModal?.('newMessageModal');
-      await loadContacts();
-      await window.selectContact(String(target._id));
+
+      try {
+        await window.api.request('/communications/messages', {
+          method: 'POST',
+          body: JSON.stringify({ receiverId: target._id, content: text }),
+        });
+        if (toInput) {
+          toInput.value = '';
+          delete toInput.dataset.selectedId;
+        }
+        byId('newMsgText').value = '';
+        window.closeModal?.('newMessageModal');
+        await loadContacts();
+        await window.selectContact(String(target._id), true);
+      } catch (err) {
+        console.warn('Start conversation error:', err);
+        window.showToast?.('Failed to start conversation', 'error');
+      }
     };
+
+    // Socket.IO real-time message handler
+    ensureRealtime().then((socket) => {
+      if (!socket) return;
+      const handleIncomingMessage = (payload) => {
+        const msg = payload?.message;
+        if (!msg) return;
+        const senderId = String(msg.senderId?._id || msg.senderId);
+        const receiverId = String(msg.receiverId?._id || msg.receiverId);
+        const currentUserId = String(getUserId(getUser()));
+        const otherId = senderId === currentUserId ? receiverId : senderId;
+
+        if (state.activeId && String(state.activeId) === otherId) {
+          const area = byId('chatMessages');
+          if (area) {
+            const empty = area.querySelector('.chat-empty-thread');
+            if (empty) empty.remove();
+            const mine = senderId === currentUserId;
+            const wrapper = document.createElement('div');
+            wrapper.className = `msg-wrapper ${mine ? 'sent' : 'received'}`;
+            wrapper.innerHTML = `
+              <div class="msg-bubble ${mine ? 'sent' : 'received'}">
+                <div class="msg-text">${escapeHTML(msg.content)}</div>
+                <div class="msg-time">
+                  ${formatDate(msg.createdAt, true)}
+                  ${mine ? '<i class="fas fa-check-double msg-check-icon"></i>' : ''}
+                </div>
+              </div>
+            `;
+            area.appendChild(wrapper);
+            area.scrollTop = area.scrollHeight;
+          }
+        }
+        loadContacts();
+      };
+
+      socket.on('erp:message', handleIncomingMessage);
+      socket.on('message', handleIncomingMessage);
+    }).catch((e) => console.warn('Socket listener warning:', e));
 
     const search = byId('contactSearch');
     if (search) search.oninput = renderContacts;
     window.__erpLivePageRefresh = loadContacts;
+
+    // Show skeleton and fetch contacts immediately
+    renderContactsSkeleton();
     await loadContacts();
   }
 
@@ -2134,10 +2355,12 @@
   async function init() {
     const user = getUser();
     if (!user) return;
-    await ensureRealtime();
+    
+    // Non-blocking real-time socket connect
+    ensureRealtime().catch((err) => console.warn('Realtime socket non-blocking:', err));
 
     const path = window.location.pathname;
-    if (path.endsWith('/pages/messages.html')) {
+    if (path.includes('messages') || byId('chatLayout')) {
       await initMessagesPage();
       return;
     }

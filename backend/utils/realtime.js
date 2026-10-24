@@ -54,6 +54,10 @@ function emitDirectMessage(req, userIds = [], payload = {}) {
       timestamp: new Date().toISOString(),
       ...payload,
     });
+    emitToRoom(io, `user:${userId}`, 'message', {
+      timestamp: new Date().toISOString(),
+      ...payload,
+    });
   });
 }
 

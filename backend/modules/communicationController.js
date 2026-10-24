@@ -8,11 +8,18 @@ const getContactUsers = asyncHandler(async (req, res) => {
   const query = { _id: { $ne: req.user._id }, isActive: true };
 
   if (req.user.role !== 'superadmin') {
-    query.collegeId = req.user.collegeId;
+    let collegeId = req.user.collegeId;
+    if (!collegeId && req.user.role === 'parent' && req.user.children?.length) {
+      const child = await User.findById(req.user.children[0]).select('collegeId');
+      if (child?.collegeId) collegeId = child.collegeId;
+    }
+    if (collegeId) {
+      query.collegeId = collegeId;
+    }
   }
 
   const users = await User.find(query)
-    .select('name email role lastLogin isActive collegeId')
+    .select('name email role lastLogin isActive collegeId avatar')
     .sort({ name: 1 });
 
   res.json({ success: true, users });
@@ -22,15 +29,17 @@ const getConversations = asyncHandler(async (req, res) => {
   const messages = await Message.find({
     $or: [{ senderId: req.user._id }, { receiverId: req.user._id }],
   })
-    .populate('senderId', 'name role lastLogin')
-    .populate('receiverId', 'name role lastLogin')
+    .populate('senderId', 'name role lastLogin avatar')
+    .populate('receiverId', 'name role lastLogin avatar')
     .sort({ createdAt: -1 });
 
   const grouped = new Map();
 
   messages.forEach((message) => {
+    if (!message.senderId || !message.receiverId) return;
     const isSender = String(message.senderId._id) === String(req.user._id);
     const contact = isSender ? message.receiverId : message.senderId;
+    if (!contact || !contact._id) return;
     const key = String(contact._id);
 
     if (!grouped.has(key)) {
@@ -39,6 +48,7 @@ const getConversations = asyncHandler(async (req, res) => {
         name: contact.name,
         role: contact.role,
         lastLogin: contact.lastLogin,
+        avatar: contact.avatar,
         lastMessage: message.content,
         lastMessageAt: message.createdAt,
         unreadCount: 0,

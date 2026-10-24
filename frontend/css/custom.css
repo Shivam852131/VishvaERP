@@ -2071,10 +2071,7 @@ body.dark-mode .notif-footer-link, html.dark .notif-footer-link { color: #A5B4FC
   .card-header,
   .card-footer,
   .modal-header,
-  .modal-footer,
-  .chat-thread-header,
-  .chat-input-area,
-  .chat-header {
+  .modal-footer {
     flex-wrap: wrap;
   }
 
@@ -2139,9 +2136,6 @@ body.dark-mode .notif-footer-link, html.dark .notif-footer-link { color: #A5B4FC
 
   .search-bar,
   .topbar-search,
-  .chat-input-area input,
-  .chat-input-area textarea,
-  .chat-input-area .btn,
   .ai-input-area,
   .input-wrapper,
   .input-wrapper textarea {
@@ -2259,20 +2253,6 @@ body.dark-mode .notif-footer-link, html.dark .notif-footer-link { color: #A5B4FC
     width: auto;
     max-height: min(70vh, 520px);
     overflow-y: auto;
-  }
-
-  .chat-layout {
-    height: auto !important;
-    min-height: calc(100vh - var(--topbar-h) - var(--bottom-nav-h));
-    min-height: calc(100dvh - var(--topbar-h) - var(--bottom-nav-h));
-  }
-
-  .chat-sidebar {
-    display: block !important;
-    max-height: min(34vh, 280px);
-    overflow-y: auto;
-    border-right: 0 !important;
-    border-bottom: 1px solid var(--card-border);
   }
 
   .chat-thread {
