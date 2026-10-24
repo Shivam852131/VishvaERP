@@ -1920,8 +1920,7 @@ body.dark-mode .notif-footer-link, html.dark .notif-footer-link { color: #A5B4FC
   .erp-topbar { padding: 0 12px; }
   .erp-content { padding: 12px; }
   .page-command-strip { grid-template-columns: 1fr; }
-  .global-ai-launcher { right: 14px; bottom: 14px; padding: 10px 12px; }
-  .global-ai-launcher span { display: none; }
+  .global-ai-launcher { display: none !important; }
   .smart-presence-stats { grid-template-columns: 1fr; }
   .smart-attendance-hero, .smart-privacy-note { padding: 16px; }
 }
@@ -2416,12 +2415,6 @@ body.dark-mode .notif-footer-link, html.dark .notif-footer-link { color: #A5B4FC
   .lp-console-queue,
   .lp-console-health {
     padding: 14px;
-  }
-
-  .global-ai-launcher {
-    right: 12px;
-    left: 12px;
-    justify-content: center;
   }
 }
 
