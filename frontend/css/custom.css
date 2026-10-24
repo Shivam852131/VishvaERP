@@ -2129,15 +2129,13 @@ textarea.form-control { resize: vertical; min-height: 90px; }
     overflow-y: auto;
   }
 
-  .chat-layout,
-  .ai-layout {
+  .chat-layout {
     height: auto !important;
     min-height: calc(100vh - var(--topbar-h) - var(--bottom-nav-h));
     min-height: calc(100dvh - var(--topbar-h) - var(--bottom-nav-h));
   }
 
-  .chat-sidebar,
-  .ai-tools-panel {
+  .chat-sidebar {
     display: block !important;
     max-height: min(34vh, 280px);
     overflow-y: auto;
@@ -2145,22 +2143,17 @@ textarea.form-control { resize: vertical; min-height: 90px; }
     border-bottom: 1px solid var(--card-border);
   }
 
-  .chat-thread,
-  .ai-workspace {
+  .chat-thread {
     min-width: 0;
   }
 
   .chat-thread-header,
-  .chat-input-area,
-  .chat-header,
-  .quick-prompts,
-  .ai-input-area {
+  .chat-input-area {
     padding-left: 16px;
     padding-right: 16px;
   }
 
-  .chat-messages,
-  .chat-container {
+  .chat-messages {
     padding: 16px;
   }
 
@@ -5933,8 +5926,7 @@ button:focus-visible {
     max-height: calc(95vh - 120px);
   }
 
-  .chat-layout,
-  .ai-layout {
+  .chat-layout {
     height: 100vh;
     height: 100dvh;
   }
@@ -7039,41 +7031,11 @@ button:focus-visible {
   }
 }
 
-/* --- AI TOOLS PAGE --- */
-@media (max-width: 900px) {
-  .ai-layout {
-    grid-template-columns: 1fr;
-    height: auto;
-    min-height: calc(100dvh - 64px);
-  }
-
-  .ai-tools-panel {
-    display: block;
-    max-height: 260px;
-    border-right: none;
-    border-bottom: 1px solid #E2E8F0;
-    padding: 16px;
-  }
-
-  .chat-header {
-    padding: 14px 16px;
-  }
-
-  .chat-container {
-    padding: 16px;
-  }
-
-  .quick-prompts {
-    padding: 0 16px 10px;
-  }
-
-  .ai-input-area {
-    padding: 14px 16px;
-  }
-
-  .msg-box {
-    max-width: 100%;
-  }
+/* --- AI TOOLS PAGE BASELINE --- */
+.ai-layout {
+  min-height: calc(100vh - var(--topbar-h));
+  min-height: calc(100dvh - var(--topbar-h));
+  width: 100%;
 }
 
 /* --- SUBSCRIPTION PAGE --- */
