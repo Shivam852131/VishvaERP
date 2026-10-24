@@ -471,16 +471,34 @@
       if (u) {
         Object.assign(u, patch);
         localStorage.setItem('erp_user', JSON.stringify(u));
+        localStorage.setItem('user', JSON.stringify(u));
       }
     } catch (e) { /* non-fatal */ }
+
     // Reflect in sidebar/topbar chrome immediately.
-    if (patch.name) {
+    var currentName = (patch && patch.name) || (me && me.name) || '';
+    if (patch && patch.name) {
       var sn = document.getElementById('sidebar-user-name');
       if (sn) sn.textContent = patch.name;
-      var initialsEl = document.getElementById('sidebar-avatar');
-      if (initialsEl && !initialsEl.querySelector('img')) initialsEl.textContent = initials(patch.name).charAt(0);
+    }
+
+    if (patch && patch.avatar !== undefined) {
+      var sa = document.getElementById('sidebar-avatar');
       var ta = document.getElementById('topbar-avatar');
-      if (ta && !ta.querySelector('img')) ta.textContent = initials(patch.name).charAt(0);
+      if (sa) {
+        if (patch.avatar) {
+          sa.innerHTML = '<img src="' + esc(patch.avatar) + '" alt="' + esc(currentName) + '" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">';
+        } else {
+          sa.textContent = initials(currentName).charAt(0);
+        }
+      }
+      if (ta) {
+        if (patch.avatar) {
+          ta.innerHTML = '<img src="' + esc(patch.avatar) + '" alt="' + esc(currentName) + '" style="width:100%;height:100%;object-fit:cover;border-radius:inherit">';
+        } else {
+          ta.textContent = initials(currentName).charAt(0);
+        }
+      }
     }
   }
 
@@ -662,6 +680,19 @@
 
     window.addEventListener('erp:notification-received', function () {
       loadNotifications();
+    });
+
+    window.addEventListener('erp:data-change', async function (e) {
+      var detail = e && e.detail;
+      if (!detail || detail.resource === 'profile' || detail.resource === 'user' || detail.resource === 'users') {
+        try {
+          var res = await window.api.request('/auth/me', { silent: true });
+          if (res && res.user) {
+            me = res.user;
+            renderAll();
+          }
+        } catch (_) {}
+      }
     });
   }
 

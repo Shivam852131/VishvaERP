@@ -8,6 +8,7 @@ const { validationResult } = require('express-validator');
 const { sendPasswordResetEmail, sendWelcomeEmail, sendOTP: sendOTPEmail, sendVerificationOTP: sendVerificationOTPEmail } = require('../services/emailService');
 const { sendWhatsApp } = require('../services/whatsappService');
 const { logAudit } = require('../services/auditService');
+const { emitDataChange } = require('../utils/realtime');
 const { OAuth2Client } = require('google-auth-library');
 
 const crypto = require('crypto');
@@ -467,7 +468,27 @@ const updateProfile = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: 'No valid fields to update' });
   }
 
-  const user = await User.findByIdAndUpdate(req.user._id, updates, { new: true, runValidators: true });
+  const user = await User.findByIdAndUpdate(req.user._id, updates, { new: true, runValidators: true })
+    .populate('collegeId', 'name code logo')
+    .populate('parentId', 'name email phone');
+
+  logAudit(req, 'update_profile', 'user', { resourceId: user._id, description: `Profile updated: ${user.email}`, metadata: updates });
+
+  emitDataChange(req, {
+    userIds: [String(user._id)],
+    resource: 'profile',
+    action: 'updated',
+    user: {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      avatar: user.avatar,
+      phone: user.phone,
+      role: user.role,
+      collegeId: user.collegeId,
+    },
+  });
+
   res.json({ success: true, message: 'Profile updated', user });
 });
 
