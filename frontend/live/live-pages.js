@@ -598,6 +598,20 @@
   async function initMessagesPage() {
     const state = { conversations: [], users: [], activeId: null };
 
+    const AVATAR_GRADIENTS = [
+      'linear-gradient(135deg, #4F46E5, #6366F1)',
+      'linear-gradient(135deg, #059669, #10B981)',
+      'linear-gradient(135deg, #D97706, #F59E0B)',
+      'linear-gradient(135deg, #DB2777, #EC4899)',
+      'linear-gradient(135deg, #7C3AED, #8B5CF6)',
+      'linear-gradient(135deg, #0284C7, #38BDF8)',
+    ];
+    function getAvatarGradient(name) {
+      let hash = 0;
+      for (let i = 0; i < (name || '').length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+      return AVATAR_GRADIENTS[Math.abs(hash) % AVATAR_GRADIENTS.length];
+    }
+
     async function loadContacts() {
       const [usersRes, convoRes] = await Promise.all([
         window.api.request('/communications/users', { silent: true }),
@@ -607,7 +621,9 @@
       state.conversations = convoRes.conversations || [];
       renderContacts();
       if (!state.activeId && state.conversations[0]) {
-        await window.selectContact(String(state.conversations[0]._id));
+        if (window.innerWidth > 768) {
+          await window.selectContact(String(state.conversations[0]._id), false);
+        }
       }
     }
 
@@ -621,44 +637,84 @@
       setHTML('contactsList', list.map((item) => {
         const unread = item.conversation?.unreadCount || 0;
         const active = String(item._id) === String(state.activeId);
+        const grad = getAvatarGradient(item.name);
         return `
-          <div class="contact-item ${unread ? 'unread' : ''}${active ? ' active' : ''}" id="contact-${item._id}" onclick="selectContact('${item._id}')">
-            <div style="position:relative">
-              <div class="avatar avatar-sm" style="width:40px;height:40px">${item.name[0]}</div>
+          <div class="contact-item ${unread ? 'unread' : ''}${active ? ' active' : ''}" id="contact-${item._id}" onclick="selectContact('${item._id}', true)">
+            <div style="position:relative;flex-shrink:0">
+              <div class="avatar avatar-sm contact-avatar" style="background:${grad};color:white">${(item.name[0] || 'U').toUpperCase()}</div>
+              <span class="contact-online-dot"></span>
             </div>
             <div style="flex:1;min-width:0">
-              <div style="display:flex;justify-content:space-between;align-items:center">
-                <div style="font-weight:700;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item.name}</div>
-                ${unread ? `<span style="background:#4F46E5;color:white;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px">${unread}</span>` : ''}
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px">
+                <div class="contact-name">${escapeHTML(item.name)}</div>
+                ${unread ? `<span class="contact-unread-badge">${unread}</span>` : ''}
               </div>
-              <div style="font-size:11px;color:#64748B;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item.conversation?.lastMessage || item.email}</div>
+              <div class="contact-preview">${escapeHTML(item.conversation?.lastMessage || item.email)}</div>
             </div>
           </div>
         `;
-      }).join('') || '<div class="empty-state"><div class="empty-state-title">No conversations yet</div></div>');
+      }).join('') || '<div class="empty-state" style="padding:30px 16px;text-align:center"><div class="empty-state-title" style="font-size:13px;color:#94A3B8">No conversations found</div></div>');
     }
 
-    window.selectContact = async function selectContact(id) {
+    window.selectContact = async function selectContact(id, fromUserTap = false) {
       state.activeId = id;
       renderContacts();
       const contact = state.users.find((item) => String(item._id) === String(id));
       if (!contact) return;
-      setText('chatAvatar', contact.name[0]);
+
+      const avatar = byId('chatAvatar');
+      if (avatar) {
+        avatar.textContent = (contact.name[0] || 'U').toUpperCase();
+        avatar.style.background = getAvatarGradient(contact.name);
+      }
       setText('chatName', contact.name);
-      setText('chatStatus', ROLE_LABELS[contact.role] || contact.role);
+      const roleBadge = byId('chatRoleBadge');
+      if (roleBadge) {
+        roleBadge.textContent = ROLE_LABELS[contact.role] || contact.role;
+        roleBadge.style.display = 'inline-block';
+      }
+      setText('chatStatus', '● Online');
+
+      const chatLayout = document.querySelector('.chat-layout');
+      if (chatLayout && (fromUserTap || window.innerWidth > 768)) {
+        chatLayout.classList.add('thread-active');
+      }
+
       const res = await window.api.request(`/communications/messages/${id}`, { silent: true });
       setHTML('chatMessages', (res.messages || []).map((message) => {
         const mine = String(message.senderId?._id || message.senderId) === String(getUserId(getUser()));
         return `
           <div class="msg-wrapper ${mine ? 'sent' : 'received'}">
-            <div class="msg-bubble ${mine ? 'sent' : 'received'}">${message.content}</div>
-            <div class="msg-time">${formatDate(message.createdAt, true)}</div>
+            <div class="msg-bubble ${mine ? 'sent' : 'received'}">
+              <div class="msg-text">${escapeHTML(message.content)}</div>
+              <div class="msg-time">
+                ${formatDate(message.createdAt, true)}
+                ${mine ? '<i class="fas fa-check-double msg-check-icon"></i>' : ''}
+              </div>
+            </div>
           </div>
         `;
-      }).join('') || '<div class="empty-state"><div class="empty-state-title">No messages yet</div></div>');
+      }).join('') || `
+        <div class="chat-empty-thread">
+          <div class="chat-empty-icon" style="background:${getAvatarGradient(contact.name)}">
+            <i class="fas fa-comments"></i>
+          </div>
+          <div class="chat-empty-title">Conversation with ${escapeHTML(contact.name)}</div>
+          <div class="chat-empty-desc">Send a message below to start chatting. Messages are delivered in real time.</div>
+        </div>
+      `);
       const area = byId('chatMessages');
       if (area) area.scrollTop = area.scrollHeight;
       loadContacts();
+    };
+
+    window.backToContacts = function backToContacts() {
+      const chatLayout = document.querySelector('.chat-layout');
+      if (chatLayout) {
+        chatLayout.classList.remove('thread-active');
+      }
+      state.activeId = null;
+      renderContacts();
     };
 
     window.sendMessage = async function sendMessage() {
@@ -670,7 +726,7 @@
         body: JSON.stringify({ receiverId: state.activeId, content }),
       });
       input.value = '';
-      await window.selectContact(state.activeId);
+      await window.selectContact(state.activeId, true);
     };
 
     window.startConversation = async function startConversation() {

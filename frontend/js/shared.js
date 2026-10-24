@@ -964,10 +964,19 @@ function initAdvancedNavbar() {
   if (isMobileViewport() && !document.querySelector('.mobile-bottom-nav') && user) {
     const bottomNav = document.createElement('nav');
     bottomNav.className = 'mobile-bottom-nav';
-    const rolePath = user.role.replace('Admin', '-admin').toLowerCase();
+    const getRoleFolder = (role) => {
+      if (!role) return 'student';
+      const r = String(role).toLowerCase();
+      if (r.includes('super')) return 'super-admin';
+      if (r.includes('college')) return 'college-admin';
+      if (r.includes('faculty') || r.includes('teacher')) return 'faculty';
+      if (r.includes('parent')) return 'parent';
+      return 'student';
+    };
+    const roleFolder = getRoleFolder(user.role);
 
     bottomNav.innerHTML = `
-      <a href="/pages/${rolePath}/dashboard.html" class="bottom-nav-link ${window.location.pathname.includes('dashboard') ? 'active' : ''}">
+      <a href="/pages/${roleFolder}/dashboard.html" class="bottom-nav-link ${window.location.pathname.includes('dashboard') ? 'active' : ''}">
         <i class="fas fa-home"></i>
         <span>Home</span>
       </a>
@@ -979,7 +988,7 @@ function initAdvancedNavbar() {
         <i class="fas fa-brain"></i>
         <span>AI Tutor</span>
       </a>
-      <a href="/pages/${rolePath}/settings.html" class="bottom-nav-link ${window.location.pathname.includes('settings') ? 'active' : ''}">
+      <a href="/pages/${roleFolder}/profile.html" class="bottom-nav-link ${window.location.pathname.includes('profile') ? 'active' : ''}">
         <i class="fas fa-user-circle"></i>
         <span>Profile</span>
       </a>
