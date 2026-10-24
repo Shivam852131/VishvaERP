@@ -327,7 +327,12 @@
         await loadScript(`${realtimeOrigin}/socket.io/socket.io.js`);
       }
 
-      const socket = window.io(realtimeOrigin, { transports: ['websocket', 'polling'] });
+      const token = getToken();
+      const socket = window.io(realtimeOrigin, {
+        auth: { token },
+        query: { token },
+        transports: ['websocket', 'polling'],
+      });
       socket.on('connect', () => {
         const userId = getUserId(user);
         socket.emit('join_room', `role:${user.role}`);
@@ -336,6 +341,16 @@
       });
       socket.on('platform_notice', (payload) => {
         window.showToast?.(payload?.title || payload?.message || 'Platform update received', 'info');
+      });
+      socket.on('notification', () => {
+        if (window.erpNotifications?.fetch) {
+          window.erpNotifications.fetch(true);
+        }
+      });
+      socket.on('erp:notification', () => {
+        if (window.erpNotifications?.fetch) {
+          window.erpNotifications.fetch(true);
+        }
       });
       socket.on('erp:data-change', scheduleRefresh);
       socket.on('erp:message', (payload) => {
@@ -780,11 +795,6 @@
     const todayClasses = (timetableRes.timetable || []).filter((item) => item.dayOfWeek === getCurrentWeekday()).sort((a, b) => a.startTime.localeCompare(b.startTime));
     const profile = profileRes.profile || {};
     const student = profile.student || me;
-    const notifications = [];
-    if (pendingFees[0]) notifications.push({ title: 'Fee Deadline Alert', message: `Next due ${formatDate(pendingFees[0].dueDate)} • ${formatMoney(Math.max(Number(pendingFees[0].amount || 0) - Number(pendingFees[0].paidAmount || 0), 0))}` });
-    if (pendingAssignments) notifications.push({ title: 'Assignment Due', message: `${pendingAssignments} assignment(s) pending submission` });
-    if ((noticesRes.notices || [])[0]) notifications.push({ title: noticesRes.notices[0].title, message: noticesRes.notices[0].content });
-
     setText('welcomeMsg', `What's up, ${me.name?.split(' ')[0] || 'Student'}!`);
     setText('sidebar-user-name', me.name || 'Student');
     const sidebarRole = document.querySelector('.sidebar-user-role');
@@ -794,11 +804,8 @@
     if (statValues[1]) statValues[1].textContent = resultsRes.cgpa || 'N/A';
     if (statValues[2]) statValues[2].textContent = `${pendingAssignments} Pending`;
 
-    const notifBadge = document.querySelector('#notif-btn .topbar-badge');
-    if (notifBadge) notifBadge.textContent = String(Math.min(notifications.length, 9));
-    const notifPanel = byId('notif-panel');
-    if (notifPanel) {
-      setHTML(notifPanel, `<div style="padding:14px 16px;border-bottom:1px solid #F1F5F9;font-weight:700;font-size:14px">Notifications</div>${notifications.map((item) => `<div class="notif-item unread"><div class="notif-dot"></div><div><div style="font-size:13px;font-weight:600">${escapeHTML(item.title)}</div><div style="font-size:12px;color:#64748B">${escapeHTML(item.message)}</div></div></div>`).join('') || '<div style="padding:14px 16px;color:#64748B;font-size:13px">No new notifications</div>'}`);
+    if (window.erpNotifications?.fetch) {
+      window.erpNotifications.fetch(true);
     }
 
     setHTML('noticesBody', (noticesRes.notices || []).slice(0, 3).map((notice) => `
@@ -2041,13 +2048,25 @@
       }
     }
 
-    const notifications = [];
-    if (profile.currentLiveClass) notifications.push({ title: 'Live class in progress', message: profile.currentLiveClass.title || 'A faculty session is active' });
-    if (pendingFees[0]) notifications.push({ title: 'Fee reminder', message: `${formatMoney(outstanding)} due by ${formatDate(pendingFees[0].dueDate)}` });
-    if (notices[0]) notifications.push({ title: notices[0].title, message: notices[0].content });
-    const badge = document.querySelector('#notif-btn .topbar-badge');
-    if (badge) badge.textContent = String(Math.min(notifications.length, 9));
-    setHTML('parentNotifBody', notifications.map((item) => `<div class="notif-item unread"><div class="notif-dot"></div><div><div style="font-size:13px;font-weight:600">${escapeHTML(item.title)}</div><div style="font-size:12px;color:#64748B">${escapeHTML(item.message)}</div></div></div>`).join('') || '<div style="padding:14px 16px;color:#64748B;font-size:13px">No new notifications</div>');
+    try {
+      const realNotifRes = await window.api.request('/notifications?limit=5', { silent: true });
+      const realNotifs = (realNotifRes && (realNotifRes.notifications || realNotifRes.data)) || [];
+      setHTML('parentNotifBody', realNotifs.map((item) => `
+        <div class="notif-item ${item.isRead ? '' : 'unread'}" onclick="window.erpNotifications?.handleItemClick('${item._id}')" style="cursor:pointer">
+          <div class="notif-dot" style="${item.isRead ? 'background:#CBD5E1' : ''}"></div>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:${item.isRead ? '600' : '700'};color:${item.isRead ? '#475569' : '#0F172A'}">${escapeHTML(item.title)}</div>
+            <div style="font-size:12px;color:#64748B">${escapeHTML(item.body || '')}</div>
+            <div style="font-size:10.5px;color:#94A3B8;margin-top:3px">${formatDate(item.createdAt, true)}</div>
+          </div>
+        </div>
+      `).join('') || '<div style="padding:14px 16px;color:#64748B;font-size:13px">No new notifications</div>');
+    } catch (_) {
+      setHTML('parentNotifBody', '<div style="padding:14px 16px;color:#64748B;font-size:13px">No new notifications</div>');
+    }
+    if (window.erpNotifications?.fetch) {
+      window.erpNotifications.fetch(true);
+    }
 
     setHTML('parentLatestNotices', notices.slice(0, 3).map((item) => {
       const color = item.type === 'urgent' ? '#EF4444' : item.type === 'exam' ? '#4F46E5' : '#10B981';

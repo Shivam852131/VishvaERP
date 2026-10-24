@@ -659,6 +659,10 @@
     }
     var refresh = $('btnNotifRefresh');
     if (refresh) refresh.addEventListener('click', function () { loadNotifications(); });
+
+    window.addEventListener('erp:notification-received', function () {
+      loadNotifications();
+    });
   }
 
   /* ─────────────────────── appearance ─────────────────────── */

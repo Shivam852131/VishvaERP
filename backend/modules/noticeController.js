@@ -74,12 +74,25 @@ const createNotice = asyncHandler(async (req, res) => {
   });
 
   logAudit(req, 'create', 'notice', { resourceId: notice._id, description: `Created notice: ${notice.title}`, metadata: { type: notice.type } });
+  const targetRoles = notice.targetRoles.includes('all')
+    ? ['student', 'faculty', 'parent', 'collegeAdmin', 'superadmin']
+    : [...notice.targetRoles, 'superadmin'];
+
   emitDataChange(req, {
     collegeId: String(req.user.collegeId),
-    roles: ['superadmin'],
+    roles: targetRoles,
     resource: 'notices',
     action: 'created',
+    notice,
   });
+
+  if (req.io) {
+    req.io.to(`college:${req.user.collegeId}`).emit('platform_notice', {
+      title: notice.title,
+      message: notice.content,
+      type: notice.type,
+    });
+  }
 
   res.status(201).json({ success: true, notice });
 });

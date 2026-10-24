@@ -92,6 +92,9 @@ const io = new Server(server, {
   },
 });
 
+const { setIO } = require('./utils/realtime');
+setIO(io);
+
 // Authenticate socket connections if token provided
 io.use((socket, next) => {
   const token = socket.handshake.auth?.token ||
@@ -276,9 +279,25 @@ app.use(errorHandler);
 io.on('connection', (socket) => {
   logger.info('Client connected', { socketId: socket.id, authenticated: Boolean(socket.user) });
 
+  if (socket.user && (socket.user.id || socket.user._id)) {
+    const authUserId = String(socket.user.id || socket.user._id);
+    socket.join(`user:${authUserId}`);
+    if (socket.user.role) socket.join(`role:${socket.user.role}`);
+    if (socket.user.collegeId) socket.join(`college:${socket.user.collegeId}`);
+    logger.debug('Authenticated socket auto-joined rooms', { socketId: socket.id, userId: authUserId, role: socket.user.role });
+  }
+
   socket.on('join_room', (roomId) => {
     if (!roomId || typeof roomId !== 'string' || roomId.length > 100) return;
     const sanitizedRoom = roomId.replace(/[^a-zA-Z0-9_\-:]/g, '');
+    if (sanitizedRoom.startsWith('user:')) {
+      const targetUser = sanitizedRoom.replace(/^user:/, '');
+      const authUserId = socket.user ? String(socket.user.id || socket.user._id) : null;
+      if (authUserId && authUserId !== targetUser && isProduction) {
+        logger.warn('Socket attempted to subscribe to other user room', { socketId: socket.id, target: sanitizedRoom });
+        return;
+      }
+    }
     socket.join(sanitizedRoom);
     logger.debug('User joined room', { socketId: socket.id, roomId: sanitizedRoom });
   });

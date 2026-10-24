@@ -1431,18 +1431,150 @@ textarea.form-control { resize: vertical; min-height: 90px; }
    ============================================= */
 .notif-panel {
   position: absolute; right: 0; top: 48px;
-  width: 340px; background: white;
-  border: 1px solid var(--card-border);
-  border-radius: 14px;
-  box-shadow: 0 15px 40px rgba(0,0,0,0.12);
-  z-index: 200; overflow: hidden;
+  width: 360px; max-width: min(360px, calc(100vw - 24px));
+  background: white;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  box-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.18), 0 8px 16px -6px rgba(15, 23, 42, 0.08);
+  z-index: 9999; overflow: hidden;
   display: none;
 }
-.notif-panel.open { display: block; animation: scaleIn 0.15s ease; }
-.notif-item { display: flex; gap: 12px; padding: 14px 16px; border-bottom: 1px solid rgba(226,232,240,0.5); cursor: pointer; transition: background 0.1s; }
-.notif-item:hover { background: var(--bg); }
-.notif-item.unread { background: rgba(79,70,229,0.04); }
-.notif-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--primary); margin-top: 5px; flex-shrink: 0; }
+.notif-panel.open { display: block; animation: scaleIn 0.18s cubic-bezier(0.16, 1, 0.3, 1); }
+
+.notif-panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px; border-bottom: 1px solid #F1F5F9;
+  background: #FFFFFF;
+}
+.notif-panel-title {
+  display: flex; align-items: center; gap: 8px;
+  font-weight: 800; font-size: 14px; color: #0F172A;
+}
+.notif-unread-count-pill {
+  font-size: 11px; font-weight: 800;
+  padding: 2px 8px; border-radius: 20px;
+  background: #EEF2FF; color: #4F46E5;
+}
+.notif-mark-all-btn {
+  background: transparent; border: none; cursor: pointer;
+  font-size: 11.5px; font-weight: 700; color: #4F46E5;
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 6px; border-radius: 6px;
+  transition: background 0.15s, color 0.15s;
+}
+.notif-mark-all-btn:hover { background: #EEF2FF; color: #3730A3; }
+
+.notif-scroll-area {
+  max-height: 380px; overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.notif-scroll-area::-webkit-scrollbar { width: 5px; }
+.notif-scroll-area::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
+
+.notif-item {
+  display: flex; gap: 12px; padding: 12px 16px;
+  border-bottom: 1px solid #F1F5F9; cursor: pointer;
+  transition: background 0.15s ease;
+  align-items: flex-start; position: relative;
+}
+.notif-item:hover { background: #F8FAFC; }
+.notif-item.unread { background: rgba(79, 70, 229, 0.035); }
+.notif-item.unread:hover { background: rgba(79, 70, 229, 0.07); }
+
+.notif-icon-circle {
+  width: 36px; height: 36px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; font-size: 14px;
+}
+.notif-info-wrap { flex: 1; min-width: 0; }
+.notif-item-top {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 8px; margin-bottom: 3px;
+}
+.notif-item-title {
+  font-weight: 700; font-size: 13px; color: #1E293B;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.notif-item.unread .notif-item-title { color: #0F172A; font-weight: 800; }
+.notif-unread-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: #4F46E5; flex-shrink: 0;
+  box-shadow: 0 0 0 2px #EEF2FF;
+}
+.notif-item-desc {
+  font-size: 12px; color: #64748B; line-height: 1.4;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden; word-break: break-word;
+}
+.notif-item-bottom {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-top: 5px; font-size: 11px; color: #94A3B8;
+}
+.notif-single-read-btn {
+  background: transparent; border: none; cursor: pointer;
+  color: #94A3B8; font-size: 11px; padding: 2px 4px;
+  border-radius: 4px; transition: color 0.15s;
+}
+.notif-single-read-btn:hover { color: #4F46E5; }
+
+.notif-empty-state {
+  padding: 36px 16px; text-align: center; color: #94A3B8;
+}
+.notif-empty-icon {
+  width: 44px; height: 44px; border-radius: 50%;
+  background: #F1F5F9; color: #94A3B8;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; margin: 0 auto 10px;
+}
+
+.notif-panel-footer {
+  padding: 10px 16px; text-align: center;
+  border-top: 1px solid #F1F5F9; background: #FAFAFA;
+}
+.notif-footer-link {
+  font-size: 12px; font-weight: 700; color: #4F46E5;
+  text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+  transition: color 0.15s;
+}
+.notif-footer-link:hover { color: #3730A3; text-decoration: underline; }
+
+/* Dark mode overrides */
+body.dark-mode .notif-panel, html.dark .notif-panel {
+  background: #0F172A; border-color: #1E293B;
+  box-shadow: 0 20px 45px -10px rgba(0, 0, 0, 0.6);
+}
+body.dark-mode .notif-panel-header, html.dark .notif-panel-header {
+  background: #0F172A; border-color: #1E293B;
+}
+body.dark-mode .notif-panel-title, html.dark .notif-panel-title { color: #F8FAFC; }
+body.dark-mode .notif-unread-count-pill, html.dark .notif-unread-count-pill {
+  background: rgba(99, 102, 241, 0.2); color: #A5B4FC;
+}
+body.dark-mode .notif-mark-all-btn, html.dark .notif-mark-all-btn { color: #A5B4FC; }
+body.dark-mode .notif-mark-all-btn:hover, html.dark .notif-mark-all-btn:hover {
+  background: rgba(99, 102, 241, 0.2);
+}
+body.dark-mode .notif-item, html.dark .notif-item {
+  border-color: #1E293B;
+}
+body.dark-mode .notif-item:hover, html.dark .notif-item:hover {
+  background: #1E293B;
+}
+body.dark-mode .notif-item.unread, html.dark .notif-item.unread {
+  background: rgba(99, 102, 241, 0.1);
+}
+body.dark-mode .notif-item.unread:hover, html.dark .notif-item.unread:hover {
+  background: rgba(99, 102, 241, 0.16);
+}
+body.dark-mode .notif-item-title, html.dark .notif-item-title { color: #E2E8F0; }
+body.dark-mode .notif-item-desc, html.dark .notif-item-desc { color: #94A3B8; }
+body.dark-mode .notif-empty-icon, html.dark .notif-empty-icon {
+  background: #1E293B; color: #64748B;
+}
+body.dark-mode .notif-panel-footer, html.dark .notif-panel-footer {
+  background: #0B1120; border-color: #1E293B;
+}
+body.dark-mode .notif-footer-link, html.dark .notif-footer-link { color: #A5B4FC; }
 
 /* =============================================
    EMPTY STATE

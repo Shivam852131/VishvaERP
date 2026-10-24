@@ -4,6 +4,7 @@ const User = require('../models/User');
 const pushService = require('./pushNotificationService');
 const emailService = require('./emailService');
 const whatsappService = require('./whatsappService');
+const { emitNotification, getIO } = require('../utils/realtime');
 
 const TEMPLATES = {
   attendance: {
@@ -256,8 +257,12 @@ async function sendParentNotification(parentId, eventType, data, options = {}) {
   }
 
   // Socket.IO real-time
-  if (options.io) {
-    options.io.to(`user:${parentId}`).emit('notification', notification);
+  const io = options.io || getIO();
+  if (io) {
+    io.to(`user:${parentId}`).emit('notification', notification);
+    io.to(`user:${parentId}`).emit('erp:notification', notification);
+  } else {
+    emitNotification(parentId, notification);
   }
 
   return { success: true, results };

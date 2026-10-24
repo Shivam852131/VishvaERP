@@ -896,17 +896,350 @@ const dateHelpers = {
   isToday: (date) => new Date(date).toDateString() === new Date().toDateString(),
 };
 
-/* ─── NOTIFICATION PANEL TOGGLE ─── */
+/* ─── REAL-TIME ENTERPRISE NOTIFICATION SUBSYSTEM ─── */
+const NOTIF_CONFIG = {
+  fee: { icon: 'fa-money-bill-wave', color: '#F59E0B', bg: 'rgba(245, 158, 11, 0.14)' },
+  attendance: { icon: 'fa-calendar-check', color: '#0284C7', bg: 'rgba(2, 132, 199, 0.14)' },
+  exam: { icon: 'fa-clipboard-list', color: '#8B5CF6', bg: 'rgba(139, 92, 246, 0.14)' },
+  assignment: { icon: 'fa-tasks', color: '#10B981', bg: 'rgba(16, 185, 129, 0.14)' },
+  urgent: { icon: 'fa-exclamation-triangle', color: '#EF4444', bg: 'rgba(239, 68, 68, 0.14)' },
+  warning: { icon: 'fa-exclamation-circle', color: '#F59E0B', bg: 'rgba(245, 158, 11, 0.14)' },
+  success: { icon: 'fa-check-circle', color: '#10B981', bg: 'rgba(16, 185, 129, 0.14)' },
+  info: { icon: 'fa-bell', color: '#4F46E5', bg: 'rgba(79, 70, 229, 0.14)' },
+};
+
+function escapeHTML(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+const erpNotificationState = {
+  items: [],
+  unreadCount: 0,
+  loading: false,
+  initialized: false,
+  socket: null,
+};
+
+function getRoleFolder(role) {
+  if (!role) return 'student';
+  const r = String(role).toLowerCase();
+  if (r.includes('super')) return 'super-admin';
+  if (r.includes('college')) return 'college-admin';
+  if (r.includes('faculty') || r.includes('teacher')) return 'faculty';
+  if (r.includes('parent')) return 'parent';
+  return 'student';
+}
+
+function updateNotificationBadges(count) {
+  const badgeEls = document.querySelectorAll('#notif-btn .topbar-badge, .topbar-btn .topbar-badge, #alertCount');
+  badgeEls.forEach((el) => {
+    if (count > 0) {
+      el.textContent = count > 99 ? '99+' : String(count);
+      el.style.display = 'inline-flex';
+      el.classList.add('has-unread');
+    } else {
+      el.textContent = '0';
+      el.classList.remove('has-unread');
+    }
+  });
+}
+
+function renderNotificationPanel() {
+  const panel = document.getElementById('notif-panel');
+  if (!panel) return;
+
+  const user = api.getUser();
+  const roleFolder = getRoleFolder(user?.role);
+  const unread = erpNotificationState.unreadCount;
+
+  const headerHTML = `
+    <div class="notif-panel-header">
+      <div class="notif-panel-title">
+        <i class="fas fa-bell" style="color:#4F46E5"></i>
+        <span>Notifications</span>
+        <span class="notif-unread-count-pill">${unread ? `${unread} unread` : 'All caught up'}</span>
+      </div>
+      ${unread > 0 ? `
+        <button type="button" class="notif-mark-all-btn" onclick="window.erpNotifications.markAllAsRead()">
+          <i class="fas fa-check-double"></i> Mark read
+        </button>
+      ` : ''}
+    </div>
+  `;
+
+  let contentHTML = '';
+  if (erpNotificationState.loading && erpNotificationState.items.length === 0) {
+    contentHTML = `
+      <div class="notif-scroll-area">
+        <div class="notif-empty-state">
+          <i class="fas fa-spinner fa-spin" style="font-size:20px;color:#4F46E5;margin-bottom:8px"></i>
+          <div>Syncing notifications...</div>
+        </div>
+      </div>
+    `;
+  } else if (erpNotificationState.items.length === 0) {
+    contentHTML = `
+      <div class="notif-scroll-area">
+        <div class="notif-empty-state">
+          <div class="notif-empty-icon"><i class="fas fa-bell-slash"></i></div>
+          <div style="font-weight:700;font-size:13px;color:var(--text-main,#0F172A)">No notifications yet</div>
+          <div style="font-size:12px;color:#94A3B8;margin-top:2px">All academic, fee, and system alerts will appear here in real time.</div>
+        </div>
+      </div>
+    `;
+  } else {
+    const listItems = erpNotificationState.items.map((item) => {
+      const cfg = NOTIF_CONFIG[item.type] || NOTIF_CONFIG.info;
+      const timeStr = formatters.timeAgo(item.createdAt || new Date());
+      const isUnread = !item.isRead;
+      return `
+        <div class="notif-item ${isUnread ? 'unread' : 'read'}" data-id="${item._id}" onclick="window.erpNotifications.handleItemClick('${item._id}')">
+          <div class="notif-icon-circle" style="background:${cfg.bg};color:${cfg.color}">
+            <i class="fas ${cfg.icon}"></i>
+          </div>
+          <div class="notif-info-wrap">
+            <div class="notif-item-top">
+              <span class="notif-item-title">${escapeHTML(item.title || 'Notification')}</span>
+              ${isUnread ? '<span class="notif-unread-dot" title="Unread"></span>' : ''}
+            </div>
+            <div class="notif-item-desc">${escapeHTML(item.body || '')}</div>
+            <div class="notif-item-bottom">
+              <span>${escapeHTML(timeStr)}</span>
+              ${isUnread ? `
+                <button type="button" class="notif-single-read-btn" title="Mark as read" onclick="event.stopPropagation();window.erpNotifications.markAsRead('${item._id}')">
+                  <i class="fas fa-check"></i>
+                </button>
+              ` : ''}
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    contentHTML = `<div class="notif-scroll-area">${listItems}</div>`;
+  }
+
+  const footerHTML = `
+    <div class="notif-panel-footer">
+      <a href="/pages/${roleFolder}/profile.html#notifications" class="notif-footer-link">
+        <span>View all notifications</span>
+        <i class="fas fa-arrow-right"></i>
+      </a>
+    </div>
+  `;
+
+  panel.innerHTML = headerHTML + contentHTML + footerHTML;
+}
+
+async function fetchNotifications(silent = false) {
+  const user = api.getUser();
+  if (!user) return;
+
+  if (!silent) erpNotificationState.loading = true;
+  try {
+    const res = await api.request('/notifications?limit=25', { silent: true });
+    erpNotificationState.items = (res && (res.notifications || res.data)) || [];
+    erpNotificationState.unreadCount = Number(res && res.unreadCount) || erpNotificationState.items.filter(i => !i.isRead).length;
+    updateNotificationBadges(erpNotificationState.unreadCount);
+    renderNotificationPanel();
+  } catch (err) {
+    // Graceful fallback
+  } finally {
+    erpNotificationState.loading = false;
+  }
+}
+
+async function markNotificationAsRead(id) {
+  if (!id) return;
+  const item = erpNotificationState.items.find(i => String(i._id) === String(id));
+  if (item) {
+    item.isRead = true;
+    erpNotificationState.unreadCount = Math.max(0, erpNotificationState.unreadCount - 1);
+    updateNotificationBadges(erpNotificationState.unreadCount);
+    renderNotificationPanel();
+  }
+  try {
+    await api.request(`/notifications/${encodeURIComponent(id)}/read`, { method: 'PUT', silent: true });
+  } catch (err) {
+    console.error('Failed to mark notification as read:', err);
+  }
+}
+
+async function markAllNotificationsAsRead() {
+  if (!erpNotificationState.unreadCount) return;
+  erpNotificationState.items.forEach(i => { i.isRead = true; });
+  erpNotificationState.unreadCount = 0;
+  updateNotificationBadges(0);
+  renderNotificationPanel();
+  try {
+    await api.request('/notifications/read-all', { method: 'POST', silent: true });
+    window.showToast?.('All notifications marked as read', 'success');
+  } catch (err) {
+    window.showToast?.('Could not update notifications', 'error');
+  }
+}
+
+function handleNotificationClick(id) {
+  const item = erpNotificationState.items.find(i => String(i._id) === String(id));
+  if (!item) return;
+
+  if (!item.isRead) {
+    markNotificationAsRead(id);
+  }
+
+  const panel = document.getElementById('notif-panel');
+  if (panel) panel.classList.remove('open');
+
+  if (item.link && typeof item.link === 'string' && item.link.trim() !== '' && item.link !== '/') {
+    window.location.href = item.link;
+  }
+}
+
+async function connectRealtimeNotifications() {
+  const user = api.getUser();
+  if (!user) return;
+
+  const token = api.getToken();
+  const realtimeOrigin = window.location.hostname.endsWith('vercel.app')
+    ? 'https://vishvaerp.onrender.com'
+    : window.location.origin;
+
+  try {
+    if (!window.io) {
+      await new Promise((resolve) => {
+        const s = document.createElement('script');
+        s.src = `${realtimeOrigin}/socket.io/socket.io.js`;
+        s.onload = () => resolve();
+        s.onerror = () => {
+          const cdn = document.createElement('script');
+          cdn.src = 'https://cdn.socket.io/4.8.1/socket.io.min.js';
+          cdn.onload = () => resolve();
+          cdn.onerror = () => resolve();
+          document.head.appendChild(cdn);
+        };
+        document.head.appendChild(s);
+      });
+    }
+
+    if (window.io && !erpNotificationState.socket) {
+      const socket = window.io(realtimeOrigin, {
+        auth: { token },
+        query: { token },
+        transports: ['websocket', 'polling'],
+      });
+
+      erpNotificationState.socket = socket;
+
+      socket.on('connect', () => {
+        const userId = user._id || user.id;
+        socket.emit('join_room', `user:${userId}`);
+        socket.emit('join_user', userId);
+        if (user.role) socket.emit('join_room', `role:${user.role}`);
+        if (user.collegeId) socket.emit('join_room', `college:${user.collegeId}`);
+      });
+
+      const handleLiveNotification = (notif) => {
+        if (!notif) return;
+        const exists = erpNotificationState.items.some(i => String(i._id) === String(notif._id));
+        if (!exists) {
+          erpNotificationState.items.unshift(notif);
+          if (!notif.isRead) {
+            erpNotificationState.unreadCount += 1;
+          }
+          updateNotificationBadges(erpNotificationState.unreadCount);
+          renderNotificationPanel();
+
+          // Show real-time toast alert
+          const type = notif.type === 'error' || notif.type === 'urgent' ? 'error' : notif.type === 'success' ? 'success' : 'info';
+          window.showToast?.(`${notif.title}: ${notif.body || ''}`.trim(), type);
+
+          // Dispatch DOM event for page listeners (e.g. profile page, parent notifications page)
+          window.dispatchEvent(new CustomEvent('erp:notification-received', { detail: notif }));
+        }
+      };
+
+      socket.on('notification', handleLiveNotification);
+      socket.on('erp:notification', handleLiveNotification);
+      socket.on('platform_notice', (payload) => {
+        window.showToast?.(payload?.title || payload?.message || 'Platform update', 'info');
+        fetchNotifications(true);
+      });
+      socket.on('erp:data-change', () => fetchNotifications(true));
+    }
+  } catch (e) {
+    // Fallback gracefully to polling
+  }
+}
+
 function initNotifications() {
   const notifBtn = document.getElementById('notif-btn');
-  const notifPanel = document.getElementById('notif-panel');
+  let notifPanel = document.getElementById('notif-panel');
+
+  if (notifBtn && !notifPanel && notifBtn.parentElement) {
+    notifPanel = document.createElement('div');
+    notifPanel.className = 'notif-panel';
+    notifPanel.id = 'notif-panel';
+    notifBtn.parentElement.appendChild(notifPanel);
+  }
+
   if (notifBtn && notifPanel) {
-    notifBtn.addEventListener('click', (e) => {
+    notifBtn.onclick = (e) => {
       e.stopPropagation();
-      notifPanel.classList.toggle('open');
+      const isOpen = notifPanel.classList.toggle('open');
+      if (isOpen) {
+        fetchNotifications(true);
+      }
+    };
+
+    document.addEventListener('click', (e) => {
+      if (!notifPanel.contains(e.target) && !notifBtn.contains(e.target)) {
+        notifPanel.classList.remove('open');
+      }
     });
-    document.addEventListener('click', () => notifPanel.classList.remove('open'));
-    notifPanel.addEventListener('click', (e) => e.stopPropagation());
+
+    notifPanel.onclick = (e) => e.stopPropagation();
+  }
+
+  // Expose global controller
+  window.erpNotifications = {
+    fetch: fetchNotifications,
+    markAsRead: markNotificationAsRead,
+    markAllAsRead: markAllNotificationsAsRead,
+    handleItemClick: handleNotificationClick,
+    sendTestNotification: async () => {
+      try {
+        const res = await api.request('/notifications/test-self', { method: 'POST', body: JSON.stringify({ title: 'Test Alert', body: 'Real-time notification engine working properly!' }) });
+        window.showToast?.('Test notification sent!', 'success');
+        return res;
+      } catch (err) {
+        window.showToast?.('Could not send test notification: ' + err.message, 'error');
+      }
+    },
+  };
+
+  // Initial fetch and real-time subscription
+  fetchNotifications(false);
+  connectRealtimeNotifications();
+
+  // Background fallback polling every 25 seconds
+  if (!window.__erpNotifPollTimer) {
+    window.__erpNotifPollTimer = setInterval(() => {
+      if (!document.hidden) {
+        fetchNotifications(true);
+      }
+    }, 25000);
+
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        fetchNotifications(true);
+      }
+    });
   }
 }
 

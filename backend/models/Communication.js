@@ -20,7 +20,7 @@ const notificationSchema = new mongoose.Schema({
   collegeId: { type: mongoose.Schema.Types.ObjectId, ref: 'College' },
   title: { type: String, required: true },
   body: { type: String, required: true },
-  type: { type: String, enum: ['info', 'success', 'warning', 'error', 'exam', 'fee', 'attendance', 'assignment'], default: 'info' },
+  type: { type: String, default: 'info' },
   link: { type: String },
   isRead: { type: Boolean, default: false },
   readAt: { type: Date },

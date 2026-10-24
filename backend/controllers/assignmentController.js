@@ -4,7 +4,7 @@ const Subject = require('../models/Subject');
 const Course = require('../models/Course');
 const User = require('../models/User');
 const { Notification } = require('../models/Communication');
-const { emitDataChange } = require('../utils/realtime');
+const { emitDataChange, emitNotification } = require('../utils/realtime');
 const { parseSemester } = require('../utils/parseHelpers');
 const { logAudit } = require('../services/auditService');
 
@@ -93,6 +93,9 @@ const createAssignment = asyncHandler(async (req, res) => {
 
     try {
       await Notification.insertMany(notifications, { ordered: false });
+      studentIds.forEach((studentId, idx) => {
+        emitNotification(studentId, notifications[idx]);
+      });
     } catch {
       // Non-blocking notification error
     }
@@ -486,7 +489,7 @@ const gradeSubmission = asyncHandler(async (req, res) => {
 
   // Create notification for student
   try {
-    await Notification.create({
+    const notif = await Notification.create({
       userId: submission.studentId,
       collegeId: req.user.collegeId,
       title: 'Assignment Graded',
@@ -494,6 +497,7 @@ const gradeSubmission = asyncHandler(async (req, res) => {
       type: 'assignment',
       link: '/frontend/pages/student/assignments.html',
     });
+    emitNotification(submission.studentId, notif);
   } catch {
     // Non-blocking
   }

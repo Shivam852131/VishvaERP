@@ -11,6 +11,7 @@ const {
   markAsRead,
   markAllAsRead,
   deleteNotification,
+  sendSelfTestNotification,
 } = require('../controllers/notificationController');
 
 const router = express.Router();
@@ -22,6 +23,7 @@ router.post('/', authorize('superadmin', 'collegeAdmin'), createNotification);
 router.put('/:id/read', markAsRead);
 router.post('/read-all', markAllAsRead);
 router.delete('/:id', deleteNotification);
+router.post('/test-self', sendSelfTestNotification);
 
 router.get('/status', asyncHandler(async (req, res) => {
   res.json({

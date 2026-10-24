@@ -189,7 +189,12 @@
       if (!window.io) {
         await loadScript(`${realtimeOrigin}/socket.io/socket.io.js`);
       }
-      const socket = window.io(realtimeOrigin, { transports: ['websocket', 'polling'] });
+      const token = getToken();
+      const socket = window.io(realtimeOrigin, {
+        auth: { token },
+        query: { token },
+        transports: ['websocket', 'polling'],
+      });
       socket.on('connect', () => {
         const userId = getUserId(user);
         socket.emit('join_room', `role:${user.role}`);
@@ -198,6 +203,16 @@
       });
       socket.on('erp:data-change', scheduleRefresh);
       socket.on('platform_notice', scheduleRefresh);
+      socket.on('notification', () => {
+        if (window.erpNotifications?.fetch) {
+          window.erpNotifications.fetch(true);
+        }
+      });
+      socket.on('erp:notification', () => {
+        if (window.erpNotifications?.fetch) {
+          window.erpNotifications.fetch(true);
+        }
+      });
       socket.on('erp:message', scheduleRefresh);
       return socket;
     })();

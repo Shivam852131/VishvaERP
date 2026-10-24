@@ -319,6 +319,9 @@ async function loadParentNotifications() {
   await Promise.all([loadPreferences(), loadChannelStatus(), loadNotificationHistory()]);
 }
 window.loadParentNotifications = loadParentNotifications;
+window.addEventListener('erp:notification-received', () => {
+  loadNotificationHistory();
+});
 
 (async () => {
   await loadParentNotifications();
