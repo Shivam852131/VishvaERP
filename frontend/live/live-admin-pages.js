@@ -189,7 +189,7 @@
       if (!window.io) {
         await loadScript(`${realtimeOrigin}/socket.io/socket.io.js`);
       }
-      const token = getToken();
+      const token = api.getToken();
       const socket = window.io(realtimeOrigin, {
         auth: { token },
         query: { token },

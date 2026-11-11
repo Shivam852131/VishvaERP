@@ -3,6 +3,7 @@ const { SkillAssessment, AssessmentAttempt } = require('../models/SkillAssessmen
 const StudentProfile = require('../models/StudentProfile');
 const { emitDataChange } = require('../utils/realtime');
 const { logAudit } = require('../services/auditService');
+const { regexFilter } = require('../utils/parseHelpers');
 
 const getAssessments = asyncHandler(async (req, res) => {
   const { category, skillTag, difficulty, search, page = 1, limit = 20 } = req.query;
@@ -10,7 +11,7 @@ const getAssessments = asyncHandler(async (req, res) => {
   if (category) query.category = category;
   if (skillTag) query.skillTags = { $in: Array.isArray(skillTag) ? skillTag : [skillTag] };
   if (difficulty) query.difficulty = difficulty;
-  if (search) query.$or = [{ title: { $regex: search, $options: 'i' } }, { description: { $regex: search, $options: 'i' } }];
+  if (search) query.$or = [{ title: regexFilter(search) }, { description: regexFilter(search) }];
 
   const skip = (Number(page) - 1) * Number(limit);
   const [assessments, total] = await Promise.all([

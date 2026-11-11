@@ -2,11 +2,9 @@ const Subscription = require('../models/Subscription');
 const College = require('../models/College');
 
 const requireSubscription = async (req, res, next) => {
+  // Only college administrators are subscription-gated. Every other role
+  // (including superadmin) passes straight through.
   if (!req.user || req.user.role !== 'collegeAdmin') {
-    return next();
-  }
-
-  if (req.user.role === 'superadmin') {
     return next();
   }
 

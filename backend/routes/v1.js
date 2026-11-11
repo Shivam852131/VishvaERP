@@ -51,5 +51,6 @@ router.use('/feedback', require('./feedback'));
 router.use('/inventory', require('./inventory'));
 router.use('/alumni', require('./alumni'));
 router.use('/face', require('./face'));
+router.use('/verification', require('./verification'));
 
 module.exports = router;

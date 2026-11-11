@@ -117,12 +117,30 @@ function normalizeRow(row, defaults = {}) {
 }
 
 // Parse an Excel/CSV file buffer into normalized questions (local, no AI).
+// The row count is capped: a hostile workbook with millions of rows would
+// otherwise exhaust CPU and memory (denial of service) during parsing.
+const MAX_IMPORT_ROWS = 20000;
+
 function parseSpreadsheet(buffer, defaults = {}) {
   const wb = XLSX.read(buffer, { type: 'buffer' });
   const sheet = wb.Sheets[wb.SheetNames[0]];
-  const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
-  const questions = rows.map(r => normalizeRow(r, defaults)).filter(Boolean);
-  return { questions, totalRows: rows.length };
+  if (!sheet) {
+    return { questions: [], totalRows: 0 };
+  }
+  // `!ref` holds the used range of the sheet ("A1:Z20000").
+  const ref = sheet['!ref'];
+  let rowLimit = MAX_IMPORT_ROWS;
+  if (ref) {
+    const range = XLSX.utils.decode_range(ref);
+    const available = range.e.r - range.s.r + 1;
+    if (available > 0 && available < rowLimit) {
+      rowLimit = available;
+    }
+  }
+  const rows = XLSX.utils.sheet_to_json(sheet, { defval: '', blankrows: false, range: 0 });
+  const cappedRows = rows.slice(0, rowLimit);
+  const questions = cappedRows.map(r => normalizeRow(r, defaults)).filter(Boolean);
+  return { questions, totalRows: rows.length, truncated: rows.length > cappedRows.length };
 }
 
 // Parse a PDF: extract text locally, then AI-parse into structured questions.

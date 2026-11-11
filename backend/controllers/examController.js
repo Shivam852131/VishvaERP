@@ -4,7 +4,7 @@ const Result = require('../models/Result');
 const User = require('../models/User');
 const Subject = require('../models/Subject');
 const { emitDataChange } = require('../utils/realtime');
-const { parseSemester } = require('../utils/parseHelpers');
+const { parseSemester, regexFilter } = require('../utils/parseHelpers');
 const { logAudit } = require('../services/auditService');
 const { sendParentNotification } = require('../services/parentNotificationService');
 
@@ -32,8 +32,8 @@ async function resolveSubject(collegeId, payload) {
     return Subject.findOne({
       collegeId,
       $or: [
-        { name: { $regex: payload.subject || payload.subjectName, $options: 'i' } },
-        { code: { $regex: payload.subject || payload.subjectName, $options: 'i' } },
+        { name: regexFilter(payload.subject || payload.subjectName) },
+        { code: regexFilter(payload.subject || payload.subjectName) },
       ],
       ...(parseSemester(payload.semester || payload.batch) ? { semester: parseSemester(payload.semester || payload.batch) } : {}),
     });
@@ -87,7 +87,12 @@ const getExams = asyncHandler(async (req, res) => {
 // @desc    Add/update results (bulk)
 const addResults = asyncHandler(async (req, res) => {
     const { results = [] } = req.body;
-    let exam = req.body.examId ? await Exam.findById(req.body.examId) : null;
+    // The exam must belong to the caller's college. An unscoped lookup would
+    // let a foreign exam's marks ceiling, subject and metadata leak into
+    // (and be written onto) this college's student transcripts.
+    let exam = req.body.examId
+      ? await Exam.findOne({ _id: req.body.examId, collegeId: req.user.collegeId })
+      : null;
 
     if (!exam) {
       const subject = await resolveSubject(req.user.collegeId, req.body);
@@ -226,7 +231,17 @@ const getStudentResults = asyncHandler(async (req, res) => {
     return res.json({ success: true, results: [], cgpa: 'N/A' });
   }
 
-  const student = await User.findById(studentId).select('name rollNo department semester email avatar');
+  // The student must belong to the caller's college (superadmins may look
+  // across tenants). Without this scope an id from another college would leak
+  // that student's name, roll number and e-mail address.
+  const student = await User.findOne({
+    _id: studentId,
+    ...(req.user.role === 'superadmin' ? {} : { collegeId: req.user.collegeId }),
+  }).select('name rollNo department semester email avatar');
+
+  if (!student) {
+    return res.status(404).json({ success: false, message: 'Student not found in your college' });
+  }
 
   const results = await Result.find({ studentId, collegeId: req.user.collegeId })
     .populate('examId', 'name examType date totalMarks passingMarks')

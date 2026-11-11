@@ -25,12 +25,15 @@ router.use(sameCollege);
 router.use(requireSubscription);
 
 // Core endpoints
+// The visitor register contains personal identifying information (names,
+// phone numbers, e-mail addresses, vehicle numbers, security notes) and
+// represents physical access to the campus - it is staff-only.
 router.route('/')
-  .get(getVisitors)
+  .get(authorize('collegeAdmin', 'superadmin', 'faculty'), getVisitors)
   .post(authorize('collegeAdmin', 'superadmin', 'faculty'), createVisitor);
 
 router.post('/pre-register', preRegisterVisitor);
-router.get('/stats', getVisitorStats);
+router.get('/stats', authorize('collegeAdmin', 'superadmin', 'faculty'), getVisitorStats);
 router.get('/export', authorize('collegeAdmin', 'superadmin'), exportVisitors);
 router.post('/verify', verifyGatePass);
 router.get('/verify/:gatePass', verifyGatePass);
@@ -42,11 +45,11 @@ router.get('/:id/gate-pass', getGatePass);
 
 // Specific visitor actions
 router.route('/:id')
-  .get(getVisitorById)
+  .get(authorize('collegeAdmin', 'superadmin', 'faculty'), getVisitorById)
   .delete(authorize('collegeAdmin', 'superadmin'), deleteVisitor);
 
-router.post('/:id/checkin', checkInPreRegistered);
-router.post('/:id/checkout', checkOutVisitor);
-router.post('/:id/cancel', cancelVisitor);
+router.post('/:id/checkin', authorize('collegeAdmin', 'superadmin', 'faculty'), checkInPreRegistered);
+router.post('/:id/checkout', authorize('collegeAdmin', 'superadmin', 'faculty'), checkOutVisitor);
+router.post('/:id/cancel', authorize('collegeAdmin', 'superadmin', 'faculty'), cancelVisitor);
 
 module.exports = router;

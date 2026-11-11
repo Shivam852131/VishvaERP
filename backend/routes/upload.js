@@ -1,7 +1,12 @@
 const express = require('express');
-const router = express.Router();
 const { protect } = require('../middleware/auth');
-const { uploadImage: uploadImageMiddleware, uploadAny, handleMulterError } = require('../middleware/upload');
+const {
+  uploadImage: uploadImageMiddleware,
+  uploadAny,
+  singleUpload,
+  arrayUpload,
+  handleMulterError,
+} = require('../middleware/upload');
 const {
   uploadAvatar,
   uploadImage,
@@ -10,10 +15,13 @@ const {
   deleteUpload,
 } = require('../controllers/uploadController');
 
-router.post('/avatar', protect, uploadImageMiddleware.single('file'), handleMulterError, uploadAvatar);
-router.post('/image', protect, uploadImageMiddleware.single('file'), handleMulterError, uploadImage);
-router.post('/file', protect, uploadAny.single('file'), handleMulterError, uploadFile);
-router.post('/multiple', protect, uploadAny.array('files', 10), handleMulterError, uploadMultiple);
+const router = express.Router();
+
+// A single file may be posted under `file`, `image`, `photo` or `document`.
+router.post('/avatar', protect, singleUpload(uploadImageMiddleware), handleMulterError, uploadAvatar);
+router.post('/image', protect, singleUpload(uploadImageMiddleware), handleMulterError, uploadImage);
+router.post('/file', protect, singleUpload(uploadAny), handleMulterError, uploadFile);
+router.post('/multiple', protect, arrayUpload(uploadAny, ['files', 'file', 'images'], 10), handleMulterError, uploadMultiple);
 router.delete('/delete', protect, deleteUpload);
 
 module.exports = router;

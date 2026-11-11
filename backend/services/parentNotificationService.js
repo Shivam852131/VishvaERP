@@ -277,14 +277,31 @@ async function sendBulkParentNotifications(parentIds, eventType, data, options =
 }
 
 async function updatePreferences(parentId, updates) {
-  let collegeId = updates.collegeId;
-  if (!collegeId) {
-    const parent = await User.findById(parentId).select('collegeId');
-    collegeId = parent?.collegeId;
+  // Only the preference fields themselves may be written by the client.
+  // A raw payload would allow overwriting `collegeId` / `userId` and would
+  // produce duplicate-key errors on the unique `userId` index.
+  const writable = {};
+  const ALLOWED = [
+    'channels',
+    'preferences',
+    'quietHours',
+    'language',
+    'whatsappPhone',
+    'emailAddresses',
+  ];
+  if (updates && typeof updates === 'object') {
+    for (const key of ALLOWED) {
+      if (updates[key] !== undefined) writable[key] = updates[key];
+    }
   }
+
+  let collegeId = null;
+  const parent = await User.findById(parentId).select('collegeId');
+  collegeId = parent?.collegeId || null;
+
   const prefs = await ParentNotificationPreference.findOneAndUpdate(
     { userId: parentId },
-    { $set: updates, ...(collegeId ? { $setOnInsert: { collegeId } } : {}) },
+    { $set: writable, ...(collegeId ? { $setOnInsert: { collegeId } } : {}) },
     { new: true, upsert: true }
   );
   return prefs;

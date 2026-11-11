@@ -73,14 +73,39 @@ const effectiveAllowedOrigins = Array.from(new Set([...configuredOrigins, ...loc
 
 const corsOptions = {
   origin(origin, callback) {
-    if (!origin || !isProduction || configuredOrigins.length === 0 || effectiveAllowedOrigins.includes(origin)) {
+    // Non-browser clients (curl, mobile apps, server-to-server) send no
+    // Origin header - those are not subject to CORS at all.
+    if (!origin) {
       callback(null, true);
       return;
     }
 
+    // In production the allow-list is mandatory. Falling back to "allow
+    // everything" would let any website issue credentialed cross-origin
+    // requests against the API and read the responses.
+    if (!isProduction) {
+      callback(null, true);
+      return;
+    }
+
+    if (configuredOrigins.length === 0) {
+      logger.error('CORS: FRONTEND_URL / RENDER_EXTERNAL_URL are not configured - rejecting cross-origin requests');
+      callback(null, false);
+      return;
+    }
+
+    if (effectiveAllowedOrigins.includes(origin)) {
+      callback(null, true);
+      return;
+    }
+
+    logger.warn(`CORS: rejected cross-origin request from ${origin}`);
     callback(null, false);
   },
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'X-Correlation-Id'],
+  maxAge: 600,
 };
 
 // Socket.io Setup
@@ -90,6 +115,11 @@ const io = new Server(server, {
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     credentials: true,
   },
+  // Bound the size of a single socket payload (a socket is an unauthenticated
+  // attack surface until the handshake token is validated).
+  maxHttpBufferSize: 1e6,
+  pingTimeout: 20000,
+  pingInterval: 25000,
 });
 
 const { setIO } = require('./utils/realtime');
@@ -101,14 +131,22 @@ io.use((socket, next) => {
     (socket.handshake.headers?.authorization && socket.handshake.headers.authorization.replace(/^Bearer\s+/i, '')) ||
     socket.handshake.query?.token;
 
-  if (token) {
-    try {
-      const decoded = verifyToken(token);
-      socket.user = decoded;
-    } catch (err) {
-      logger.warn('Socket connection rejected: invalid auth token', { error: err.message });
-      return next(new Error('Authentication failed: invalid token'));
+  if (!token) {
+    // In production every socket must be authenticated - an anonymous socket
+    // is a free, unmonitored channel into the realtime layer.
+    if (isProduction) {
+      logger.warn('Socket connection rejected: no auth token supplied');
+      return next(new Error('Authentication required'));
     }
+    return next();
+  }
+
+  try {
+    const decoded = verifyToken(token);
+    socket.user = decoded;
+  } catch (err) {
+    logger.warn('Socket connection rejected: invalid auth token', { error: err.message });
+    return next(new Error('Authentication failed: invalid token'));
   }
   next();
 });
@@ -136,11 +174,20 @@ app.use(helmet({
       imgSrc: ["'self'", "data:", "blob:", "https:"],
       connectSrc: ["'self'", "ws:", "wss:", "https://api.razorpay.com", "https://meet.jit.si", "https://8x8.vc"],
       frameSrc: ["'self'", "https://api.razorpay.com", "https://checkout.razorpay.com", "https://meet.jit.si", "https://8x8.vc"],
+      mediaSrc: ["'self'", "blob:", "data:", "https:"],
+      workerSrc: ["'self'", "blob:"],
+      manifestSrc: ["'self'"],
       objectSrc: ["'none'"],
       baseUri: ["'self'"],
+      // Clickjacking defence at the CSP layer (belt-and-braces with X-Frame-Options).
+      frameAncestors: ["'self'"],
+      // Blocks form-action hijacking (a page cannot silently POST our forms elsewhere).
+      formAction: ["'self'"],
+      upgradeInsecureRequests: isProduction ? [] : null,
     },
   } : false,
   referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
+  hsts: isProduction ? { maxAge: 31536000, includeSubDomains: true, preload: true } : false,
 }));
 
 // Razorpay webhooks need the untouched raw body for signature verification.
@@ -168,10 +215,26 @@ const uploadsDir = path.resolve(__dirname, 'uploads');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
+
+// Only these types are safe to render inline in the browser. Everything else is
+// forced to download so an uploaded document can never be interpreted as active
+// content (HTML / SVG / JS) on our own origin.
+const INLINE_SAFE_UPLOAD_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp', '.gif', '.pdf']);
+
 app.use('/uploads', express.static(uploadsDir, {
   maxAge: isProduction ? '7d' : 0,
   etag: true,
   lastModified: true,
+  dotfiles: 'deny',
+  setHeaders(res, filePath) {
+    // Never let a browser sniff the content type of an uploaded file.
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    const ext = path.extname(filePath).toLowerCase();
+    if (!INLINE_SAFE_UPLOAD_EXTENSIONS.has(ext)) {
+      res.setHeader('Content-Disposition', 'attachment');
+      res.setHeader('Content-Security-Policy', "default-src 'none'; sandbox");
+    }
+  },
 }));
 
 // Serve the React build with aggressive caching for static assets
@@ -293,9 +356,39 @@ io.on('connection', (socket) => {
     if (sanitizedRoom.startsWith('user:')) {
       const targetUser = sanitizedRoom.replace(/^user:/, '');
       const authUserId = socket.user ? String(socket.user.id || socket.user._id) : null;
-      if (authUserId && authUserId !== targetUser && isProduction) {
-        logger.warn('Socket attempted to subscribe to other user room', { socketId: socket.id, target: sanitizedRoom });
+      // Private user rooms are never joinable by anybody but their owner -
+      // this must hold in every environment, not only in production.
+      if (!authUserId) {
+        logger.warn('Socket attempted to subscribe to a private user room without authentication', { socketId: socket.id, target: sanitizedRoom });
         return;
+      }
+      if (authUserId !== targetUser) {
+        logger.warn('Socket attempted to subscribe to another user room', { socketId: socket.id, target: sanitizedRoom });
+        return;
+      }
+    }
+    if (sanitizedRoom.startsWith('college:') || sanitizedRoom.startsWith('role:')) {
+      const authUserId = socket.user ? String(socket.user.id || socket.user._id) : null;
+      if (!authUserId) {
+        logger.warn('Socket attempted to subscribe to an institutional room without authentication', { socketId: socket.id, room: sanitizedRoom });
+        return;
+      }
+      // A user may only join the college room of the college they belong to.
+      if (sanitizedRoom.startsWith('college:')) {
+        const targetCollege = sanitizedRoom.replace(/^college:/, '');
+        const ownCollege = socket.user.collegeId ? String(socket.user.collegeId) : null;
+        if (!ownCollege || ownCollege !== targetCollege) {
+          logger.warn('Socket attempted to subscribe to another college room', { socketId: socket.id, room: sanitizedRoom });
+          return;
+        }
+      }
+      // A user may only join the role room of the role they actually hold.
+      if (sanitizedRoom.startsWith('role:')) {
+        const targetRole = sanitizedRoom.replace(/^role:/, '');
+        if (!socket.user.role || socket.user.role !== targetRole) {
+          logger.warn('Socket attempted to subscribe to another role room', { socketId: socket.id, room: sanitizedRoom });
+          return;
+        }
       }
     }
     socket.join(sanitizedRoom);
@@ -305,6 +398,11 @@ io.on('connection', (socket) => {
   socket.on('send_message', (data) => {
     if (!data || !data.roomId || typeof data.roomId !== 'string') return;
     const sanitizedRoom = data.roomId.replace(/[^a-zA-Z0-9_\-:]/g, '');
+    // Messages may only be broadcast to rooms the sender has actually joined.
+    if (!socket.rooms.has(sanitizedRoom)) {
+      logger.warn('Socket attempted to broadcast to a room it has not joined', { socketId: socket.id, roomId: sanitizedRoom });
+      return;
+    }
     const payload = {
       ...data,
       roomId: sanitizedRoom,
@@ -319,10 +417,9 @@ io.on('connection', (socket) => {
       const authUserId = String(socket.user.id || socket.user._id);
       socket.join(`user:${authUserId}`);
       logger.debug('Authenticated user joined personal room', { socketId: socket.id, userId: authUserId });
-    } else if (!isProduction && userId) {
-      socket.join(`user:${userId}`);
     } else {
-      logger.warn('Unauthenticated socket attempted to subscribe to private user channel', { socketId: socket.id });
+      // Never allow a socket to subscribe to somebody else's private channel.
+      logger.warn('Unauthenticated socket attempted to subscribe to a private user channel', { socketId: socket.id });
     }
   });
 

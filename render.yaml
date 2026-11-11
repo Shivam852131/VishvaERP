@@ -16,6 +16,13 @@ services:
         sync: false
       - key: JWT_SECRET
         generateValue: true
+      # Must be a DIFFERENT value from JWT_SECRET. Render generates one only
+      # if it is not already set - set it explicitly in the Render dashboard
+      # (Dashboard -> your service -> Environment) if the service was created
+      # before this key existed. The API refuses to boot in production
+      # without it.
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
       - key: JWT_EXPIRE
         value: 7d
       - key: FRONTEND_URL

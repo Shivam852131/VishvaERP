@@ -442,10 +442,16 @@ const syncAttendance = asyncHandler(async (req, res) => {
 // @route   POST /api/live-classes/:id/whiteboard
 // @access  Private (Faculty, CollegeAdmin)
 const saveWhiteboard = asyncHandler(async (req, res) => {
-  const session = await LiveClassSession.findOne({
+  const query = {
     _id: req.params.id,
     collegeId: req.user.collegeId,
-  });
+  };
+  // Faculty may only modify the whiteboard of a session they host.
+  if (req.user.role === 'faculty') {
+    query.facultyId = req.user._id;
+  }
+
+  const session = await LiveClassSession.findOne(query);
 
   if (!session) {
     return res.status(404).json({ success: false, message: 'Live class session not found' });
@@ -598,7 +604,15 @@ const updateRecording = asyncHandler(async (req, res) => {
     return res.status(404).json({ success: false, message: 'Live class session not found' });
   }
 
-  if (req.body.recordingUrl !== undefined) session.recordingUrl = req.body.recordingUrl.trim();
+  if (req.body.recordingUrl !== undefined) {
+    const url = String(req.body.recordingUrl).trim();
+    // Only http(s) URLs are accepted - a `javascript:` payload here would be
+    // stored and later rendered as a clickable link.
+    if (url && !/^https?:\/\//i.test(url)) {
+      return res.status(400).json({ success: false, message: 'Recording URL must be an http(s) link' });
+    }
+    session.recordingUrl = url;
+  }
   if (req.body.recordingDuration !== undefined) session.recordingDuration = Number(req.body.recordingDuration) || 0;
   if (req.body.description !== undefined) session.description = req.body.description.trim();
 

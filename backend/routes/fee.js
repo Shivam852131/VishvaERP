@@ -23,7 +23,9 @@ router.use(requireSubscription);
 
 router.route('/structures')
   .post(authorize('collegeAdmin'), createFeeStructure)
-  .get(getFeeStructures);
+  // Fee pricing (components, late fees, caps, default discounts) is
+  // configuration - staff only.
+  .get(authorize('collegeAdmin', 'superadmin', 'faculty'), getFeeStructures);
 
 router.route('/structures/:id')
   .put(authorize('collegeAdmin'), updateFeeStructure)
@@ -35,7 +37,8 @@ router.route('/')
   .post(authorize('collegeAdmin'), createFee)
   .get(getFees);
 
-router.get('/summary', getFeeSummary);
+// Institution-wide revenue totals / collection rate - staff only.
+router.get('/summary', authorize('collegeAdmin', 'superadmin'), getFeeSummary);
 router.get('/analytics', authorize('collegeAdmin', 'superadmin'), getFeeAnalytics);
 
 router.post('/bulk', authorize('collegeAdmin'), createBulkFees);

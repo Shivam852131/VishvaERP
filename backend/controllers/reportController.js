@@ -7,6 +7,7 @@ const Result = require('../models/Result');
 const Subject = require('../models/Subject');
 const { generateFeeReceipt, generateResultSheet, generateIdCard } = require('../services/pdfService');
 const { sendFeeReceiptEmail } = require('../services/emailService');
+const { getChildStudentIds } = require('../utils/accessControl');
 
 const downloadFeeReceipt = asyncHandler(async (req, res) => {
   const fee = await Fee.findOne({ _id: req.params.id, collegeId: req.user.collegeId }).populate('studentId');
@@ -14,15 +15,22 @@ const downloadFeeReceipt = asyncHandler(async (req, res) => {
     return res.status(404).json({ success: false, message: 'Fee record not found' });
   }
 
-  if (req.user.role === 'student' && String(fee.studentId?._id || fee.studentId) !== String(req.user._id)) {
+  const feeOwnerId = String(fee.studentId?._id || fee.studentId);
+
+  if (req.user.role === 'student' && feeOwnerId !== String(req.user._id)) {
     return res.status(403).json({ success: false, message: 'Access denied' });
   }
   if (req.user.role === 'parent') {
-    const parent = await User.findById(req.user._id).select('children');
-    const childIds = (parent?.children || []).map(String);
-    if (!childIds.includes(String(fee.studentId?._id || fee.studentId))) {
+    const childIds = await getChildStudentIds(req);
+    if (!childIds.includes(feeOwnerId)) {
       return res.status(403).json({ success: false, message: 'Access denied' });
     }
+  }
+  // Faculty (and any other non-owning role) may not download student
+  // financial documents - restrict receipts to the payer and to staff with an
+  // explicit financial role.
+  if (!['student', 'parent', 'collegeAdmin', 'superadmin'].includes(req.user.role)) {
+    return res.status(403).json({ success: false, message: 'Access denied: fee receipts are restricted to the student, their parent and college administrators' });
   }
 
   const user = fee.studentId || await User.findById(fee.studentId);
@@ -85,7 +93,10 @@ const downloadIdCard = asyncHandler(async (req, res) => {
     return res.status(403).json({ success: false, message: 'Not authorized to download ID card for this user' });
   }
 
-  const user = await User.findById(userId).select('-password');
+  const user = await User.findOne({
+    _id: userId,
+    ...(req.user.role === 'superadmin' ? {} : { collegeId: req.user.collegeId }),
+  }).select('-password');
   if (!user) {
     return res.status(404).json({ success: false, message: 'User not found' });
   }

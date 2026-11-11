@@ -4,6 +4,7 @@ const TransportRoute = require('../models/Transport');
 const User = require('../models/User');
 const { emitDataChange } = require('../utils/realtime');
 const { logAudit } = require('../services/auditService');
+const { buildUpdate } = require('../utils/safeUpdate');
 
 // Helper to generate unique digital bus pass number
 function generateBusPassNumber(routeCode) {
@@ -80,7 +81,7 @@ const getHostelById = asyncHandler(async (req, res) => {
 const updateHostel = asyncHandler(async (req, res) => {
   const hostel = await Hostel.findOneAndUpdate(
     { _id: req.params.id, collegeId: req.user.collegeId },
-    req.body,
+    buildUpdate(Hostel, req.body),
     { new: true, runValidators: true }
   );
   if (!hostel) return res.status(404).json({ success: false, message: 'Hostel not found' });
@@ -156,7 +157,7 @@ const getRooms = asyncHandler(async (req, res) => {
 const updateRoom = asyncHandler(async (req, res) => {
   const room = await Room.findOneAndUpdate(
     { _id: req.params.id, collegeId: req.user.collegeId },
-    req.body,
+    buildUpdate(Room, req.body),
     { new: true, runValidators: true }
   );
   if (!room) return res.status(404).json({ success: false, message: 'Room not found' });
@@ -497,7 +498,7 @@ const getRouteById = asyncHandler(async (req, res) => {
 const updateRoute = asyncHandler(async (req, res) => {
   const route = await TransportRoute.findOneAndUpdate(
     { _id: req.params.id, collegeId: req.user.collegeId },
-    req.body,
+    buildUpdate(TransportRoute, req.body),
     { new: true, runValidators: true }
   );
   if (!route) return res.status(404).json({ success: false, message: 'Transport route not found' });

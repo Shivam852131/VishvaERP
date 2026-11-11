@@ -5,7 +5,7 @@ const Course = require('../models/Course');
 const User = require('../models/User');
 const { Notification } = require('../models/Communication');
 const { emitDataChange, emitNotification } = require('../utils/realtime');
-const { parseSemester } = require('../utils/parseHelpers');
+const { parseSemester, regexFilter } = require('../utils/parseHelpers');
 const { logAudit } = require('../services/auditService');
 
 /**
@@ -22,8 +22,8 @@ async function resolveSubject(collegeId, payload) {
   return Subject.findOne({
     collegeId,
     $or: [
-      { name: { $regex: search, $options: 'i' } },
-      { code: { $regex: search, $options: 'i' } },
+      { name: regexFilter(search) },
+      { code: regexFilter(search) },
     ],
     ...(parseSemester(payload.semester || payload.batch) ? { semester: parseSemester(payload.semester || payload.batch) } : {}),
   });

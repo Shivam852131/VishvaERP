@@ -2,6 +2,7 @@ const asyncHandler = require('../middleware/asyncHandler');
 const Notice = require('../models/Notice');
 const { emitDataChange } = require('../utils/realtime');
 const { logAudit } = require('../services/auditService');
+const { regexFilter } = require('../utils/parseHelpers');
 
 const typeMap = {
   academic: 'exam',
@@ -20,9 +21,21 @@ const targetRoleMap = {
   'college admins only': ['collegeAdmin'],
 };
 
+/**
+ * Roles a notice may be addressed to.
+ *
+ * The list is server-controlled: a college administrator must not be able to
+ * target the platform `superadmin` room (or any other unknown role) with a
+ * campus notice.
+ */
+const NOTICE_TARGET_ROLES = new Set(['all', 'student', 'faculty', 'parent', 'collegeAdmin']);
+
 const normalizeTargetRoles = (value) => {
   if (!value) return ['all'];
-  if (Array.isArray(value)) return value;
+  if (Array.isArray(value)) {
+    const filtered = value.map((role) => String(role).trim().toLowerCase()).filter((role) => NOTICE_TARGET_ROLES.has(role));
+    return filtered.length ? filtered : ['all'];
+  }
 
   const normalized = String(value).trim().toLowerCase();
   return targetRoleMap[normalized] || ['all'];
@@ -47,8 +60,8 @@ const getNotices = asyncHandler(async (req, res) => {
     query.$and = query.$and || [];
     query.$and.push({
       $or: [
-        { title: { $regex: search, $options: 'i' } },
-        { content: { $regex: search, $options: 'i' } },
+        { title: regexFilter(search) },
+        { content: regexFilter(search) },
       ],
     });
   }

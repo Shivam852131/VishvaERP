@@ -7,6 +7,7 @@ const QuestionBookmark = require('../models/QuestionBookmark');
 const PlatformSetting = require('../models/PlatformSetting');
 const { emitDataChange } = require('../utils/realtime');
 const { logAudit } = require('../services/auditService');
+const { regexFilter } = require('../utils/parseHelpers');
 
 const DEFAULT_TAXONOMY = {
   educationLevels: ['school', 'undergraduate', 'postgraduate', 'competitive'],
@@ -178,7 +179,7 @@ const listQuizzes = asyncHandler(async (req, res) => {
   if (type) query.type = type;
   if (educationLevel) query.educationLevel = educationLevel;
   if (board) query.board = board;
-  if (search) query.title = { $regex: search, $options: 'i' };
+  if (search) query.title = regexFilter(search);
 
   let quizzes = await Quiz.find(query)
     .populate('subjectId', 'name code')
@@ -467,7 +468,7 @@ const manageQuizzes = asyncHandler(async (req, res) => {
   const query = { collegeId: req.user.collegeId, isActive: true };
   if (subjectId) query.subjectId = subjectId;
   if (type) query.type = type;
-  if (search) query.title = { $regex: search, $options: 'i' };
+  if (search) query.title = regexFilter(search);
   const skip = (Number(page) - 1) * Number(limit);
   const [quizzes, total] = await Promise.all([
     Quiz.find(query).populate('subjectId', 'name code').populate('createdBy', 'name').sort({ createdAt: -1 }).skip(skip).limit(Number(limit)).lean(),

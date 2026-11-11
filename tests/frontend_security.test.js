@@ -250,6 +250,158 @@ runTest('Link sanitizer enforces rel="noopener noreferrer" on target="_blank"', 
   assert.strictEqual(sanitizeRel('noopener'), 'noopener noreferrer');
 });
 
+runTest('In-app secret generator uses a CSPRNG and never uses Math.random', () => {
+  const systemPath = path.resolve(__dirname, '../frontend/pages/super-admin/system.html');
+  const html = fs.readFileSync(systemPath, 'utf8');
+
+  assert.ok(html.includes('crypto.getRandomValues'), 'must use the Web Crypto CSPRNG');
+  assert.ok(!html.includes('Math.random('), 'Math.random must never produce a secret');
+  assert.ok(html.includes('Security Secret Generator'), 'the generator UI must exist');
+  assert.ok(html.includes('secret-generate') && html.includes('secret-copy'), 'controls must be wired');
+});
+
+runTest('In-app secret generator never reads a secret from the API', () => {
+  const systemPath = path.resolve(__dirname, '../frontend/pages/super-admin/system.html');
+  const html = fs.readFileSync(systemPath, 'utf8');
+
+  // The running signing secret must never be fetched from, or shown by, the
+  // server - only a freshly generated candidate is produced client-side.
+  const apiCalls = html.match(/api\.request\(\s*['"`]([^'"`]+)/g) || [];
+  apiCalls.forEach((call) => {
+    assert.ok(
+      !/secret|env|config/i.test(call),
+      `the page must not request a secret from the API: ${call}`
+    );
+  });
+  assert.ok(
+    !/\/api\/[^'"`\s]*(secret|environment)/i.test(html),
+    'no secret/environment endpoint may be referenced by the page'
+  );
+});
+
+runTest('Super-admin system page calls the API without a doubled /api prefix', () => {
+  const systemPath = path.resolve(__dirname, '../frontend/pages/super-admin/system.html');
+  const html = fs.readFileSync(systemPath, 'utf8');
+
+  // `api.request()` already prepends `/api`, so passing `/api/...` would
+  // request `/api/api/...` and silently 404.
+  const calls = html.match(/api\.request\(\s*['"`]([^'"`]+)/g) || [];
+  calls.forEach((call) => {
+    assert.ok(!call.includes("'/api/"), `api.request path must not include the /api prefix: ${call}`);
+  });
+});
+
+runTest('Vercel deployment sends a Content-Security-Policy', () => {
+  // Vercel ignores .htaccess - without a CSP here the online deployment runs
+  // with no content-security policy at all.
+  const vercelPath = path.resolve(__dirname, '../frontend/vercel.json');
+  const vercel = JSON.parse(fs.readFileSync(vercelPath, 'utf8'));
+  const headers = (vercel.headers || []).flatMap((entry) => entry.headers || []);
+  const csp = headers.find((h) => h.key === 'Content-Security-Policy');
+
+  assert.ok(csp, 'vercel.json must define a Content-Security-Policy');
+  ['default-src', 'script-src', 'object-src', 'base-uri', 'frame-ancestors', 'form-action']
+    .forEach((directive) => {
+      assert.ok(csp.value.includes(directive), `CSP must include ${directive}`);
+    });
+  assert.ok(csp.value.includes("object-src 'none'"), 'object-src must be none');
+  assert.ok(csp.value.includes("frame-ancestors 'self'"), 'frame-ancestors must be set');
+});
+
+runTest('Vercel and Apache deployments enforce the same CSP', () => {
+  const vercel = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../frontend/vercel.json'), 'utf8'));
+  const headers = (vercel.headers || []).flatMap((entry) => entry.headers || []);
+  const csp = headers.find((h) => h.key === 'Content-Security-Policy').value;
+
+  const htaccess = fs.readFileSync(path.resolve(__dirname, '../frontend/.htaccess'), 'utf8');
+  const htaccessCsp = (htaccess.match(/Content-Security-Policy "([^"]+)"/) || [])[1];
+
+  assert.ok(htaccessCsp, '.htaccess must define a Content-Security-Policy');
+  assert.strictEqual(
+    csp,
+    htaccessCsp,
+    'the Vercel and Apache CSPs must be identical so both hosts behave the same'
+  );
+});
+
+runTest('CSP allows every third-party origin the frontend actually loads', () => {
+  // A CSP that is too tight silently breaks the product. These are the
+  // origins the pages really load resources from - if one is missing the
+  // corresponding feature fails silently in production.
+  const vercel = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../frontend/vercel.json'), 'utf8'));
+  const headers = (vercel.headers || []).flatMap((entry) => entry.headers || []);
+  const csp = headers.find((h) => h.key === 'Content-Security-Policy').value;
+
+  const required = {
+    'script-src': [
+      'https://cdnjs.cloudflare.com',    // Font Awesome
+      'https://cdn.jsdelivr.net',        // Chart.js
+      'https://cdn.tailwindcss.com',     // Tailwind CDN
+      'https://cdn.socket.io',           // socket.io client
+      'https://checkout.razorpay.com',   // Razorpay checkout
+      'https://accounts.google.com',     // Google Sign-In (GIS)
+    ],
+    'style-src': [
+      'https://fonts.googleapis.com',
+      'https://cdnjs.cloudflare.com',
+      'https://cdn.jsdelivr.net',
+      'https://cdn.tailwindcss.com',
+      'https://accounts.google.com',     // Google Sign-In injects its own stylesheet
+    ],
+    'frame-src': [
+      'https://checkout.razorpay.com',
+      'https://meet.jit.si',
+      'https://accounts.google.com',
+    ],
+  };
+
+  Object.entries(required).forEach(([directive, origins]) => {
+    assert.ok(csp.includes(`${directive} `), `CSP must define ${directive}`);
+    const value = csp.split(`${directive} `)[1].split(';')[0];
+    origins.forEach((origin) => {
+      assert.ok(
+        value.includes(origin),
+        `${directive} must allow ${origin} - otherwise that feature breaks in production`
+      );
+    });
+  });
+});
+
+runTest('Render deployment defines JWT_REFRESH_SECRET', () => {
+  const renderYaml = fs.readFileSync(path.resolve(__dirname, '../render.yaml'), 'utf8');
+  assert.ok(
+    /key:\s*JWT_REFRESH_SECRET/.test(renderYaml),
+    'render.yaml must define JWT_REFRESH_SECRET - the API refuses to boot in production without it'
+  );
+  assert.ok(/key:\s*JWT_SECRET/.test(renderYaml), 'render.yaml must define JWT_SECRET');
+});
+
+runTest('Seeded demo credentials are not published by default', () => {
+  // The demo passwords live in this public repository. The login page must
+  // not hand them to every visitor unless the server explicitly opts in.
+  const configSrc = fs.readFileSync(path.resolve(__dirname, '../backend/routes/config.js'), 'utf8');
+  assert.ok(configSrc.includes('demoAccounts'), 'the public config must expose a demoAccounts flag');
+  assert.ok(
+    configSrc.includes('PUBLIC_DEMO_ACCOUNTS'),
+    'the demo flag must be controlled by PUBLIC_DEMO_ACCOUNTS'
+  );
+  assert.ok(
+    /process\.env\.NODE_ENV\s*!==\s*'production'/.test(configSrc),
+    'demo credentials must default to OFF in production'
+  );
+
+  const loginSrc = fs.readFileSync(path.resolve(__dirname, '../frontend/pages/login.html'), 'utf8');
+  assert.ok(loginSrc.includes('demoAccountsAllowed'), 'the login page must respect the flag');
+  assert.ok(
+    !/id="password"[^>]*value="/.test(loginSrc),
+    'the password field must not be pre-filled in the markup'
+  );
+  assert.ok(
+    /if\s*\(!demoAccountsAllowed\)\s*return;/.test(loginSrc),
+    'the demo auto-fill must refuse to run when the panel is disabled'
+  );
+});
+
 console.log('\n===============================================================');
 console.log(` SUMMARY: ${passedTests} of ${totalTests} frontend security tests passed (${Math.round((passedTests/totalTests)*100)}%)`);
 console.log('===============================================================\n');

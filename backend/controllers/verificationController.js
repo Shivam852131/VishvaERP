@@ -4,6 +4,14 @@ const User = require('../models/User');
 const { generateToken, generateRefreshToken } = require('../config/jwt');
 const { logAudit } = require('../services/auditService');
 
+// Roles that may ever be provisioned through a public verification flow.
+// Without this allow-list any anonymous caller could self-register as
+// `superadmin` (privilege escalation) - the same guard exists in
+// authController.register / verifyOTPLogin / googleLogin.
+const PUBLIC_PROVISION_ROLES = new Set(['student', 'parent']);
+
+const resolveRequestedRole = (role) => (PUBLIC_PROVISION_ROLES.has(role) ? role : 'student');
+
 const getChannels = asyncHandler(async (req, res) => {
   const configured = verifyService.isVerifyConfigured();
   const channels = Object.keys(verifyService.CHANNELS).map((key) => ({
@@ -60,9 +68,16 @@ const verifyAndLogin = asyncHandler(async (req, res) => {
       email: isPhone ? `verified_${phone.replace('+', '')}@vishvaerp.local` : email.toLowerCase(),
       phone: phone || undefined,
       password: require('crypto').randomBytes(16).toString('hex'),
-      role: role || 'student',
+      // Role is server-controlled: a public caller can never ask for an
+      // administrative role.
+      role: resolveRequestedRole(role),
       isEmailVerified: channel === 'email',
+      tokenVersion: 0,
     });
+  }
+
+  if (!user.isActive) {
+    return res.status(401).json({ success: false, message: 'Account has been deactivated' });
   }
 
   user.lastLogin = new Date();
@@ -74,8 +89,8 @@ const verifyAndLogin = asyncHandler(async (req, res) => {
     metadata: { role: user.role, channel },
   });
 
-  const token = generateToken({ id: user._id, role: user.role, collegeId: user.collegeId });
-  const refreshToken = generateRefreshToken({ id: user._id, role: user.role, collegeId: user.collegeId });
+  const token = generateToken({ id: user._id, role: user.role, collegeId: user.collegeId, tokenVersion: user.tokenVersion || 0 });
+  const refreshToken = generateRefreshToken({ id: user._id, role: user.role, collegeId: user.collegeId, tokenVersion: user.tokenVersion || 0 });
 
   let subscriptionActive = null;
   if (user.role === 'collegeAdmin' && user.collegeId) {
@@ -122,12 +137,42 @@ const verifyTotp = asyncHandler(async (req, res) => {
   res.json(result);
 });
 
+/**
+ * Verification attempt history.
+ *
+ * This endpoint is reachable without a session (the OTP screen needs it), so
+ * the response is deliberately minimised: no Twilio SIDs, no raw provider
+ * payload - only how many codes were requested and whether the last one was
+ * approved. Without this an anonymous caller could enumerate registered
+ * phone numbers / e-mail addresses and harvest OTP-guessing intelligence.
+ */
 const getAttempts = asyncHandler(async (req, res) => {
   const { phone, email } = req.query;
   const to = email || phone;
-  if (!to) return res.status(400).json({ success: false, message: 'Phone or email required' });
-  const result = await verifyService.getVerificationAttempts(to);
-  res.json(result);
+
+  if (!to || typeof to !== 'string') {
+    return res.status(400).json({ success: false, message: 'Phone or email required' });
+  }
+
+  const value = to.trim();
+  const looksLikeEmail = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(value);
+  const looksLikePhone = /^\+?[1-9]\d{6,14}$/.test(value.replace(/[\s()-]/g, ''));
+  if (!looksLikeEmail && !looksLikePhone) {
+    return res.status(400).json({ success: false, message: 'Invalid phone or email format' });
+  }
+
+  const result = await verifyService.getVerificationAttempts(value);
+  if (!result.success) {
+    return res.status(200).json({ success: false, count: 0, approved: false, lastStatus: null, message: 'Verification service unavailable' });
+  }
+
+  const attempts = Array.isArray(result.attempts) ? result.attempts : [];
+  res.json({
+    success: true,
+    count: attempts.length,
+    approved: attempts.some((attempt) => attempt.status === 'approved'),
+    lastStatus: attempts.length ? attempts[0].status : null,
+  });
 });
 
 module.exports = { getChannels, sendCode, checkCode, verifyAndLogin, setupTotp, verifyTotp, getAttempts };

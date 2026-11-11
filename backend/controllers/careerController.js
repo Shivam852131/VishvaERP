@@ -7,6 +7,25 @@ const { SkillAssessment, AssessmentAttempt } = require('../models/SkillAssessmen
 const { emitDataChange } = require('../utils/realtime');
 const { logAudit } = require('../services/auditService');
 const { askAI } = require('../services/aiService');
+const { getChildStudentIds } = require('../utils/accessControl');
+
+/**
+ * Decide whether the caller may read a given student's career profile.
+ */
+const canViewStudentProfile = async (req, studentId) => {
+  const target = String(studentId);
+  const role = req.user.role;
+
+  if (role === 'student') return target === String(req.user._id);
+  if (role === 'parent') {
+    const children = await getChildStudentIds(req);
+    return children.includes(target);
+  }
+  // faculty / collegeAdmin / superadmin - within the college.
+  if (role === 'superadmin') return true;
+  const student = await User.findOne({ _id: target, collegeId: req.user.collegeId }).select('_id').lean();
+  return Boolean(student);
+};
 
 const getMyProfile = asyncHandler(async (req, res) => {
   let profile = await StudentProfile.findOne({ collegeId: req.user.collegeId, studentId: req.user._id })
@@ -51,6 +70,15 @@ const updateMyProfile = asyncHandler(async (req, res) => {
 
 const getStudentProfile = asyncHandler(async (req, res) => {
   const { studentId } = req.params;
+
+  // A career profile contains e-mail, phone, resume URL, social links,
+  // certifications and projects. It may only be read by the student themself,
+  // their parents, or staff (faculty / administrators).
+  const allowed = await canViewStudentProfile(req, studentId);
+  if (!allowed) {
+    return res.status(403).json({ success: false, message: 'Access denied: you may not view this career profile' });
+  }
+
   const profile = await StudentProfile.findOneAndUpdate(
     { collegeId: req.user.collegeId, studentId },
     { $inc: { profileViews: 1 } },
@@ -132,7 +160,10 @@ const endorseSkill = asyncHandler(async (req, res) => {
   }
 
   skill.endorsedBy.push(req.user._id);
-  if (req.user.role === 'faculty' || req.user.role === 'collegeAdmin' || skill.endorsedBy.length >= 2) {
+  // Only trusted roles (faculty / administrators) can verify a skill.
+  // Previously two arbitrary endorsements were enough, which allowed a
+  // student to self-verify their own profile using a second account.
+  if (req.user.role === 'faculty' || req.user.role === 'collegeAdmin' || req.user.role === 'superadmin') {
     skill.verified = true;
   }
   await profile.save();
@@ -145,10 +176,20 @@ const getCareerInsights = asyncHandler(async (req, res) => {
   const { studentId } = req.query;
   const sid = studentId || req.user._id;
 
+  if (studentId) {
+    const allowed = await canViewStudentProfile(req, sid);
+    if (!allowed) {
+      return res.status(403).json({ success: false, message: 'Access denied: you may not view this career profile' });
+    }
+  }
+
   const profile = await StudentProfile.findOne({ collegeId: req.user.collegeId, studentId: sid });
   if (!profile) return res.json({ success: true, insights: { skillGaps: [], recommendedJobs: [], marketTrends: [], readinessScore: 0 } });
 
-  const user = await User.findById(sid).select('department semester');
+  const user = await User.findOne({
+    _id: sid,
+    ...(req.user.role === 'superadmin' ? {} : { collegeId: req.user.collegeId }),
+  }).select('department semester');
   const studentSkills = (profile.skills || []).map(s => s.name.toLowerCase());
 
   const activeJobs = await PlacementJob.find({

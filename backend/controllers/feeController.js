@@ -4,9 +4,10 @@ const FeeStructure = require('../models/FeeStructure');
 const Payment = require('../models/Payment');
 const User = require('../models/User');
 const { emitDataChange } = require('../utils/realtime');
-const { parseSemester } = require('../utils/parseHelpers');
+const { parseSemester, regexFilter } = require('../utils/parseHelpers');
 const { logAudit } = require('../services/auditService');
 const { sendParentNotification } = require('../services/parentNotificationService');
+const { getChildStudentIds, NO_MATCH } = require('../utils/accessControl');
 const {
   confirmRazorpayPayment,
   getRazorpay,
@@ -153,14 +154,12 @@ async function captureFeePayment(req, fee, payment, payload) {
 async function canAccessFee(req, fee) {
   if (req.user.role === 'student') return String(fee.studentId) === String(req.user._id);
   if (req.user.role === 'parent') {
-    const parent = await User.findById(req.user._id).select('children');
-    let children = (parent?.children || []).map(String);
-    if (!children.length) {
-      const linked = await User.find({ collegeId: req.user.collegeId, role: 'student', parentId: req.user._id }).select('_id');
-      children = linked.map(s => String(s._id));
-    }
-    return children.includes(String(fee.studentId));
+    const children = await getChildStudentIds(req);
+    return children.includes(String(fee.studentId?._id || fee.studentId));
   }
+  // Faculty are staff but have no financial role - student fee records (and
+  // the e-mail / phone numbers attached to them) are not theirs to read.
+  if (req.user.role === 'faculty') return false;
   return true;
 }
 
@@ -302,12 +301,27 @@ const assignFeeStructure = asyncHandler(async (req, res) => {
 const createFee = asyncHandler(async (req, res) => {
   let studentId = req.body.studentId;
   let studentSemester = null;
+  let student = null;
   if (!studentId && (req.body.rollNo || req.body.roll)) {
-    const student = await User.findOne({ collegeId: req.user.collegeId, role: 'student', rollNo: req.body.rollNo || req.body.roll }).select('_id semester');
+    student = await User.findOne({ collegeId: req.user.collegeId, role: 'student', rollNo: req.body.rollNo || req.body.roll }).select('_id semester');
     studentId = student?._id;
     studentSemester = student?.semester ?? null;
   }
   if (!studentId) return res.status(400).json({ success: false, message: 'Valid student is required' });
+
+  // The student must belong to the caller's college. Without this check an
+  // admin could attach a fee to a student of another tenant and then read
+  // that student's e-mail and phone number back through `getFeeById`.
+  if (!student) {
+    student = await User.findOne({ _id: studentId, collegeId: req.user.collegeId, role: 'student' }).select('_id semester');
+  }
+  if (!student) {
+    return res.status(404).json({ success: false, message: 'Student not found in your college' });
+  }
+  studentId = student._id;
+  if (studentSemester === null || studentSemester === undefined) {
+    studentSemester = student.semester ?? null;
+  }
 
   const rawFeeType = String(req.body.feeType || req.body.type || 'other').trim().toLowerCase();
   const bodySemester = parseSemester(req.body.semester || req.body.sem);
@@ -316,8 +330,7 @@ const createFee = asyncHandler(async (req, res) => {
   // the student ledger default "Semester 4" filter) don't hide the record.
   let semester = bodySemester || studentSemester;
   if (!semester) {
-    const fallbackStudent = await User.findById(studentId).select('semester');
-    semester = fallbackStudent?.semester ?? null;
+    semester = student.semester ?? null;
   }
   const fee = await Fee.create({
     collegeId: req.user.collegeId, studentId,
@@ -352,13 +365,8 @@ const getFees = asyncHandler(async (req, res) => {
 
   if (req.user.role === 'student') query.studentId = req.user._id;
   if (req.user.role === 'parent') {
-    const parent = await User.findById(req.user._id);
-    let children = (parent?.children || []).map(String);
-    if (!children.length) {
-      const linked = await User.find({ collegeId: req.user.collegeId, role: 'student', parentId: req.user._id }).select('_id');
-      children = linked.map(s => String(s._id));
-    }
-    query.studentId = { $in: children };
+    const children = await getChildStudentIds(req);
+    query.studentId = { $in: children.length ? children : [NO_MATCH] };
   }
 
   if (overdue === 'true') {
@@ -878,9 +886,9 @@ const getAssignableStudents = asyncHandler(async (req, res) => {
   if (semester) query.semester = parseInt(semester);
   if (search) {
     query.$or = [
-      { name: { $regex: search, $options: 'i' } },
-      { rollNo: { $regex: search, $options: 'i' } },
-      { email: { $regex: search, $options: 'i' } },
+      { name: regexFilter(search) },
+      { rollNo: regexFilter(search) },
+      { email: regexFilter(search) },
     ];
   }
 

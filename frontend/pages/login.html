@@ -575,13 +575,13 @@
     <!-- ═══════ PASSWORD PANEL ═══════ -->
     <div class="login-panel active-panel" id="passwordPanel">
       
-      <!-- Demo Credentials Quick-Fill helper -->
-      <div class="demo-bar">
+      <!-- Demo Credentials Quick-Fill helper (hidden unless the server enables it) -->
+      <div class="demo-bar" id="demoCredentialsPanel">
         <span>⚡ <strong>Quick Demo:</strong> Click any role below to prefill credentials</span>
         <button type="button" onclick="fillCurrentDemoAccount()">Auto-Fill</button>
       </div>
 
-      <div class="role-grid" id="roleGrid">
+      <div class="role-grid" id="roleGrid" style="display:none">
         <button type="button" class="role-btn" onclick="selectRole(this,'superadmin','#5B21B6','#EDE9FE')" data-role="superadmin" style="--role-color:#5B21B6;--role-bg:#EDE9FE">
           <i class="fas fa-satellite-dish"></i>Super Admin
         </button>
@@ -609,7 +609,9 @@
         </div>
         <div class="form-group">
           <div class="input-wrap">
-            <input class="form-control" type="password" id="password" placeholder="Enter your password" required autocomplete="current-password" value="Faculty@123">
+            <!-- The password is never pre-filled in the markup; the demo helper fills it
+                 only when the server explicitly enables the demo panel. -->
+            <input class="form-control" type="password" id="password" placeholder="Enter your password" required autocomplete="current-password">
             <button type="button" class="toggle-pass" onclick="togglePassword(this)">
               <i class="fas fa-eye"></i>
             </button>
@@ -813,6 +815,42 @@
     parent: { email: 'parent1@example.com', password: 'Parent@123', label: 'Parent' },
   };
 
+  // The demo credential panel publishes seeded passwords that also live in this
+  // public repository. It is only rendered when the server explicitly allows
+  // it (PUBLIC_DEMO_ACCOUNTS=true); on a production deployment the panel is
+  // removed so nobody can walk in as the college admin or the super admin.
+  let demoAccountsAllowed = false;
+
+  async function loadPublicConfig() {
+    try {
+      const res = await fetch(`${API_URL}/config/public`, { cache: 'no-store' });
+      if (!res.ok) return;
+      const cfg = await res.json();
+      demoAccountsAllowed = cfg && cfg.demoAccounts === true;
+    } catch (e) {
+      demoAccountsAllowed = false;
+    }
+    applyDemoAccountVisibility();
+  }
+
+  function applyDemoAccountVisibility() {
+    const panel = document.getElementById('demoCredentialsPanel');
+    if (panel) panel.style.display = demoAccountsAllowed ? '' : 'none';
+    const roleGrid = document.getElementById('roleGrid');
+    if (roleGrid) roleGrid.style.display = demoAccountsAllowed ? '' : 'none';
+    const otpRoleGrid = document.getElementById('otpRoleGrid');
+    if (otpRoleGrid && !demoAccountsAllowed) otpRoleGrid.style.display = 'none';
+    const phoneRoleGrid = document.getElementById('phoneRoleGrid');
+    if (phoneRoleGrid && !demoAccountsAllowed) phoneRoleGrid.style.display = 'none';
+    if (!demoAccountsAllowed) {
+      // Never pre-fill a credential that is not meant to be published.
+      ['email', 'password', 'otpEmail'].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+    }
+  }
+
   let selectedRole = 'faculty';
   let selectedOtpRole = 'faculty';
   let selectedPhoneRole = 'faculty';
@@ -832,7 +870,10 @@
   // ── Auto-Session Check ──
   document.addEventListener('DOMContentLoaded', () => {
     checkActiveSession();
-    fillCurrentDemoAccount();
+    // The demo credential panel is only rendered when the server allows it.
+    loadPublicConfig().then(() => {
+      if (demoAccountsAllowed) fillCurrentDemoAccount();
+    });
   });
 
   function checkActiveSession() {
@@ -962,6 +1003,7 @@
   }
 
   function fillCurrentDemoAccount() {
+    if (!demoAccountsAllowed) return;
     const cred = DEMO_ACCOUNTS[selectedRole];
     if (cred) {
       const emailInput = document.getElementById('email');

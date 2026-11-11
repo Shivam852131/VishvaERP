@@ -3,6 +3,7 @@ const { CampusSensor, SensorReading } = require('../models/CampusSensor');
 const CampusResource = require('../models/CampusResource');
 const { emitDataChange } = require('../utils/realtime');
 const { logAudit } = require('../services/auditService');
+const { buildDocument, buildUpdate } = require('../utils/safeUpdate');
 
 const getSensors = asyncHandler(async (req, res) => {
   const { type, building, status } = req.query;
@@ -16,7 +17,9 @@ const getSensors = asyncHandler(async (req, res) => {
 });
 
 const createSensor = asyncHandler(async (req, res) => {
-  const sensor = await CampusSensor.create({ collegeId: req.user.collegeId, ...req.body });
+  const sensor = await CampusSensor.create(buildDocument(CampusSensor, req.body, {
+    serverFields: { collegeId: req.user.collegeId },
+  }));
   logAudit(req, 'create', 'campus-sensor', { resourceId: sensor._id, description: `Added sensor: ${sensor.name}` });
   res.status(201).json({ success: true, sensor });
 });
@@ -24,7 +27,8 @@ const createSensor = asyncHandler(async (req, res) => {
 const updateSensor = asyncHandler(async (req, res) => {
   const sensor = await CampusSensor.findOneAndUpdate(
     { _id: req.params.id, collegeId: req.user.collegeId },
-    req.body,
+    // `lastReading` / `lastReadingAt` are written by the sensor ingest flow.
+    buildUpdate(CampusSensor, req.body, ['lastReading', 'lastReadingAt']),
     { new: true, runValidators: true }
   );
   if (!sensor) return res.status(404).json({ success: false, message: 'Sensor not found' });
@@ -171,7 +175,9 @@ const getResources = asyncHandler(async (req, res) => {
 });
 
 const createResource = asyncHandler(async (req, res) => {
-  const resource = await CampusResource.create({ collegeId: req.user.collegeId, ...req.body });
+  const resource = await CampusResource.create(buildDocument(CampusResource, req.body, {
+    serverFields: { collegeId: req.user.collegeId },
+  }));
   logAudit(req, 'create', 'campus-resource', { resourceId: resource._id, description: `Added: ${resource.name}` });
   res.status(201).json({ success: true, resource });
 });
@@ -179,7 +185,7 @@ const createResource = asyncHandler(async (req, res) => {
 const updateResource = asyncHandler(async (req, res) => {
   const resource = await CampusResource.findOneAndUpdate(
     { _id: req.params.id, collegeId: req.user.collegeId },
-    req.body,
+    buildUpdate(CampusResource, req.body),
     { new: true, runValidators: true }
   );
   if (!resource) return res.status(404).json({ success: false, message: 'Resource not found' });

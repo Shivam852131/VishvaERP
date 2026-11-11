@@ -13,8 +13,10 @@ router.get('/', getAssessments);
 router.get('/stats', getMyStats);
 router.get('/leaderboard', getLeaderboard);
 router.post('/', authorize('collegeAdmin', 'faculty'), createAssessment);
-router.get('/:id', getAssessmentById);
-router.post('/:id/start', startAttempt);
-router.post('/:id/submit', submitAttempt);
+// Skill assessments are taken by students. Attempts are self-scoped to the
+// caller, but parents/faculty must not be able to create attempts.
+router.get('/:id', authorize('student', 'faculty', 'collegeAdmin'), getAssessmentById);
+router.post('/:id/start', authorize('student'), startAttempt);
+router.post('/:id/submit', authorize('student'), submitAttempt);
 
 module.exports = router;

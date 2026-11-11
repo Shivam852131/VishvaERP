@@ -5,9 +5,15 @@ const StudentProfile = require('../models/StudentProfile');
 const User = require('../models/User');
 const { logAudit } = require('../services/auditService');
 const { emitDataChange } = require('../utils/realtime');
+const { regexFilter } = require('../utils/parseHelpers');
+const { buildDocument, buildUpdate } = require('../utils/safeUpdate');
+const { getChildStudentIds, NO_MATCH } = require('../utils/accessControl');
 
 const createCompany = asyncHandler(async (req, res) => {
-  const company = await PlacementCompany.create({ collegeId: req.user.collegeId, ...req.body });
+  const company = await PlacementCompany.create(buildDocument(PlacementCompany, req.body, {
+    extraProtected: ['isVerified'],
+    serverFields: { collegeId: req.user.collegeId },
+  }));
   logAudit(req, 'create', 'placement-company', { resourceId: company._id, description: `Added company: ${company.name}` });
   res.status(201).json({ success: true, company, data: company });
 });
@@ -27,7 +33,7 @@ const getCompanyById = asyncHandler(async (req, res) => {
 const updateCompany = asyncHandler(async (req, res) => {
   const company = await PlacementCompany.findOneAndUpdate(
     { _id: req.params.id, collegeId: req.user.collegeId },
-    req.body,
+    buildUpdate(PlacementCompany, req.body),
     { new: true, runValidators: true }
   );
   if (!company) return res.status(404).json({ success: false, message: 'Company not found' });
@@ -42,7 +48,10 @@ const deleteCompany = asyncHandler(async (req, res) => {
 });
 
 const createJob = asyncHandler(async (req, res) => {
-  const job = await PlacementJob.create({ collegeId: req.user.collegeId, ...req.body });
+  const job = await PlacementJob.create(buildDocument(PlacementJob, req.body, {
+    extraProtected: ['filledPositions'],
+    serverFields: { collegeId: req.user.collegeId },
+  }));
   logAudit(req, 'create', 'placement-job', { resourceId: job._id, description: `Posted job: ${job.title}` });
   emitDataChange(req, { collegeId: String(req.user.collegeId), roles: ['student'], resource: 'placements', action: 'created' });
   res.status(201).json({ success: true, job, data: job });
@@ -60,7 +69,7 @@ const getJobs = asyncHandler(async (req, res) => {
   const query = { collegeId: req.user.collegeId };
   if (status) query.status = status;
   if (type) query.type = type;
-  if (search) query.$or = [{ title: { $regex: search, $options: 'i' } }, { description: { $regex: search, $options: 'i' } }];
+  if (search) query.$or = [{ title: regexFilter(search) }, { description: regexFilter(search) }];
 
   let sortObj = { createdAt: -1 };
   if (sortBy === 'salary') sortObj = { salaryMax: -1 };
@@ -120,7 +129,11 @@ const getJobById = asyncHandler(async (req, res) => {
 });
 
 const updateJob = asyncHandler(async (req, res) => {
-  const job = await PlacementJob.findOneAndUpdate({ _id: req.params.id, collegeId: req.user.collegeId }, req.body, { new: true });
+  const job = await PlacementJob.findOneAndUpdate(
+    { _id: req.params.id, collegeId: req.user.collegeId },
+    buildUpdate(PlacementJob, req.body, ['filledPositions']),
+    { new: true, runValidators: true }
+  );
   if (!job) return res.status(404).json({ success: false, message: 'Job not found' });
   res.json({ success: true, job });
 });
@@ -198,7 +211,17 @@ const applyForJob = asyncHandler(async (req, res) => {
 const getApplications = asyncHandler(async (req, res) => {
   const { jobId, status, page = 1, limit = 50 } = req.query;
   const query = { collegeId: req.user.collegeId };
-  if (req.user.role === 'student') query.studentId = req.user._id;
+
+  // Students only ever see their own applications. Parents only ever see the
+  // applications of their linked children. Without the parent branch a parent
+  // could read every applicant's details (name, roll number, e-mail, phone).
+  if (req.user.role === 'student') {
+    query.studentId = req.user._id;
+  } else if (req.user.role === 'parent') {
+    const children = await getChildStudentIds(req);
+    query.studentId = { $in: children.length ? children : [NO_MATCH] };
+  }
+
   if (jobId) query.jobId = jobId;
   if (status) query.status = status;
   const skip = (Number(page) - 1) * Number(limit);
@@ -467,7 +490,10 @@ const getDrives = asyncHandler(async (req, res) => {
 });
 
 const createDrive = asyncHandler(async (req, res) => {
-  const drive = await PlacementDrive.create({ collegeId: req.user.collegeId, ...req.body });
+  const drive = await PlacementDrive.create(buildDocument(PlacementDrive, req.body, {
+    extraProtected: ['totalRegistrations', 'totalSelected', 'registeredStudents'],
+    serverFields: { collegeId: req.user.collegeId },
+  }));
   logAudit(req, 'create', 'placement-drive', { resourceId: drive._id, description: `Created drive: ${drive.title}` });
   emitDataChange(req, { collegeId: String(req.user.collegeId), roles: ['student'], resource: 'placement-drives', action: 'created' });
   res.status(201).json({ success: true, drive, data: drive });
@@ -476,8 +502,8 @@ const createDrive = asyncHandler(async (req, res) => {
 const updateDrive = asyncHandler(async (req, res) => {
   const drive = await PlacementDrive.findOneAndUpdate(
     { _id: req.params.id, collegeId: req.user.collegeId },
-    req.body,
-    { new: true }
+    buildUpdate(PlacementDrive, req.body, ['totalRegistrations', 'totalSelected', 'registeredStudents']),
+    { new: true, runValidators: true }
   );
   if (!drive) return res.status(404).json({ success: false, message: 'Drive not found' });
   res.json({ success: true, drive, data: drive });

@@ -40,7 +40,7 @@ router.route('/rooms/:id')
   .put(authorize('collegeAdmin', 'superadmin'), updateRoom)
   .delete(authorize('collegeAdmin', 'superadmin'), deleteRoom);
 
-router.post('/rooms/:id/maintenance', authorize('collegeAdmin', 'superadmin', 'student', 'faculty'), addRoomMaintenance);
+router.post('/rooms/:id/maintenance', authorize('collegeAdmin', 'superadmin', 'faculty'), addRoomMaintenance);
 
 // Hostel collection
 router.route('/')
@@ -48,8 +48,10 @@ router.route('/')
   .post(authorize('collegeAdmin', 'superadmin'), addHostel);
 
 // Single hostel operations
+// The hostel detail response includes the occupant roster (name, roll number,
+// department, e-mail, phone) - staff only.
 router.route('/:id')
-  .get(authorize('collegeAdmin', 'superadmin', 'student', 'faculty'), getHostelById)
+  .get(authorize('collegeAdmin', 'superadmin', 'faculty'), getHostelById)
   .put(authorize('collegeAdmin', 'superadmin'), updateHostel)
   .delete(authorize('collegeAdmin', 'superadmin'), deleteHostel);
 

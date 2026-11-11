@@ -3,6 +3,30 @@ const { Book, LibraryRecord } = require('../models/Library');
 const User = require('../models/User');
 const { logAudit } = require('../services/auditService');
 const { emitDataChange } = require('../utils/realtime');
+const { regexFilter } = require('../utils/parseHelpers');
+const { buildUpdate } = require('../utils/safeUpdate');
+const { getChildStudentIds, NO_MATCH } = require('../utils/accessControl');
+
+/**
+ * Build the mongo filter for a loan record.
+ *
+ * Students may only touch their own loans, parents only the loans of their
+ * linked children, staff (faculty / collegeAdmin / superadmin) may act on any
+ * loan inside the college. Without the parent branch a parent could renew or
+ * return *any* student's book.
+ */
+const buildLoanScope = async (req, recordId) => {
+  const query = { _id: recordId, collegeId: req.user.collegeId };
+
+  if (req.user.role === 'student') {
+    query.userId = req.user._id;
+  } else if (req.user.role === 'parent') {
+    const children = await getChildStudentIds(req);
+    query.userId = { $in: children.length ? children : [NO_MATCH] };
+  }
+
+  return query;
+};
 
 // --- BOOK MANAGEMENT ---
 const addBook = asyncHandler(async (req, res) => {
@@ -34,14 +58,14 @@ const getBooks = asyncHandler(async (req, res) => {
   const { page = 1, limit = 20, search, category, subject } = req.query;
   const query = { collegeId: req.user.collegeId, isActive: true };
   if (category && category !== 'all') query.category = category;
-  if (subject) query.subject = { $regex: subject, $options: 'i' };
+  if (subject) query.subject = regexFilter(subject);
   if (search) {
     query.$or = [
-      { title: { $regex: search, $options: 'i' } },
-      { author: { $regex: search, $options: 'i' } },
-      { isbn: { $regex: search, $options: 'i' } },
-      { barcode: { $regex: search, $options: 'i' } },
-      { subject: { $regex: search, $options: 'i' } },
+      { title: regexFilter(search) },
+      { author: regexFilter(search) },
+      { isbn: regexFilter(search) },
+      { barcode: regexFilter(search) },
+      { subject: regexFilter(search) },
     ];
   }
 
@@ -81,7 +105,9 @@ const getBookByISBN = asyncHandler(async (req, res) => {
 const updateBook = asyncHandler(async (req, res) => {
   const book = await Book.findOneAndUpdate(
     { _id: req.params.id, collegeId: req.user.collegeId },
-    req.body,
+    // `availableCopies` is maintained by the issue/return flow - a client
+    // update must not be able to inflate the catalogue inventory.
+    buildUpdate(Book, req.body, ['availableCopies']),
     { new: true, runValidators: true }
   );
   if (!book) return res.status(404).json({ success: false, message: 'Book not found' });
@@ -202,12 +228,17 @@ const renewBook = asyncHandler(async (req, res) => {
   const recordId = req.params.id || req.body.recordId || req.body.id;
   if (!recordId) return res.status(400).json({ success: false, message: 'Loan record ID is required' });
 
-  const query = { _id: recordId, collegeId: req.user.collegeId };
-  if (req.user.role === 'student') query.userId = req.user._id;
+  const query = await buildLoanScope(req, recordId);
 
   const record = await LibraryRecord.findOne(query).populate('bookId', 'title');
   if (!record) return res.status(404).json({ success: false, message: 'Issue record not found' });
   if (record.status === 'returned') return res.status(400).json({ success: false, message: 'Book is already returned' });
+
+  // Cap the number of renewals so a loan cannot be extended forever.
+  const MAX_RENEWALS = 3;
+  if ((record.renewalCount || 0) >= MAX_RENEWALS) {
+    return res.status(400).json({ success: false, message: `Maximum of ${MAX_RENEWALS} renewals reached for this loan` });
+  }
 
   // Extend due date by 14 days
   const baseDate = new Date() > record.dueDate ? new Date() : record.dueDate;
@@ -227,7 +258,11 @@ const returnBook = asyncHandler(async (req, res) => {
   const recordId = req.params.id || req.body.recordId || req.body.id;
   if (!recordId) return res.status(400).json({ success: false, message: 'Loan record ID is required' });
 
-  const record = await LibraryRecord.findOne({ _id: recordId, collegeId: req.user.collegeId }).populate('bookId', 'title');
+  // Ownership scoped: only the borrower (or their parent / library staff)
+  // can mark a loan as returned.
+  const query = await buildLoanScope(req, recordId);
+
+  const record = await LibraryRecord.findOne(query).populate('bookId', 'title');
   if (!record) return res.status(404).json({ success: false, message: 'Issue record not found' });
   if (record.status === 'returned') return res.status(400).json({ success: false, message: 'Book already returned' });
 
@@ -251,8 +286,7 @@ const returnBook = asyncHandler(async (req, res) => {
 
 const payFine = asyncHandler(async (req, res) => {
   const recordId = req.params.id || req.body.recordId || req.body.id;
-  const query = { _id: recordId, collegeId: req.user.collegeId };
-  if (req.user.role === 'student') query.userId = req.user._id;
+  const query = await buildLoanScope(req, recordId);
 
   const record = await LibraryRecord.findOne(query);
   if (!record) return res.status(404).json({ success: false, message: 'Record not found' });
@@ -355,8 +389,13 @@ const getLibraryStats = asyncHandler(async (req, res) => {
     currentlyIssued: issuedCount,
     overdue: overdueCount,
     reserved: reservedCount,
-    totalFineCollected: fineSum[0]?.total || 0,
   };
+
+  // Institution-wide fine revenue is a financial metric - it is only exposed
+  // to college administrators and super admins.
+  if (['collegeAdmin', 'superadmin'].includes(req.user.role)) {
+    stats.totalFineCollected = fineSum[0]?.total || 0;
+  }
 
   // If student requests, enrich with personal loan statistics
   if (req.user.role === 'student') {

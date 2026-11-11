@@ -5,7 +5,8 @@ const Subject = require('../models/Subject');
 const Timetable = require('../models/Timetable');
 const { ClassroomLocation, LocationConsent, LivePresence } = require('../models/SmartAttendance');
 const { emitDataChange } = require('../utils/realtime');
-const { parseSemester } = require('../utils/parseHelpers');
+const { parseSemester, regexFilter } = require('../utils/parseHelpers');
+const { resolveAuthorizedStudentId } = require('../utils/accessControl');
 const { logAudit } = require('../services/auditService');
 const { sendParentNotification } = require('../services/parentNotificationService');
 
@@ -149,8 +150,8 @@ const markAttendance = asyncHandler(async (req, res) => {
     const resolvedSubject = await Subject.findOne({
       collegeId,
       $or: [
-        { code: { $regex: req.body.subject, $options: 'i' } },
-        { name: { $regex: req.body.subject, $options: 'i' } },
+        { code: regexFilter(req.body.subject) },
+        { name: regexFilter(req.body.subject) },
       ],
       ...(parseSemester(req.body.batch || req.body.semester) ? { semester: parseSemester(req.body.batch || req.body.semester) } : {}),
     });
@@ -267,38 +268,25 @@ const getAttendance = asyncHandler(async (req, res) => {
   res.json({ success: true, attendance });
 });
 
-const resolveAuthorizedStudentId = async (req, rawId) => {
-  if (req.user.role === 'student') {
-    return req.user._id;
+const resolveAuthorizedStudentIdForRequest = async (req, rawId) => {
+  const studentId = await resolveAuthorizedStudentId(req, rawId);
+  if (!studentId) return null;
+  // Defence in depth: the student must live in the caller's college.
+  if (req.user.role !== 'superadmin') {
+    const exists = await User.findOne({ _id: studentId, collegeId: req.user.collegeId }).select('_id').lean();
+    if (!exists) {
+      const error = new Error('Access denied: student not found in your college');
+      error.statusCode = 403;
+      throw error;
+    }
   }
-  if (req.user.role === 'parent') {
-    let children = (req.user.children || []).map(c => String(c?._id || c));
-    if (!children.length && User && typeof User.findById === 'function') {
-      const parent = await User.findById(req.user._id).select('children');
-      children = (parent?.children || []).map(String);
-    }
-    if (!children.length && User && typeof User.find === 'function') {
-      const linked = await User.find({ collegeId: req.user.collegeId, role: 'student', parentId: req.user._id }).select('_id');
-      children = linked.map(s => String(s._id));
-    }
-    const target = rawId || req.query?.studentId;
-    if (target) {
-      if (!children.includes(String(target))) {
-        const err = new Error('Access denied: You are only authorized to view records for your linked child');
-        err.statusCode = 403;
-        throw err;
-      }
-      return target;
-    }
-    return children[0] || null;
-  }
-  return rawId || req.query.studentId || req.user._id;
+  return studentId;
 };
 
 // @desc    Get student attendance summary (subject-wise)
 // @route   GET /api/attendance/summary/:studentId?
 const getStudentAttendanceSummary = asyncHandler(async (req, res) => {
-  const studentId = await resolveAuthorizedStudentId(req, req.params.studentId);
+  const studentId = await resolveAuthorizedStudentIdForRequest(req, req.params.studentId);
   const { subjectId } = req.query;
   const collegeId = req.user.collegeId;
 
@@ -306,7 +294,10 @@ const getStudentAttendanceSummary = asyncHandler(async (req, res) => {
 
   const [summary, studentDoc] = await Promise.all([
     computeStudentSummary(collegeId, studentId, subjectId),
-    User.findById(studentId).select('name rollNo department semester')
+    User.findOne({
+      _id: studentId,
+      ...(req.user.role === 'superadmin' ? {} : { collegeId: req.user.collegeId }),
+    }).select('name rollNo department semester')
   ]);
   res.json({ success: true, summary, student: studentDoc });
 });
@@ -314,7 +305,7 @@ const getStudentAttendanceSummary = asyncHandler(async (req, res) => {
 // @desc    Get student attendance calendar (daily status for heatmap)
 // @route   GET /api/attendance/calendar/:studentId?
 const getStudentCalendar = asyncHandler(async (req, res) => {
-  const studentId = await resolveAuthorizedStudentId(req, req.params.studentId);
+  const studentId = await resolveAuthorizedStudentIdForRequest(req, req.params.studentId);
   const collegeId = req.user.collegeId;
   const { days = 90, subjectId } = req.query;
 
@@ -439,7 +430,7 @@ const getShortageAlerts = asyncHandler(async (req, res) => {
 // @desc    Get attendance streak for a student
 // @route   GET /api/attendance/streak/:studentId?
 const getAttendanceStreak = asyncHandler(async (req, res) => {
-  const studentId = await resolveAuthorizedStudentId(req, req.params.studentId);
+  const studentId = await resolveAuthorizedStudentIdForRequest(req, req.params.studentId);
   const collegeId = req.user.collegeId;
 
   if (!studentId) return res.json({ success: true, currentStreak: 0, longestStreak: 0 });
@@ -1310,4 +1301,5 @@ module.exports = {
   scanQRAttendance,
   getQRScanStatus,
   resolveAuthorizedStudentId,
+  resolveAuthorizedStudentIdForRequest,
 };

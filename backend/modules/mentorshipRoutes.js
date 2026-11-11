@@ -1,6 +1,6 @@
 const express = require('express');
 const { protect } = require('../middleware/auth');
-const { sameCollege } = require('../middleware/rbac');
+const { sameCollege, authorize } = require('../middleware/rbac');
 const { requireSubscription } = require('../middleware/subscription');
 const {
   getAvailableMentors, requestMentorship, getMyMentorships, updateMentorshipStatus,
@@ -21,6 +21,7 @@ router.post('/sessions', scheduleSession);
 router.get('/sessions', getMySessions);
 router.put('/sessions/:id', updateSession);
 
-router.get('/stats', getMentorshipStats);
+// College-wide mentoring statistics - staff only.
+router.get('/stats', authorize('collegeAdmin', 'superadmin', 'faculty'), getMentorshipStats);
 
 module.exports = router;

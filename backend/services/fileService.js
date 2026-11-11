@@ -54,14 +54,45 @@ function getFileUrl(filename, subdir = 'temp') {
   return `/uploads/${subdir}/${filename}`;
 }
 
+/**
+ * Resolve a client supplied sub-directory to a real, allow-listed directory.
+ * Anything unknown falls back to the scratch directory so a caller can never
+ * escape the upload root with `../` or an absolute path.
+ */
+function resolveSubdir(subdir) {
+  const normalized = String(subdir || '').trim().toLowerCase();
+  if (!Object.prototype.hasOwnProperty.call(dirs, normalized)) return dirs.temp;
+  return dirs[normalized];
+}
+
+/**
+ * Validate a file name before it is joined onto a directory.
+ * Only a safe basename is accepted - no separators, no traversal, no null bytes.
+ */
+function safeFileName(filename) {
+  const name = String(filename || '');
+  if (!name || name.includes('\0') || name.includes('..') || name.includes('/') || name.includes('\\')) {
+    throw new Error('Invalid file name');
+  }
+  if (!/^[A-Za-z0-9._-]{1,200}$/.test(name)) {
+    throw new Error('Invalid file name');
+  }
+  return name;
+}
+
 async function saveFile(buffer, subdir, filename) {
-  const dir = dirs[subdir] || dirs.temp;
+  const dir = resolveSubdir(subdir);
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
-  const filePath = path.join(dir, filename);
+  const safeName = safeFileName(filename);
+  const filePath = path.join(dir, safeName);
+  // Defence in depth: the resolved path must still be inside the upload root.
+  if (!path.resolve(filePath).startsWith(path.resolve(UPLOAD_DIR))) {
+    throw new Error('Access denied: target path is outside upload directory');
+  }
   await fs.promises.writeFile(filePath, buffer);
-  return `/uploads/${subdir}/${filename}`;
+  return `/uploads/${path.basename(dir)}/${safeName}`;
 }
 
 async function deleteFile(fileUrl) {
@@ -92,7 +123,7 @@ async function deleteFile(fileUrl) {
 }
 
 function getDir(subdir) {
-  return dirs[subdir] || dirs.temp;
+  return resolveSubdir(subdir);
 }
 
 module.exports = {
@@ -105,4 +136,6 @@ module.exports = {
   deleteFile,
   getDir,
   ensureDirectories,
+  resolveSubdir,
+  safeFileName,
 };

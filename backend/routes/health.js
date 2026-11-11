@@ -1,32 +1,28 @@
 const express = require('express');
 const { getDbHealth } = require('../config/db');
 const pushService = require('../services/pushNotificationService');
+const { protect } = require('../middleware/auth');
+const { authorize } = require('../middleware/rbac');
 
 const router = express.Router();
 
+/**
+ * The health endpoint is deliberately minimal in public responses.
+ *
+ * Runtime details (Node version, memory usage, uptime, which third-party
+ * providers are configured) are useful to an attacker for fingerprinting the
+ * deployment, so they are only exposed to authenticated administrators.
+ */
 router.get('/', async (req, res) => {
   const db = await getDbHealth();
   const ok = db.status === 'healthy';
-
-  const memUsage = process.memoryUsage();
-  const uptime = process.uptime();
 
   res.status(ok ? 200 : 503).json({
     success: ok,
     service: 'Vishva ERP API',
     status: ok ? 'healthy' : 'degraded',
     version: require('../../package.json').version,
-    uptimeSeconds: Math.round(uptime),
-    uptimeFormatted: `${Math.floor(uptime / 3600)}h ${Math.floor((uptime % 3600) / 60)}m`,
-    environment: process.env.NODE_ENV || 'development',
-    nodeVersion: process.version,
-    memory: {
-      heapUsedMB: (memUsage.heapUsed / 1024 / 1024).toFixed(1),
-      heapTotalMB: (memUsage.heapTotal / 1024 / 1024).toFixed(1),
-      rssMB: (memUsage.rss / 1024 / 1024).toFixed(1),
-    },
     timestamp: new Date().toISOString(),
-    db,
   });
 });
 
@@ -34,12 +30,13 @@ router.get('/db', async (req, res) => {
   const db = await getDbHealth();
   res.status(db.status === 'healthy' ? 200 : 503).json({
     success: db.status === 'healthy',
-    db,
+    db: { status: db.status },
     timestamp: new Date().toISOString(),
   });
 });
 
-router.get('/deep', async (req, res) => {
+// Detailed diagnostics - administrators only.
+router.get('/deep', protect, authorize('superadmin', 'collegeAdmin'), async (req, res) => {
   const checks = {};
 
   // DB check
@@ -75,9 +72,14 @@ router.get('/deep', async (req, res) => {
 
   const allHealthy = Object.values(checks).every(c => c.status === 'healthy' || c.status === 'configured');
 
-  res.status(allHealthy ? 200 : 200).json({
+  res.status(200).json({
     success: true,
     status: allHealthy ? 'healthy' : 'degraded',
+    service: 'Vishva ERP API',
+    version: require('../../package.json').version,
+    environment: process.env.NODE_ENV || 'development',
+    nodeVersion: process.version,
+    uptimeSeconds: Math.round(process.uptime()),
     checks,
     timestamp: new Date().toISOString(),
   });

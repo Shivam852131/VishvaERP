@@ -367,10 +367,11 @@ async function loadAll(){
 
   renderStats(dash);
   renderSensorTypes(dash);
+  // Renders both the overview preview and the full buildings list
+  // (#buildingOverviewPreview / #buildingListFull).
   renderBuildingPreviews(dash);
   renderAlertPreviews();
   renderSensorList();
-  renderBuildingList();
   renderResourceTable();
   renderAlertsFull();
   renderCharts(dash);

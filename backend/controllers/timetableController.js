@@ -6,6 +6,7 @@ const User = require('../models/User');
 const { emitDataChange } = require('../utils/realtime');
 const { parseSemester } = require('../utils/parseHelpers');
 const { logAudit } = require('../services/auditService');
+const { getChildStudentIds, NO_MATCH } = require('../utils/accessControl');
 
 /**
  * Helper: Convert "HH:MM" (24h) to minutes from midnight
@@ -547,6 +548,20 @@ const exportICS = asyncHandler(async (req, res) => {
     query.facultyId = req.user._id;
   } else if (req.user.role === 'student' && req.user.semester) {
     query.semester = req.user.semester;
+  } else if (req.user.role === 'parent') {
+    // Parents may only export the timetable of their linked children.
+    const children = await getChildStudentIds(req);
+    const semesters = await User.find({ _id: { $in: children.length ? children : [NO_MATCH] }, collegeId: req.user.collegeId })
+      .select('semester')
+      .lean();
+    const values = semesters.map((child) => child.semester).filter((value) => value !== undefined && value !== null);
+    if (!values.length) {
+      return res.status(404).json({ success: false, message: 'No linked student timetable to export' });
+    }
+    query.semester = { $in: values };
+  } else if (!['collegeAdmin', 'superadmin'].includes(req.user.role)) {
+    // Any other role would otherwise receive the entire college timetable.
+    return res.status(403).json({ success: false, message: 'Access denied: timetable export is limited to your own schedule' });
   }
 
   const slots = await Timetable.find(query)

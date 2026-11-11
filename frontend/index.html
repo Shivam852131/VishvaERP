@@ -1214,7 +1214,8 @@
 
       var feeVal = document.getElementById('kpiFeeVal');
       if (feeVal && data.fees) {
-        feeVal.textContent = data.fees.paidFormatted || data.fees.totalFormatted || '₹0';
+        var feeLabel = data.fees.paidFormatted || data.fees.totalFormatted || '₹0';
+        feeVal.textContent = feeLabel === 'Restricted' ? 'Masked' : feeLabel;
       }
 
       var facultyVal = document.getElementById('kpiFacultyVal');
@@ -1233,7 +1234,7 @@
           '<div class="lp-ai-item warning">' +
           '<i class="fas fa-coins"></i>' +
           '<div><strong>Ledger Reconciliations Active</strong>' +
-          '<span>' + safeEscapeHtml(data.fees.paidFormatted) + ' realized of ' + safeEscapeHtml(data.fees.totalFormatted) + ' booked in current cycle.</span></div>' +
+          '<span>' + safeEscapeHtml(data.fees.paidFormatted === 'Restricted' ? 'Financial aggregates are masked' : (data.fees.paidFormatted + ' realized of ' + data.fees.totalFormatted + ' booked in current cycle')) + '.</span></div>' +
           '</div>' +
           '<div class="lp-ai-item danger">' +
           '<i class="fas fa-camera"></i>' +

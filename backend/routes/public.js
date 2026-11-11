@@ -89,11 +89,11 @@ router.get('/live-overview', async (req, res) => {
         college: { name: 'Vishva ERP Institution', code: 'MAIN', city: 'Campus', state: '' },
         counts: { totalStudents: 0, totalFaculty: 0, totalColleges: 0, totalCourses: 0, totalAttendance: 0 },
         attendance: { rate: 0, markedToday: 0, presentToday: 0 },
-        fees: { totalAmount: 0, paidAmount: 0, totalFormatted: '₹0', paidFormatted: '₹0', collectionRate: 0 },
-        recentStudents: [],
+        fees: { totalAmount: 0, paidAmount: 0, totalFormatted: '₹0', paidFormatted: '₹0', collectionRate: 0, feeRecords: 0 },
+        recentNotices: [],
         departments: [],
         adminUser: { name: 'Administrator', role: 'admin' },
-        uptimeSeconds: Math.round(process.uptime()),
+        system: { status: 'degraded' },
       });
     }
 
@@ -167,6 +167,9 @@ router.get('/live-overview', async (req, res) => {
       return `₹${num.toLocaleString('en-IN')}`;
     };
 
+    // Financial aggregates are masked unless the operator opts in explicitly.
+    const exposeFinancials = /^(1|true|yes)$/i.test(String(process.env.PUBLIC_EXPOSE_FINANCIAL_METRICS || ''));
+
     // 5. Distinct Departments
     let departments = college?.departments || [];
     if (!departments.length) {
@@ -203,13 +206,22 @@ router.get('/live-overview', async (req, res) => {
         totalRecords: totalAttendance,
       },
       fees: {
-        totalAmount: feeData.totalAmount,
-        paidAmount: feeData.paidAmount,
-        totalFormatted: formatINR(feeData.totalAmount),
-        paidFormatted: formatINR(feeData.paidAmount),
-        collectionRate: feeRate,
+        // Institution revenue figures are only published when the operator
+        // explicitly opts in (PUBLIC_EXPOSE_FINANCIAL_METRICS). They are
+        // otherwise masked so that anonymous visitors cannot scrape the
+        // college's collection rates.
+        totalAmount: exposeFinancials ? feeData.totalAmount : null,
+        paidAmount: exposeFinancials ? feeData.paidAmount : null,
+        totalFormatted: exposeFinancials ? formatINR(feeData.totalAmount) : 'Restricted',
+        paidFormatted: exposeFinancials ? formatINR(feeData.paidAmount) : 'Restricted',
+        collectionRate: exposeFinancials ? feeRate : null,
+        feeRecords: feeData.count,
       },
-      recentNotices: recentNotices || [],
+      recentNotices: (recentNotices || []).map((notice) => ({
+        title: notice.title,
+        priority: notice.priority,
+        createdAt: notice.createdAt,
+      })),
       departments: departments || [],
       adminConsole: {
         title: 'Institutional Workspace',
@@ -217,17 +229,14 @@ router.get('/live-overview', async (req, res) => {
       },
       system: {
         status: 'healthy',
-        uptimeSeconds: Math.round(process.uptime()),
-        database: 'connected',
-        nodeVersion: process.version,
       },
     });
   } catch (error) {
     console.error('Error in /api/public/live-overview:', error);
+    // Never leak internal error details to an anonymous caller.
     res.status(500).json({
       success: false,
       message: 'Failed to fetch public live overview',
-      error: error.message,
     });
   }
 });

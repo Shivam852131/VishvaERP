@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const asyncHandler = require('../middleware/asyncHandler');
 const Feedback = require('../models/Feedback');
 const { logAudit } = require('../services/auditService');
+const { getChildStudentIds, NO_MATCH } = require('../utils/accessControl');
 
 const submitFeedback = asyncHandler(async (req, res) => {
   const { type, targetId, targetModel, ratings, comment, suggestions, isAnonymous, semester, academicYear } = req.body;
@@ -30,7 +31,16 @@ const getFeedback = asyncHandler(async (req, res) => {
   const query = { collegeId: req.user.collegeId };
   if (type) query.type = type;
   if (targetId) query.targetId = targetId;
-  if (req.user.role === 'student') query.userId = req.user._id;
+  // Students only ever see their own submissions. Parents only ever see the
+  // submissions made for their linked children - without this branch a parent
+  // could read every feedback record in the college (including comments about
+  // individual faculty members).
+  if (req.user.role === 'student') {
+    query.userId = req.user._id;
+  } else if (req.user.role === 'parent') {
+    const children = await getChildStudentIds(req);
+    query.userId = { $in: children.length ? children : [NO_MATCH] };
+  }
   const skip = (Number(page) - 1) * Number(limit);
   const [feedbacks, total] = await Promise.all([
     Feedback.find(query).populate('userId', 'name').populate('targetId').sort({ createdAt: -1 }).skip(skip).limit(Number(limit)),

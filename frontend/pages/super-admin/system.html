@@ -298,6 +298,9 @@
       .services-mesh {
         grid-template-columns: 1fr;
       }
+      .secret-grid {
+        grid-template-columns: 1fr !important;
+      }
     }
   </style>
 </head>
@@ -560,8 +563,7 @@
         </div>
 
         <!-- Real-Time Activity Console (Preserving #consoleArea, clearConsole()) -->
-        <div class="terminal-container">
-          <div class="terminal-header">
+        <div class="terminal-container">          <div class="terminal-header">
             <div style="display:flex;align-items:center;gap:10px">
               <div class="terminal-dots">
                 <span class="terminal-dot" style="background:#EF4444"></span>
@@ -584,6 +586,115 @@
           </div>
           <div id="consoleArea" class="terminal-scroll-area">
             <!-- Dynamically populated log rows -->
+          </div>
+        </div>
+      </div>
+
+      <!-- THIRD ROW: SECURITY SECRET GENERATOR -->
+      <div style="margin-top:20px">
+        <div class="card" style="border-radius:18px;border:1px solid var(--sys-card-border);box-shadow:0 2px 6px rgba(0,0,0,0.03)">
+          <div class="card-header" style="background:#F8FAFC;border-bottom:1px solid #E2E8F0;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+            <div class="card-title" style="font-weight:800;font-size:14px;color:#0F172A;display:flex;align-items:center;gap:8px">
+              <div style="width:28px;height:28px;border-radius:8px;background:#FEF3C7;color:#D97706;display:flex;align-items:center;justify-content:center;font-size:12px">
+                <i class="fas fa-key"></i>
+              </div>
+              Security Secret Generator
+            </div>
+            <span class="badge badge-success" style="background:#DCFCE7;color:#15803D">Runs locally in your browser</span>
+          </div>
+          <div class="card-body" style="padding:18px 20px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px" class="secret-grid">
+
+              <!-- Standard (alphanumeric) -->
+              <div style="border:1px solid #E2E8F0;border-radius:14px;padding:16px;background:#FFFFFF">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px">
+                  <h3 style="font-weight:800;font-size:15px;color:#0F172A;margin:0">Standard Secret Key</h3>
+                  <span style="font-size:11px;font-weight:700;color:#4F46E5;background:#EEF2FF;border:1px solid #C7D2FE;border-radius:999px;padding:3px 10px">Alphanumeric Only</span>
+                </div>
+
+                <div style="font-size:11px;font-weight:800;letter-spacing:.6px;color:#64748B;margin-bottom:8px">QUICK PRESETS:</div>
+                <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:16px">
+                  <button class="btn btn-xs btn-secondary secret-preset" data-mode="standard" data-bits="128" style="background:#F8FAFC;border:1px solid #E2E8F0;color:#334155">128</button>
+                  <button class="btn btn-xs btn-secondary secret-preset" data-mode="standard" data-bits="192" style="background:#F8FAFC;border:1px solid #E2E8F0;color:#334155">192</button>
+                  <button class="btn btn-xs btn-secondary secret-preset" data-mode="standard" data-bits="256" style="background:#6366F1;border-color:#4F46E5;color:#FFFFFF;font-weight:800">256</button>
+                  <button class="btn btn-xs btn-secondary secret-preset" data-mode="standard" data-bits="384" style="background:#F8FAFC;border:1px solid #E2E8F0;color:#334155">384</button>
+                  <button class="btn btn-xs btn-secondary secret-preset" data-mode="standard" data-bits="512" style="background:#F8FAFC;border:1px solid #E2E8F0;color:#334155">512</button>
+                </div>
+
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                  <span style="font-size:12px;font-weight:700;color:#475569">Encryption Strength</span>
+                  <span style="display:flex;align-items:center;gap:8px">
+                    <span style="font-weight:800;font-size:14px;color:#4F46E5" id="standardBitsLabel">—</span>
+                    <span style="font-size:10.5px;font-weight:800;color:#15803D;background:#DCFCE7;border-radius:6px;padding:2px 8px" id="standardStrengthLabel">STRONG</span>
+                  </span>
+                </div>
+                <div style="height:6px;border-radius:999px;background:#E2E8F0;overflow:hidden;margin-bottom:16px">
+                  <div id="standardStrengthBar" style="height:100%;width:0;background:linear-gradient(90deg,#6366F1,#8B5CF6);border-radius:999px;transition:width .25s ease"></div>
+                </div>
+
+                <div style="font-size:12px;font-weight:700;color:#475569;margin-bottom:6px">Your Generated Secret Key</div>
+                <div id="standardSecretBox" style="min-height:74px;border:1px solid #E2E8F0;border-radius:12px;background:#F8FAFC;padding:12px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;word-break:break-all;color:#94A3B8;display:flex;align-items:center;justify-content:center;text-align:center">Click &quot;Generate Key&quot; to create a secure secret</div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
+                  <button class="btn btn-primary secret-generate" data-mode="standard" style="background:#6366F1;border-color:#4F46E5;color:#FFFFFF;font-weight:800">
+                    <i class="fas fa-bolt"></i> Generate Key
+                  </button>
+                  <button class="btn btn-secondary secret-copy" data-mode="standard" style="background:#F8FAFC;border:1px solid #E2E8F0;color:#334155">
+                    <i class="fas fa-copy"></i> Copy to Clipboard
+                  </button>
+                </div>
+              </div>
+
+              <!-- Enhanced (with special characters) -->
+              <div style="border:1px solid #E2E8F0;border-radius:14px;padding:16px;background:#FFFFFF">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:14px">
+                  <h3 style="font-weight:800;font-size:15px;color:#0F172A;margin:0">Enhanced Secret Key</h3>
+                  <span style="font-size:11px;font-weight:700;color:#B45309;background:#FEF3C7;border:1px solid #FDE68A;border-radius:999px;padding:3px 10px">With Special Characters</span>
+                </div>
+
+                <div style="font-size:11px;font-weight:800;letter-spacing:.6px;color:#64748B;margin-bottom:8px">QUICK PRESETS:</div>
+                <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:16px">
+                  <button class="btn btn-xs btn-secondary secret-preset" data-mode="enhanced" data-bits="128" style="background:#F8FAFC;border:1px solid #E2E8F0;color:#334155">128</button>
+                  <button class="btn btn-xs btn-secondary secret-preset" data-mode="enhanced" data-bits="192" style="background:#F8FAFC;border:1px solid #E2E8F0;color:#334155">192</button>
+                  <button class="btn btn-xs btn-secondary secret-preset" data-mode="enhanced" data-bits="256" style="background:#6366F1;border-color:#4F46E5;color:#FFFFFF;font-weight:800">256</button>
+                  <button class="btn btn-xs btn-secondary secret-preset" data-mode="enhanced" data-bits="384" style="background:#F8FAFC;border:1px solid #E2E8F0;color:#334155">384</button>
+                  <button class="btn btn-xs btn-secondary secret-preset" data-mode="enhanced" data-bits="512" style="background:#F8FAFC;border:1px solid #E2E8F0;color:#334155">512</button>
+                </div>
+
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                  <span style="font-size:12px;font-weight:700;color:#475569">Encryption Strength</span>
+                  <span style="display:flex;align-items:center;gap:8px">
+                    <span style="font-weight:800;font-size:14px;color:#4F46E5" id="enhancedBitsLabel">—</span>
+                    <span style="font-size:10.5px;font-weight:800;color:#15803D;background:#DCFCE7;border-radius:6px;padding:2px 8px" id="enhancedStrengthLabel">STRONG</span>
+                  </span>
+                </div>
+                <div style="height:6px;border-radius:999px;background:#E2E8F0;overflow:hidden;margin-bottom:16px">
+                  <div id="enhancedStrengthBar" style="height:100%;width:0;background:linear-gradient(90deg,#6366F1,#8B5CF6);border-radius:999px;transition:width .25s ease"></div>
+                </div>
+
+                <div style="font-size:12px;font-weight:700;color:#475569;margin-bottom:6px">Your Generated Secret Key</div>
+                <div id="enhancedSecretBox" style="min-height:74px;border:1px solid #E2E8F0;border-radius:12px;background:#F8FAFC;padding:12px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;word-break:break-all;color:#94A3B8;display:flex;align-items:center;justify-content:center;text-align:center">Click &quot;Generate Key&quot; to create a secure secret</div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px">
+                  <button class="btn btn-primary secret-generate" data-mode="enhanced" style="background:#6366F1;border-color:#4F46E5;color:#FFFFFF;font-weight:800">
+                    <i class="fas fa-bolt"></i> Generate Key
+                  </button>
+                  <button class="btn btn-secondary secret-copy" data-mode="enhanced" style="background:#F8FAFC;border:1px solid #E2E8F0;color:#334155">
+                    <i class="fas fa-copy"></i> Copy to Clipboard
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-top:16px;border:1px solid #FDE68A;background:#FFFBEB;border-radius:12px;padding:13px 15px;display:flex;gap:11px;align-items:flex-start">
+              <i class="fas fa-circle-info" style="color:#D97706;font-size:14px;margin-top:2px"></i>
+              <div style="font-size:11.5px;color:#78350F;line-height:1.65">
+                <strong style="font-weight:800">Generated locally &amp; never transmitted.</strong>
+                These values are produced with the browser's <code style="font-size:11px">crypto.getRandomValues()</code> CSPRNG and are <strong>not</strong> read from the running server &mdash; the platform never sends a secret to a browser, and this page never asks the API for one.
+                Paste the value into your <strong>deployment environment</strong> (Render / Vercel / <code style="font-size:11px">.env</code>) as <code style="font-size:11px">JWT_SECRET</code> and <code style="font-size:11px">JWT_REFRESH_SECRET</code>, then restart the API.
+                Rotating a signing secret invalidates every existing session, so existing users must sign in again.
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -843,7 +954,7 @@
     try {
       const [data, deepRes] = await Promise.all([
         api.request('/super-admin/system-health'),
-        api.request('/api/health/deep').catch(() => ({ checks: {} }))
+        api.request('/health/deep').catch(() => ({ checks: {} }))
       ]);
 
       const t1 = performance.now();
@@ -987,6 +1098,149 @@
     if (window.showToast) window.showToast('System runtime specs copied', 'success');
   }
 
+  /* ─────────────────────────────────────────────────────────────
+   * SECURITY SECRET GENERATOR
+   *
+   * Produces a high-entropy secret entirely in the browser with the
+   * Web Crypto CSPRNG (crypto.getRandomValues). Nothing is fetched from
+   * the API and nothing is transmitted anywhere - a third-party generator
+   * site would run its own script in this page and could silently copy
+   * the "random" value elsewhere.
+   *
+   * The value is only a *candidate* for the deployment environment; the
+   * running signing secret is never read from or displayed by the server.
+   * ───────────────────────────────────────────────────────────── */
+  (function initSecretGenerator() {
+    const ALPHANUMERIC = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    // Special characters that are safe inside a .env value and inside a
+    // shell / JSON string. '#', '$', quotes, backslash and whitespace are
+    // deliberately excluded - they break dotenv parsing or interpolation.
+    const SPECIALS = '!@%^&*_+=~?';
+
+    const MODES = {
+      standard: { alphabet: ALPHANUMERIC, prefix: 'standard' },
+      enhanced: { alphabet: ALPHANUMERIC + SPECIALS, prefix: 'enhanced' },
+    };
+
+    const state = {
+      standard: { bits: 256, value: '' },
+      enhanced: { bits: 256, value: '' },
+    };
+
+    /**
+     * Uniform random string via rejection sampling.
+     * The built-in pseudo-random generator is NOT cryptographically secure
+     * and must never be used for a signing key.
+     */
+    function randomString(alphabet, length) {
+      const out = [];
+      const max = Math.floor(256 / alphabet.length) * alphabet.length;
+      const buf = new Uint8Array(length * 2);
+      while (out.length < length) {
+        crypto.getRandomValues(buf);
+        for (let i = 0; i < buf.length && out.length < length; i += 1) {
+          // Rejection sampling keeps the distribution perfectly uniform.
+          if (buf[i] < max) out.push(alphabet[buf[i] % alphabet.length]);
+        }
+      }
+      return out.join('');
+    }
+
+    function renderStrength(mode) {
+      const cfg = MODES[mode];
+      const perChar = Math.log2(cfg.alphabet.length);
+      const length = Math.ceil(state[mode].bits / perChar);
+      const actualBits = Math.floor(length * perChar);
+
+      const bitsEl = document.getElementById(cfg.prefix + 'BitsLabel');
+      const labelEl = document.getElementById(cfg.prefix + 'StrengthLabel');
+      const barEl = document.getElementById(cfg.prefix + 'StrengthBar');
+
+      if (bitsEl) bitsEl.textContent = actualBits + ' bits';
+      if (barEl) barEl.style.width = Math.min(100, Math.round((actualBits / 512) * 100)) + '%';
+
+      if (labelEl) {
+        if (actualBits >= 256) {
+          labelEl.textContent = 'STRONG';
+          labelEl.style.color = '#15803D';
+          labelEl.style.background = '#DCFCE7';
+        } else if (actualBits >= 128) {
+          labelEl.textContent = 'ADEQUATE';
+          labelEl.style.color = '#B45309';
+          labelEl.style.background = '#FEF3C7';
+        } else {
+          labelEl.textContent = 'WEAK';
+          labelEl.style.color = '#B91C1C';
+          labelEl.style.background = '#FEE2E2';
+        }
+      }
+      return length;
+    }
+
+    function generate(mode) {
+      const cfg = MODES[mode];
+      const length = renderStrength(mode);
+      const value = randomString(cfg.alphabet, length);
+      state[mode].value = value;
+
+      const box = document.getElementById(cfg.prefix + 'SecretBox');
+      if (box) {
+        box.textContent = value;
+        box.style.color = '#0F172A';
+        box.style.background = '#F8FAFC';
+        box.style.alignItems = 'flex-start';
+        box.style.justifyContent = 'flex-start';
+        box.style.textAlign = 'left';
+        box.style.borderColor = '#C7D2FE';
+      }
+    }
+
+    function copySecret(mode) {
+      const value = state[mode].value;
+      if (!value) {
+        if (window.showToast) window.showToast('Generate a key first', 'warning');
+        return;
+      }
+      navigator.clipboard.writeText(value).then(() => {
+        if (window.showToast) window.showToast('Secret copied - store it in your deployment environment', 'success');
+      }).catch(() => {
+        if (window.showToast) window.showToast('Copy failed - select the value manually', 'error');
+      });
+    }
+
+    document.addEventListener('click', (event) => {
+      const preset = event.target.closest('.secret-preset');
+      if (preset) {
+        const mode = preset.dataset.mode;
+        state[mode].bits = parseInt(preset.dataset.bits, 10) || 256;
+        // Highlight the active preset for this mode.
+        document.querySelectorAll('.secret-preset[data-mode="' + mode + '"]').forEach((btn) => {
+          const active = btn === preset;
+          btn.style.background = active ? '#6366F1' : '#F8FAFC';
+          btn.style.borderColor = active ? '#4F46E5' : '#E2E8F0';
+          btn.style.color = active ? '#FFFFFF' : '#334155';
+        });
+        renderStrength(mode);
+        return;
+      }
+
+      const generateBtn = event.target.closest('.secret-generate');
+      if (generateBtn) {
+        generate(generateBtn.dataset.mode);
+        return;
+      }
+
+      const copyBtn = event.target.closest('.secret-copy');
+      if (copyBtn) {
+        copySecret(copyBtn.dataset.mode);
+      }
+    });
+
+    // Initial paint.
+    renderStrength('standard');
+    renderStrength('enhanced');
+  })();
+
   // Deep Diagnostics Drawer Functions
   async function openDeepDiagnostics() {
     const drawer = document.getElementById('diagnosticsDrawer');
@@ -1012,7 +1266,7 @@
     `;
 
     try {
-      const res = await api.request('/api/health/deep');
+      const res = await api.request('/health/deep');
       const checks = res.checks || {};
       if (lastRun) lastRun.textContent = `Probed: ${new Date().toLocaleTimeString()}`;
 

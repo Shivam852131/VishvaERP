@@ -15,6 +15,8 @@ const TransportRoute = require('../models/Transport');
 const { Hostel, Room } = require('../models/Hostel');
 const LiveClassSession = require('../models/LiveClassSession');
 const { emitDataChange } = require('../utils/realtime');
+const { regexFilter } = require('../utils/parseHelpers');
+const crypto = require('crypto');
 
 const parseSemester = (value) => {
     if (value === undefined || value === null || value === '') return undefined;
@@ -291,7 +293,7 @@ const getCollegeDashboard = asyncHandler(async (req, res) => {
 const getStudents = asyncHandler(async (req, res) => {
     const { page = 1, limit = 20, search = '', department, semester } = req.query;
     const query = { collegeId: req.user.collegeId, role: 'student' };
-    if (search) query.$or = [{ name: { $regex: search, $options: 'i' } }, { rollNo: { $regex: search, $options: 'i' } }, { email: { $regex: search, $options: 'i' } }];
+    if (search) query.$or = [{ name: regexFilter(search) }, { rollNo: regexFilter(search) }, { email: regexFilter(search) }];
     if (department) query.department = department;
     if (semester) query.semester = parseInt(semester);
 
@@ -390,7 +392,9 @@ const createUser = asyncHandler(async (req, res) => {
       let parent = await User.findOne({ email: parentEmail });
 
       if (!parent) {
-        const generatedPassword = `Parent@${Date.now().toString().slice(-6)}`;
+        // A cryptographically random password - a timestamp-derived one would
+        // be guessable by anyone who knows roughly when the account was made.
+        const generatedPassword = `Parent@${crypto.randomBytes(6).toString('hex')}`;
         parent = await User.create({
           name: req.body.parentName || req.body.sParent || `Parent of ${user.name}`,
           email: parentEmail,

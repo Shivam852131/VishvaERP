@@ -2,6 +2,7 @@ const asyncHandler = require('../middleware/asyncHandler');
 const QuestionBank = require('../models/QuestionBank');
 const ExamTemplate = require('../models/ExamTemplate');
 const { logAudit } = require('../services/auditService');
+const { buildUpdate } = require('../utils/safeUpdate');
 
 // @desc    Add question to bank
 const addQuestion = asyncHandler(async (req, res) => {
@@ -89,8 +90,9 @@ const getQuestionById = asyncHandler(async (req, res) => {
 const updateQuestion = asyncHandler(async (req, res) => {
   const question = await QuestionBank.findOneAndUpdate(
     { _id: req.params.id, collegeId: req.user.collegeId },
-    req.body,
-    { new: true }
+    // The usage counters are maintained by the quiz engine.
+    buildUpdate(QuestionBank, req.body, ['timesAsked', 'timesCorrect', 'usageCount']),
+    { new: true, runValidators: true }
   );
 
   if (!question) {

@@ -9,8 +9,40 @@ const PlatformSetting = require('../models/PlatformSetting');
 const Subscription = require('../models/Subscription');
 const AuditLog = require('../models/AuditLog');
 const mongoose = require('mongoose');
+const crypto = require('crypto');
 const { emitDataChange } = require('../utils/realtime');
 const { logAudit } = require('../services/auditService');
+const { regexFilter } = require('../utils/parseHelpers');
+const { buildUpdate } = require('../utils/safeUpdate');
+
+/**
+ * Fields that must never leave the database through the raw-driver endpoints.
+ *
+ * `users.password` is a bcrypt hash, `otps.otp` is a *live* one-time code and
+ * `users.tokenVersion` is a session-revocation counter - returning any of them
+ * turns a read-only admin view into a credential leak.
+ */
+const SENSITIVE_FIELDS = {
+  users: ['password', 'tokenVersion', 'googleId', 'resetPasswordToken', 'resetPasswordExpire'],
+  otps: ['otp'],
+};
+
+/**
+ * Strip sensitive fields from raw driver documents.
+ */
+const redactSensitive = (collection, docs) => {
+  const fields = SENSITIVE_FIELDS[collection];
+  if (!fields) return docs;
+  return docs.map((doc) => {
+    const clone = { ...doc };
+    for (const field of fields) {
+      if (clone[field] !== undefined) {
+        clone[field] = '[redacted]';
+      }
+    }
+    return clone;
+  });
+};
 
 const ALL_COLLECTIONS = [
   'users', 'colleges', 'subscriptions', 'payments', 'auditlogs', 'platformsettings',
@@ -202,7 +234,7 @@ const createCollege = asyncHandler(async (req, res) => {
 const getColleges = asyncHandler(async (req, res) => {
     const { page = 1, limit = 10, search = '', isActive, plan } = req.query;
     const query = {};
-    if (search) query.$or = [{ name: { $regex: search, $options: 'i' } }, { code: { $regex: search, $options: 'i' } }, { city: { $regex: search, $options: 'i' } }];
+    if (search) query.$or = [{ name: regexFilter(search) }, { code: regexFilter(search) }, { city: regexFilter(search) }];
     if (isActive !== undefined) query.isActive = isActive === 'true';
     if (plan) query.plan = plan;
 
@@ -250,7 +282,14 @@ const getCollegeById = asyncHandler(async (req, res) => {
   });
 
 const updateCollege = asyncHandler(async (req, res) => {
-    const college = await College.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+    // Schema-scoped update: a raw `req.body` payload would allow overwriting
+    // `adminId`, `plan`, `planExpiry` or `isActive` arbitrarily.
+    const college = await College.findByIdAndUpdate(
+      req.params.id,
+      // `adminId` and the head-count counters are maintained server-side.
+      buildUpdate(College, req.body, ['adminId', 'totalStudents', 'totalFaculty']),
+      { new: true, runValidators: true }
+    );
     if (!college) return res.status(404).json({ success: false, message: 'College not found' });
     emitDataChange(req, { roles: ['superadmin'], resource: 'colleges', action: 'updated', collegeId: String(college._id) });
     res.json({ success: true, message: 'College updated', college });
@@ -306,9 +345,9 @@ const getAllUsers = asyncHandler(async (req, res) => {
     const { page = 1, limit = 15, search = '', role, isActive, collegeId } = req.query;
     const query = {};
     if (search) query.$or = [
-      { name: { $regex: search, $options: 'i' } },
-      { email: { $regex: search, $options: 'i' } },
-      { rollNo: { $regex: search, $options: 'i' } },
+      { name: regexFilter(search) },
+      { email: regexFilter(search) },
+      { rollNo: regexFilter(search) },
     ];
     if (role) query.role = role;
     if (isActive !== undefined) query.isActive = isActive === 'true';
@@ -341,7 +380,11 @@ const createUser = asyncHandler(async (req, res) => {
   });
 
 const updateUser = asyncHandler(async (req, res) => {
-    const { password, ...updateData } = req.body;
+    const { password, ...rest } = req.body;
+    // Only schema-known fields may be updated. `role`, `collegeId`,
+    // `tokenVersion` and `isActive` are excluded so that a generic update
+    // call can never be used to escalate privileges or hijack a session.
+    const updateData = buildUpdate(User, rest, ['role', 'collegeId', 'tokenVersion', 'isActive', 'email']);
     const user = await User.findByIdAndUpdate(req.params.id, updateData, { new: true, runValidators: true }).select('-password');
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
     emitDataChange(req, { roles: ['superadmin'], resource: 'users', action: 'updated', collegeId: user.collegeId ? String(user.collegeId) : null });
@@ -350,7 +393,7 @@ const updateUser = asyncHandler(async (req, res) => {
 
 const resetUserPassword = asyncHandler(async (req, res) => {
     const { newPassword } = req.body;
-    if (!newPassword || newPassword.length < 6) return res.status(400).json({ success: false, message: 'Password must be at least 6 characters' });
+    if (!newPassword || newPassword.length < 8) return res.status(400).json({ success: false, message: 'Password must be at least 8 characters' });
     const user = await User.findById(req.params.id);
     if (!user) return res.status(404).json({ success: false, message: 'User not found' });
     user.password = newPassword;
@@ -433,13 +476,13 @@ const getCollectionData = asyncHandler(async (req, res) => {
     let query = {};
     if (search) {
       query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } },
-        { code: { $regex: search, $options: 'i' } },
-        { title: { $regex: search, $options: 'i' } },
-        { title: { $regex: search, $options: 'i' } },
-        { subject: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
+        { name: regexFilter(search) },
+        { email: regexFilter(search) },
+        { code: regexFilter(search) },
+        { title: regexFilter(search) },
+        { title: regexFilter(search) },
+        { subject: regexFilter(search) },
+        { description: regexFilter(search) },
       ].filter((clause) => Object.keys(clause).length > 0);
     }
     if (collegeId && mongoose.Types.ObjectId.isValid(collegeId)) {
@@ -448,11 +491,12 @@ const getCollectionData = asyncHandler(async (req, res) => {
 
     const total = await col.countDocuments(query);
     const sortObj = { [sortBy]: sortOrder === 'asc' ? 1 : -1 };
-    const docs = await col.find(query)
+    const rawDocs = await col.find(query)
       .sort(sortObj)
       .skip((page - 1) * parseInt(limit))
       .limit(parseInt(limit))
       .toArray();
+    const docs = redactSensitive(collection, rawDocs);
 
     res.json({ success: true, collection, docs, total, page: parseInt(page), pages: Math.ceil(total / parseInt(limit)) });
   });
@@ -706,9 +750,19 @@ const broadcastNotice = asyncHandler(async (req, res) => {
 const bulkToggleUsers = asyncHandler(async (req, res) => {
     const { userIds, isActive } = req.body;
     if (!userIds || !userIds.length) return res.status(400).json({ success: false, message: 'No user IDs provided' });
-    const result = await User.updateMany({ _id: { $in: userIds }, role: { $ne: 'superadmin' } }, { isActive });
-    logAudit(req, 'bulk_action', 'user', { description: `Bulk ${isActive ? 'activated' : 'deactivated'} ${result.modifiedCount} users`, metadata: { count: result.modifiedCount, isActive } });
-    res.json({ success: true, message: `${result.modifiedCount} users ${isActive ? 'activated' : 'deactivated'}` });
+
+    // Only well-formed object ids and a strict boolean are accepted.
+    const objectIds = userIds
+      .filter((id) => mongoose.Types.ObjectId.isValid(String(id)))
+      .map((id) => new mongoose.Types.ObjectId(String(id)));
+    if (!objectIds.length) {
+      return res.status(400).json({ success: false, message: 'No valid user IDs provided' });
+    }
+    const nextState = Boolean(isActive);
+
+    const result = await User.updateMany({ _id: { $in: objectIds }, role: { $ne: 'superadmin' } }, { isActive: nextState });
+    logAudit(req, 'bulk_action', 'user', { description: `Bulk ${nextState ? 'activated' : 'deactivated'} ${result.modifiedCount} users`, metadata: { count: result.modifiedCount, isActive: nextState } });
+    res.json({ success: true, message: `${result.modifiedCount} users ${nextState ? 'activated' : 'deactivated'}` });
   });
 
 // ─────────────────────────────────────────────
@@ -742,7 +796,8 @@ const exportCollection = asyncHandler(async (req, res) => {
     if (collegeId && mongoose.Types.ObjectId.isValid(collegeId)) {
       query.collegeId = new mongoose.Types.ObjectId(collegeId);
     }
-    const docs = await db.collection(collection).find(query).sort({ createdAt: -1 }).limit(10000).toArray();
+    const rawDocs = await db.collection(collection).find(query).sort({ createdAt: -1 }).limit(10000).toArray();
+    const docs = redactSensitive(collection, rawDocs);
     logAudit(req, 'report_download', collection, { description: `Exported ${docs.length} documents from ${collection}`, metadata: { count: docs.length, collegeId } });
     res.setHeader('Content-Type', 'application/json');
     res.setHeader('Content-Disposition', `attachment; filename="${collection}-export-${Date.now()}.json"`);
@@ -791,8 +846,12 @@ const importUsers = asyncHandler(async (req, res) => {
     const college = await College.findById(collegeId);
     if (!college) return res.status(404).json({ success: false, message: 'College not found' });
 
-    const results = { created: 0, skipped: 0, errors: [] };
-    const password = defaultPassword || 'Welcome@123';
+    // Only safe, non-administrative roles may be bulk-imported.
+    if (!['student', 'faculty', 'parent'].includes(defaultRole)) {
+      return res.status(400).json({ success: false, message: 'defaultRole must be student, faculty or parent' });
+    }
+
+    const results = { created: 0, skipped: 0, errors: [], credentials: [] };
 
     for (const raw of rawUsers) {
       try {
@@ -800,11 +859,20 @@ const importUsers = asyncHandler(async (req, res) => {
         if (!email) { results.skipped++; results.errors.push('Missing email'); continue; }
         const existing = await User.findOne({ email });
         if (existing) { results.skipped++; continue; }
+
+        const role = ['student', 'faculty', 'parent'].includes(raw.role) ? raw.role : defaultRole;
+
+        // Every imported account gets its own cryptographically random
+        // password. A single shared default password would give every
+        // imported account the same (and publicly documented) credential.
+        const supplied = raw.password || defaultPassword;
+        const password = supplied || `Vishva@${crypto.randomBytes(6).toString('hex')}`;
+
         await User.create({
           name: String(raw.name || '').trim() || email.split('@')[0],
           email,
-          password: raw.password || password,
-          role: raw.role || defaultRole,
+          password,
+          role,
           collegeId,
           phone: raw.phone || '',
           rollNo: raw.rollNo || '',
@@ -812,6 +880,9 @@ const importUsers = asyncHandler(async (req, res) => {
           department: raw.department || '',
           section: raw.section || '',
         });
+        if (!supplied) {
+          results.credentials.push({ email, password });
+        }
         results.created++;
       } catch (err) {
         results.skipped++;
@@ -952,8 +1023,8 @@ const getEnhancedAuditLogs = asyncHandler(async (req, res) => {
     }
     if (search) {
       query.$or = [
-        { userEmail: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } },
+        { userEmail: regexFilter(search) },
+        { description: regexFilter(search) },
       ];
     }
 

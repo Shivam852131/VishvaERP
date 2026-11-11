@@ -2,6 +2,8 @@ const asyncHandler = require('../middleware/asyncHandler');
 const InventoryItem = require('../models/Inventory');
 const { logAudit } = require('../services/auditService');
 const { emitDataChange } = require('../utils/realtime');
+const { regexFilter } = require('../utils/parseHelpers');
+const { buildUpdate } = require('../utils/safeUpdate');
 
 const createItem = asyncHandler(async (req, res) => {
   const { name, category, description, quantity, unit, location, department, purchaseDate, purchasePrice, currentValue, vendor, warrantyExpiry } = req.body;
@@ -20,7 +22,7 @@ const getItems = asyncHandler(async (req, res) => {
   const query = { collegeId: req.user.collegeId };
   if (category) query.category = category;
   if (status) query.status = status;
-  if (search) query.$or = [{ name: { $regex: search, $options: 'i' } }, { itemId: { $regex: search, $options: 'i' } }];
+  if (search) query.$or = [{ name: regexFilter(search) }, { itemId: regexFilter(search) }];
   const skip = (Number(page) - 1) * Number(limit);
   const [items, total] = await Promise.all([
     InventoryItem.find(query).populate('assignedTo', 'name').sort({ createdAt: -1 }).skip(skip).limit(Number(limit)),
@@ -38,7 +40,11 @@ const getItemById = asyncHandler(async (req, res) => {
 });
 
 const updateItem = asyncHandler(async (req, res) => {
-  const item = await InventoryItem.findOneAndUpdate({ _id: req.params.id, collegeId: req.user.collegeId }, req.body, { new: true });
+  const item = await InventoryItem.findOneAndUpdate(
+    { _id: req.params.id, collegeId: req.user.collegeId },
+    buildUpdate(InventoryItem, req.body),
+    { new: true, runValidators: true }
+  );
   if (!item) return res.status(404).json({ success: false, message: 'Item not found' });
   logAudit(req, 'update', 'inventory', { resourceId: item._id, description: `Updated inventory item: ${item.name}` });
   res.json({ success: true, item });

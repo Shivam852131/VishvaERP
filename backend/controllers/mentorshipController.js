@@ -3,11 +3,12 @@ const { Mentorship, MentorSession } = require('../models/Mentorship');
 const User = require('../models/User');
 const { emitDataChange } = require('../utils/realtime');
 const { logAudit } = require('../services/auditService');
+const { regexFilter } = require('../utils/parseHelpers');
 
 const getAvailableMentors = asyncHandler(async (req, res) => {
   const { type, search } = req.query;
   const query = { collegeId: req.user.collegeId, role: 'faculty', isActive: true };
-  if (search) query.name = { $regex: search, $options: 'i' };
+  if (search) query.name = regexFilter(search);
 
   const mentors = await User.find(query).select('name email avatar designation subjects department');
   const mentorIds = mentors.map(m => m._id);
@@ -31,8 +32,16 @@ const requestMentorship = asyncHandler(async (req, res) => {
   const { mentorId, type, goals } = req.body;
   if (!mentorId) return res.status(400).json({ success: false, message: 'mentorId is required' });
 
+  // The mentor must be an active faculty member of the caller's college -
+  // otherwise a student could nominate (and spam) any user id in the system.
+  const mentor = await User.findOne({ _id: mentorId, collegeId: req.user.collegeId, role: 'faculty', isActive: true })
+    .select('_id');
+  if (!mentor) {
+    return res.status(404).json({ success: false, message: 'Mentor not found in your college' });
+  }
+
   const existing = await Mentorship.findOne({
-    collegeId: req.user.collegeId, mentorId, menteeId: req.user._id,
+    collegeId: req.user.collegeId, mentorId: mentor._id, menteeId: req.user._id,
   });
   if (existing && ['pending', 'active'].includes(existing.status)) {
     return res.status(400).json({ success: false, message: 'Mentorship already exists' });
@@ -40,7 +49,7 @@ const requestMentorship = asyncHandler(async (req, res) => {
 
   const mentorship = await Mentorship.create({
     collegeId: req.user.collegeId,
-    mentorId,
+    mentorId: mentor._id,
     menteeId: req.user._id,
     type: type || 'career',
     goals: goals || [],
@@ -99,6 +108,15 @@ const scheduleSession = asyncHandler(async (req, res) => {
   const mentorship = await Mentorship.findOne({ _id: mentorshipId, collegeId: req.user.collegeId, status: 'active' });
   if (!mentorship) return res.status(404).json({ success: false, message: 'Active mentorship not found' });
 
+  // Only the mentor, the mentee or a college administrator may schedule a
+  // session on a mentorship.
+  const isParticipant =
+    String(mentorship.mentorId) === String(req.user._id) ||
+    String(mentorship.menteeId) === String(req.user._id);
+  if (!isParticipant && req.user.role !== 'collegeAdmin' && req.user.role !== 'superadmin') {
+    return res.status(403).json({ success: false, message: 'Not authorized to schedule a session on this mentorship' });
+  }
+
   const session = await MentorSession.create({
     collegeId: req.user.collegeId,
     mentorshipId,
@@ -133,6 +151,16 @@ const updateSession = asyncHandler(async (req, res) => {
   const { status, notes, rating, menteeFeedback, mentorFeedback } = req.body;
   const session = await MentorSession.findOne({ _id: req.params.id, collegeId: req.user.collegeId });
   if (!session) return res.status(404).json({ success: false, message: 'Session not found' });
+
+  // Only the mentor, the mentee or a college administrator may modify a
+  // session. Without this check any authenticated user could rewrite the
+  // status, rating and feedback of somebody else's mentoring session.
+  const isParticipant =
+    String(session.mentorId) === String(req.user._id) ||
+    String(session.menteeId) === String(req.user._id);
+  if (!isParticipant && req.user.role !== 'collegeAdmin' && req.user.role !== 'superadmin') {
+    return res.status(403).json({ success: false, message: 'Not authorized to modify this session' });
+  }
 
   if (status) session.status = status;
   if (notes) session.notes = notes;

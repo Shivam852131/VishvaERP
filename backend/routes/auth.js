@@ -10,7 +10,7 @@ const router = express.Router();
 router.post('/register', authLimiter, [
   body('name', 'Name is required').notEmpty().trim(),
   body('email', 'Please include a valid email').isEmail().normalizeEmail(),
-  body('password', 'Password must be 6 or more characters').isLength({ min: 6 }),
+  body('password', 'Password must be 8 or more characters').isLength({ min: 8 }),
   body('role', 'Valid registration role is required (collegeAdmin or student)').isIn(['collegeAdmin', 'student'])
 ], register);
 

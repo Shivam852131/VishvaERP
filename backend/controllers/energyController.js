@@ -1,9 +1,12 @@
 const asyncHandler = require('../middleware/asyncHandler');
 const { EnergyLog, SustainabilityGoal } = require('../models/EnergyLog');
 const { logAudit } = require('../services/auditService');
+const { buildDocument, buildUpdate } = require('../utils/safeUpdate');
 
 const logEnergy = asyncHandler(async (req, res) => {
-  const log = await EnergyLog.create({ collegeId: req.user.collegeId, ...req.body });
+  const log = await EnergyLog.create(buildDocument(EnergyLog, req.body, {
+    serverFields: { collegeId: req.user.collegeId },
+  }));
   res.status(201).json({ success: true, log });
 });
 
@@ -110,7 +113,9 @@ const createGoal = asyncHandler(async (req, res) => {
   if (payload.current !== undefined && payload.currentValue === undefined) {
     payload.currentValue = Number(payload.current);
   }
-  const goal = await SustainabilityGoal.create({ collegeId: req.user.collegeId, ...payload });
+  const goal = await SustainabilityGoal.create(buildDocument(SustainabilityGoal, payload, {
+    serverFields: { collegeId: req.user.collegeId },
+  }));
   logAudit(req, 'create', 'sustainability-goal', { resourceId: goal._id, description: `Goal: ${goal.title}` });
   res.status(201).json({ success: true, goal, data: goal });
 });
@@ -127,7 +132,7 @@ const getGoals = asyncHandler(async (req, res) => {
 const updateGoal = asyncHandler(async (req, res) => {
   const goal = await SustainabilityGoal.findOneAndUpdate(
     { _id: req.params.id, collegeId: req.user.collegeId },
-    req.body,
+    buildUpdate(SustainabilityGoal, req.body),
     { new: true, runValidators: true }
   );
   if (!goal) return res.status(404).json({ success: false, message: 'Goal not found' });

@@ -3,6 +3,7 @@ const Event = require('../models/Event');
 const User = require('../models/User');
 const { logAudit } = require('../services/auditService');
 const { emitDataChange } = require('../utils/realtime');
+const { buildUpdate } = require('../utils/safeUpdate');
 
 function escapeRegex(text) {
   return String(text || '').replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
@@ -209,7 +210,9 @@ const getEventById = asyncHandler(async (req, res) => {
 const updateEvent = asyncHandler(async (req, res) => {
   const event = await Event.findOneAndUpdate(
     { _id: req.params.id, collegeId: req.user.collegeId },
-    req.body,
+    // `organizer` (the audit actor) and the registration list are managed by
+    // the server - a client must not be able to rewrite either.
+    buildUpdate(Event, req.body, ['organizer', 'registrations']),
     { new: true, runValidators: true }
   );
 

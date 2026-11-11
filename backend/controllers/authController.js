@@ -28,13 +28,25 @@ if (!process.env.GOOGLE_CLIENT_ID && !process.env.GOOGLE_CLIENT_IDS) {
   console.warn('[Google Auth] GOOGLE_CLIENT_ID is not set - using the default client ID from the frontend. Set GOOGLE_CLIENT_ID in .env for production.');
 }
 
-// Roles that may be provisioned through Google sign-in (superadmin is excluded on purpose)
-const GOOGLE_PROVISION_ROLES = new Set(['student', 'faculty', 'parent', 'collegeAdmin']);
+// Roles that may be provisioned through Google sign-in (superadmin is excluded
+// on purpose). `faculty` is excluded as well: staff accounts must be created
+// by a college administrator, exactly like with `POST /api/auth/register`.
+const GOOGLE_PROVISION_ROLES = new Set(['student', 'parent', 'collegeAdmin']);
 
 const failedLoginAttempts = new Map();
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOCK_TIME = 15 * 60 * 1000; // 15 minutes
 const DEFAULT_TRIAL_DAYS = 30;
+
+/**
+ * Password policy - applied consistently to registration, password change
+ * and password reset (a weak "reset" would otherwise let an attacker set a
+ * trivially guessable password on an account they hijacked).
+ */
+const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+const PASSWORD_POLICY_MESSAGE = 'Password must be at least 8 characters and contain one uppercase letter, one lowercase letter, one number and one special character (@$!%*?&)';
+
+const isStrongPassword = (password) => typeof password === 'string' && PASSWORD_REGEX.test(password);
 
 function buildTrialWindow(days = DEFAULT_TRIAL_DAYS) {
   const startDate = new Date();
@@ -108,6 +120,11 @@ const register = asyncHandler(async (req, res) => {
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
   if (!passwordRegex.test(password)) {
     return res.status(400).json({ success: false, message: 'Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&)' });
+  }
+
+  // Enforce the stronger policy for new accounts.
+  if (!isStrongPassword(password)) {
+    return res.status(400).json({ success: false, message: PASSWORD_POLICY_MESSAGE });
   }
 
   // Check if user already exists
@@ -340,8 +357,8 @@ const resetPassword = asyncHandler(async (req, res) => {
   const { token } = req.params;
   const { password } = req.body;
 
-  if (!password || password.length < 6) {
-    return res.status(400).json({ success: false, message: 'Password must be at least 6 characters' });
+  if (!password || !isStrongPassword(password)) {
+    return res.status(400).json({ success: false, message: PASSWORD_POLICY_MESSAGE });
   }
 
   const hashedToken = hashResetToken(token);
@@ -501,8 +518,8 @@ const changePassword = asyncHandler(async (req, res) => {
     return res.status(400).json({ success: false, message: 'Current password and new password are required' });
   }
 
-  if (newPassword.length < 6) {
-    return res.status(400).json({ success: false, message: 'New password must be at least 6 characters' });
+  if (!isStrongPassword(newPassword)) {
+    return res.status(400).json({ success: false, message: PASSWORD_POLICY_MESSAGE });
   }
 
   if (currentPassword === newPassword) {
@@ -783,6 +800,31 @@ async function probeGoogleOrigin(origin) {
   }
 }
 
+// Cache of origin probe results. Without a cache every call would trigger two
+// outbound requests to Google, which turns this public endpoint into a
+// request amplifier against a third party and an origin-enumeration oracle.
+const GOOGLE_ORIGIN_CACHE = new Map();
+const GOOGLE_ORIGIN_CACHE_TTL = 10 * 60 * 1000;
+const GOOGLE_ORIGIN_CACHE_MAX = 100;
+
+function cacheGet(key) {
+  const entry = GOOGLE_ORIGIN_CACHE.get(key);
+  if (!entry) return undefined;
+  if (Date.now() > entry.expiresAt) {
+    GOOGLE_ORIGIN_CACHE.delete(key);
+    return undefined;
+  }
+  return entry.value;
+}
+
+function cacheSet(key, value) {
+  if (GOOGLE_ORIGIN_CACHE.size >= GOOGLE_ORIGIN_CACHE_MAX) {
+    const oldest = GOOGLE_ORIGIN_CACHE.keys().next().value;
+    if (oldest !== undefined) GOOGLE_ORIGIN_CACHE.delete(oldest);
+  }
+  GOOGLE_ORIGIN_CACHE.set(key, { value, expiresAt: Date.now() + GOOGLE_ORIGIN_CACHE_TTL });
+}
+
 // @desc    Tell the frontend whether this origin is allowed to use Google Sign-In
 // @route   POST /api/auth/google-origin-check
 // @access  Public
@@ -790,6 +832,11 @@ const googleOriginCheck = asyncHandler(async (req, res) => {
   const origin = typeof req.body.origin === 'string' ? req.body.origin.trim().replace(/\/+$/, '') : '';
   if (!/^https?:\/\/[^/\s]+$/.test(origin)) {
     return res.status(400).json({ success: false, message: 'Invalid origin' });
+  }
+
+  const cached = cacheGet(origin);
+  if (cached !== undefined) {
+    return res.json({ success: true, allowed: cached });
   }
 
   const [status, controlStatus] = await Promise.all([
@@ -803,7 +850,9 @@ const googleOriginCheck = asyncHandler(async (req, res) => {
   }
 
   const controlAllowed = controlStatus !== 403;
-  res.json({ success: true, allowed: controlAllowed ? status !== 403 : null });
+  const allowed = controlAllowed ? status !== 403 : null;
+  cacheSet(origin, allowed);
+  res.json({ success: true, allowed });
 });
 
 const googleLogin = asyncHandler(async (req, res) => {

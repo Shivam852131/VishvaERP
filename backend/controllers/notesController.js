@@ -5,6 +5,7 @@ const Course = require('../models/Course');
 const { emitDataChange } = require('../utils/realtime');
 const { logAudit } = require('../services/auditService');
 const { deleteFile } = require('../services/fileService');
+const { regexFilter } = require('../utils/parseHelpers');
 
 const getNotes = asyncHandler(async (req, res) => {
   const { subjectId, courseId, semester, search, sort = 'newest', page = 1, limit = 20 } = req.query;
@@ -16,9 +17,9 @@ const getNotes = asyncHandler(async (req, res) => {
 
   if (search) {
     query.$or = [
-      { title: { $regex: search, $options: 'i' } },
-      { description: { $regex: search, $options: 'i' } },
-      { tags: { $regex: search, $options: 'i' } },
+      { title: regexFilter(search) },
+      { description: regexFilter(search) },
+      { tags: regexFilter(search) },
     ];
   }
 

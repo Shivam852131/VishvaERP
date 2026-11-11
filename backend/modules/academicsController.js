@@ -12,8 +12,9 @@ const Attendance = require('../models/Attendance');
 const Result = require('../models/Result');
 const Fee = require('../models/Fee');
 const { emitDataChange } = require('../utils/realtime');
-const { parseSemester, escapeRegex } = require('../utils/parseHelpers');
+const { parseSemester, escapeRegex, regexFilter } = require('../utils/parseHelpers');
 const { logAudit } = require('../services/auditService');
+const { getChildStudentIds, NO_MATCH } = require('../utils/accessControl');
 
 const toProgramCode = (department = '') => {
   const normalized = String(department).toUpperCase().replace(/[^A-Z0-9]+/g, '-').replace(/^-+|-+$/g, '');
@@ -171,9 +172,9 @@ const getCourses = asyncHandler(async (req, res) => {
 
   if (search) {
     query.$or = [
-      { name: { $regex: search, $options: 'i' } },
-      { code: { $regex: search, $options: 'i' } },
-      { department: { $regex: search, $options: 'i' } },
+      { name: regexFilter(search) },
+      { code: regexFilter(search) },
+      { department: regexFilter(search) },
     ];
   }
 
@@ -234,8 +235,8 @@ const getSubjects = asyncHandler(async (req, res) => {
 
   if (search) {
     query.$or = [
-      { name: { $regex: search, $options: 'i' } },
-      { code: { $regex: search, $options: 'i' } },
+      { name: regexFilter(search) },
+      { code: regexFilter(search) },
     ];
   }
 
@@ -262,9 +263,9 @@ const getStudents = asyncHandler(async (req, res) => {
 
   if (req.query.search) {
     query.$or = [
-      { name: { $regex: req.query.search, $options: 'i' } },
-      { rollNo: { $regex: req.query.search, $options: 'i' } },
-      { email: { $regex: req.query.search, $options: 'i' } },
+      { name: regexFilter(req.query.search) },
+      { rollNo: regexFilter(req.query.search) },
+      { email: regexFilter(req.query.search) },
     ];
   }
 
@@ -578,11 +579,19 @@ const createAssignment = asyncHandler(async (req, res) => {
 });
 
 const deleteAssignment = asyncHandler(async (req, res) => {
-  const assignment = await Assignment.findOneAndDelete({ _id: req.params.id, collegeId: req.user.collegeId });
+  const assignment = await Assignment.findOne({ _id: req.params.id, collegeId: req.user.collegeId });
   if (!assignment) {
     return res.status(404).json({ success: false, message: 'Assignment not found' });
   }
 
+  // Faculty may only delete their own assignments. Without this check any
+  // faculty member could delete (and wipe the submissions of) another
+  // faculty member's assignment.
+  if (req.user.role === 'faculty' && String(assignment.facultyId) !== String(req.user._id)) {
+    return res.status(403).json({ success: false, message: 'Access denied: you can only delete your own assignments' });
+  }
+
+  await Assignment.findOneAndDelete({ _id: assignment._id, collegeId: req.user.collegeId });
   await Submission.deleteMany({ assignmentId: assignment._id, collegeId: req.user.collegeId });
   emitDataChange(req, {
     collegeId: String(req.user.collegeId),
@@ -642,10 +651,10 @@ const getLibraryBooks = asyncHandler(async (req, res) => {
 
   if (search) {
     query.$or = [
-      { title: { $regex: search, $options: 'i' } },
-      { author: { $regex: search, $options: 'i' } },
-      { isbn: { $regex: search, $options: 'i' } },
-      { subject: { $regex: search, $options: 'i' } },
+      { title: regexFilter(search) },
+      { author: regexFilter(search) },
+      { isbn: regexFilter(search) },
+      { subject: regexFilter(search) },
     ];
   }
 
@@ -723,10 +732,17 @@ const issueBook = asyncHandler(async (req, res) => {
     userId = child._id;
   }
 
+  // The borrower must be a student of this college - otherwise a staff member
+  // could issue a book against an arbitrary (or cross-tenant) user id.
+  const borrower = await User.findOne({ _id: userId, collegeId: req.user.collegeId, role: 'student' }).select('_id');
+  if (!borrower) {
+    return res.status(404).json({ success: false, message: 'Student not found in your college' });
+  }
+
   const record = await LibraryRecord.create({
     collegeId: req.user.collegeId,
     bookId: book._id,
-    userId,
+    userId: borrower._id,
     dueDate: req.body.dueDate || new Date(Date.now() + 14 * 24 * 60 * 60 * 1000),
     status: 'issued',
   });
@@ -752,7 +768,19 @@ const returnBook = asyncHandler(async (req, res) => {
   if (!recordId) return res.status(400).json({ success: false, message: 'Record ID is required' });
 
   const { LibraryRecord } = require('../models/Library');
-  const record = await LibraryRecord.findOne({ _id: recordId, collegeId: req.user.collegeId });
+
+  // Ownership scoped: only the borrower (or their parent) / staff may mark a
+  // loan as returned. Otherwise any student could return somebody else's book
+  // (clearing their overdue fine) and inflate the copy counter.
+  const recordQuery = { _id: recordId, collegeId: req.user.collegeId };
+  if (req.user.role === 'student') {
+    recordQuery.userId = req.user._id;
+  } else if (req.user.role === 'parent') {
+    const children = await getChildStudentIds(req);
+    recordQuery.userId = { $in: children.length ? children : [NO_MATCH] };
+  }
+
+  const record = await LibraryRecord.findOne(recordQuery);
   if (!record) return res.status(404).json({ success: false, message: 'Library record not found' });
   if (record.status === 'returned') return res.status(400).json({ success: false, message: 'Book already returned' });
 
@@ -785,6 +813,11 @@ const gradeSubmission = asyncHandler(async (req, res) => {
 
   const assignment = await require('../models/Assignment').Assignment.findById(submission.assignmentId);
   if (!assignment) return res.status(404).json({ success: false, message: 'Assignment not found' });
+
+  // Faculty may only grade submissions for assignments they own.
+  if (req.user.role === 'faculty' && String(assignment.facultyId) !== String(req.user._id)) {
+    return res.status(403).json({ success: false, message: 'Access denied: you can only grade submissions for your own assignments' });
+  }
 
   if (marksObtained !== undefined && marksObtained > assignment.totalMarks) {
     return res.status(400).json({ success: false, message: `Marks cannot exceed total marks (${assignment.totalMarks})` });
